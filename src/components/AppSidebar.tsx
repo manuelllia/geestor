@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   Home, 
@@ -53,7 +52,7 @@ const AppSidebar: React.FC<AppSidebarProps> = ({
   permissionsKey 
 }) => {
   const { t } = useTranslation(language);
-  const { state, toggleSidebar } = useSidebar();
+  const { state, toggleSidebar, isMobile } = useSidebar();
   const [isDepartamentosOpen, setIsDepartamentosOpen] = useState(false);
   const [openDepartment, setOpenDepartment] = useState<string | null>(null);
   const [openSubmenus, setOpenSubmenus] = useState<string[]>([]);
@@ -68,7 +67,7 @@ const AppSidebar: React.FC<AppSidebarProps> = ({
     }
   });
 
-  const isCollapsed = state === 'collapsed';
+  const isCollapsed = state === 'collapsed' && !isMobile;
 
   const toggleDepartment = (departmentId: string) => {
     if (openDepartment === departmentId) {
@@ -255,7 +254,7 @@ const AppSidebar: React.FC<AppSidebarProps> = ({
     >
       <SidebarHeader className="border-b border-blue-200 dark:border-blue-800 h-16 p-4 bg-blue-100 dark:bg-blue-900 flex items-center">
         <div className="flex items-center justify-between w-full">
-          {!isCollapsed && (
+          {(!isCollapsed || isMobile) && (
             <div className="flex items-center gap-2">
               <img 
                 src="/lovable-uploads/4a540878-1ca7-4aac-b819-248b4edd1230.png" 
@@ -267,7 +266,7 @@ const AppSidebar: React.FC<AppSidebarProps> = ({
               </span>
             </div>
           )}
-          {isCollapsed && (
+          {(isCollapsed && !isMobile) && (
             <img 
               src="/lovable-uploads/4a540878-1ca7-4aac-b819-248b4edd1230.png" 
               alt="GEESTOR Logo" 
@@ -311,7 +310,7 @@ const AppSidebar: React.FC<AppSidebarProps> = ({
                     <item.icon className={`text-blue-600 dark:text-blue-400 flex-shrink-0 ${
                       isCollapsed ? 'w-5 h-5' : 'w-5 h-5'
                     }`} />
-                    {!isCollapsed && <span className="font-medium">{item.title}</span>}
+                    {(!isCollapsed || isMobile) && <span className="font-medium">{item.title}</span>}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -335,9 +334,9 @@ const AppSidebar: React.FC<AppSidebarProps> = ({
                           <Building2 className={`text-blue-600 dark:text-blue-400 flex-shrink-0 ${
                             isCollapsed ? 'w-5 h-5' : 'w-5 h-5'
                           }`} />
-                          {!isCollapsed && <span className="font-medium">{t('departamentos')}</span>}
+                          {(!isCollapsed || isMobile) && <span className="font-medium">{t('departamentos')}</span>}
                         </div>
-                        {!isCollapsed && (
+                        {(!isCollapsed || isMobile) && (
                           <div className="transition-transform duration-200">
                             {isDepartamentosOpen ? (
                               <ChevronDown className="w-4 h-4 text-blue-600 dark:text-blue-400" />
@@ -349,7 +348,7 @@ const AppSidebar: React.FC<AppSidebarProps> = ({
                       </SidebarMenuButton>
                     </CollapsibleTrigger>
                     
-                    {!isCollapsed && (
+                    {(!isCollapsed || isMobile) && (
                       <CollapsibleContent className="ml-6 mt-2 space-y-2 animate-slideDown">
                         {visibleDepartments.map((department) => (
                           <Collapsible 
@@ -380,7 +379,7 @@ const AppSidebar: React.FC<AppSidebarProps> = ({
               )}
 
               {/* Departamentos para modo colapsado con hover */}
-              {isCollapsed && visibleDepartments.map((department) => (
+              {isCollapsed && !isMobile && visibleDepartments.map((department) => (
                 <SidebarMenuItem key={`collapsed-${department.id}`}>
                   <div
                     className="relative"

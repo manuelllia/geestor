@@ -16,9 +16,17 @@ import {
   DropdownMenuItem, 
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
-import { Plus, Download, Upload, ChevronLeft, ChevronRight, FileJson, FileText } from 'lucide-react';
+import { Plus, Download, Upload, ChevronLeft, ChevronRight, FileJson, FileText, Copy, FileDown } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Language } from '../../utils/translations';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
 
 interface ChangeSheetsListViewProps {
   language: Language;
@@ -37,7 +45,10 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({
 
   // Datos simulados vacíos por ahora
   const changeSheets: any[] = [];
-  const totalPages = Math.ceil(changeSheets.length / itemsPerPage);
+  const totalItems = changeSheets.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startItem = (currentPage - 1) * itemsPerPage + 1;
+  const endItem = Math.min(currentPage * itemsPerPage, totalItems);
 
   const handleExport = (format: 'json' | 'csv') => {
     // Implementación futura del export
@@ -47,6 +58,16 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({
   const handleImport = () => {
     // Implementación futura del import
     console.log('Importando datos');
+  };
+
+  const handleDuplicate = (id: string) => {
+    // Implementación futura de duplicar registro
+    console.log(`Duplicando registro ${id}`);
+  };
+
+  const handleDownloadPDF = (id: string) => {
+    // Implementación futura de descarga PDF
+    console.log(`Descargando PDF ${id}`);
   };
 
   return (
@@ -105,39 +126,50 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({
           <Table>
             <TableHeader>
               <TableRow className="bg-blue-50 dark:bg-blue-900/20">
-                <TableHead className="text-blue-800 dark:text-blue-200">ID</TableHead>
-                <TableHead className="text-blue-800 dark:text-blue-200">{t('title')}</TableHead>
+                <TableHead className="text-blue-800 dark:text-blue-200">{t('employeeName')}</TableHead>
+                <TableHead className="text-blue-800 dark:text-blue-200">{t('originCenter')}</TableHead>
+                <TableHead className="text-blue-800 dark:text-blue-200">{t('destinationCenter')}</TableHead>
+                <TableHead className="text-blue-800 dark:text-blue-200">{t('startDate')}</TableHead>
+                <TableHead className="text-blue-800 dark:text-blue-200">{t('duplicateRecord')}</TableHead>
+                <TableHead className="text-blue-800 dark:text-blue-200">{t('downloadPDF')}</TableHead>
                 <TableHead className="text-blue-800 dark:text-blue-200">{t('status')}</TableHead>
-                <TableHead className="text-blue-800 dark:text-blue-200">{t('createdDate')}</TableHead>
-                <TableHead className="text-blue-800 dark:text-blue-200">{t('lastModified')}</TableHead>
-                <TableHead className="text-blue-800 dark:text-blue-200">{t('actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {changeSheets.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                  <TableCell colSpan={7} className="text-center py-8 text-gray-500">
                     {t('noDataAvailable')}
                   </TableCell>
                 </TableRow>
               ) : (
                 changeSheets.map((sheet) => (
                   <TableRow key={sheet.id} className="hover:bg-blue-25 dark:hover:bg-blue-900/10">
-                    <TableCell>{sheet.id}</TableCell>
-                    <TableCell>{sheet.title}</TableCell>
-                    <TableCell>{sheet.status}</TableCell>
-                    <TableCell>{sheet.createdDate}</TableCell>
-                    <TableCell>{sheet.lastModified}</TableCell>
+                    <TableCell>{sheet.employeeName}</TableCell>
+                    <TableCell>{sheet.originCenter}</TableCell>
+                    <TableCell>{sheet.destinationCenter}</TableCell>
+                    <TableCell>{sheet.startDate}</TableCell>
                     <TableCell>
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => onViewDetails?.(sheet.id)}
+                        onClick={() => handleDuplicate(sheet.id)}
                         className="text-blue-600 hover:text-blue-800"
                       >
-                        {t('view')}
+                        <Copy className="w-4 h-4" />
                       </Button>
                     </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDownloadPDF(sheet.id)}
+                        className="text-blue-600 hover:text-blue-800"
+                      >
+                        <FileDown className="w-4 h-4" />
+                      </Button>
+                    </TableCell>
+                    <TableCell>{sheet.status}</TableCell>
                   </TableRow>
                 ))
               )}
@@ -146,32 +178,57 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({
         </CardContent>
       </Card>
 
-      {/* Paginación */}
-      {totalPages > 1 && (
-        <div className="flex justify-center items-center space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-            disabled={currentPage === 1}
-            className="border-blue-300 text-blue-700"
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </Button>
+      {/* Información de registros y paginación */}
+      {totalItems > 0 && (
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+          <div className="text-sm text-gray-700 dark:text-gray-300">
+            {t('showingRecords', { start: startItem, end: endItem, total: totalItems })}
+          </div>
           
-          <span className="text-blue-700 dark:text-blue-300">
-            {t('page')} {currentPage} {t('of')} {totalPages}
-          </span>
-          
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-            disabled={currentPage === totalPages}
-            className="border-blue-300 text-blue-700"
-          >
-            <ChevronRight className="w-4 h-4" />
-          </Button>
+          {totalPages > 1 && (
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious 
+                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                    className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                  />
+                </PaginationItem>
+                
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let pageNumber;
+                  if (totalPages <= 5) {
+                    pageNumber = i + 1;
+                  } else if (currentPage <= 3) {
+                    pageNumber = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNumber = totalPages - 4 + i;
+                  } else {
+                    pageNumber = currentPage - 2 + i;
+                  }
+
+                  return (
+                    <PaginationItem key={pageNumber}>
+                      <PaginationLink
+                        onClick={() => setCurrentPage(pageNumber)}
+                        isActive={currentPage === pageNumber}
+                        className="cursor-pointer"
+                      >
+                        {pageNumber}
+                      </PaginationLink>
+                    </PaginationItem>
+                  );
+                })}
+                
+                <PaginationItem>
+                  <PaginationNext 
+                    onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                    className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          )}
         </div>
       )}
     </div>
