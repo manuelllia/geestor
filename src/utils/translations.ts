@@ -1,3 +1,4 @@
+
 export type Language = 'es' | 'en';
 export type Theme = 'light' | 'dark';
 
@@ -13,9 +14,17 @@ export const translations: Translations = {
     es: 'GEESTOR',
     en: 'GEESTOR'
   },
+  welcome: {
+    es: 'Bienvenido',
+    en: 'Welcome'
+  },
   login: {
     es: 'Iniciar Sesión',
     en: 'Sign In'
+  },
+  loginButton: {
+    es: 'Continuar con Microsoft',
+    en: 'Continue with Microsoft'
   },
   loginWithMicrosoft: {
     es: 'Continuar con Microsoft',
@@ -113,9 +122,25 @@ export const translations: Translations = {
     es: 'Idioma',
     en: 'Language'
   },
+  spanish: {
+    es: 'Español',
+    en: 'Spanish'
+  },
+  english: {
+    es: 'Inglés',
+    en: 'English'
+  },
   theme: {
     es: 'Tema',
     en: 'Theme'
+  },
+  light: {
+    es: 'Claro',
+    en: 'Light'
+  },
+  dark: {
+    es: 'Oscuro',
+    en: 'Dark'
   },
   logout: {
     es: 'Cerrar Sesión',
@@ -125,7 +150,6 @@ export const translations: Translations = {
     es: 'Configuración',
     en: 'Settings'
   },
-  // Nuevas traducciones para el perfil
   userProfile: {
     es: 'Perfil de Usuario',
     en: 'User Profile'
@@ -181,6 +205,10 @@ export const translations: Translations = {
   accountVerification: {
     es: 'Verificación de Cuenta',
     en: 'Account Verification'
+  },
+  verifyingAccount: {
+    es: 'Verificando cuenta',
+    en: 'Verifying account'
   },
   verificationMessage: {
     es: 'Tu cuenta está siendo verificada. Por favor, espera un momento.',
