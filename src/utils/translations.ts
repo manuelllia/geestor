@@ -1,4 +1,3 @@
-
 export type Language = 'es' | 'en';
 export type Theme = 'light' | 'dark';
 
@@ -62,6 +61,10 @@ export const translations = {
   invalidCode: {
     es: 'Código inválido. Inténtalo de nuevo.',
     en: 'Invalid code. Please try again.'
+  },
+  verifyingAccount: {
+    es: 'Verificando cuenta...',
+    en: 'Verifying account...'
   },
   appName: {
     es: 'GEESTOR',
