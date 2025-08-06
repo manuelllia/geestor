@@ -6,6 +6,8 @@ import ChangeSheetsListView from './ChangeSheets/ChangeSheetsListView';
 import ChangeSheetDetailView from './ChangeSheets/ChangeSheetDetailView';
 import EmployeeAgreementsListView from './EmployeeAgreements/EmployeeAgreementsListView';
 import EmployeeAgreementDetailView from './EmployeeAgreements/EmployeeAgreementDetailView';
+import RealEstateListView from './RealEstate/RealEstateListView';
+import RealEstateDetailView from './RealEstate/RealEstateDetailView';
 
 interface MainContentProps {
   activeSection: string;
@@ -62,7 +64,7 @@ const MainContent: React.FC<MainContentProps> = ({ activeSection, language }) =>
           />
         );
 
-      case 'acuerdos-empleado':
+      case 'acuerdo-empleado':
         if (currentView === 'detail') {
           return (
             <EmployeeAgreementDetailView
@@ -77,6 +79,24 @@ const MainContent: React.FC<MainContentProps> = ({ activeSection, language }) =>
             language={language}
             onViewDetails={handleViewDetails}
             onCreateNew={() => console.log('Crear nuevo acuerdo')}
+          />
+        );
+
+      case 'gestion-inmuebles':
+        if (currentView === 'detail') {
+          return (
+            <RealEstateDetailView
+              language={language}
+              propertyId={selectedId}
+              onBack={handleBackToList}
+            />
+          );
+        }
+        return (
+          <RealEstateListView
+            language={language}
+            onViewDetails={handleViewDetails}
+            onCreateNew={() => console.log('Crear nuevo inmueble')}
           />
         );
 

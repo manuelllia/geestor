@@ -46,7 +46,7 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
       actions: {
         create: true,
         edit: true,
-        delete: false
+        delete: true // Cambiado a true por defecto
       }
     };
   });
@@ -93,7 +93,8 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
     }));
   };
 
-  const handleModalTrigger = (e: React.MouseEvent) => {
+  // Función para manejar el click del trigger sin propagación
+  const handleTriggerClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setIsOpen(true);
@@ -102,7 +103,7 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <div onClick={handleModalTrigger} style={{ cursor: 'pointer', width: '100%' }}>
+        <div onClick={handleTriggerClick} className="cursor-pointer w-full">
           {children}
         </div>
       </DialogTrigger>

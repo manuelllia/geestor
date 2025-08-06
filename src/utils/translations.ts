@@ -1,4 +1,3 @@
-
 export type Language = 'es' | 'en';
 export type Theme = 'light' | 'dark';
 
@@ -307,5 +306,31 @@ export const translations = {
   comingSoon: {
     es: 'Próximamente disponible',
     en: 'Coming soon'
+  },
+  
+  // Real Estate Management
+  realEstateManagement: {
+    es: 'Gestión de Inmuebles',
+    en: 'Real Estate Management'
+  },
+  realEstateDetails: {
+    es: 'Detalles del Inmueble',
+    en: 'Real Estate Details'
+  },
+  propertyCode: {
+    es: 'Código',
+    en: 'Code'
+  },
+  address: {
+    es: 'Dirección',
+    en: 'Address'
+  },
+  propertyType: {
+    es: 'Tipo',
+    en: 'Type'
+  },
+  registrationDate: {
+    es: 'Fecha de Registro',
+    en: 'Registration Date'
   }
 };
