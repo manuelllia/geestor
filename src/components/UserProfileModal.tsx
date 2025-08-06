@@ -16,17 +16,20 @@ interface UserProfileModalProps {
   user: UserType;
   language: Language;
   onUserUpdate: (updatedUser: UserType) => void;
+  onPermissionsUpdate?: () => void; // Nueva prop para notificar cambios de permisos
   children: React.ReactNode;
 }
 
 const UserProfileModal: React.FC<UserProfileModalProps> = ({ 
   user, 
   language, 
-  onUserUpdate, 
+  onUserUpdate,
+  onPermissionsUpdate, 
   children 
 }) => {
   const { t } = useTranslation(language);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isOpen, setIsOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: user.name,
     email: user.email,
@@ -71,6 +74,13 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
     localStorage.setItem('userPermissions', JSON.stringify(permissions));
     
     onUserUpdate(updatedUser);
+    
+    // Notificar al componente padre que los permisos han cambiado
+    if (onPermissionsUpdate) {
+      onPermissionsUpdate();
+    }
+    
+    setIsOpen(false);
   };
 
   const handlePermissionChange = (category: string, key: string, value: boolean) => {
@@ -84,7 +94,7 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
   };
 
   return (
-    <Dialog>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         {children}
       </DialogTrigger>

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Home, 
   Building2, 
@@ -43,18 +43,21 @@ interface AppSidebarProps {
   language: Language;
   activeSection: string;
   onSectionChange: (section: string) => void;
+  permissionsKey?: number; // Nueva prop para forzar re-render cuando cambien los permisos
 }
 
-const AppSidebar: React.FC<AppSidebarProps> = ({ language, activeSection, onSectionChange }) => {
+const AppSidebar: React.FC<AppSidebarProps> = ({ 
+  language, 
+  activeSection, 
+  onSectionChange,
+  permissionsKey 
+}) => {
   const { t } = useTranslation(language);
   const { state, toggleSidebar } = useSidebar();
   const [isDepartamentosOpen, setIsDepartamentosOpen] = useState(false);
   const [openDepartment, setOpenDepartment] = useState<string | null>(null);
   const [openSubmenus, setOpenSubmenus] = useState<string[]>([]);
-  const isCollapsed = state === 'collapsed';
-
-  // Obtener permisos del usuario
-  const userPermissions = React.useMemo(() => {
+  const [userPermissions, setUserPermissions] = useState(() => {
     const stored = localStorage.getItem('userPermissions');
     return stored ? JSON.parse(stored) : {
       departments: {
@@ -63,7 +66,16 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ language, activeSection, onSect
         gestionTalento: true
       }
     };
-  }, []);
+  });
+  const isCollapsed = state === 'collapsed';
+
+  // Actualizar permisos cuando cambie permissionsKey
+  useEffect(() => {
+    const stored = localStorage.getItem('userPermissions');
+    if (stored) {
+      setUserPermissions(JSON.parse(stored));
+    }
+  }, [permissionsKey]);
 
   const toggleDepartment = (departmentId: string) => {
     // Cerrar otros departamentos cuando se abre uno nuevo
