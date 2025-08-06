@@ -8,13 +8,11 @@ import VerificationScreen from '../components/VerificationScreen';
 import Header from '../components/Header';
 import AppSidebar from '../components/AppSidebar';
 import MainContent from '../components/MainContent';
-import SettingsModal from '../components/SettingsModal';
 
 const Index = () => {
   const { user, isAuthenticated, isLoading, isVerifying, loginWithMicrosoft, logout } = useAuth();
   const { preferences, setLanguage, setTheme } = usePreferences();
   const [activeSection, setActiveSection] = useState('inicio');
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   // Show loading screen while checking authentication
   if (isLoading) {
@@ -43,38 +41,29 @@ const Index = () => {
 
   // Main application interface
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={true}>
       <div className="min-h-screen flex w-full bg-gray-50 dark:bg-gray-900">
-        <div className="flex flex-col w-full">
+        <AppSidebar
+          language={preferences.language}
+          activeSection={activeSection}
+          onSectionChange={setActiveSection}
+        />
+        
+        <div className="flex flex-col flex-1 min-w-0">
           <Header
             user={user}
             onLogout={logout}
-            onOpenSettings={() => setIsSettingsOpen(true)}
             language={preferences.language}
+            theme={preferences.theme}
+            onLanguageChange={setLanguage}
+            onThemeChange={setTheme}
           />
           
-          <div className="flex flex-1">
-            <AppSidebar
-              language={preferences.language}
-              activeSection={activeSection}
-              onSectionChange={setActiveSection}
-            />
-            
-            <MainContent
-              activeSection={activeSection}
-              language={preferences.language}
-            />
-          </div>
+          <MainContent
+            activeSection={activeSection}
+            language={preferences.language}
+          />
         </div>
-
-        <SettingsModal
-          isOpen={isSettingsOpen}
-          onClose={() => setIsSettingsOpen(false)}
-          language={preferences.language}
-          theme={preferences.theme}
-          onLanguageChange={setLanguage}
-          onThemeChange={setTheme}
-        />
       </div>
     </SidebarProvider>
   );

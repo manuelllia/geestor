@@ -1,9 +1,21 @@
 
 import React, { useState } from 'react';
-import { Home, Building2, ChevronDown, ChevronRight } from 'lucide-react';
-import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
+import { Home, Building2, ChevronDown, ChevronRight, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { 
+  Sidebar, 
+  SidebarContent, 
+  SidebarGroup, 
+  SidebarGroupContent, 
+  SidebarMenu, 
+  SidebarMenuButton, 
+  SidebarMenuItem,
+  SidebarHeader,
+  useSidebar
+} from '@/components/ui/sidebar';
+import { Button } from '@/components/ui/button';
 import { useTranslation } from '../hooks/useTranslation';
 import { Language } from '../utils/translations';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 interface AppSidebarProps {
   language: Language;
@@ -13,7 +25,9 @@ interface AppSidebarProps {
 
 const AppSidebar: React.FC<AppSidebarProps> = ({ language, activeSection, onSectionChange }) => {
   const { t } = useTranslation(language);
-  const [isExpanded, setIsExpanded] = useState(false);
+  const { state, toggleSidebar } = useSidebar();
+  const [isDepartamentosOpen, setIsDepartamentosOpen] = useState(false);
+  const isCollapsed = state === 'collapsed';
 
   const menuItems = [
     {
@@ -21,72 +35,118 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ language, activeSection, onSect
       title: t('inicio'),
       icon: Home,
       onClick: () => onSectionChange('inicio')
-    },
-    {
-      id: 'departamentos',
-      title: t('departamentos'),
-      icon: Building2,
-      hasSubMenu: true,
-      subItems: [
-        { id: 'operaciones', title: t('operaciones') },
-        { id: 'gestion-tecnica', title: t('gestionTecnica') },
-        { id: 'gestion-talento', title: t('gestionTalento') }
-      ]
     }
   ];
 
-  const handleDepartamentosClick = () => {
-    setIsExpanded(!isExpanded);
-  };
+  const departamentosSubItems = [
+    { id: 'operaciones', title: t('operaciones') },
+    { id: 'gestion-tecnica', title: t('gestionTecnica') },
+    { id: 'gestion-talento', title: t('gestionTalento') }
+  ];
 
   const handleSubItemClick = (subItemId: string) => {
     onSectionChange(subItemId);
   };
 
   return (
-    <Sidebar className="w-64 bg-primary border-r border-primary-foreground/10">
-      <SidebarContent className="p-0">
+    <Sidebar 
+      className="border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900"
+      collapsible="icon"
+    >
+      <SidebarHeader className="border-b border-gray-200 dark:border-gray-700 p-4">
+        <div className="flex items-center justify-between">
+          {!isCollapsed && (
+            <div className="flex items-center gap-2">
+              <img 
+                src="/lovable-uploads/4a540878-1ca7-4aac-b819-248b4edd1230.png" 
+                alt="GEESTOR Logo" 
+                className="w-6 h-6 object-contain"
+              />
+              <span className="font-semibold text-sm text-gray-900 dark:text-white">
+                GEESTOR
+              </span>
+            </div>
+          )}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleSidebar}
+            className="hidden md:flex h-8 w-8 hover:bg-gray-100 dark:hover:bg-gray-800"
+          >
+            {isCollapsed ? (
+              <PanelLeftOpen className="h-4 w-4" />
+            ) : (
+              <PanelLeftClose className="h-4 w-4" />
+            )}
+          </Button>
+        </div>
+      </SidebarHeader>
+
+      <SidebarContent className="p-2">
         <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-1 p-4">
+            <SidebarMenu className="space-y-1">
+              {/* Inicio */}
               {menuItems.map((item) => (
-                <div key={item.id}>
-                  <SidebarMenuItem>
+                <SidebarMenuItem key={item.id}>
+                  <SidebarMenuButton
+                    onClick={item.onClick}
+                    isActive={activeSection === item.id}
+                    className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                    tooltip={isCollapsed ? item.title : undefined}
+                  >
+                    <item.icon className="w-5 h-5 flex-shrink-0" />
+                    {!isCollapsed && <span className="font-medium">{item.title}</span>}
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+
+              {/* Departamentos */}
+              <SidebarMenuItem>
+                <Collapsible 
+                  open={isDepartamentosOpen} 
+                  onOpenChange={setIsDepartamentosOpen}
+                  className="w-full"
+                >
+                  <CollapsibleTrigger asChild>
                     <SidebarMenuButton
-                      onClick={item.hasSubMenu ? handleDepartamentosClick : item.onClick}
-                      className={`w-full flex items-center justify-between p-3 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent transition-colors ${
-                        activeSection === item.id ? 'bg-sidebar-accent' : ''
-                      }`}
+                      className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                      tooltip={isCollapsed ? t('departamentos') : undefined}
                     >
                       <div className="flex items-center gap-3">
-                        <item.icon className="w-5 h-5" />
-                        <span className="font-medium">{item.title}</span>
+                        <Building2 className="w-5 h-5 flex-shrink-0" />
+                        {!isCollapsed && <span className="font-medium">{t('departamentos')}</span>}
                       </div>
-                      {item.hasSubMenu && (
-                        isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />
+                      {!isCollapsed && (
+                        <div className="transition-transform duration-200">
+                          {isDepartamentosOpen ? (
+                            <ChevronDown className="w-4 h-4" />
+                          ) : (
+                            <ChevronRight className="w-4 h-4" />
+                          )}
+                        </div>
                       )}
                     </SidebarMenuButton>
-                  </SidebarMenuItem>
+                  </CollapsibleTrigger>
                   
-                  {item.hasSubMenu && isExpanded && (
-                    <div className="ml-6 mt-2 space-y-1 animate-slideDown">
-                      {item.subItems?.map((subItem) => (
+                  {!isCollapsed && (
+                    <CollapsibleContent className="ml-6 mt-2 space-y-1 animate-slideDown">
+                      {departamentosSubItems.map((subItem) => (
                         <SidebarMenuItem key={subItem.id}>
                           <SidebarMenuButton
                             onClick={() => handleSubItemClick(subItem.id)}
-                            className={`w-full flex items-center p-2 pl-4 rounded-lg text-sm text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors ${
-                              activeSection === subItem.id ? 'bg-sidebar-accent text-sidebar-foreground' : ''
-                            }`}
+                            isActive={activeSection === subItem.id}
+                            className="w-full flex items-center gap-3 px-4 py-2 text-sm rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                           >
-                            <div className="w-2 h-2 bg-current rounded-full mr-3" />
-                            {subItem.title}
+                            <div className="w-2 h-2 bg-current rounded-full flex-shrink-0" />
+                            <span>{subItem.title}</span>
                           </SidebarMenuButton>
                         </SidebarMenuItem>
                       ))}
-                    </div>
+                    </CollapsibleContent>
                   )}
-                </div>
-              ))}
+                </Collapsible>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
