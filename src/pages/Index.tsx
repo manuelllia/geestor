@@ -13,6 +13,21 @@ const Index = () => {
   const { user, isAuthenticated, isLoading, isVerifying, loginWithMicrosoft, logout } = useAuth();
   const { preferences, setLanguage, setTheme } = usePreferences();
   const [activeSection, setActiveSection] = useState('inicio');
+  const [userState, setUserState] = useState(user);
+  const [permissionsUpdateKey, setPermissionsUpdateKey] = useState(0);
+
+  // Update user state when user prop changes
+  React.useEffect(() => {
+    setUserState(user);
+  }, [user]);
+
+  const handleUserUpdate = (updatedUser: typeof user) => {
+    setUserState(updatedUser);
+  };
+
+  const handlePermissionsUpdate = () => {
+    setPermissionsUpdateKey(prev => prev + 1);
+  };
 
   // Show loading screen while checking authentication
   if (isLoading) {
@@ -29,7 +44,7 @@ const Index = () => {
   }
 
   // Show login screen if not authenticated
-  if (!isAuthenticated || !user) {
+  if (!isAuthenticated || !userState) {
     return (
       <LoginScreen
         onLogin={loginWithMicrosoft}
@@ -47,16 +62,19 @@ const Index = () => {
           language={preferences.language}
           activeSection={activeSection}
           onSectionChange={setActiveSection}
+          key={permissionsUpdateKey}
         />
         
         <div className="flex flex-col flex-1 min-w-0">
           <Header
-            user={user}
+            user={userState}
             onLogout={logout}
             language={preferences.language}
             theme={preferences.theme}
             onLanguageChange={setLanguage}
             onThemeChange={setTheme}
+            onUserUpdate={handleUserUpdate}
+            onPermissionsUpdate={handlePermissionsUpdate}
           />
           
           <MainContent
