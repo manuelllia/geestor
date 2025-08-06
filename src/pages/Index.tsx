@@ -1,13 +1,82 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import React, { useState } from 'react';
+import { SidebarProvider } from '@/components/ui/sidebar';
+import { useAuth } from '../hooks/useAuth';
+import { usePreferences } from '../hooks/usePreferences';
+import LoginScreen from '../components/LoginScreen';
+import VerificationScreen from '../components/VerificationScreen';
+import Header from '../components/Header';
+import AppSidebar from '../components/AppSidebar';
+import MainContent from '../components/MainContent';
+import SettingsModal from '../components/SettingsModal';
 
 const Index = () => {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
+  const { user, isAuthenticated, isLoading, isVerifying, loginWithMicrosoft, logout } = useAuth();
+  const { preferences, setLanguage, setTheme } = usePreferences();
+  const [activeSection, setActiveSection] = useState('inicio');
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+  // Show loading screen while checking authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
       </div>
-    </div>
+    );
+  }
+
+  // Show verification screen during account verification
+  if (isVerifying) {
+    return <VerificationScreen language={preferences.language} />;
+  }
+
+  // Show login screen if not authenticated
+  if (!isAuthenticated || !user) {
+    return (
+      <LoginScreen
+        onLogin={loginWithMicrosoft}
+        isLoading={isLoading}
+        language={preferences.language}
+      />
+    );
+  }
+
+  // Main application interface
+  return (
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full bg-gray-50 dark:bg-gray-900">
+        <div className="flex flex-col w-full">
+          <Header
+            user={user}
+            onLogout={logout}
+            onOpenSettings={() => setIsSettingsOpen(true)}
+            language={preferences.language}
+          />
+          
+          <div className="flex flex-1">
+            <AppSidebar
+              language={preferences.language}
+              activeSection={activeSection}
+              onSectionChange={setActiveSection}
+            />
+            
+            <MainContent
+              activeSection={activeSection}
+              language={preferences.language}
+            />
+          </div>
+        </div>
+
+        <SettingsModal
+          isOpen={isSettingsOpen}
+          onClose={() => setIsSettingsOpen(false)}
+          language={preferences.language}
+          theme={preferences.theme}
+          onLanguageChange={setLanguage}
+          onThemeChange={setTheme}
+        />
+      </div>
+    </SidebarProvider>
   );
 };
 
