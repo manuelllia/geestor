@@ -397,5 +397,9 @@ export const translations = {
   saveChanges: {
     es: 'Guardar Cambios',
     en: 'Save Changes'
+  },
+  select: {
+    es: 'Seleccionar',
+    en: 'Select'
   }
 };

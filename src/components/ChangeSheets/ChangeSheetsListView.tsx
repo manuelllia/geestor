@@ -2,235 +2,252 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger 
-} from '@/components/ui/dropdown-menu';
-import { Plus, Download, Upload, ChevronLeft, ChevronRight, FileJson, FileText, Copy, FileDown } from 'lucide-react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Eye, Copy, Download, Plus, Upload, FileDown } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Language } from '../../utils/translations';
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from '@/components/ui/pagination';
+import ChangeSheetCreateForm from './ChangeSheetCreateForm';
 
 interface ChangeSheetsListViewProps {
   language: Language;
-  onCreateNew?: () => void;
-  onViewDetails?: (id: string) => void;
+  onViewDetails: (sheetId: string) => void;
 }
 
 const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({ 
   language, 
-  onCreateNew,
   onViewDetails 
 }) => {
   const { t } = useTranslation(language);
+  const [showCreateForm, setShowCreateForm] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 30;
 
-  // Datos simulados vacíos por ahora
-  const changeSheets: any[] = [];
-  const totalItems = changeSheets.length;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
-  const startItem = (currentPage - 1) * itemsPerPage + 1;
-  const endItem = Math.min(currentPage * itemsPerPage, totalItems);
+  // Datos de ejemplo
+  const mockData = Array.from({ length: 85 }, (_, index) => ({
+    id: `CS-${String(index + 1).padStart(3, '0')}`,
+    employeeName: `Empleado ${index + 1}`,
+    originCenter: index % 3 === 0 ? 'Centro Madrid' : index % 3 === 1 ? 'Centro Barcelona' : 'Centro Valencia',
+    destinationCenter: index % 3 === 0 ? 'Centro Barcelona' : index % 3 === 1 ? 'Centro Valencia' : 'Centro Madrid',
+    startDate: new Date(2024, Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1),
+    status: ['Pendiente', 'Aprobado', 'Rechazado'][Math.floor(Math.random() * 3)]
+  }));
 
-  const handleExport = (format: 'json' | 'csv') => {
-    // Implementación futura del export
-    console.log(`Exportando en formato ${format}`);
-  };
-
-  const handleImport = () => {
-    // Implementación futura del import
-    console.log('Importando datos');
-  };
+  const totalPages = Math.ceil(mockData.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = Math.min(startIndex + itemsPerPage, mockData.length);
+  const currentData = mockData.slice(startIndex, endIndex);
 
   const handleDuplicate = (id: string) => {
-    // Implementación futura de duplicar registro
-    console.log(`Duplicando registro ${id}`);
+    console.log('Duplicar registro:', id);
   };
 
   const handleDownloadPDF = (id: string) => {
-    // Implementación futura de descarga PDF
-    console.log(`Descargando PDF ${id}`);
+    console.log('Descargar PDF:', id);
   };
+
+  const handleExport = () => {
+    console.log('Exportar datos');
+  };
+
+  const handleImport = () => {
+    console.log('Importar datos');
+  };
+
+  const getStatusBadge = (status: string) => {
+    const statusConfig = {
+      'Pendiente': 'bg-yellow-100 text-yellow-800 border-yellow-300',
+      'Aprobado': 'bg-green-100 text-green-800 border-green-300',
+      'Rechazado': 'bg-red-100 text-red-800 border-red-300'
+    };
+    return statusConfig[status as keyof typeof statusConfig] || 'bg-gray-100 text-gray-800 border-gray-300';
+  };
+
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString(language === 'es' ? 'es-ES' : 'en-US');
+  };
+
+  if (showCreateForm) {
+    return (
+      <ChangeSheetCreateForm 
+        language={language} 
+        onBack={() => setShowCreateForm(false)} 
+      />
+    );
+  }
 
   return (
     <div className="space-y-6">
-      {/* Botones de acción */}
-      <Card className="border-blue-200 dark:border-blue-800">
-        <CardHeader>
-          <CardTitle className="text-blue-800 dark:text-blue-200">
-            {t('changeSheetsManagement')}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-4">
-            <Button
-              onClick={onCreateNew}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              {t('createNew')}
-            </Button>
-            
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="border-blue-300 text-blue-700 hover:bg-blue-50">
-                  <Download className="w-4 h-4 mr-2" />
-                  {t('export')}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => handleExport('json')}>
-                  <FileJson className="w-4 h-4 mr-2" />
-                  JSON
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleExport('csv')}>
-                  <FileText className="w-4 h-4 mr-2" />
-                  CSV
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            
-            <Button
-              onClick={handleImport}
-              variant="outline" 
-              className="border-blue-300 text-blue-700 hover:bg-blue-50"
-            >
-              <Upload className="w-4 h-4 mr-2" />
-              {t('import')}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Header con botones de acción */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <h1 className="text-2xl font-semibold text-blue-800 dark:text-blue-200">
+          {t('changeSheetsManagement')}
+        </h1>
+        
+        <div className="flex flex-wrap gap-2">
+          <Button
+            onClick={() => setShowCreateForm(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            {t('createNew')}
+          </Button>
+          
+          <Button
+            variant="outline"
+            onClick={handleExport}
+            className="border-blue-300 text-blue-700 hover:bg-blue-50"
+          >
+            <FileDown className="w-4 h-4 mr-2" />
+            {t('export')}
+          </Button>
+          
+          <Button
+            variant="outline"
+            onClick={handleImport}
+            className="border-blue-300 text-blue-700 hover:bg-blue-50"
+          >
+            <Upload className="w-4 h-4 mr-2" />
+            {t('import')}
+          </Button>
+        </div>
+      </div>
 
       {/* Tabla de hojas de cambio */}
       <Card className="border-blue-200 dark:border-blue-800">
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-blue-50 dark:bg-blue-900/20">
-                <TableHead className="text-blue-800 dark:text-blue-200">{t('employeeName')}</TableHead>
-                <TableHead className="text-blue-800 dark:text-blue-200">{t('originCenter')}</TableHead>
-                <TableHead className="text-blue-800 dark:text-blue-200">{t('destinationCenter')}</TableHead>
-                <TableHead className="text-blue-800 dark:text-blue-200">{t('startDate')}</TableHead>
-                <TableHead className="text-blue-800 dark:text-blue-200">{t('duplicateRecord')}</TableHead>
-                <TableHead className="text-blue-800 dark:text-blue-200">{t('downloadPDF')}</TableHead>
-                <TableHead className="text-blue-800 dark:text-blue-200">{t('status')}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {changeSheets.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-gray-500">
-                    {t('noDataAvailable')}
-                  </TableCell>
-                </TableRow>
-              ) : (
-                changeSheets.map((sheet) => (
-                  <TableRow key={sheet.id} className="hover:bg-blue-25 dark:hover:bg-blue-900/10">
-                    <TableCell>{sheet.employeeName}</TableCell>
-                    <TableCell>{sheet.originCenter}</TableCell>
-                    <TableCell>{sheet.destinationCenter}</TableCell>
-                    <TableCell>{sheet.startDate}</TableCell>
-                    <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDuplicate(sheet.id)}
-                        className="text-blue-600 hover:text-blue-800"
-                      >
-                        <Copy className="w-4 h-4" />
-                      </Button>
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDownloadPDF(sheet.id)}
-                        className="text-blue-600 hover:text-blue-800"
-                      >
-                        <FileDown className="w-4 h-4" />
-                      </Button>
-                    </TableCell>
-                    <TableCell>{sheet.status}</TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+        <CardHeader>
+          <CardTitle className="text-blue-800 dark:text-blue-200">
+            {t('hojasCambio')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {mockData.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <p>{t('noDataAvailable')}</p>
+            </div>
+          ) : (
+            <>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>{t('employeeName')}</TableHead>
+                      <TableHead>{t('originCenter')}</TableHead>
+                      <TableHead>{t('destinationCenter')}</TableHead>
+                      <TableHead>{t('startDate')}</TableHead>
+                      <TableHead>{t('status')}</TableHead>
+                      <TableHead className="text-center">{t('actions')}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {currentData.map((sheet) => (
+                      <TableRow key={sheet.id}>
+                        <TableCell className="font-medium">
+                          {sheet.employeeName}
+                        </TableCell>
+                        <TableCell>{sheet.originCenter}</TableCell>
+                        <TableCell>{sheet.destinationCenter}</TableCell>
+                        <TableCell>{formatDate(sheet.startDate)}</TableCell>
+                        <TableCell>
+                          <Badge className={getStatusBadge(sheet.status)}>
+                            {sheet.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex justify-center space-x-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => onViewDetails(sheet.id)}
+                              title={t('view')}
+                            >
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDuplicate(sheet.id)}
+                              title={t('duplicateRecord')}
+                            >
+                              <Copy className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDownloadPDF(sheet.id)}
+                              title={t('downloadPDF')}
+                            >
+                              <Download className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Paginación */}
+              <div className="flex flex-col sm:flex-row justify-between items-center mt-4 gap-4">
+                <div className="text-sm text-gray-600 dark:text-gray-400">
+                  {t('showingRecords', {
+                    start: startIndex + 1,
+                    end: endIndex,
+                    total: mockData.length
+                  })}
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                    disabled={currentPage === 1}
+                  >
+                    Anterior
+                  </Button>
+                  
+                  <div className="flex space-x-1">
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      let pageNumber;
+                      if (totalPages <= 5) {
+                        pageNumber = i + 1;
+                      } else if (currentPage <= 3) {
+                        pageNumber = i + 1;
+                      } else if (currentPage >= totalPages - 2) {
+                        pageNumber = totalPages - 4 + i;
+                      } else {
+                        pageNumber = currentPage - 2 + i;
+                      }
+                      
+                      return (
+                        <Button
+                          key={pageNumber}
+                          variant={currentPage === pageNumber ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setCurrentPage(pageNumber)}
+                          className={currentPage === pageNumber ? "bg-blue-600 text-white" : ""}
+                        >
+                          {pageNumber}
+                        </Button>
+                      );
+                    })}
+                  </div>
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                    disabled={currentPage === totalPages}
+                  >
+                    Siguiente
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
-
-      {/* Información de registros y paginación */}
-      {totalItems > 0 && (
-        <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-          <div className="text-sm text-gray-700 dark:text-gray-300">
-            {t('showingRecords', { start: startItem, end: endItem, total: totalItems })}
-          </div>
-          
-          {totalPages > 1 && (
-            <Pagination>
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationPrevious 
-                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                    className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                  />
-                </PaginationItem>
-                
-                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  let pageNumber;
-                  if (totalPages <= 5) {
-                    pageNumber = i + 1;
-                  } else if (currentPage <= 3) {
-                    pageNumber = i + 1;
-                  } else if (currentPage >= totalPages - 2) {
-                    pageNumber = totalPages - 4 + i;
-                  } else {
-                    pageNumber = currentPage - 2 + i;
-                  }
-
-                  return (
-                    <PaginationItem key={pageNumber}>
-                      <PaginationLink
-                        onClick={() => setCurrentPage(pageNumber)}
-                        isActive={currentPage === pageNumber}
-                        className="cursor-pointer"
-                      >
-                        {pageNumber}
-                      </PaginationLink>
-                    </PaginationItem>
-                  );
-                })}
-                
-                <PaginationItem>
-                  <PaginationNext 
-                    onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                    className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                  />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
-          )}
-        </div>
-      )}
     </div>
   );
 };
