@@ -7,9 +7,11 @@ export const useTranslation = (language: Language) => {
     if (translation && typeof translation === 'object' && translation[language]) {
       return translation[language];
     }
+    // Fallback al español si no existe la traducción en el idioma solicitado
     if (translation && typeof translation === 'object' && translation.es) {
       return translation.es;
     }
+    // Fallback al string de la clave si no existe traducción
     return String(key);
   };
 
