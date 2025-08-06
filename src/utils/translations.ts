@@ -32,7 +32,8 @@ export const translations = {
     hojasCambio: "Hojas de Cambio",
     acuerdoEmpleado: "Acuerdo con Empleado",
     practicas: "Prácticas",
-    listadoValoracion: "Listado y Valoración",
+    listado: "Listado",
+    valoracion: "Valoración",
     entrevistaSalida: "Entrevista de Salida",
     
     // Header
@@ -51,7 +52,14 @@ export const translations = {
     // Common
     save: "Guardar",
     cancel: "Cancelar",
-    close: "Cerrar"
+    close: "Cerrar",
+    
+    // Main content
+    welcomeMessage: "Bienvenido a GEESTOR",
+    welcomeSubtitle: "Sistema de gestión empresarial del Grupo Electromédico",
+    selectSection: "Selecciona una sección del menú lateral para comenzar",
+    mainContent: "Contenido Principal",
+    noContentSelected: "No hay contenido seleccionado"
   },
   en: {
     // Login screen
@@ -85,7 +93,8 @@ export const translations = {
     hojasCambio: "Change Sheets",
     acuerdoEmpleado: "Employee Agreement",
     practicas: "Internships",
-    listadoValoracion: "Listing and Assessment",
+    listado: "Listing",
+    valoracion: "Assessment",
     entrevistaSalida: "Exit Interview",
     
     // Header
@@ -104,7 +113,14 @@ export const translations = {
     // Common
     save: "Save",
     cancel: "Cancel",
-    close: "Close"
+    close: "Close",
+    
+    // Main content
+    welcomeMessage: "Welcome to GEESTOR",
+    welcomeSubtitle: "Business Management System by Electromedical Group",
+    selectSection: "Select a section from the sidebar to get started",
+    mainContent: "Main Content",
+    noContentSelected: "No content selected"
   }
 };
 

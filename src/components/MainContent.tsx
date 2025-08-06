@@ -11,40 +11,42 @@ interface MainContentProps {
 const MainContent: React.FC<MainContentProps> = ({ activeSection, language }) => {
   const { t } = useTranslation(language);
 
-  const getSectionTitle = () => {
+  const renderContent = () => {
     switch (activeSection) {
       case 'inicio':
-        return t('inicio');
-      case 'operaciones':
-        return t('operaciones');
-      case 'gestion-tecnica':
-        return t('gestionTecnica');
-      case 'gestion-talento':
-        return t('gestionTalento');
+        return (
+          <div className="text-center">
+            <div className="max-w-2xl mx-auto">
+              <div className="bg-gradient-to-r from-blue-500 to-blue-700 text-white rounded-lg p-8 mb-8">
+                <h1 className="text-3xl font-bold mb-4">{t('welcomeMessage')}</h1>
+                <p className="text-blue-100 text-lg">{t('welcomeSubtitle')}</p>
+              </div>
+              <div className="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-6 border border-blue-200 dark:border-blue-700">
+                <p className="text-gray-700 dark:text-gray-300">{t('selectSection')}</p>
+              </div>
+            </div>
+          </div>
+        );
       default:
-        return t('inicio');
+        return (
+          <div className="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-8 border border-blue-200 dark:border-blue-700">
+            <h2 className="text-2xl font-semibold text-blue-900 dark:text-blue-100 mb-4">
+              {t('mainContent')}
+            </h2>
+            <div className="bg-white dark:bg-blue-800/50 rounded-lg p-6 shadow-sm border border-blue-100 dark:border-blue-700">
+              <p className="text-gray-600 dark:text-gray-300">
+                {t('noContentSelected')} - {activeSection}
+              </p>
+            </div>
+          </div>
+        );
     }
   };
 
   return (
-    <div className="flex-1 p-8 bg-gray-50 dark:bg-gray-800">
-      <div className="max-w-6xl mx-auto">
-        <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
-          {getSectionTitle()}
-        </h2>
-        
-        <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-8">
-          <div className="text-center text-gray-500 dark:text-gray-400">
-            <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full mx-auto mb-4 flex items-center justify-center">
-              <div className="w-8 h-8 bg-gray-300 dark:bg-gray-600 rounded-full animate-pulse" />
-            </div>
-            <p className="text-lg">
-              Contenido de {getSectionTitle()} - Próximamente
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
+    <main className="flex-1 p-6 bg-gradient-to-br from-blue-25 via-white to-blue-50 dark:from-blue-950 dark:via-gray-900 dark:to-blue-900 min-h-screen">
+      {renderContent()}
+    </main>
   );
 };
 

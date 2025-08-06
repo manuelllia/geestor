@@ -1,6 +1,24 @@
 
 import React, { useState } from 'react';
-import { Home, Building2, ChevronDown, ChevronRight, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { 
+  Home, 
+  Building2, 
+  ChevronDown, 
+  ChevronRight, 
+  PanelLeftClose, 
+  PanelLeftOpen,
+  Calculator,
+  Calendar,
+  CheckCircle,
+  Building,
+  UserPlus,
+  FileText,
+  Handshake,
+  GraduationCap,
+  List,
+  Star,
+  MessageCircle
+} from 'lucide-react';
 import { 
   Sidebar, 
   SidebarContent, 
@@ -51,35 +69,40 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ language, activeSection, onSect
     operaciones: {
       title: t('operaciones'),
       id: 'operaciones',
+      icon: Calculator,
       subItems: [
-        { id: 'analisis-coste', title: t('analisisCoste') }
+        { id: 'analisis-coste', title: t('analisisCoste'), icon: Calculator }
       ]
     },
     gestionTecnica: {
       title: t('gestionTecnica'),
       id: 'gestion-tecnica',
+      icon: CheckCircle,
       subItems: [
-        { id: 'calendario-mantenimiento', title: t('calendarioMantenimiento') },
-        { id: 'comprobadores', title: t('comprobadores') }
+        { id: 'calendario-mantenimiento', title: t('calendarioMantenimiento'), icon: Calendar },
+        { id: 'comprobadores', title: t('comprobadores'), icon: CheckCircle }
       ]
     },
     gestionTalento: {
       title: t('gestionTalento'),
       id: 'gestion-talento',
+      icon: UserPlus,
       subItems: [
-        { id: 'gestion-inmuebles', title: t('gestionInmuebles') },
-        { id: 'solicitudes-contratacion', title: t('solicitudesContratacion') },
-        { id: 'hojas-cambio', title: t('hojasCambio') },
-        { id: 'acuerdo-empleado', title: t('acuerdoEmpleado') },
+        { id: 'gestion-inmuebles', title: t('gestionInmuebles'), icon: Building },
+        { id: 'solicitudes-contratacion', title: t('solicitudesContratacion'), icon: UserPlus },
+        { id: 'hojas-cambio', title: t('hojasCambio'), icon: FileText },
+        { id: 'acuerdo-empleado', title: t('acuerdoEmpleado'), icon: Handshake },
         {
           id: 'practicas',
           title: t('practicas'),
+          icon: GraduationCap,
           hasSubItems: true,
           subItems: [
-            { id: 'listado-valoracion', title: t('listadoValoracion') }
+            { id: 'listado', title: t('listado'), icon: List },
+            { id: 'valoracion', title: t('valoracion'), icon: Star }
           ]
         },
-        { id: 'entrevista-salida', title: t('entrevistaSalida') }
+        { id: 'entrevista-salida', title: t('entrevistaSalida'), icon: MessageCircle }
       ]
     }
   };
@@ -99,17 +122,17 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ language, activeSection, onSect
           >
             <CollapsibleTrigger asChild>
               <SidebarMenuButton
-                className={`w-full flex items-center justify-between px-${4 + level * 2} py-2 text-sm rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors`}
+                className={`w-full flex items-center justify-between px-${4 + level * 2} py-2 text-sm rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/50 transition-colors`}
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 bg-current rounded-full flex-shrink-0" />
-                  <span>{subItem.title}</span>
+                  <subItem.icon className="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+                  <span className="text-gray-700 dark:text-gray-300">{subItem.title}</span>
                 </div>
                 <div className="transition-transform duration-200">
                   {openSubmenus.includes(subItem.id) ? (
-                    <ChevronDown className="w-3 h-3" />
+                    <ChevronDown className="w-3 h-3 text-blue-600 dark:text-blue-400" />
                   ) : (
-                    <ChevronRight className="w-3 h-3" />
+                    <ChevronRight className="w-3 h-3 text-blue-600 dark:text-blue-400" />
                   )}
                 </div>
               </SidebarMenuButton>
@@ -123,9 +146,13 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ language, activeSection, onSect
             <SidebarMenuButton
               onClick={() => handleSubItemClick(subItem.id)}
               isActive={activeSection === subItem.id}
-              className={`w-full flex items-center gap-3 px-${4 + level * 2} py-2 text-sm rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors`}
+              className={`w-full flex items-center gap-3 px-${4 + level * 2} py-2 text-sm rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/50 transition-colors ${
+                activeSection === subItem.id 
+                  ? 'bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100' 
+                  : 'text-gray-700 dark:text-gray-300'
+              }`}
             >
-              <div className="w-2 h-2 bg-current rounded-full flex-shrink-0" />
+              <subItem.icon className="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
               <span>{subItem.title}</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -136,10 +163,10 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ language, activeSection, onSect
 
   return (
     <Sidebar 
-      className="border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900"
+      className="border-r border-blue-200 dark:border-blue-800 bg-gradient-to-b from-blue-50 to-white dark:from-blue-950 dark:to-blue-900"
       collapsible="icon"
     >
-      <SidebarHeader className="border-b border-gray-200 dark:border-gray-700 p-4">
+      <SidebarHeader className="border-b border-blue-200 dark:border-blue-800 p-4 bg-blue-100 dark:bg-blue-900">
         <div className="flex items-center justify-between">
           {!isCollapsed && (
             <div className="flex items-center gap-2">
@@ -148,7 +175,7 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ language, activeSection, onSect
                 alt="GEESTOR Logo" 
                 className="w-6 h-6 object-contain"
               />
-              <span className="font-semibold text-sm text-gray-900 dark:text-white">
+              <span className="font-semibold text-sm text-blue-900 dark:text-blue-100">
                 GEESTOR
               </span>
             </div>
@@ -157,7 +184,7 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ language, activeSection, onSect
             variant="ghost"
             size="icon"
             onClick={toggleSidebar}
-            className="hidden md:flex h-8 w-8 hover:bg-gray-100 dark:hover:bg-gray-800"
+            className="hidden md:flex h-8 w-8 hover:bg-blue-200 dark:hover:bg-blue-800 text-blue-700 dark:text-blue-300"
           >
             {isCollapsed ? (
               <PanelLeftOpen className="h-4 w-4" />
@@ -178,10 +205,14 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ language, activeSection, onSect
                   <SidebarMenuButton
                     onClick={item.onClick}
                     isActive={activeSection === item.id}
-                    className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/50 transition-colors ${
+                      activeSection === item.id 
+                        ? 'bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100' 
+                        : 'text-gray-700 dark:text-gray-300'
+                    }`}
                     tooltip={isCollapsed ? item.title : undefined}
                   >
-                    <item.icon className="w-5 h-5 flex-shrink-0" />
+                    <item.icon className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
                     {!isCollapsed && <span className="font-medium">{item.title}</span>}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -196,19 +227,19 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ language, activeSection, onSect
                 >
                   <CollapsibleTrigger asChild>
                     <SidebarMenuButton
-                      className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                      className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/50 transition-colors text-gray-700 dark:text-gray-300"
                       tooltip={isCollapsed ? t('departamentos') : undefined}
                     >
                       <div className="flex items-center gap-3">
-                        <Building2 className="w-5 h-5 flex-shrink-0" />
+                        <Building2 className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
                         {!isCollapsed && <span className="font-medium">{t('departamentos')}</span>}
                       </div>
                       {!isCollapsed && (
                         <div className="transition-transform duration-200">
                           {isDepartamentosOpen ? (
-                            <ChevronDown className="w-4 h-4" />
+                            <ChevronDown className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                           ) : (
-                            <ChevronRight className="w-4 h-4" />
+                            <ChevronRight className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                           )}
                         </div>
                       )}
@@ -224,13 +255,13 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ language, activeSection, onSect
                       >
                         <CollapsibleTrigger asChild>
                           <SidebarMenuButton
-                            className="w-full flex items-center justify-between px-4 py-2 text-sm rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                            className="w-full flex items-center justify-between px-4 py-2 text-sm rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/50 transition-colors text-gray-700 dark:text-gray-300"
                           >
                             <div className="flex items-center gap-3">
-                              <div className="w-2 h-2 bg-current rounded-full flex-shrink-0" />
+                              <departamentosStructure.operaciones.icon className="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
                               <span>{departamentosStructure.operaciones.title}</span>
                             </div>
-                            <ChevronRight className={`w-3 h-3 transition-transform ${openSubmenus.includes('operaciones') ? 'rotate-90' : ''}`} />
+                            <ChevronRight className={`w-3 h-3 text-blue-600 dark:text-blue-400 transition-transform ${openSubmenus.includes('operaciones') ? 'rotate-90' : ''}`} />
                           </SidebarMenuButton>
                         </CollapsibleTrigger>
                         <CollapsibleContent className="ml-4 mt-1 space-y-1">
@@ -245,13 +276,13 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ language, activeSection, onSect
                       >
                         <CollapsibleTrigger asChild>
                           <SidebarMenuButton
-                            className="w-full flex items-center justify-between px-4 py-2 text-sm rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                            className="w-full flex items-center justify-between px-4 py-2 text-sm rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/50 transition-colors text-gray-700 dark:text-gray-300"
                           >
                             <div className="flex items-center gap-3">
-                              <div className="w-2 h-2 bg-current rounded-full flex-shrink-0" />
+                              <departamentosStructure.gestionTecnica.icon className="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
                               <span>{departamentosStructure.gestionTecnica.title}</span>
                             </div>
-                            <ChevronRight className={`w-3 h-3 transition-transform ${openSubmenus.includes('gestion-tecnica') ? 'rotate-90' : ''}`} />
+                            <ChevronRight className={`w-3 h-3 text-blue-600 dark:text-blue-400 transition-transform ${openSubmenus.includes('gestion-tecnica') ? 'rotate-90' : ''}`} />
                           </SidebarMenuButton>
                         </CollapsibleTrigger>
                         <CollapsibleContent className="ml-4 mt-1 space-y-1">
@@ -266,13 +297,13 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ language, activeSection, onSect
                       >
                         <CollapsibleTrigger asChild>
                           <SidebarMenuButton
-                            className="w-full flex items-center justify-between px-4 py-2 text-sm rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                            className="w-full flex items-center justify-between px-4 py-2 text-sm rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/50 transition-colors text-gray-700 dark:text-gray-300"
                           >
                             <div className="flex items-center gap-3">
-                              <div className="w-2 h-2 bg-current rounded-full flex-shrink-0" />
+                              <departamentosStructure.gestionTalento.icon className="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
                               <span>{departamentosStructure.gestionTalento.title}</span>
                             </div>
-                            <ChevronRight className={`w-3 h-3 transition-transform ${openSubmenus.includes('gestion-talento') ? 'rotate-90' : ''}`} />
+                            <ChevronRight className={`w-3 h-3 text-blue-600 dark:text-blue-400 transition-transform ${openSubmenus.includes('gestion-talento') ? 'rotate-90' : ''}`} />
                           </SidebarMenuButton>
                         </CollapsibleTrigger>
                         <CollapsibleContent className="ml-4 mt-1 space-y-1">
