@@ -46,7 +46,7 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
       actions: {
         create: true,
         edit: true,
-        delete: true // Cambiado a true por defecto
+        delete: true
       }
     };
   });
@@ -93,19 +93,10 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
     }));
   };
 
-  // Función para manejar el click del trigger sin propagación
-  const handleTriggerClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsOpen(true);
-  };
-
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <div onClick={handleTriggerClick} className="cursor-pointer w-full">
-          {children}
-        </div>
+        {children}
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto bg-white dark:bg-gray-900">
         <DialogHeader>

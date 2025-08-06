@@ -43,7 +43,7 @@ interface AppSidebarProps {
   language: Language;
   activeSection: string;
   onSectionChange: (section: string) => void;
-  permissionsKey?: number; // Nueva prop para forzar re-render cuando cambien los permisos
+  permissionsKey?: number;
 }
 
 const AppSidebar: React.FC<AppSidebarProps> = ({ 
@@ -57,33 +57,24 @@ const AppSidebar: React.FC<AppSidebarProps> = ({
   const [isDepartamentosOpen, setIsDepartamentosOpen] = useState(false);
   const [openDepartment, setOpenDepartment] = useState<string | null>(null);
   const [openSubmenus, setOpenSubmenus] = useState<string[]>([]);
-  const [userPermissions, setUserPermissions] = useState(() => {
-    const stored = localStorage.getItem('userPermissions');
-    return stored ? JSON.parse(stored) : {
-      departments: {
-        operaciones: true,
-        gestionTecnica: true,
-        gestionTalento: true
-      }
-    };
+  const [hoveredDepartment, setHoveredDepartment] = useState<string | null>(null);
+  
+  // Hacer visibles todos los departamentos por defecto
+  const [userPermissions] = useState({
+    departments: {
+      operaciones: true,
+      gestionTecnica: true,
+      gestionTalento: true
+    }
   });
+
   const isCollapsed = state === 'collapsed';
 
-  // Actualizar permisos cuando cambie permissionsKey
-  useEffect(() => {
-    const stored = localStorage.getItem('userPermissions');
-    if (stored) {
-      setUserPermissions(JSON.parse(stored));
-    }
-  }, [permissionsKey]);
-
   const toggleDepartment = (departmentId: string) => {
-    // Cerrar otros departamentos cuando se abre uno nuevo
     if (openDepartment === departmentId) {
       setOpenDepartment(null);
     } else {
       setOpenDepartment(departmentId);
-      // Cerrar todos los submenus cuando se cambia de departamento
       setOpenSubmenus([]);
     }
   };
@@ -223,13 +214,47 @@ const AppSidebar: React.FC<AppSidebarProps> = ({
   // Filtrar departamentos visibles basado en permisos
   const visibleDepartments = Object.values(departamentosStructure).filter(dept => dept.visible);
 
+  // Render collapsed department hover menu
+  const renderCollapsedDepartmentMenu = (department: any) => {
+    if (!isCollapsed || hoveredDepartment !== department.id) return null;
+
+    return (
+      <div 
+        className="fixed left-14 bg-white dark:bg-gray-800 border border-blue-200 dark:border-blue-700 rounded-lg shadow-lg p-2 z-50 min-w-48"
+        style={{ top: '50%', transform: 'translateY(-50%)' }}
+        onMouseEnter={() => setHoveredDepartment(department.id)}
+        onMouseLeave={() => setHoveredDepartment(null)}
+      >
+        <div className="font-medium text-blue-900 dark:text-blue-100 mb-2 px-2">
+          {department.title}
+        </div>
+        <div className="space-y-1">
+          {department.subItems.map((subItem: any) => (
+            <button
+              key={subItem.id}
+              onClick={() => handleSubItemClick(subItem.id)}
+              className={`w-full flex items-center gap-2 px-2 py-1.5 rounded text-sm hover:bg-blue-50 dark:hover:bg-blue-900/50 transition-colors ${
+                activeSection === subItem.id 
+                  ? 'bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100' 
+                  : 'text-gray-700 dark:text-gray-300'
+              }`}
+            >
+              <subItem.icon className="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+              <span>{subItem.title}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <Sidebar 
       className="border-r border-blue-200 dark:border-blue-800 bg-gradient-to-b from-blue-50 to-white dark:from-blue-950 dark:to-blue-900"
       collapsible="icon"
     >
-      <SidebarHeader className="border-b border-blue-200 dark:border-blue-800 p-4 bg-blue-100 dark:bg-blue-900">
-        <div className="flex items-center justify-between">
+      <SidebarHeader className="border-b border-blue-200 dark:border-blue-800 h-16 p-4 bg-blue-100 dark:bg-blue-900 flex items-center">
+        <div className="flex items-center justify-between w-full">
           {!isCollapsed && (
             <div className="flex items-center gap-2">
               <img 
@@ -241,6 +266,13 @@ const AppSidebar: React.FC<AppSidebarProps> = ({
                 GEESTOR
               </span>
             </div>
+          )}
+          {isCollapsed && (
+            <img 
+              src="/lovable-uploads/4a540878-1ca7-4aac-b819-248b4edd1230.png" 
+              alt="GEESTOR Logo" 
+              className="w-6 h-6 object-contain mx-auto"
+            />
           )}
           <Button
             variant="ghost"
@@ -284,7 +316,7 @@ const AppSidebar: React.FC<AppSidebarProps> = ({
                 </SidebarMenuItem>
               ))}
 
-              {/* Departamentos - Solo mostrar si hay departamentos visibles */}
+              {/* Departamentos - Mostrar todos los departamentos visibles */}
               {visibleDepartments.length > 0 && (
                 <SidebarMenuItem>
                   <Collapsible 
@@ -319,7 +351,6 @@ const AppSidebar: React.FC<AppSidebarProps> = ({
                     
                     {!isCollapsed && (
                       <CollapsibleContent className="ml-6 mt-2 space-y-2 animate-slideDown">
-                        {/* Renderizar solo departamentos visibles */}
                         {visibleDepartments.map((department) => (
                           <Collapsible 
                             key={department.id}
@@ -347,6 +378,25 @@ const AppSidebar: React.FC<AppSidebarProps> = ({
                   </Collapsible>
                 </SidebarMenuItem>
               )}
+
+              {/* Departamentos para modo colapsado con hover */}
+              {isCollapsed && visibleDepartments.map((department) => (
+                <SidebarMenuItem key={`collapsed-${department.id}`}>
+                  <div
+                    className="relative"
+                    onMouseEnter={() => setHoveredDepartment(department.id)}
+                    onMouseLeave={() => setHoveredDepartment(null)}
+                  >
+                    <SidebarMenuButton
+                      className="w-full flex items-center justify-center py-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/50 transition-colors text-gray-700 dark:text-gray-300 px-2"
+                      tooltip={department.title}
+                    >
+                      <department.icon className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+                    </SidebarMenuButton>
+                    {renderCollapsedDepartmentMenu(department)}
+                  </div>
+                </SidebarMenuItem>
+              ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

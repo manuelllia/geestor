@@ -24,7 +24,7 @@ interface HeaderProps {
   onThemeChange: (theme: Theme) => void;
   onUserUpdate: (user: UserType) => void;
   onLogout: () => void;
-  onPermissionsUpdate?: () => void; // Nueva prop para notificar cambios de permisos
+  onPermissionsUpdate?: () => void;
 }
 
 const Header: React.FC<HeaderProps> = ({ 
@@ -41,17 +41,15 @@ const Header: React.FC<HeaderProps> = ({
   const [permissionsUpdateKey, setPermissionsUpdateKey] = useState(0);
 
   const handlePermissionsUpdate = () => {
-    // Incrementar la key para forzar re-render del sidebar
     setPermissionsUpdateKey(prev => prev + 1);
-    // Notificar al componente padre si existe la función
     if (onPermissionsUpdate) {
       onPermissionsUpdate();
     }
   };
 
   return (
-    <header className="bg-white dark:bg-gray-900 border-b border-blue-200 dark:border-blue-800 px-6 py-4">
-      <div className="flex items-center justify-between">
+    <header className="bg-white dark:bg-gray-900 border-b border-blue-200 dark:border-blue-800 px-6 h-16 flex items-center">
+      <div className="flex items-center justify-between w-full">
         <div className="flex items-center gap-3">
           <img 
             src="/lovable-uploads/4a540878-1ca7-4aac-b819-248b4edd1230.png" 
@@ -85,7 +83,10 @@ const Header: React.FC<HeaderProps> = ({
                 onUserUpdate={onUserUpdate}
                 onPermissionsUpdate={handlePermissionsUpdate}
               >
-                <DropdownMenuItem className="cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/50 text-gray-700 dark:text-gray-300">
+                <DropdownMenuItem 
+                  className="cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/50 text-gray-700 dark:text-gray-300"
+                  onSelect={(e) => e.preventDefault()}
+                >
                   <User className="w-4 h-4 mr-2 text-blue-600 dark:text-blue-400" />
                   {t('userProfile')}
                 </DropdownMenuItem>
