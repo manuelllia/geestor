@@ -50,15 +50,12 @@ const Header: React.FC<HeaderProps> = ({
   return (
     <header className="bg-white dark:bg-gray-900 border-b border-blue-200 dark:border-blue-800 px-6 h-16 flex items-center">
       <div className="flex items-center justify-between w-full">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center">
           <img 
             src="/lovable-uploads/4a540878-1ca7-4aac-b819-248b4edd1230.png" 
             alt="GEESTOR Logo" 
-            className="w-8 h-8 object-contain"
+            className="h-12 w-auto object-contain"
           />
-          <h1 className="text-xl font-bold text-blue-900 dark:text-blue-100">
-            {t('appName')}
-          </h1>
         </div>
 
         <div className="flex items-center gap-4">
