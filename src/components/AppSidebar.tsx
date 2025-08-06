@@ -17,7 +17,9 @@ import {
   GraduationCap,
   List,
   Star,
-  MessageCircle
+  MessageCircle,
+  TrendingUp,
+  Wrench
 } from 'lucide-react';
 import { 
   Sidebar, 
@@ -45,8 +47,19 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ language, activeSection, onSect
   const { t } = useTranslation(language);
   const { state, toggleSidebar } = useSidebar();
   const [isDepartamentosOpen, setIsDepartamentosOpen] = useState(false);
+  const [openDepartment, setOpenDepartment] = useState<string | null>(null);
   const [openSubmenus, setOpenSubmenus] = useState<string[]>([]);
   const isCollapsed = state === 'collapsed';
+
+  const toggleDepartment = (departmentId: string) => {
+    if (openDepartment === departmentId) {
+      setOpenDepartment(null);
+    } else {
+      setOpenDepartment(departmentId);
+      // Cerrar todos los submenus cuando se cambia de departamento
+      setOpenSubmenus([]);
+    }
+  };
 
   const toggleSubmenu = (submenuId: string) => {
     setOpenSubmenus(prev => 
@@ -71,7 +84,7 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ language, activeSection, onSect
       id: 'operaciones',
       icon: Calculator,
       subItems: [
-        { id: 'analisis-coste', title: t('analisisCoste'), icon: Calculator }
+        { id: 'analisis-coste', title: t('analisisCoste'), icon: TrendingUp }
       ]
     },
     gestionTecnica: {
@@ -80,7 +93,7 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ language, activeSection, onSect
       icon: CheckCircle,
       subItems: [
         { id: 'calendario-mantenimiento', title: t('calendarioMantenimiento'), icon: Calendar },
-        { id: 'comprobadores', title: t('comprobadores'), icon: CheckCircle }
+        { id: 'comprobadores', title: t('comprobadores'), icon: Wrench }
       ]
     },
     gestionTalento: {
@@ -250,8 +263,8 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ language, activeSection, onSect
                     <CollapsibleContent className="ml-6 mt-2 space-y-2 animate-slideDown">
                       {/* Operaciones */}
                       <Collapsible 
-                        open={openSubmenus.includes('operaciones')} 
-                        onOpenChange={() => toggleSubmenu('operaciones')}
+                        open={openDepartment === 'operaciones'} 
+                        onOpenChange={() => toggleDepartment('operaciones')}
                       >
                         <CollapsibleTrigger asChild>
                           <SidebarMenuButton
@@ -261,7 +274,7 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ language, activeSection, onSect
                               <departamentosStructure.operaciones.icon className="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
                               <span>{departamentosStructure.operaciones.title}</span>
                             </div>
-                            <ChevronRight className={`w-3 h-3 text-blue-600 dark:text-blue-400 transition-transform ${openSubmenus.includes('operaciones') ? 'rotate-90' : ''}`} />
+                            <ChevronRight className={`w-3 h-3 text-blue-600 dark:text-blue-400 transition-transform ${openDepartment === 'operaciones' ? 'rotate-90' : ''}`} />
                           </SidebarMenuButton>
                         </CollapsibleTrigger>
                         <CollapsibleContent className="ml-4 mt-1 space-y-1">
@@ -271,8 +284,8 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ language, activeSection, onSect
 
                       {/* Gestión Técnica */}
                       <Collapsible 
-                        open={openSubmenus.includes('gestion-tecnica')} 
-                        onOpenChange={() => toggleSubmenu('gestion-tecnica')}
+                        open={openDepartment === 'gestion-tecnica'} 
+                        onOpenChange={() => toggleDepartment('gestion-tecnica')}
                       >
                         <CollapsibleTrigger asChild>
                           <SidebarMenuButton
@@ -282,7 +295,7 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ language, activeSection, onSect
                               <departamentosStructure.gestionTecnica.icon className="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
                               <span>{departamentosStructure.gestionTecnica.title}</span>
                             </div>
-                            <ChevronRight className={`w-3 h-3 text-blue-600 dark:text-blue-400 transition-transform ${openSubmenus.includes('gestion-tecnica') ? 'rotate-90' : ''}`} />
+                            <ChevronRight className={`w-3 h-3 text-blue-600 dark:text-blue-400 transition-transform ${openDepartment === 'gestion-tecnica' ? 'rotate-90' : ''}`} />
                           </SidebarMenuButton>
                         </CollapsibleTrigger>
                         <CollapsibleContent className="ml-4 mt-1 space-y-1">
@@ -292,8 +305,8 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ language, activeSection, onSect
 
                       {/* Gestión del Talento */}
                       <Collapsible 
-                        open={openSubmenus.includes('gestion-talento')} 
-                        onOpenChange={() => toggleSubmenu('gestion-talento')}
+                        open={openDepartment === 'gestion-talento'} 
+                        onOpenChange={() => toggleDepartment('gestion-talento')}
                       >
                         <CollapsibleTrigger asChild>
                           <SidebarMenuButton
@@ -303,7 +316,7 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ language, activeSection, onSect
                               <departamentosStructure.gestionTalento.icon className="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
                               <span>{departamentosStructure.gestionTalento.title}</span>
                             </div>
-                            <ChevronRight className={`w-3 h-3 text-blue-600 dark:text-blue-400 transition-transform ${openSubmenus.includes('gestion-talento') ? 'rotate-90' : ''}`} />
+                            <ChevronRight className={`w-3 h-3 text-blue-600 dark:text-blue-400 transition-transform ${openDepartment === 'gestion-talento' ? 'rotate-90' : ''}`} />
                           </SidebarMenuButton>
                         </CollapsibleTrigger>
                         <CollapsibleContent className="ml-4 mt-1 space-y-1">
