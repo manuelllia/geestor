@@ -1,18 +1,19 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Settings, LogOut, ChevronDown, Languages, Palette, SidebarOpen } from 'lucide-react';
+import { Settings, LogOut, ChevronDown, Languages, Palette, SidebarOpen, User } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { User } from '../types/auth';
+import { User as UserType } from '../types/auth';
 import { useTranslation } from '../hooks/useTranslation';
 import { Language, Theme } from '../utils/translations';
 import { useSidebar } from '@/components/ui/sidebar';
+import UserProfileModal from './UserProfileModal';
 
 interface HeaderProps {
-  user: User;
+  user: UserType;
   onLogout: () => void;
   language: Language;
   theme: Theme;
@@ -30,6 +31,24 @@ const Header: React.FC<HeaderProps> = ({
 }) => {
   const { t } = useTranslation(language);
   const { toggleSidebar } = useSidebar();
+  const [currentUser, setCurrentUser] = useState(user);
+
+  // Cargar datos del usuario desde localStorage al montar
+  useEffect(() => {
+    const storedUserData = localStorage.getItem('userData');
+    if (storedUserData) {
+      try {
+        const userData = JSON.parse(storedUserData);
+        setCurrentUser(userData);
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+      }
+    }
+  }, []);
+
+  const handleUserUpdate = (updatedUser: UserType) => {
+    setCurrentUser(updatedUser);
+  };
 
   return (
     <header className="h-16 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-6 shadow-sm">
@@ -93,23 +112,40 @@ const Header: React.FC<HeaderProps> = ({
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="flex items-center gap-2 px-3 py-2 h-auto hover:bg-gray-100 dark:hover:bg-gray-800">
               <Avatar className="w-8 h-8">
-                <AvatarImage src={user.profilePicture} />
+                <AvatarImage src={currentUser.profilePicture} />
                 <AvatarFallback className="bg-primary text-white text-sm">
-                  {user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                  {currentUser.name.split(' ').map(n => n[0]).join('').toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               <div className="text-left hidden sm:block">
                 <p className="text-sm font-medium text-gray-900 dark:text-white">
-                  {user.name}
+                  {currentUser.name}
                 </p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  {user.email}
+                  {currentUser.email}
                 </p>
               </div>
               <ChevronDown className="w-4 h-4 text-gray-500" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
+            {/* Perfil de usuario */}
+            <UserProfileModal 
+              user={currentUser} 
+              language={language} 
+              onUserUpdate={handleUserUpdate}
+            >
+              <DropdownMenuItem 
+                className="flex items-center gap-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
+                onSelect={(e) => e.preventDefault()}
+              >
+                <User className="w-4 h-4" />
+                {t('userProfile')}
+              </DropdownMenuItem>
+            </UserProfileModal>
+            
+            <DropdownMenuSeparator />
+            
             {/* Preferencias móvil */}
             <div className="md:hidden p-2">
               <div className="space-y-3">

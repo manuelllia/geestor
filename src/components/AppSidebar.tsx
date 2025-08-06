@@ -19,7 +19,9 @@ import {
   Star,
   MessageCircle,
   TrendingUp,
-  Wrench
+  Wrench,
+  ClipboardList,
+  Award
 } from 'lucide-react';
 import { 
   Sidebar, 
@@ -51,7 +53,20 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ language, activeSection, onSect
   const [openSubmenus, setOpenSubmenus] = useState<string[]>([]);
   const isCollapsed = state === 'collapsed';
 
+  // Obtener permisos del usuario
+  const userPermissions = React.useMemo(() => {
+    const stored = localStorage.getItem('userPermissions');
+    return stored ? JSON.parse(stored) : {
+      departments: {
+        operaciones: true,
+        gestionTecnica: true,
+        gestionTalento: true
+      }
+    };
+  }, []);
+
   const toggleDepartment = (departmentId: string) => {
+    // Cerrar otros departamentos cuando se abre uno nuevo
     if (openDepartment === departmentId) {
       setOpenDepartment(null);
     } else {
@@ -83,6 +98,7 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ language, activeSection, onSect
       title: t('operaciones'),
       id: 'operaciones',
       icon: Calculator,
+      visible: userPermissions.departments.operaciones,
       subItems: [
         { id: 'analisis-coste', title: t('analisisCoste'), icon: TrendingUp }
       ]
@@ -91,6 +107,7 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ language, activeSection, onSect
       title: t('gestionTecnica'),
       id: 'gestion-tecnica',
       icon: CheckCircle,
+      visible: userPermissions.departments.gestionTecnica,
       subItems: [
         { id: 'calendario-mantenimiento', title: t('calendarioMantenimiento'), icon: Calendar },
         { id: 'comprobadores', title: t('comprobadores'), icon: Wrench }
@@ -100,6 +117,7 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ language, activeSection, onSect
       title: t('gestionTalento'),
       id: 'gestion-talento',
       icon: UserPlus,
+      visible: userPermissions.departments.gestionTalento,
       subItems: [
         { id: 'gestion-inmuebles', title: t('gestionInmuebles'), icon: Building },
         { id: 'solicitudes-contratacion', title: t('solicitudesContratacion'), icon: UserPlus },
@@ -111,8 +129,8 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ language, activeSection, onSect
           icon: GraduationCap,
           hasSubItems: true,
           subItems: [
-            { id: 'listado', title: t('listado'), icon: List },
-            { id: 'valoracion', title: t('valoracion'), icon: Star }
+            { id: 'practicas-listado', title: t('practicasListado'), icon: ClipboardList },
+            { id: 'practicas-valoracion', title: t('practicasValoracion'), icon: Award }
           ]
         },
         { id: 'entrevista-salida', title: t('entrevistaSalida'), icon: MessageCircle }
@@ -135,44 +153,63 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ language, activeSection, onSect
           >
             <CollapsibleTrigger asChild>
               <SidebarMenuButton
-                className={`w-full flex items-center justify-between px-${4 + level * 2} py-2 text-sm rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/50 transition-colors`}
+                className={`w-full flex items-center justify-between px-4 py-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/50 transition-colors ${
+                  isCollapsed ? 'px-2' : `px-${4 + level * 2}`
+                }`}
+                tooltip={isCollapsed ? subItem.title : undefined}
               >
-                <div className="flex items-center gap-3">
-                  <subItem.icon className="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
-                  <span className="text-gray-700 dark:text-gray-300">{subItem.title}</span>
-                </div>
-                <div className="transition-transform duration-200">
-                  {openSubmenus.includes(subItem.id) ? (
-                    <ChevronDown className="w-3 h-3 text-blue-600 dark:text-blue-400" />
-                  ) : (
-                    <ChevronRight className="w-3 h-3 text-blue-600 dark:text-blue-400" />
+                <div className="flex items-center gap-2">
+                  <subItem.icon className={`text-blue-600 dark:text-blue-400 flex-shrink-0 ${
+                    isCollapsed ? 'w-5 h-5' : 'w-4 h-4'
+                  }`} />
+                  {!isCollapsed && (
+                    <span className="text-gray-700 dark:text-gray-300 text-sm">{subItem.title}</span>
                   )}
                 </div>
+                {!isCollapsed && (
+                  <div className="transition-transform duration-200">
+                    {openSubmenus.includes(subItem.id) ? (
+                      <ChevronDown className="w-3 h-3 text-blue-600 dark:text-blue-400" />
+                    ) : (
+                      <ChevronRight className="w-3 h-3 text-blue-600 dark:text-blue-400" />
+                    )}
+                  </div>
+                )}
               </SidebarMenuButton>
             </CollapsibleTrigger>
-            <CollapsibleContent className={`ml-${2 + level * 2} mt-1 space-y-1 animate-slideDown`}>
-              {renderSubItems(subItem.subItems, level + 1)}
-            </CollapsibleContent>
+            {!isCollapsed && (
+              <CollapsibleContent className="ml-6 mt-1 space-y-1 animate-slideDown">
+                {renderSubItems(subItem.subItems, level + 1)}
+              </CollapsibleContent>
+            )}
           </Collapsible>
         ) : (
           <SidebarMenuItem>
             <SidebarMenuButton
               onClick={() => handleSubItemClick(subItem.id)}
               isActive={activeSection === subItem.id}
-              className={`w-full flex items-center gap-3 px-${4 + level * 2} py-2 text-sm rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/50 transition-colors ${
+              className={`w-full flex items-center gap-2 py-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/50 transition-colors ${
+                isCollapsed ? 'px-2 justify-center' : `px-${4 + level * 2}`
+              } ${
                 activeSection === subItem.id 
                   ? 'bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100' 
                   : 'text-gray-700 dark:text-gray-300'
               }`}
+              tooltip={isCollapsed ? subItem.title : undefined}
             >
-              <subItem.icon className="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
-              <span>{subItem.title}</span>
+              <subItem.icon className={`text-blue-600 dark:text-blue-400 flex-shrink-0 ${
+                isCollapsed ? 'w-5 h-5' : 'w-4 h-4'
+              }`} />
+              {!isCollapsed && <span className="text-sm">{subItem.title}</span>}
             </SidebarMenuButton>
           </SidebarMenuItem>
         )}
       </div>
     ));
   };
+
+  // Filtrar departamentos visibles basado en permisos
+  const visibleDepartments = Object.values(departamentosStructure).filter(dept => dept.visible);
 
   return (
     <Sidebar 
@@ -186,9 +223,9 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ language, activeSection, onSect
               <img 
                 src="/lovable-uploads/4a540878-1ca7-4aac-b819-248b4edd1230.png" 
                 alt="GEESTOR Logo" 
-                className="w-6 h-6 object-contain"
+                className="w-6 h-6 object-contain flex-shrink-0"
               />
-              <span className="font-semibold text-sm text-blue-900 dark:text-blue-100">
+              <span className="font-semibold text-sm text-blue-900 dark:text-blue-100 truncate">
                 GEESTOR
               </span>
             </div>
@@ -197,7 +234,7 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ language, activeSection, onSect
             variant="ghost"
             size="icon"
             onClick={toggleSidebar}
-            className="hidden md:flex h-8 w-8 hover:bg-blue-200 dark:hover:bg-blue-800 text-blue-700 dark:text-blue-300"
+            className="flex-shrink-0 h-8 w-8 hover:bg-blue-200 dark:hover:bg-blue-800 text-blue-700 dark:text-blue-300"
           >
             {isCollapsed ? (
               <PanelLeftOpen className="h-4 w-4" />
@@ -218,115 +255,86 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ language, activeSection, onSect
                   <SidebarMenuButton
                     onClick={item.onClick}
                     isActive={activeSection === item.id}
-                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/50 transition-colors ${
+                    className={`w-full flex items-center gap-3 py-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/50 transition-colors ${
+                      isCollapsed ? 'px-2 justify-center' : 'px-3'
+                    } ${
                       activeSection === item.id 
                         ? 'bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100' 
                         : 'text-gray-700 dark:text-gray-300'
                     }`}
                     tooltip={isCollapsed ? item.title : undefined}
                   >
-                    <item.icon className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+                    <item.icon className={`text-blue-600 dark:text-blue-400 flex-shrink-0 ${
+                      isCollapsed ? 'w-5 h-5' : 'w-5 h-5'
+                    }`} />
                     {!isCollapsed && <span className="font-medium">{item.title}</span>}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
 
-              {/* Departamentos */}
-              <SidebarMenuItem>
-                <Collapsible 
-                  open={isDepartamentosOpen} 
-                  onOpenChange={setIsDepartamentosOpen}
-                  className="w-full"
-                >
-                  <CollapsibleTrigger asChild>
-                    <SidebarMenuButton
-                      className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/50 transition-colors text-gray-700 dark:text-gray-300"
-                      tooltip={isCollapsed ? t('departamentos') : undefined}
-                    >
-                      <div className="flex items-center gap-3">
-                        <Building2 className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
-                        {!isCollapsed && <span className="font-medium">{t('departamentos')}</span>}
-                      </div>
-                      {!isCollapsed && (
-                        <div className="transition-transform duration-200">
-                          {isDepartamentosOpen ? (
-                            <ChevronDown className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                          ) : (
-                            <ChevronRight className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                          )}
+              {/* Departamentos - Solo mostrar si hay departamentos visibles */}
+              {visibleDepartments.length > 0 && (
+                <SidebarMenuItem>
+                  <Collapsible 
+                    open={isDepartamentosOpen} 
+                    onOpenChange={setIsDepartamentosOpen}
+                    className="w-full"
+                  >
+                    <CollapsibleTrigger asChild>
+                      <SidebarMenuButton
+                        className={`w-full flex items-center justify-between py-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/50 transition-colors text-gray-700 dark:text-gray-300 ${
+                          isCollapsed ? 'px-2' : 'px-3'
+                        }`}
+                        tooltip={isCollapsed ? t('departamentos') : undefined}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Building2 className={`text-blue-600 dark:text-blue-400 flex-shrink-0 ${
+                            isCollapsed ? 'w-5 h-5' : 'w-5 h-5'
+                          }`} />
+                          {!isCollapsed && <span className="font-medium">{t('departamentos')}</span>}
                         </div>
-                      )}
-                    </SidebarMenuButton>
-                  </CollapsibleTrigger>
-                  
-                  {!isCollapsed && (
-                    <CollapsibleContent className="ml-6 mt-2 space-y-2 animate-slideDown">
-                      {/* Operaciones */}
-                      <Collapsible 
-                        open={openDepartment === 'operaciones'} 
-                        onOpenChange={() => toggleDepartment('operaciones')}
-                      >
-                        <CollapsibleTrigger asChild>
-                          <SidebarMenuButton
-                            className="w-full flex items-center justify-between px-4 py-2 text-sm rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/50 transition-colors text-gray-700 dark:text-gray-300"
+                        {!isCollapsed && (
+                          <div className="transition-transform duration-200">
+                            {isDepartamentosOpen ? (
+                              <ChevronDown className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                            ) : (
+                              <ChevronRight className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                            )}
+                          </div>
+                        )}
+                      </SidebarMenuButton>
+                    </CollapsibleTrigger>
+                    
+                    {!isCollapsed && (
+                      <CollapsibleContent className="ml-6 mt-2 space-y-2 animate-slideDown">
+                        {/* Renderizar solo departamentos visibles */}
+                        {visibleDepartments.map((department) => (
+                          <Collapsible 
+                            key={department.id}
+                            open={openDepartment === department.id} 
+                            onOpenChange={() => toggleDepartment(department.id)}
                           >
-                            <div className="flex items-center gap-3">
-                              <departamentosStructure.operaciones.icon className="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
-                              <span>{departamentosStructure.operaciones.title}</span>
-                            </div>
-                            <ChevronRight className={`w-3 h-3 text-blue-600 dark:text-blue-400 transition-transform ${openDepartment === 'operaciones' ? 'rotate-90' : ''}`} />
-                          </SidebarMenuButton>
-                        </CollapsibleTrigger>
-                        <CollapsibleContent className="ml-4 mt-1 space-y-1">
-                          {renderSubItems(departamentosStructure.operaciones.subItems)}
-                        </CollapsibleContent>
-                      </Collapsible>
-
-                      {/* Gestión Técnica */}
-                      <Collapsible 
-                        open={openDepartment === 'gestion-tecnica'} 
-                        onOpenChange={() => toggleDepartment('gestion-tecnica')}
-                      >
-                        <CollapsibleTrigger asChild>
-                          <SidebarMenuButton
-                            className="w-full flex items-center justify-between px-4 py-2 text-sm rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/50 transition-colors text-gray-700 dark:text-gray-300"
-                          >
-                            <div className="flex items-center gap-3">
-                              <departamentosStructure.gestionTecnica.icon className="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
-                              <span>{departamentosStructure.gestionTecnica.title}</span>
-                            </div>
-                            <ChevronRight className={`w-3 h-3 text-blue-600 dark:text-blue-400 transition-transform ${openDepartment === 'gestion-tecnica' ? 'rotate-90' : ''}`} />
-                          </SidebarMenuButton>
-                        </CollapsibleTrigger>
-                        <CollapsibleContent className="ml-4 mt-1 space-y-1">
-                          {renderSubItems(departamentosStructure.gestionTecnica.subItems)}
-                        </CollapsibleContent>
-                      </Collapsible>
-
-                      {/* Gestión del Talento */}
-                      <Collapsible 
-                        open={openDepartment === 'gestion-talento'} 
-                        onOpenChange={() => toggleDepartment('gestion-talento')}
-                      >
-                        <CollapsibleTrigger asChild>
-                          <SidebarMenuButton
-                            className="w-full flex items-center justify-between px-4 py-2 text-sm rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/50 transition-colors text-gray-700 dark:text-gray-300"
-                          >
-                            <div className="flex items-center gap-3">
-                              <departamentosStructure.gestionTalento.icon className="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
-                              <span>{departamentosStructure.gestionTalento.title}</span>
-                            </div>
-                            <ChevronRight className={`w-3 h-3 text-blue-600 dark:text-blue-400 transition-transform ${openDepartment === 'gestion-talento' ? 'rotate-90' : ''}`} />
-                          </SidebarMenuButton>
-                        </CollapsibleTrigger>
-                        <CollapsibleContent className="ml-4 mt-1 space-y-1">
-                          {renderSubItems(departamentosStructure.gestionTalento.subItems)}
-                        </CollapsibleContent>
-                      </Collapsible>
-                    </CollapsibleContent>
-                  )}
-                </Collapsible>
-              </SidebarMenuItem>
+                            <CollapsibleTrigger asChild>
+                              <SidebarMenuButton
+                                className="w-full flex items-center justify-between px-4 py-2 text-sm rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/50 transition-colors text-gray-700 dark:text-gray-300"
+                              >
+                                <div className="flex items-center gap-3">
+                                  <department.icon className="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+                                  <span>{department.title}</span>
+                                </div>
+                                <ChevronRight className={`w-3 h-3 text-blue-600 dark:text-blue-400 transition-transform ${openDepartment === department.id ? 'rotate-90' : ''}`} />
+                              </SidebarMenuButton>
+                            </CollapsibleTrigger>
+                            <CollapsibleContent className="ml-4 mt-1 space-y-1">
+                              {renderSubItems(department.subItems)}
+                            </CollapsibleContent>
+                          </Collapsible>
+                        ))}
+                      </CollapsibleContent>
+                    )}
+                  </Collapsible>
+                </SidebarMenuItem>
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
