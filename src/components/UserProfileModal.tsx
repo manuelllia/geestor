@@ -16,7 +16,7 @@ interface UserProfileModalProps {
   user: UserType;
   language: Language;
   onUserUpdate: (updatedUser: UserType) => void;
-  onPermissionsUpdate?: () => void; // Nueva prop para notificar cambios de permisos
+  onPermissionsUpdate?: () => void;
   children: React.ReactNode;
 }
 
@@ -93,10 +93,18 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
     }));
   };
 
+  const handleModalTrigger = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsOpen(true);
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        {children}
+        <div onClick={handleModalTrigger} style={{ cursor: 'pointer', width: '100%' }}>
+          {children}
+        </div>
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto bg-white dark:bg-gray-900">
         <DialogHeader>

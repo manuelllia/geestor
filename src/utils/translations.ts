@@ -1,221 +1,119 @@
-
 export type Language = 'es' | 'en';
 export type Theme = 'light' | 'dark';
 
-interface Translations {
-  [key: string]: {
-    es: string;
-    en: string;
-  };
-}
-
-export const translations: Translations = {
-  appName: {
-    es: 'GEESTOR',
-    en: 'GEESTOR'
+export const translations = {
+  es: {
+    inicio: 'Inicio',
+    operaciones: 'Operaciones',
+    gestionTecnica: 'Gestión Técnica',
+    gestionTalento: 'Gestión del Talento',
+    configuracion: 'Configuración',
+    appName: 'GEESTOR',
+    loginTitle: 'Bienvenido a GEESTOR',
+    loginSubtitle: 'Sistema de Gestión Empresarial Electromédico',
+    loginButton: 'Iniciar Sesión con Microsoft',
+    verificationTitle: 'Verificando tu identidad',
+    verificationSubtitle: 'Por favor espera mientras verificamos tu cuenta',
+    logout: 'Cerrar Sesión',
+    welcomeMessage: 'Bienvenido a GEESTOR',
+    welcomeSubtitle: 'Tu plataforma integral de gestión empresarial',
+    selectSection: 'Selecciona una sección del menú para comenzar',
+    mainContent: 'Contenido Principal',
+    noContentSelected: 'No hay contenido seleccionado para esta sección',
+    userProfile: 'Perfil de Usuario',
+    personalInformation: 'Información Personal',
+    departmentPermissions: 'Permisos de Departamento',
+    departmentPermissionsDesc: 'Controla el acceso a los diferentes departamentos',
+    actionPermissions: 'Permisos de Acción',
+    actionPermissionsDesc: 'Define qué acciones puede realizar el usuario',
+    name: 'Nombre',
+    email: 'Correo Electrónico',
+    changePhoto: 'Cambiar Foto',
+    create: 'Crear',
+    edit: 'Editar',
+    delete: 'Eliminar',
+    saveChanges: 'Guardar Cambios',
+    language: 'Idioma',
+    theme: 'Tema',
+    changeSheetsManagement: 'Gestión de Hojas de Cambio',
+    changeSheetDetails: 'Detalles de Hoja de Cambio',
+    createNew: 'Crear Nuevo',
+    export: 'Exportar',
+    import: 'Importar',
+    employeeAgreementsManagement: 'Gestión de Acuerdos con Empleado',
+    employeeAgreementDetails: 'Detalles del Acuerdo con Empleado',
+    employeeName: 'Nombre del Empleado',
+    agreementType: 'Tipo de Acuerdo',
+    expiryDate: 'Fecha de Vencimiento',
+    title: 'Título',
+    status: 'Estado',
+    createdDate: 'Fecha de Creación',
+    lastModified: 'Última Modificación',
+    actions: 'Acciones',
+    view: 'Ver',
+    back: 'Volver',
+    page: 'Página',
+    of: 'de',
+    noDataAvailable: 'No hay datos disponibles',
+    exportPDF: 'Exportar PDF',
+    detailViewPlaceholder: 'Esta es la vista de detalles donde se mostrará toda la información.',
+    comingSoon: 'Próximamente disponible'
   },
-  welcome: {
-    es: 'Bienvenido',
-    en: 'Welcome'
-  },
-  login: {
-    es: 'Iniciar Sesión',
-    en: 'Sign In'
-  },
-  loginButton: {
-    es: 'Continuar con Microsoft',
-    en: 'Continue with Microsoft'
-  },
-  loginWithMicrosoft: {
-    es: 'Continuar con Microsoft',
-    en: 'Continue with Microsoft'
-  },
-  loginSubtitle: {
-    es: 'Gestión Empresarial Electromedico',
-    en: 'Electromedical Business Management'
-  },
-  welcomeMessage: {
-    es: 'Bienvenido a GEESTOR',
-    en: 'Welcome to GEESTOR'
-  },
-  welcomeSubtitle: {
-    es: 'Tu plataforma de gestión empresarial integral',
-    en: 'Your comprehensive business management platform'
-  },
-  selectSection: {
-    es: 'Selecciona una sección del menú lateral para comenzar',
-    en: 'Select a section from the sidebar menu to get started'
-  },
-  mainContent: {
-    es: 'Contenido Principal',
-    en: 'Main Content'
-  },
-  noContentSelected: {
-    es: 'No hay contenido seleccionado',
-    en: 'No content selected'
-  },
-  inicio: {
-    es: 'Inicio',
-    en: 'Home'
-  },
-  departamentos: {
-    es: 'Departamentos',
-    en: 'Departments'
-  },
-  operaciones: {
-    es: 'Operaciones',
-    en: 'Operations'
-  },
-  gestionTecnica: {
-    es: 'Gestión Técnica',
-    en: 'Technical Management'
-  },
-  gestionTalento: {
-    es: 'Gestión del Talento',
-    en: 'Talent Management'
-  },
-  analisisCoste: {
-    es: 'Análisis de Coste',
-    en: 'Cost Analysis'
-  },
-  calendarioMantenimiento: {
-    es: 'Calendario de Mantenimiento',
-    en: 'Maintenance Calendar'
-  },
-  comprobadores: {
-    es: 'Comprobadores',
-    en: 'Testers'
-  },
-  gestionInmuebles: {
-    es: 'Gestión de Inmuebles',
-    en: 'Property Management'
-  },
-  solicitudesContratacion: {
-    es: 'Solicitudes de Contratación',
-    en: 'Hiring Requests'
-  },
-  hojasCambio: {
-    es: 'Hojas de Cambio',
-    en: 'Change Sheets'
-  },
-  acuerdoEmpleado: {
-    es: 'Acuerdo con Empleado',
-    en: 'Employee Agreement'
-  },
-  practicas: {
-    es: 'Prácticas',
-    en: 'Internships'
-  },
-  practicasListado: {
-    es: 'Listado',
-    en: 'Listing'
-  },
-  practicasValoracion: {
-    es: 'Valoración',
-    en: 'Assessment'
-  },
-  entrevistaSalida: {
-    es: 'Entrevista de Salida',
-    en: 'Exit Interview'
-  },
-  language: {
-    es: 'Idioma',
-    en: 'Language'
-  },
-  spanish: {
-    es: 'Español',
-    en: 'Spanish'
-  },
-  english: {
-    es: 'Inglés',
-    en: 'English'
-  },
-  theme: {
-    es: 'Tema',
-    en: 'Theme'
-  },
-  light: {
-    es: 'Claro',
-    en: 'Light'
-  },
-  dark: {
-    es: 'Oscuro',
-    en: 'Dark'
-  },
-  logout: {
-    es: 'Cerrar Sesión',
-    en: 'Sign Out'
-  },
-  settings: {
-    es: 'Configuración',
-    en: 'Settings'
-  },
-  userProfile: {
-    es: 'Perfil de Usuario',
-    en: 'User Profile'
-  },
-  personalInformation: {
-    es: 'Información Personal',
-    en: 'Personal Information'
-  },
-  changePhoto: {
-    es: 'Cambiar Foto',
-    en: 'Change Photo'
-  },
-  name: {
-    es: 'Nombre',
-    en: 'Name'
-  },
-  email: {
-    es: 'Correo Electrónico',
-    en: 'Email'
-  },
-  departmentPermissions: {
-    es: 'Permisos de Departamentos',
-    en: 'Department Permissions'
-  },
-  departmentPermissionsDesc: {
-    es: 'Selecciona a qué departamentos tienes acceso',
-    en: 'Select which departments you have access to'
-  },
-  actionPermissions: {
-    es: 'Permisos de Acciones',
-    en: 'Action Permissions'
-  },
-  actionPermissionsDesc: {
-    es: 'Define qué acciones puedes realizar',
-    en: 'Define what actions you can perform'
-  },
-  create: {
-    es: 'Crear',
-    en: 'Create'
-  },
-  edit: {
-    es: 'Editar',
-    en: 'Edit'
-  },
-  delete: {
-    es: 'Eliminar',
-    en: 'Delete'
-  },
-  saveChanges: {
-    es: 'Guardar Cambios',
-    en: 'Save Changes'
-  },
-  accountVerification: {
-    es: 'Verificación de Cuenta',
-    en: 'Account Verification'
-  },
-  verifyingAccount: {
-    es: 'Verificando cuenta',
-    en: 'Verifying account'
-  },
-  verificationMessage: {
-    es: 'Tu cuenta está siendo verificada. Por favor, espera un momento.',
-    en: 'Your account is being verified. Please wait a moment.'
-  },
-  verificationSubtitle: {
-    es: 'Esto puede tomar unos segundos...',
-    en: 'This may take a few seconds...'
+  en: {
+    inicio: 'Home',
+    operaciones: 'Operations',
+    gestionTecnica: 'Technical Management',
+    gestionTalento: 'Talent Management',
+    configuracion: 'Settings',
+    appName: 'GEESTOR',
+    loginTitle: 'Welcome to GEESTOR',
+    loginSubtitle: 'Electromedical Business Management System',
+    loginButton: 'Sign In with Microsoft',
+    verificationTitle: 'Verifying your identity',
+    verificationSubtitle: 'Please wait while we verify your account',
+    logout: 'Sign Out',
+    welcomeMessage: 'Welcome to GEESTOR',
+    welcomeSubtitle: 'Your comprehensive business management platform',
+    selectSection: 'Select a section from the menu to begin',
+    mainContent: 'Main Content',
+    noContentSelected: 'No content selected for this section',
+    userProfile: 'User Profile',
+    personalInformation: 'Personal Information',
+    departmentPermissions: 'Department Permissions',
+    departmentPermissionsDesc: 'Control access to different departments',
+    actionPermissions: 'Action Permissions',
+    actionPermissionsDesc: 'Define what actions the user can perform',
+    name: 'Name',
+    email: 'Email',
+    changePhoto: 'Change Photo',
+    create: 'Create',
+    edit: 'Edit',
+    delete: 'Delete',
+    saveChanges: 'Save Changes',
+    language: 'Language',
+    theme: 'Theme',
+    changeSheetsManagement: 'Change Sheets Management',
+    changeSheetDetails: 'Change Sheet Details',
+    createNew: 'Create New',
+    export: 'Export',
+    import: 'Import',
+    employeeAgreementsManagement: 'Employee Agreements Management',
+    employeeAgreementDetails: 'Employee Agreement Details',
+    employeeName: 'Employee Name',
+    agreementType: 'Agreement Type',
+    expiryDate: 'Expiry Date',
+    title: 'Title',
+    status: 'Status',
+    createdDate: 'Created Date',
+    lastModified: 'Last Modified',
+    actions: 'Actions',
+    view: 'View',
+    back: 'Back',
+    page: 'Page',
+    of: 'of',
+    noDataAvailable: 'No data available',
+    exportPDF: 'Export PDF',
+    detailViewPlaceholder: 'This is the detail view where all information will be displayed.',
+    comingSoon: 'Coming soon'
   }
 };

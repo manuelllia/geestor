@@ -1,7 +1,11 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import { Language } from '../utils/translations';
+import ChangeSheetsListView from './ChangeSheets/ChangeSheetsListView';
+import ChangeSheetDetailView from './ChangeSheets/ChangeSheetDetailView';
+import EmployeeAgreementsListView from './EmployeeAgreements/EmployeeAgreementsListView';
+import EmployeeAgreementDetailView from './EmployeeAgreements/EmployeeAgreementDetailView';
 
 interface MainContentProps {
   activeSection: string;
@@ -10,6 +14,18 @@ interface MainContentProps {
 
 const MainContent: React.FC<MainContentProps> = ({ activeSection, language }) => {
   const { t } = useTranslation(language);
+  const [currentView, setCurrentView] = useState<'list' | 'detail'>('list');
+  const [selectedId, setSelectedId] = useState<string>('');
+
+  const handleViewDetails = (id: string) => {
+    setSelectedId(id);
+    setCurrentView('detail');
+  };
+
+  const handleBackToList = () => {
+    setCurrentView('list');
+    setSelectedId('');
+  };
 
   const renderContent = () => {
     switch (activeSection) {
@@ -27,6 +43,43 @@ const MainContent: React.FC<MainContentProps> = ({ activeSection, language }) =>
             </div>
           </div>
         );
+
+      case 'hojas-cambio':
+        if (currentView === 'detail') {
+          return (
+            <ChangeSheetDetailView
+              language={language}
+              sheetId={selectedId}
+              onBack={handleBackToList}
+            />
+          );
+        }
+        return (
+          <ChangeSheetsListView
+            language={language}
+            onViewDetails={handleViewDetails}
+            onCreateNew={() => console.log('Crear nueva hoja de cambio')}
+          />
+        );
+
+      case 'acuerdos-empleado':
+        if (currentView === 'detail') {
+          return (
+            <EmployeeAgreementDetailView
+              language={language}
+              agreementId={selectedId}
+              onBack={handleBackToList}
+            />
+          );
+        }
+        return (
+          <EmployeeAgreementsListView
+            language={language}
+            onViewDetails={handleViewDetails}
+            onCreateNew={() => console.log('Crear nuevo acuerdo')}
+          />
+        );
+
       default:
         return (
           <div className="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-8 border border-blue-200 dark:border-blue-700">
