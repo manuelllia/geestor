@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,11 +11,13 @@ import ChangeSheetCreateForm from './ChangeSheetCreateForm';
 interface ChangeSheetsListViewProps {
   language: Language;
   onViewDetails: (sheetId: string) => void;
+  onCreateNew: () => void;
 }
 
 const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({ 
   language, 
-  onViewDetails 
+  onViewDetails,
+  onCreateNew
 }) => {
   const { t } = useTranslation(language);
   const [showCreateForm, setShowCreateForm] = useState(false);
