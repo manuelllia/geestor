@@ -1,4 +1,6 @@
+
 export type Language = 'es' | 'en';
+export type Theme = 'light' | 'dark';
 
 export const translations = {
   welcome: {
@@ -32,6 +34,10 @@ export const translations = {
   orSignInWith: {
     es: 'O inicia sesión con',
     en: 'Or sign in with'
+  },
+  loginButton: {
+    es: 'Iniciar Sesión con Microsoft',
+    en: 'Sign in with Microsoft'
   },
   verificationTitle: {
     es: 'Verificación de Seguridad',
@@ -296,5 +302,97 @@ export const translations = {
   rentAmount: {
     es: 'Monto de Alquiler',
     en: 'Rent Amount'
+  },
+  propertyCode: {
+    es: 'Código del Inmueble',
+    en: 'Property Code'
+  },
+  registrationDate: {
+    es: 'Fecha de Registro',
+    en: 'Registration Date'
+  },
+  settings: {
+    es: 'Configuración',
+    en: 'Settings'
+  },
+  spanish: {
+    es: 'Español',
+    en: 'Spanish'
+  },
+  english: {
+    es: 'Inglés',
+    en: 'English'
+  },
+  light: {
+    es: 'Claro',
+    en: 'Light'
+  },
+  dark: {
+    es: 'Oscuro',
+    en: 'Dark'
+  },
+  welcomeMessage: {
+    es: 'Bienvenido al Sistema GEESTOR',
+    en: 'Welcome to GEESTOR System'
+  },
+  welcomeSubtitle: {
+    es: 'Sistema integral de gestión empresarial',
+    en: 'Comprehensive business management system'
+  },
+  selectSection: {
+    es: 'Selecciona una sección del menú para comenzar',
+    en: 'Select a section from the menu to begin'
+  },
+  mainContent: {
+    es: 'Contenido Principal',
+    en: 'Main Content'
+  },
+  noContentSelected: {
+    es: 'No hay contenido seleccionado',
+    en: 'No content selected'
+  },
+  personalInformation: {
+    es: 'Información Personal',
+    en: 'Personal Information'
+  },
+  changePhoto: {
+    es: 'Cambiar Foto',
+    en: 'Change Photo'
+  },
+  name: {
+    es: 'Nombre',
+    en: 'Name'
+  },
+  departmentPermissions: {
+    es: 'Permisos de Departamentos',
+    en: 'Department Permissions'
+  },
+  departmentPermissionsDesc: {
+    es: 'Controla el acceso a los diferentes departamentos',
+    en: 'Control access to different departments'
+  },
+  actionPermissions: {
+    es: 'Permisos de Acciones',
+    en: 'Action Permissions'
+  },
+  actionPermissionsDesc: {
+    es: 'Controla las acciones que puede realizar el usuario',
+    en: 'Control actions that the user can perform'
+  },
+  create: {
+    es: 'Crear',
+    en: 'Create'
+  },
+  edit: {
+    es: 'Editar',
+    en: 'Edit'
+  },
+  delete: {
+    es: 'Eliminar',
+    en: 'Delete'
+  },
+  saveChanges: {
+    es: 'Guardar Cambios',
+    en: 'Save Changes'
   }
 };

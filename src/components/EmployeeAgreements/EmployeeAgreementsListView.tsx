@@ -120,7 +120,7 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
         </CardContent>
       </Card>
 
-      {/* Tabla de acuerdos con empleado */}
+      {/* Tabla de acuerdos con empleados */}
       <Card className="border-blue-200 dark:border-blue-800">
         <CardContent className="p-0">
           <Table>
