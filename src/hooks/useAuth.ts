@@ -27,14 +27,19 @@ export const useAuth = () => {
         setAuthState(prev => ({ ...prev, isLoading: false }));
       }
     } else {
-      // Check if we're returning from Microsoft OAuth
-      const urlParams = new URLSearchParams(window.location.search);
-      const code = urlParams.get('code');
-      const state = urlParams.get('state');
-      const savedState = sessionStorage.getItem('oauth-state');
+      // En desarrollo, solo verificar si hay un callback de OAuth
+      if (process.env.NODE_ENV !== 'development') {
+        // Check if we're returning from Microsoft OAuth
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get('code');
+        const state = urlParams.get('state');
+        const savedState = sessionStorage.getItem('oauth-state');
 
-      if (code && state && state === savedState) {
-        handleOAuthCallback(code);
+        if (code && state && state === savedState) {
+          handleOAuthCallback(code);
+        } else {
+          setAuthState(prev => ({ ...prev, isLoading: false }));
+        }
       } else {
         setAuthState(prev => ({ ...prev, isLoading: false }));
       }
@@ -48,9 +53,9 @@ export const useAuth = () => {
       // Limpiar URL
       window.history.replaceState({}, document.title, window.location.pathname);
       
-      // En un entorno real, aquí enviarías el código al backend para intercambiarlo por un token
-      // Por ahora, simularemos la respuesta
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // En producción, aquí enviarías el código al backend
+      // POST /api/auth/microsoft con { code }
+      // El backend intercambia el código por un token y devuelve los datos del usuario
       
       setAuthState(prev => ({ ...prev, isVerifying: true, isLoading: false }));
       await new Promise(resolve => setTimeout(resolve, 3000));
@@ -83,8 +88,38 @@ export const useAuth = () => {
   };
 
   const loginWithMicrosoft = async () => {
-    // Esta función ahora se maneja en LoginScreen
-    // Aquí podrías agregar lógica adicional si es necesaria
+    try {
+      setAuthState(prev => ({ ...prev, isLoading: true }));
+      
+      // Simular proceso de verificación en desarrollo
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      setAuthState(prev => ({ ...prev, isVerifying: true, isLoading: false }));
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      
+      // Mock user data para desarrollo
+      const mockUser: User = {
+        id: '1',
+        email: 'usuario@empresa.com',
+        name: 'Usuario Demo',
+        profilePicture: 'https://via.placeholder.com/40'
+      };
+
+      localStorage.setItem('geestor-user', JSON.stringify(mockUser));
+      
+      setAuthState({
+        user: mockUser,
+        isAuthenticated: true,
+        isLoading: false,
+        isVerifying: false
+      });
+    } catch (error) {
+      console.error('Login failed:', error);
+      setAuthState(prev => ({ 
+        ...prev, 
+        isLoading: false, 
+        isVerifying: false 
+      }));
+    }
   };
 
   const logout = () => {

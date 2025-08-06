@@ -14,9 +14,15 @@ interface LoginScreenProps {
 const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, isLoading, language }) => {
   const { t } = useTranslation(language);
 
-  // Función para manejar el login real con Microsoft
+  // Función para manejar el login emulado
   const handleMicrosoftLogin = () => {
-    // Configuración para Microsoft OAuth 2.0
+    // En entorno de desarrollo (Lovable), emulamos el login
+    if (process.env.NODE_ENV === 'development') {
+      onLogin();
+      return;
+    }
+
+    // En producción, configuración real de Microsoft OAuth 2.0
     const clientId = process.env.VITE_MICROSOFT_CLIENT_ID || 'your-client-id';
     const redirectUri = encodeURIComponent(window.location.origin);
     const responseType = 'code';
@@ -34,29 +40,40 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, isLoading, language 
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-white dark:from-gray-900 dark:to-gray-800 px-4">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-white dark:from-gray-900 dark:to-gray-800 px-4">
+      {/* Logo principal fuera del card */}
+      <div className="mb-12">
+        <div className="mx-auto w-32 h-32 rounded-full bg-primary/10 flex items-center justify-center shadow-lg">
+          <img 
+            src="/lovable-uploads/4a540878-1ca7-4aac-b819-248b4edd1230.png" 
+            alt="GEESTOR Logo" 
+            className="w-20 h-20 object-contain"
+          />
+        </div>
+        <h1 className="text-4xl font-bold text-primary mt-6 text-center">
+          GEESTOR
+        </h1>
+        <p className="text-muted-foreground text-center mt-2 text-lg">
+          Sistema de Gestión Empresarial
+        </p>
+      </div>
+
+      {/* Card de login */}
       <Card className="w-full max-w-md shadow-xl border-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
-        <CardHeader className="text-center pb-8 pt-12">
-          <div className="mx-auto mb-6 w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center">
-            <img 
-              src="/lovable-uploads/4a540878-1ca7-4aac-b819-248b4edd1230.png" 
-              alt="GEESTOR Logo" 
-              className="w-12 h-12 object-contain"
-            />
-          </div>
-          <h1 className="text-2xl font-bold text-primary mb-2">
+        <CardHeader className="text-center pb-6 pt-8">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
             {t('welcome')}
-          </h1>
+          </h2>
           <p className="text-muted-foreground">
             {t('loginSubtitle')}
           </p>
         </CardHeader>
-        <CardContent className="pb-12">
+        <CardContent className="pb-8">
           {/* Botón oficial de Microsoft */}
           <button
             onClick={handleMicrosoftLogin}
             disabled={isLoading}
-            className="w-full h-12 bg-[#0078d4] hover:bg-[#106ebe] text-white font-medium rounded-md transition-all duration-200 hover:scale-[1.02] flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full h-12 bg-[#0078d4] hover:bg-[#106ebe] text-white font-medium rounded-md transition-all duration-200 hover:scale-[1.02] flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
           >
             {isLoading ? (
               <div className="flex items-center gap-2">
@@ -75,6 +92,13 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, isLoading, language 
               </>
             )}
           </button>
+          
+          {/* Información adicional para desarrollo */}
+          {process.env.NODE_ENV === 'development' && (
+            <p className="text-xs text-muted-foreground mt-4 text-center">
+              * Modo desarrollo: Login emulado
+            </p>
+          )}
         </CardContent>
       </Card>
     </div>

@@ -27,7 +27,16 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ language, activeSection, onSect
   const { t } = useTranslation(language);
   const { state, toggleSidebar } = useSidebar();
   const [isDepartamentosOpen, setIsDepartamentosOpen] = useState(false);
+  const [openSubmenus, setOpenSubmenus] = useState<string[]>([]);
   const isCollapsed = state === 'collapsed';
+
+  const toggleSubmenu = (submenuId: string) => {
+    setOpenSubmenus(prev => 
+      prev.includes(submenuId) 
+        ? prev.filter(id => id !== submenuId)
+        : [...prev, submenuId]
+    );
+  };
 
   const menuItems = [
     {
@@ -38,14 +47,91 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ language, activeSection, onSect
     }
   ];
 
-  const departamentosSubItems = [
-    { id: 'operaciones', title: t('operaciones') },
-    { id: 'gestion-tecnica', title: t('gestionTecnica') },
-    { id: 'gestion-talento', title: t('gestionTalento') }
-  ];
+  const departamentosStructure = {
+    operaciones: {
+      title: t('operaciones'),
+      id: 'operaciones',
+      subItems: [
+        { id: 'analisis-coste', title: t('analisisCoste') }
+      ]
+    },
+    gestionTecnica: {
+      title: t('gestionTecnica'),
+      id: 'gestion-tecnica',
+      subItems: [
+        { id: 'calendario-mantenimiento', title: t('calendarioMantenimiento') },
+        { id: 'comprobadores', title: t('comprobadores') }
+      ]
+    },
+    gestionTalento: {
+      title: t('gestionTalento'),
+      id: 'gestion-talento',
+      subItems: [
+        { id: 'gestion-inmuebles', title: t('gestionInmuebles') },
+        { id: 'solicitudes-contratacion', title: t('solicitudesContratacion') },
+        { id: 'hojas-cambio', title: t('hojasCambio') },
+        { id: 'acuerdo-empleado', title: t('acuerdoEmpleado') },
+        {
+          id: 'practicas',
+          title: t('practicas'),
+          hasSubItems: true,
+          subItems: [
+            { id: 'listado-valoracion', title: t('listadoValoracion') }
+          ]
+        },
+        { id: 'entrevista-salida', title: t('entrevistaSalida') }
+      ]
+    }
+  };
 
   const handleSubItemClick = (subItemId: string) => {
     onSectionChange(subItemId);
+  };
+
+  const renderSubItems = (items: any[], level: number = 0) => {
+    return items.map((subItem) => (
+      <div key={subItem.id}>
+        {subItem.hasSubItems ? (
+          <Collapsible 
+            open={openSubmenus.includes(subItem.id)} 
+            onOpenChange={() => toggleSubmenu(subItem.id)}
+            className="w-full"
+          >
+            <CollapsibleTrigger asChild>
+              <SidebarMenuButton
+                className={`w-full flex items-center justify-between px-${4 + level * 2} py-2 text-sm rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 bg-current rounded-full flex-shrink-0" />
+                  <span>{subItem.title}</span>
+                </div>
+                <div className="transition-transform duration-200">
+                  {openSubmenus.includes(subItem.id) ? (
+                    <ChevronDown className="w-3 h-3" />
+                  ) : (
+                    <ChevronRight className="w-3 h-3" />
+                  )}
+                </div>
+              </SidebarMenuButton>
+            </CollapsibleTrigger>
+            <CollapsibleContent className={`ml-${2 + level * 2} mt-1 space-y-1 animate-slideDown`}>
+              {renderSubItems(subItem.subItems, level + 1)}
+            </CollapsibleContent>
+          </Collapsible>
+        ) : (
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              onClick={() => handleSubItemClick(subItem.id)}
+              isActive={activeSection === subItem.id}
+              className={`w-full flex items-center gap-3 px-${4 + level * 2} py-2 text-sm rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors`}
+            >
+              <div className="w-2 h-2 bg-current rounded-full flex-shrink-0" />
+              <span>{subItem.title}</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        )}
+      </div>
+    ));
   };
 
   return (
@@ -130,19 +216,69 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ language, activeSection, onSect
                   </CollapsibleTrigger>
                   
                   {!isCollapsed && (
-                    <CollapsibleContent className="ml-6 mt-2 space-y-1 animate-slideDown">
-                      {departamentosSubItems.map((subItem) => (
-                        <SidebarMenuItem key={subItem.id}>
+                    <CollapsibleContent className="ml-6 mt-2 space-y-2 animate-slideDown">
+                      {/* Operaciones */}
+                      <Collapsible 
+                        open={openSubmenus.includes('operaciones')} 
+                        onOpenChange={() => toggleSubmenu('operaciones')}
+                      >
+                        <CollapsibleTrigger asChild>
                           <SidebarMenuButton
-                            onClick={() => handleSubItemClick(subItem.id)}
-                            isActive={activeSection === subItem.id}
-                            className="w-full flex items-center gap-3 px-4 py-2 text-sm rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                            className="w-full flex items-center justify-between px-4 py-2 text-sm rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                           >
-                            <div className="w-2 h-2 bg-current rounded-full flex-shrink-0" />
-                            <span>{subItem.title}</span>
+                            <div className="flex items-center gap-3">
+                              <div className="w-2 h-2 bg-current rounded-full flex-shrink-0" />
+                              <span>{departamentosStructure.operaciones.title}</span>
+                            </div>
+                            <ChevronRight className={`w-3 h-3 transition-transform ${openSubmenus.includes('operaciones') ? 'rotate-90' : ''}`} />
                           </SidebarMenuButton>
-                        </SidebarMenuItem>
-                      ))}
+                        </CollapsibleTrigger>
+                        <CollapsibleContent className="ml-4 mt-1 space-y-1">
+                          {renderSubItems(departamentosStructure.operaciones.subItems)}
+                        </CollapsibleContent>
+                      </Collapsible>
+
+                      {/* Gestión Técnica */}
+                      <Collapsible 
+                        open={openSubmenus.includes('gestion-tecnica')} 
+                        onOpenChange={() => toggleSubmenu('gestion-tecnica')}
+                      >
+                        <CollapsibleTrigger asChild>
+                          <SidebarMenuButton
+                            className="w-full flex items-center justify-between px-4 py-2 text-sm rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="w-2 h-2 bg-current rounded-full flex-shrink-0" />
+                              <span>{departamentosStructure.gestionTecnica.title}</span>
+                            </div>
+                            <ChevronRight className={`w-3 h-3 transition-transform ${openSubmenus.includes('gestion-tecnica') ? 'rotate-90' : ''}`} />
+                          </SidebarMenuButton>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent className="ml-4 mt-1 space-y-1">
+                          {renderSubItems(departamentosStructure.gestionTecnica.subItems)}
+                        </CollapsibleContent>
+                      </Collapsible>
+
+                      {/* Gestión del Talento */}
+                      <Collapsible 
+                        open={openSubmenus.includes('gestion-talento')} 
+                        onOpenChange={() => toggleSubmenu('gestion-talento')}
+                      >
+                        <CollapsibleTrigger asChild>
+                          <SidebarMenuButton
+                            className="w-full flex items-center justify-between px-4 py-2 text-sm rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="w-2 h-2 bg-current rounded-full flex-shrink-0" />
+                              <span>{departamentosStructure.gestionTalento.title}</span>
+                            </div>
+                            <ChevronRight className={`w-3 h-3 transition-transform ${openSubmenus.includes('gestion-talento') ? 'rotate-90' : ''}`} />
+                          </SidebarMenuButton>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent className="ml-4 mt-1 space-y-1">
+                          {renderSubItems(departamentosStructure.gestionTalento.subItems)}
+                        </CollapsibleContent>
+                      </Collapsible>
                     </CollapsibleContent>
                   )}
                 </Collapsible>

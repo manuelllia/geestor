@@ -13,9 +13,27 @@ export const translations = {
     // Navigation
     inicio: "Inicio",
     departamentos: "Departamentos",
+    
+    // Departamentos - Main sections
     operaciones: "Operaciones",
     gestionTecnica: "Gestión Técnica",
     gestionTalento: "Gestión del Talento",
+    
+    // Operaciones subsections
+    analisisCoste: "Análisis de Coste",
+    
+    // Gestión Técnica subsections
+    calendarioMantenimiento: "Calendario de Mantenimiento",
+    comprobadores: "Comprobadores",
+    
+    // Gestión del Talento subsections
+    gestionInmuebles: "Gestión de Inmuebles",
+    solicitudesContratacion: "Solicitudes de Contratación",
+    hojasCambio: "Hojas de Cambio",
+    acuerdoEmpleado: "Acuerdo con Empleado",
+    practicas: "Prácticas",
+    listadoValoracion: "Listado y Valoración",
+    entrevistaSalida: "Entrevista de Salida",
     
     // Header
     preferences: "Preferencias",
@@ -48,9 +66,27 @@ export const translations = {
     // Navigation
     inicio: "Home",
     departamentos: "Departments",
+    
+    // Departamentos - Main sections
     operaciones: "Operations",
     gestionTecnica: "Technical Management",
     gestionTalento: "Talent Management",
+    
+    // Operaciones subsections
+    analisisCoste: "Cost Analysis",
+    
+    // Gestión Técnica subsections
+    calendarioMantenimiento: "Maintenance Schedule",
+    comprobadores: "Testers",
+    
+    // Gestión del Talento subsections
+    gestionInmuebles: "Property Management",
+    solicitudesContratacion: "Hiring Requests",
+    hojasCambio: "Change Sheets",
+    acuerdoEmpleado: "Employee Agreement",
+    practicas: "Internships",
+    listadoValoracion: "Listing and Assessment",
+    entrevistaSalida: "Exit Interview",
     
     // Header
     preferences: "Preferences",
