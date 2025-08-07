@@ -1,5 +1,6 @@
 
 export type Language = 'es' | 'en';
+export type Theme = 'light' | 'dark';
 
 export interface Translations {
   // Navigation and Basic UI
@@ -23,6 +24,7 @@ export interface Translations {
   noDataAvailable: string;
   showingRecords: string;
   comingSoon: string;
+  page: string;
   
   // Authentication
   loginSubtitle: string;
@@ -55,16 +57,31 @@ export interface Translations {
   realEstateManagement: string;
   businessManagement: string;
   
-  // Settings
+  // Settings and Theme
   settings: string;
   profile: string;
   userProfile: string;
   logout: string;
+  theme: string;
   darkMode: string;
   lightMode: string;
+  light: string;
+  dark: string;
   spanish: string;
   english: string;
   saveChanges: string;
+
+  // User Profile
+  personalInformation: string;
+  changePhoto: string;
+  departmentPermissions: string;
+  departmentPermissionsDesc: string;
+  actionPermissions: string;
+  actionPermissionsDesc: string;
+  operaciones: string;
+  gestionTecnica: string;
+  gestionTalento: string;
+  create: string;
 
   // Change Sheets
   changeSheets: string;
@@ -143,6 +160,11 @@ export interface Translations {
   createRealEstate: string;
   noRealEstateFound: string;
   searchRealEstate: string;
+  realEstateDetails: string;
+  propertyCode: string;
+  address: string;
+  propertyType: string;
+  registrationDate: string;
   
   // Bid Analyzer
   bidAnalyzerTitle: string;
@@ -183,6 +205,7 @@ export const translations: Record<Language, Translations> = {
     noDataAvailable: 'No hay datos disponibles',
     showingRecords: 'Mostrando {start} a {end} de {total} registros',
     comingSoon: 'Próximamente',
+    page: 'Página',
     
     // Authentication
     loginSubtitle: 'Ingresa a tu cuenta para continuar',
@@ -215,16 +238,31 @@ export const translations: Record<Language, Translations> = {
     realEstateManagement: 'Gestión de Inmuebles',
     businessManagement: 'Gestión Empresarial',
     
-    // Settings
+    // Settings and Theme
     settings: 'Configuración',
     profile: 'Perfil',
     userProfile: 'Perfil de Usuario',
     logout: 'Cerrar sesión',
+    theme: 'Tema',
     darkMode: 'Modo oscuro',
     lightMode: 'Modo claro',
+    light: 'Claro',
+    dark: 'Oscuro',
     spanish: 'Español',
     english: 'Inglés',
     saveChanges: 'Guardar cambios',
+
+    // User Profile
+    personalInformation: 'Información Personal',
+    changePhoto: 'Cambiar Foto',
+    departmentPermissions: 'Permisos de Departamento',
+    departmentPermissionsDesc: 'Gestiona el acceso a diferentes departamentos',
+    actionPermissions: 'Permisos de Acciones',
+    actionPermissionsDesc: 'Controla las acciones que puede realizar el usuario',
+    operaciones: 'Operaciones',
+    gestionTecnica: 'Gestión Técnica',
+    gestionTalento: 'Gestión de Talento',
+    create: 'Crear',
 
     // Change Sheets
     changeSheets: 'Hojas de Cambio',
@@ -303,6 +341,11 @@ export const translations: Record<Language, Translations> = {
     createRealEstate: 'Crear Inmueble',
     noRealEstateFound: 'No se encontraron inmuebles',
     searchRealEstate: 'Buscar inmuebles...',
+    realEstateDetails: 'Detalles del Inmueble',
+    propertyCode: 'Código de Propiedad',
+    address: 'Dirección',
+    propertyType: 'Tipo de Propiedad',
+    registrationDate: 'Fecha de Registro',
     
     // Bid Analyzer
     bidAnalyzerTitle: 'Analizador de Licitaciones',
@@ -341,6 +384,7 @@ export const translations: Record<Language, Translations> = {
     noDataAvailable: 'No data available',
     showingRecords: 'Showing {start} to {end} of {total} records',
     comingSoon: 'Coming Soon',
+    page: 'Page',
     
     // Authentication
     loginSubtitle: 'Enter your account to continue',
@@ -373,16 +417,31 @@ export const translations: Record<Language, Translations> = {
     realEstateManagement: 'Real Estate Management',
     businessManagement: 'Business Management',
     
-    // Settings
+    // Settings and Theme
     settings: 'Settings',
     profile: 'Profile',
     userProfile: 'User Profile',
     logout: 'Logout',
+    theme: 'Theme',
     darkMode: 'Dark mode',
     lightMode: 'Light mode',
+    light: 'Light',
+    dark: 'Dark',
     spanish: 'Spanish',
     english: 'English',
     saveChanges: 'Save changes',
+
+    // User Profile
+    personalInformation: 'Personal Information',
+    changePhoto: 'Change Photo',
+    departmentPermissions: 'Department Permissions',
+    departmentPermissionsDesc: 'Manage access to different departments',
+    actionPermissions: 'Action Permissions',
+    actionPermissionsDesc: 'Control the actions the user can perform',
+    operaciones: 'Operations',
+    gestionTecnica: 'Technical Management',
+    gestionTalento: 'Talent Management',
+    create: 'Create',
 
     // Change Sheets
     changeSheets: 'Change Sheets',
@@ -461,6 +520,11 @@ export const translations: Record<Language, Translations> = {
     createRealEstate: 'Create Real Estate',
     noRealEstateFound: 'No real estate found',
     searchRealEstate: 'Search real estate...',
+    realEstateDetails: 'Real Estate Details',
+    propertyCode: 'Property Code',
+    address: 'Address',
+    propertyType: 'Property Type',
+    registrationDate: 'Registration Date',
     
     // Bid Analyzer
     bidAnalyzerTitle: 'Bid Analyzer',
