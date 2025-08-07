@@ -1,6 +1,5 @@
 
 import React, { useState } from 'react';
-import { SidebarProvider } from '@/components/ui/sidebar';
 import { useAuth } from '../hooks/useAuth';
 import { usePreferences } from '../hooks/usePreferences';
 import LoginScreen from '../components/LoginScreen';
@@ -8,6 +7,7 @@ import VerificationScreen from '../components/VerificationScreen';
 import Header from '../components/Header';
 import AppSidebar from '../components/AppSidebar';
 import MainContent from '../components/MainContent';
+import ChatbotModal from '../components/Chatbot/ChatbotModal';
 
 const Index = () => {
   const { user, isAuthenticated, isLoading, isVerifying, loginWithMicrosoft, logout } = useAuth();
@@ -56,8 +56,22 @@ const Index = () => {
 
   // Main application interface
   return (
-    <SidebarProvider defaultOpen={true}>
-      <div className="min-h-screen flex w-full bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+      {/* Header */}
+      <Header
+        user={userState}
+        onLogout={logout}
+        language={preferences.language}
+        theme={preferences.theme}
+        onLanguageChange={setLanguage}
+        onThemeChange={setTheme}
+        onUserUpdate={handleUserUpdate}
+        onPermissionsUpdate={handlePermissionsUpdate}
+      />
+      
+      {/* Main Layout */}
+      <div className="flex flex-1 relative">
+        {/* Sidebar */}
         <AppSidebar
           language={preferences.language}
           activeSection={activeSection}
@@ -65,25 +79,18 @@ const Index = () => {
           key={permissionsUpdateKey}
         />
         
-        <div className="flex flex-col flex-1 min-w-0">
-          <Header
-            user={userState}
-            onLogout={logout}
-            language={preferences.language}
-            theme={preferences.theme}
-            onLanguageChange={setLanguage}
-            onThemeChange={setTheme}
-            onUserUpdate={handleUserUpdate}
-            onPermissionsUpdate={handlePermissionsUpdate}
-          />
-          
+        {/* Main Content */}
+        <div className="flex-1 min-w-0">
           <MainContent
             activeSection={activeSection}
             language={preferences.language}
           />
         </div>
       </div>
-    </SidebarProvider>
+
+      {/* Chatbot */}
+      <ChatbotModal language={preferences.language} />
+    </div>
   );
 };
 

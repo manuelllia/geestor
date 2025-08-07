@@ -1,3 +1,4 @@
+
 export type Language = 'es' | 'en';
 export type Theme = 'light' | 'dark';
 
@@ -417,5 +418,30 @@ export const translations = {
   analyzeDocuments: {
     es: 'Analizar Documentos',
     en: 'Analyze Documents'
+  },
+  // GEEorge Chatbot translations
+  chatbotName: {
+    es: 'GEEorge',
+    en: 'GEEorge'
+  },
+  specializedAssistant: {
+    es: 'Asistente Especializado',
+    en: 'Specialized Assistant'
+  },
+  thinking: {
+    es: 'Pensando...',
+    en: 'Thinking...'
+  },
+  writing: {
+    es: 'Escribiendo...',
+    en: 'Writing...'
+  },
+  typeMessage: {
+    es: 'Escribe tu mensaje...',
+    en: 'Type your message...'
+  },
+  chatbotWelcome: {
+    es: '¡Hola! Soy GEEorge, tu asistente especializado del Grupo Empresarial Electromedico. Puedo ayudarte con licitaciones públicas, gestión de inmuebles, recursos humanos, matemáticas y mucho más. ¿En qué puedo ayudarte hoy?',
+    en: 'Hello! I am GEEorge, your specialized assistant from Grupo Empresarial Electromedico. I can help you with public tenders, real estate management, human resources, mathematics, and much more. How can I help you today?'
   }
 };
