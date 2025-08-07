@@ -1,9 +1,30 @@
+
 export type Language = 'es' | 'en';
 
-interface Translations {
+export interface Translations {
+  // Navigation and Basic UI
   language: string;
   of: string;
   welcome: string;
+  home: string;
+  back: string;
+  save: string;
+  cancel: string;
+  edit: string;
+  delete: string;
+  view: string;
+  actions: string;
+  status: string;
+  name: string;
+  select: string;
+  createNew: string;
+  export: string;
+  import: string;
+  noDataAvailable: string;
+  showingRecords: string;
+  comingSoon: string;
+  
+  // Authentication
   loginSubtitle: string;
   email: string;
   password: string;
@@ -18,30 +39,38 @@ interface Translations {
   verify: string;
   resendCode: string;
   backToLogin: string;
+  verifyingAccount: string;
+
+  // Main App
   welcomeMessage: string;
   welcomeSubtitle: string;
   selectSection: string;
   mainContent: string;
   noContentSelected: string;
-  home: string;
+  
+  // Sidebar sections
   bidAnalyzer: string;
   hojasCambio: string;
   employeeAgreements: string;
   realEstateManagement: string;
   businessManagement: string;
+  
+  // Settings
   settings: string;
   profile: string;
+  userProfile: string;
   logout: string;
   darkMode: string;
   lightMode: string;
   spanish: string;
   english: string;
   saveChanges: string;
-  cancel: string;
-  // Change Sheets translations
+
+  // Change Sheets
   changeSheets: string;
   createChangeSheet: string;
   changeSheetsList: string;
+  changeSheetsManagement: string;
   noChangeSheetsFound: string;
   searchChangeSheets: string;
   filterByStatus: string;
@@ -51,9 +80,8 @@ interface Translations {
   approved: string;
   rejected: string;
   viewDetails: string;
-  edit: string;
-  delete: string;
-  // Change Sheet Form translations
+  
+  // Change Sheet Form
   changeSheetForm: string;
   changeSheetDetails: string;
   basicInformation: string;
@@ -64,7 +92,6 @@ interface Translations {
   assignedTo: string;
   department: string;
   priority: string;
-  status: string;
   requestDate: string;
   dueDate: string;
   completionDate: string;
@@ -84,35 +111,80 @@ interface Translations {
   riskAssessment: string;
   testingRequirements: string;
   rollbackPlan: string;
-  save: string;
   saveAndClose: string;
   draft: string;
   submit: string;
-  back: string;
-  // Employee Agreements translations
+  
+  // Change Sheet specific
+  employeeName: string;
+  employeeLastName: string;
+  originCenter: string;
+  destinationCenter: string;
+  startDate: string;
+  duplicateRecord: string;
+  downloadPDF: string;
+  exportPDF: string;
+  detailViewPlaceholder: string;
+  
+  // Employee Agreements
   employeeAgreementsList: string;
+  employeeAgreementsManagement: string;
   createEmployeeAgreement: string;
   noEmployeeAgreementsFound: string;
   searchEmployeeAgreements: string;
-  // Real Estate translations
+  employeeAgreementDetails: string;
+  employee: string;
+  workCenter: string;
+  agreementConcept: string;
+  agreementDetail: string;
+  
+  // Real Estate
   realEstateList: string;
   createRealEstate: string;
   noRealEstateFound: string;
   searchRealEstate: string;
-  // Bid Analyzer translations
+  
+  // Bid Analyzer
   bidAnalyzerTitle: string;
   uploadPCAP: string;
   uploadPTT: string;
   dragDropPDF: string;
   selectPDF: string;
   analyzeDocuments: string;
+  
+  // Chatbot
+  chatbot: string;
+  askGEEorge: string;
+  typeMessage: string;
+  thinking: string;
+  writing: string;
 }
 
 export const translations: Record<Language, Translations> = {
   es: {
+    // Navigation and Basic UI
     language: 'Idioma',
     of: 'de',
     welcome: 'Bienvenido',
+    home: 'Inicio',
+    back: 'Atrás',
+    save: 'Guardar',
+    cancel: 'Cancelar',
+    edit: 'Editar',
+    delete: 'Eliminar',
+    view: 'Ver',
+    actions: 'Acciones',
+    status: 'Estado',
+    name: 'Nombre',
+    select: 'Seleccionar',
+    createNew: 'Crear Nuevo',
+    export: 'Exportar',
+    import: 'Importar',
+    noDataAvailable: 'No hay datos disponibles',
+    showingRecords: 'Mostrando {start} a {end} de {total} registros',
+    comingSoon: 'Próximamente',
+    
+    // Authentication
     loginSubtitle: 'Ingresa a tu cuenta para continuar',
     email: 'Correo electrónico',
     password: 'Contraseña',
@@ -127,30 +199,38 @@ export const translations: Record<Language, Translations> = {
     verify: 'Verificar',
     resendCode: 'Reenviar código',
     backToLogin: 'Volver al inicio de sesión',
+    verifyingAccount: 'Verificando cuenta',
+
+    // Main App
     welcomeMessage: 'Bienvenido a GEESTOR',
     welcomeSubtitle: 'Sistema de gestión empresarial del Grupo Empresarial Electromédico',
     selectSection: 'Selecciona una sección del menú para comenzar',
     mainContent: 'Contenido Principal',
     noContentSelected: 'No hay contenido seleccionado',
-    home: 'Inicio',
+    
+    // Sidebar sections
     bidAnalyzer: 'Análisis de Costes',
     hojasCambio: 'Hojas de Cambio',
     employeeAgreements: 'Acuerdo Empleado',
     realEstateManagement: 'Gestión de Inmuebles',
     businessManagement: 'Gestión Empresarial',
+    
+    // Settings
     settings: 'Configuración',
     profile: 'Perfil',
+    userProfile: 'Perfil de Usuario',
     logout: 'Cerrar sesión',
     darkMode: 'Modo oscuro',
     lightMode: 'Modo claro',
     spanish: 'Español',
     english: 'Inglés',
     saveChanges: 'Guardar cambios',
-    cancel: 'Cancelar',
-    // Change Sheets translations
+
+    // Change Sheets
     changeSheets: 'Hojas de Cambio',
     createChangeSheet: 'Crear Hoja de Cambio',
     changeSheetsList: 'Lista de Hojas de Cambio',
+    changeSheetsManagement: 'Gestión de Hojas de Cambio',
     noChangeSheetsFound: 'No se encontraron hojas de cambio',
     searchChangeSheets: 'Buscar hojas de cambio...',
     filterByStatus: 'Filtrar por estado',
@@ -160,9 +240,8 @@ export const translations: Record<Language, Translations> = {
     approved: 'Aprobado',
     rejected: 'Rechazado',
     viewDetails: 'Ver detalles',
-    edit: 'Editar',
-    delete: 'Eliminar',
-    // Change Sheet Form translations
+    
+    // Change Sheet Form
     changeSheetForm: 'Formulario de Hoja de Cambio',
     changeSheetDetails: 'Detalles de la Hoja de Cambio',
     basicInformation: 'Información Básica',
@@ -173,7 +252,6 @@ export const translations: Record<Language, Translations> = {
     assignedTo: 'Asignado a',
     department: 'Departamento',
     priority: 'Prioridad',
-    status: 'Estado',
     requestDate: 'Fecha de Solicitud',
     dueDate: 'Fecha de Vencimiento',
     completionDate: 'Fecha de Finalización',
@@ -193,33 +271,78 @@ export const translations: Record<Language, Translations> = {
     riskAssessment: 'Evaluación de Riesgos',
     testingRequirements: 'Requisitos de Pruebas',
     rollbackPlan: 'Plan de Rollback',
-    save: 'Guardar',
     saveAndClose: 'Guardar y Cerrar',
     draft: 'Borrador',
     submit: 'Enviar',
-    back: 'Atrás',
-    // Employee Agreements translations
+    
+    // Change Sheet specific
+    employeeName: 'Nombre del Empleado',
+    employeeLastName: 'Apellidos del Empleado',
+    originCenter: 'Centro de Origen',
+    destinationCenter: 'Centro de Destino',
+    startDate: 'Fecha de Inicio',
+    duplicateRecord: 'Duplicar Registro',
+    downloadPDF: 'Descargar PDF',
+    exportPDF: 'Exportar PDF',
+    detailViewPlaceholder: 'Vista de detalles en desarrollo',
+    
+    // Employee Agreements
     employeeAgreementsList: 'Lista de Acuerdos de Empleados',
+    employeeAgreementsManagement: 'Gestión de Acuerdos de Empleados',
     createEmployeeAgreement: 'Crear Acuerdo de Empleado',
     noEmployeeAgreementsFound: 'No se encontraron acuerdos de empleados',
     searchEmployeeAgreements: 'Buscar acuerdos de empleados...',
-    // Real Estate translations
+    employeeAgreementDetails: 'Detalles del Acuerdo de Empleado',
+    employee: 'Empleado',
+    workCenter: 'Centro de Trabajo',
+    agreementConcept: 'Concepto del Acuerdo',
+    agreementDetail: 'Detalle del Acuerdo',
+    
+    // Real Estate
     realEstateList: 'Lista de Inmuebles',
     createRealEstate: 'Crear Inmueble',
     noRealEstateFound: 'No se encontraron inmuebles',
     searchRealEstate: 'Buscar inmuebles...',
-    // Bid Analyzer translations
+    
+    // Bid Analyzer
     bidAnalyzerTitle: 'Analizador de Licitaciones',
     uploadPCAP: 'Subir PCAP',
     uploadPTT: 'Subir PTT',
     dragDropPDF: 'Arrastra y suelta tu archivo PDF aquí',
     selectPDF: 'Seleccionar PDF',
     analyzeDocuments: 'Analizar Documentos',
+    
+    // Chatbot
+    chatbot: 'Chatbot',
+    askGEEorge: 'Pregunta a GEEorge',
+    typeMessage: 'Escribe tu mensaje...',
+    thinking: 'Pensando',
+    writing: 'Escribiendo',
   },
   en: {
+    // Navigation and Basic UI
     language: 'Language',
     of: 'of',
     welcome: 'Welcome',
+    home: 'Home',
+    back: 'Back',
+    save: 'Save',
+    cancel: 'Cancel',
+    edit: 'Edit',
+    delete: 'Delete',
+    view: 'View',
+    actions: 'Actions',
+    status: 'Status',
+    name: 'Name',
+    select: 'Select',
+    createNew: 'Create New',
+    export: 'Export',
+    import: 'Import',
+    noDataAvailable: 'No data available',
+    showingRecords: 'Showing {start} to {end} of {total} records',
+    comingSoon: 'Coming Soon',
+    
+    // Authentication
     loginSubtitle: 'Enter your account to continue',
     email: 'Email',
     password: 'Password',
@@ -234,30 +357,38 @@ export const translations: Record<Language, Translations> = {
     verify: 'Verify',
     resendCode: 'Resend code',
     backToLogin: 'Back to login',
+    verifyingAccount: 'Verifying account',
+
+    // Main App
     welcomeMessage: 'Welcome to GEESTOR',
     welcomeSubtitle: 'Business management system of the Electromedical Business Group',
     selectSection: 'Select a section from the menu to get started',
     mainContent: 'Main Content',
     noContentSelected: 'No content selected',
-    home: 'Home',
+    
+    // Sidebar sections
     bidAnalyzer: 'Cost Analysis',
     hojasCambio: 'Change Sheets',
     employeeAgreements: 'Employee Agreements',
     realEstateManagement: 'Real Estate Management',
     businessManagement: 'Business Management',
+    
+    // Settings
     settings: 'Settings',
     profile: 'Profile',
+    userProfile: 'User Profile',
     logout: 'Logout',
     darkMode: 'Dark mode',
     lightMode: 'Light mode',
     spanish: 'Spanish',
     english: 'English',
     saveChanges: 'Save changes',
-    cancel: 'Cancel',
-    // Change Sheets translations
+
+    // Change Sheets
     changeSheets: 'Change Sheets',
     createChangeSheet: 'Create Change Sheet',
     changeSheetsList: 'Change Sheets List',
+    changeSheetsManagement: 'Change Sheets Management',
     noChangeSheetsFound: 'No change sheets found',
     searchChangeSheets: 'Search change sheets...',
     filterByStatus: 'Filter by status',
@@ -267,9 +398,8 @@ export const translations: Record<Language, Translations> = {
     approved: 'Approved',
     rejected: 'Rejected',
     viewDetails: 'View details',
-    edit: 'Edit',
-    delete: 'Delete',
-    // Change Sheet Form translations
+    
+    // Change Sheet Form
     changeSheetForm: 'Change Sheet Form',
     changeSheetDetails: 'Change Sheet Details',
     basicInformation: 'Basic Information',
@@ -280,7 +410,6 @@ export const translations: Record<Language, Translations> = {
     assignedTo: 'Assigned to',
     department: 'Department',
     priority: 'Priority',
-    status: 'Status',
     requestDate: 'Request Date',
     dueDate: 'Due Date',
     completionDate: 'Completion Date',
@@ -300,27 +429,52 @@ export const translations: Record<Language, Translations> = {
     riskAssessment: 'Risk Assessment',
     testingRequirements: 'Testing Requirements',
     rollbackPlan: 'Rollback Plan',
-    save: 'Save',
     saveAndClose: 'Save and Close',
     draft: 'Draft',
     submit: 'Submit',
-    back: 'Back',
-    // Employee Agreements translations
+    
+    // Change Sheet specific
+    employeeName: 'Employee Name',
+    employeeLastName: 'Employee Last Name',
+    originCenter: 'Origin Center',
+    destinationCenter: 'Destination Center',
+    startDate: 'Start Date',
+    duplicateRecord: 'Duplicate Record',
+    downloadPDF: 'Download PDF',
+    exportPDF: 'Export PDF',
+    detailViewPlaceholder: 'Detail view under development',
+    
+    // Employee Agreements
     employeeAgreementsList: 'Employee Agreements List',
+    employeeAgreementsManagement: 'Employee Agreements Management',
     createEmployeeAgreement: 'Create Employee Agreement',
     noEmployeeAgreementsFound: 'No employee agreements found',
     searchEmployeeAgreements: 'Search employee agreements...',
-    // Real Estate translations
+    employeeAgreementDetails: 'Employee Agreement Details',
+    employee: 'Employee',
+    workCenter: 'Work Center',
+    agreementConcept: 'Agreement Concept',
+    agreementDetail: 'Agreement Detail',
+    
+    // Real Estate
     realEstateList: 'Real Estate List',
     createRealEstate: 'Create Real Estate',
     noRealEstateFound: 'No real estate found',
     searchRealEstate: 'Search real estate...',
-    // Bid Analyzer translations
+    
+    // Bid Analyzer
     bidAnalyzerTitle: 'Bid Analyzer',
     uploadPCAP: 'Upload PCAP',
     uploadPTT: 'Upload PTT',
     dragDropPDF: 'Drag and drop your PDF file here',
     selectPDF: 'Select PDF',
     analyzeDocuments: 'Analyze Documents',
+    
+    // Chatbot
+    chatbot: 'Chatbot',
+    askGEEorge: 'Ask GEEorge',
+    typeMessage: 'Type your message...',
+    thinking: 'Thinking',
+    writing: 'Writing',
   },
 };
