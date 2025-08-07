@@ -226,7 +226,7 @@ export const translations: Record<Language, Translations> = {
 
     // Main App
     welcomeMessage: 'Bienvenido a GEESTOR',
-    welcomeSubtitle: 'Sistema de gestión empresarial del Grupo Empresarial Electromédico',
+    welcomeSubtitle: 'La Plataforma de Gestión de Procesos del GEE',
     selectSection: 'Selecciona una sección del menú para comenzar',
     mainContent: 'Contenido Principal',
     noContentSelected: 'No hay contenido seleccionado',
@@ -405,7 +405,7 @@ export const translations: Record<Language, Translations> = {
 
     // Main App
     welcomeMessage: 'Welcome to GEESTOR',
-    welcomeSubtitle: 'Business management system of the Electromedical Business Group',
+    welcomeSubtitle: 'The GEE Process Management Platform',
     selectSection: 'Select a section from the menu to get started',
     mainContent: 'Main Content',
     noContentSelected: 'No content selected',
