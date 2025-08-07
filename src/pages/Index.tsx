@@ -56,8 +56,8 @@ const Index = () => {
 
   // Main application interface
   return (
-    <SidebarProvider defaultOpen={true}>
-      <div className="min-h-screen flex w-full bg-gray-50 dark:bg-gray-900">
+    <SidebarProvider defaultOpen={false}>
+      <div className="min-h-screen w-full bg-gray-50 dark:bg-gray-900">
         <AppSidebar
           language={preferences.language}
           activeSection={activeSection}
@@ -65,7 +65,7 @@ const Index = () => {
           key={permissionsUpdateKey}
         />
         
-        <div className="flex flex-col flex-1 min-w-0">
+        <div className="flex flex-col min-h-screen w-full">
           <Header
             user={userState}
             onLogout={logout}
