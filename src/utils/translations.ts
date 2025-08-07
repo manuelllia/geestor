@@ -401,5 +401,21 @@ export const translations = {
   select: {
     es: 'Seleccionar',
     en: 'Select'
+  },
+  bidAnalyzer: {
+    es: 'Analizador de Licitaciones',
+    en: 'Bid Analyzer'
+  },
+  uploadPcap: {
+    es: 'Subir archivo PCAP',
+    en: 'Upload PCAP file'
+  },
+  uploadPtt: {
+    es: 'Subir archivo PTT',
+    en: 'Upload PTT file'
+  },
+  analyzeDocuments: {
+    es: 'Analizar Documentos',
+    en: 'Analyze Documents'
   }
 };

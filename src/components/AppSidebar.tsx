@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Home, Building, Calculator, Wrench, Calendar, CheckSquare, Users, FileText, HandHeart, UserCheck, GraduationCap, MessageCircle, ChevronDown, ChevronRight } from 'lucide-react';
+import { Home, Calculator, Wrench, Calendar, CheckSquare, Users, FileText, HandHeart, UserCheck, GraduationCap, MessageCircle, ChevronDown, ChevronRight, Building } from 'lucide-react';
 import { useTranslation } from '../hooks/useTranslation';
 import { Language } from '../utils/translations';
 import {
@@ -30,7 +30,9 @@ const AppSidebar: React.FC<AppSidebarProps> = ({
   const collapsed = state === 'collapsed';
   
   const [expandedMenus, setExpandedMenus] = useState<{[key: string]: boolean}>({
-    'gestion-talento': true
+    'gestion-talento': true,
+    'operaciones': true,
+    'gestion-tecnica': true
   });
 
   const toggleMenu = (menuId: string) => {
@@ -45,11 +47,6 @@ const AppSidebar: React.FC<AppSidebarProps> = ({
       id: 'inicio', 
       icon: Home, 
       label: t('inicio')
-    },
-    { 
-      id: 'departamentos', 
-      icon: Building, 
-      label: t('departamentos')
     }
   ];
 
@@ -187,22 +184,37 @@ const AppSidebar: React.FC<AppSidebarProps> = ({
     <SidebarGroup className="mb-6">
       {!collapsed && (
         <div className="px-3 mb-3">
-          <h3 className="text-xs font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
-            {title}
-          </h3>
+          <div 
+            onClick={() => toggleMenu(groupId)}
+            className="flex items-center justify-between cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/20 p-2 rounded-md transition-colors duration-200"
+          >
+            <h3 className="text-xs font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
+              {title}
+            </h3>
+            {expandedMenus[groupId] ? (
+              <ChevronDown className="w-4 h-4 text-blue-500 transition-transform duration-200" />
+            ) : (
+              <ChevronRight className="w-4 h-4 text-blue-500 transition-transform duration-200" />
+            )}
+          </div>
           <div className="mt-1 h-px bg-gradient-to-r from-blue-200 to-transparent dark:from-blue-700"></div>
         </div>
       )}
-      <SidebarGroupContent>
-        <SidebarMenu className="space-y-1">
-          {items.map(item => renderMenuItem(item))}
-        </SidebarMenu>
-      </SidebarGroupContent>
+      {(!collapsed && expandedMenus[groupId]) && (
+        <SidebarGroupContent>
+          <SidebarMenu className="space-y-1">
+            {items.map(item => renderMenuItem(item))}
+          </SidebarMenu>
+        </SidebarGroupContent>
+      )}
     </SidebarGroup>
   );
 
   return (
-    <Sidebar className="border-r border-blue-200 dark:border-blue-800 bg-white dark:bg-gray-900">
+    <Sidebar 
+      className="border-r border-blue-200 dark:border-blue-800 bg-white dark:bg-gray-900 z-50"
+      collapsible="icon"
+    >
       <SidebarHeader className="p-4 border-b border-blue-100 dark:border-blue-800">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg">
@@ -232,13 +244,13 @@ const AppSidebar: React.FC<AppSidebarProps> = ({
         </SidebarGroup>
 
         {/* Operaciones */}
-        {renderMenuGroup(t('operaciones'), operationsItems, 'operations')}
+        {renderMenuGroup(t('operaciones'), operationsItems, 'operaciones')}
 
         {/* Gestión Técnica */}
-        {renderMenuGroup(t('gestionTecnica'), technicalItems, 'technical')}
+        {renderMenuGroup(t('gestionTecnica'), technicalItems, 'gestion-tecnica')}
 
         {/* Gestión de Talento */}
-        {renderMenuGroup(t('gestionTalento'), talentItems, 'talent')}
+        {renderMenuGroup(t('gestionTalento'), talentItems, 'gestion-talento')}
       </SidebarContent>
     </Sidebar>
   );

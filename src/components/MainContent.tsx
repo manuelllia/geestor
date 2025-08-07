@@ -8,6 +8,7 @@ import EmployeeAgreementsListView from './EmployeeAgreements/EmployeeAgreementsL
 import EmployeeAgreementDetailView from './EmployeeAgreements/EmployeeAgreementDetailView';
 import RealEstateListView from './RealEstate/RealEstateListView';
 import RealEstateDetailView from './RealEstate/RealEstateDetailView';
+import BidAnalyzerView from './BidAnalyzer/BidAnalyzerView';
 
 interface MainContentProps {
   activeSection: string;
@@ -45,6 +46,9 @@ const MainContent: React.FC<MainContentProps> = ({ activeSection, language }) =>
             </div>
           </div>
         );
+
+      case 'analisis-coste':
+        return <BidAnalyzerView language={language} />;
 
       case 'hojas-cambio':
         if (currentView === 'detail') {
@@ -117,7 +121,7 @@ const MainContent: React.FC<MainContentProps> = ({ activeSection, language }) =>
   };
 
   return (
-    <main className="flex-1 p-6 bg-gradient-to-br from-blue-25 via-white to-blue-50 dark:from-blue-950 dark:via-gray-900 dark:to-blue-900 min-h-screen">
+    <main className="flex-1 p-6 bg-gradient-to-br from-blue-25 via-white to-blue-50 dark:from-blue-950 dark:via-gray-900 dark:to-blue-900 min-h-screen overflow-auto">
       {renderContent()}
     </main>
   );
