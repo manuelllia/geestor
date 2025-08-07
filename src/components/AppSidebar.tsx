@@ -1,12 +1,9 @@
-
 import React from 'react';
 import {
   Sidebar,
   SidebarHeader,
   SidebarContent,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
+  SidebarItem,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
 import { Home, FileText, Layers, BarChart2 } from 'lucide-react';
@@ -26,33 +23,34 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
     {
       id: 'inicio',
       label: t('home'),
-      icon: Home,
+      icon: <Home className="w-4 h-4" />,
     },
     {
       id: 'analisis-coste',
       label: t('bidAnalyzer'),
-      icon: BarChart2,
+      icon: <BarChart2 className="w-4 h-4" />,
     },
     {
       id: 'hojas-cambio',
       label: t('hojasCambio'),
-      icon: FileText,
+      icon: <FileText className="w-4 h-4" />,
     },
     {
       id: 'acuerdo-empleado',
       label: t('employeeAgreements'),
-      icon: FileText,
+      icon: <FileText className="w-4 h-4" />,
     },
     {
       id: 'gestion-inmuebles',
       label: t('realEstateManagement'),
-      icon: Layers,
+      icon: <Layers className="w-4 h-4" />,
     },
   ];
 
   return (
     <Sidebar className="border-r border-blue-200 dark:border-blue-800">
       <SidebarHeader className="border-b border-blue-200 dark:border-blue-800 p-4">
+        {/* Ajustar la altura del header para que coincida con el header principal */}
         <div className="flex items-center justify-between h-12">
           <div className="flex items-center space-x-3">
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
@@ -70,20 +68,16 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
       </SidebarHeader>
 
       <SidebarContent>
-        <SidebarMenu>
-          {menuItems.map((item) => (
-            <SidebarMenuItem key={item.id}>
-              <SidebarMenuButton
-                isActive={activeSection === item.id}
-                onClick={() => onSectionChange(item.id)}
-                className="w-full justify-start"
-              >
-                <item.icon className="w-4 h-4" />
-                <span>{item.label}</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
-        </SidebarMenu>
+        {menuItems.map((item) => (
+          <SidebarItem
+            key={item.id}
+            id={item.id}
+            label={item.label}
+            icon={item.icon}
+            active={activeSection === item.id}
+            onClick={() => onSectionChange(item.id)}
+          />
+        ))}
       </SidebarContent>
     </Sidebar>
   );
