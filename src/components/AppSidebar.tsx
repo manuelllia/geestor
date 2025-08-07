@@ -1,17 +1,32 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Sidebar,
   SidebarHeader,
   SidebarContent,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarGroupContent,
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarMenuSubButton,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
-import { Home, FileText, Layers, BarChart2 } from 'lucide-react';
+import { 
+  Home, 
+  FileText, 
+  Layers, 
+  BarChart2, 
+  Users,
+  Building2,
+  ChevronRight
+} from 'lucide-react';
 import { useTranslation } from '../hooks/useTranslation';
 import { Language } from '../utils/translations';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 interface AppSidebarProps {
   language: Language;
@@ -21,32 +36,61 @@ interface AppSidebarProps {
 
 export function AppSidebar({ language, activeSection, onSectionChange }: AppSidebarProps) {
   const { t } = useTranslation(language);
+  const [openGroup, setOpenGroup] = useState<string | null>(null);
 
-  const menuItems = [
+  const handleGroupToggle = (groupId: string) => {
+    setOpenGroup(openGroup === groupId ? null : groupId);
+  };
+
+  const menuGroups = [
     {
-      id: 'inicio',
-      label: t('home'),
-      icon: Home,
+      id: 'main',
+      label: t('businessManagement'),
+      items: [
+        {
+          id: 'inicio',
+          label: t('home'),
+          icon: Home,
+        },
+      ]
     },
     {
-      id: 'analisis-coste',
-      label: t('bidAnalyzer'),
-      icon: BarChart2,
+      id: 'operations',
+      label: t('operaciones'),
+      items: [
+        {
+          id: 'analisis-coste',
+          label: t('bidAnalyzer'),
+          icon: BarChart2,
+        },
+      ]
     },
     {
-      id: 'hojas-cambio',
-      label: t('hojasCambio'),
-      icon: FileText,
+      id: 'management',
+      label: t('gestionTecnica'),
+      items: [
+        {
+          id: 'hojas-cambio',
+          label: t('hojasCambio'),
+          icon: FileText,
+        },
+        {
+          id: 'gestion-inmuebles',
+          label: t('realEstateManagement'),
+          icon: Building2,
+        },
+      ]
     },
     {
-      id: 'acuerdo-empleado',
-      label: t('employeeAgreements'),
-      icon: FileText,
-    },
-    {
-      id: 'gestion-inmuebles',
-      label: t('realEstateManagement'),
-      icon: Layers,
+      id: 'talent',
+      label: t('gestionTalento'),
+      items: [
+        {
+          id: 'acuerdo-empleado',
+          label: t('employeeAgreements'),
+          icon: Users,
+        },
+      ]
     },
   ];
 
@@ -70,20 +114,40 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
       </SidebarHeader>
 
       <SidebarContent>
-        <SidebarMenu>
-          {menuItems.map((item) => (
-            <SidebarMenuItem key={item.id}>
-              <SidebarMenuButton
-                isActive={activeSection === item.id}
-                onClick={() => onSectionChange(item.id)}
-                className="w-full justify-start"
-              >
-                <item.icon className="w-4 h-4" />
-                <span>{item.label}</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
-        </SidebarMenu>
+        {menuGroups.map((group) => (
+          <SidebarGroup key={group.id}>
+            <Collapsible 
+              open={openGroup === group.id} 
+              onOpenChange={() => handleGroupToggle(group.id)}
+            >
+              <CollapsibleTrigger asChild>
+                <SidebarGroupLabel className="group/label hover:bg-blue-50 dark:hover:bg-blue-900/20 cursor-pointer">
+                  <span>{group.label}</span>
+                  <ChevronRight className="ml-auto transition-transform group-data-[state=open]/label:rotate-90" />
+                </SidebarGroupLabel>
+              </CollapsibleTrigger>
+              
+              <CollapsibleContent>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {group.items.map((item) => (
+                      <SidebarMenuItem key={item.id}>
+                        <SidebarMenuButton
+                          isActive={activeSection === item.id}
+                          onClick={() => onSectionChange(item.id)}
+                          className="w-full justify-start hover:bg-blue-50 dark:hover:bg-blue-900/20 data-[active=true]:bg-blue-100 dark:data-[active=true]:bg-blue-800"
+                        >
+                          <item.icon className="w-4 h-4" />
+                          <span>{item.label}</span>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </CollapsibleContent>
+            </Collapsible>
+          </SidebarGroup>
+        ))}
       </SidebarContent>
     </Sidebar>
   );
