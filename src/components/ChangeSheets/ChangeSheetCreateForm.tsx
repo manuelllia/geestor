@@ -9,34 +9,18 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, ArrowLeft } from 'lucide-react';
+import { CalendarIcon, ArrowLeft, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es, enUS } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Language } from '../../utils/translations';
+import { useToast } from '@/hooks/use-toast';
+import { saveChangeSheet, type ChangeSheetData } from '../../services/changeSheetService';
 
 interface ChangeSheetCreateFormProps {
   language: Language;
   onBack: () => void;
-}
-
-interface FormData {
-  employeeName: string;
-  employeeLastName: string;
-  originCenter: string;
-  currentPosition: string;
-  currentSupervisorName: string;
-  currentSupervisorLastName: string;
-  newPosition: string;
-  newSupervisorName: string;
-  newSupervisorLastName: string;
-  startDate: Date | undefined;
-  changeType: 'permanent' | 'temporary' | '';
-  needs: string[];
-  currentCompany: string;
-  companyChange: 'yes' | 'no' | '';
-  observations: string;
 }
 
 const ChangeSheetCreateForm: React.FC<ChangeSheetCreateFormProps> = ({ 
@@ -44,6 +28,8 @@ const ChangeSheetCreateForm: React.FC<ChangeSheetCreateFormProps> = ({
   onBack 
 }) => {
   const { t } = useTranslation(language);
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
 
   // TODO: Estas opciones vendrán de una base de datos o configuración
   const originCenters = [
@@ -83,7 +69,7 @@ const ChangeSheetCreateForm: React.FC<ChangeSheetCreateFormProps> = ({
     { id: 'vehicle', label: 'Vehículo' }
   ];
 
-  const [formData, setFormData] = useState<FormData>({
+  const [formData, setFormData] = useState<ChangeSheetData>({
     employeeName: '',
     employeeLastName: '',
     originCenter: '',
@@ -101,7 +87,7 @@ const ChangeSheetCreateForm: React.FC<ChangeSheetCreateFormProps> = ({
     observations: ''
   });
 
-  const handleInputChange = (field: keyof FormData, value: any) => {
+  const handleInputChange = (field: keyof ChangeSheetData, value: any) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -117,30 +103,54 @@ const ChangeSheetCreateForm: React.FC<ChangeSheetCreateFormProps> = ({
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Validación básica
-    const requiredFields = [
-      'employeeName', 'employeeLastName', 'originCenter', 'currentPosition',
-      'currentSupervisorName', 'currentSupervisorLastName', 'newPosition',
-      'newSupervisorName', 'newSupervisorLastName', 'startDate', 'changeType',
-      'currentCompany', 'companyChange', 'observations'
-    ];
+    setIsLoading(true);
 
-    const missingFields = requiredFields.filter(field => {
-      const value = formData[field as keyof FormData];
-      if (field === 'startDate') return !value;
-      if (typeof value === 'string') return !value.trim() || value === 'Seleccionar' || value === '';
-      return !value;
-    });
+    try {
+      console.log('Enviando formulario:', formData);
+      
+      // Guardar en Firebase
+      const docId = await saveChangeSheet(formData);
+      
+      // Mostrar notificación de éxito
+      toast({
+        title: "¡Éxito!",
+        description: `Hoja de cambio guardada correctamente con ID: ${docId}`,
+        className: "bg-green-50 border-green-200 text-green-800",
+      });
 
-    if (missingFields.length > 0) {
-      alert('Por favor, completa todos los campos obligatorios');
-      return;
+      // Limpiar formulario después de guardar exitosamente
+      setFormData({
+        employeeName: '',
+        employeeLastName: '',
+        originCenter: '',
+        currentPosition: '',
+        currentSupervisorName: '',
+        currentSupervisorLastName: '',
+        newPosition: '',
+        newSupervisorName: '',
+        newSupervisorLastName: '',
+        startDate: undefined,
+        changeType: '',
+        needs: [],
+        currentCompany: '',
+        companyChange: '',
+        observations: ''
+      });
+
+    } catch (error) {
+      console.error('Error al guardar:', error);
+      
+      // Mostrar notificación de error
+      toast({
+        title: "Error",
+        description: "Ha ocurrido un error al guardar la hoja de cambio. Por favor, inténtalo de nuevo.",
+        className: "bg-red-50 border-red-200 text-red-800",
+      });
+    } finally {
+      setIsLoading(false);
     }
-
-    console.log('Formulario enviado:', formData);
-    // Aquí iría la lógica para guardar los datos
   };
 
   const dateLocale = language === 'es' ? es : enUS;
@@ -153,6 +163,7 @@ const ChangeSheetCreateForm: React.FC<ChangeSheetCreateFormProps> = ({
           variant="outline"
           onClick={onBack}
           className="border-blue-300 text-blue-700 hover:bg-blue-50"
+          disabled={isLoading}
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           {t('back')}
@@ -180,6 +191,7 @@ const ChangeSheetCreateForm: React.FC<ChangeSheetCreateFormProps> = ({
                   value={formData.employeeName}
                   onChange={(e) => handleInputChange('employeeName', e.target.value)}
                   placeholder={t('name')}
+                  disabled={isLoading}
                 />
               </div>
               <div className="space-y-2">
@@ -189,6 +201,7 @@ const ChangeSheetCreateForm: React.FC<ChangeSheetCreateFormProps> = ({
                   value={formData.employeeLastName}
                   onChange={(e) => handleInputChange('employeeLastName', e.target.value)}
                   placeholder="Apellidos"
+                  disabled={isLoading}
                 />
               </div>
             </div>
@@ -196,7 +209,11 @@ const ChangeSheetCreateForm: React.FC<ChangeSheetCreateFormProps> = ({
             {/* Centro de Salida */}
             <div className="space-y-2">
               <Label>{t('originCenter')} *</Label>
-              <Select value={formData.originCenter} onValueChange={(value) => handleInputChange('originCenter', value)}>
+              <Select 
+                value={formData.originCenter} 
+                onValueChange={(value) => handleInputChange('originCenter', value)}
+                disabled={isLoading}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder={`${t('select')} ${t('originCenter')}`} />
                 </SelectTrigger>
@@ -402,14 +419,23 @@ const ChangeSheetCreateForm: React.FC<ChangeSheetCreateFormProps> = ({
                 type="button"
                 variant="outline"
                 onClick={onBack}
+                disabled={isLoading}
               >
                 Cancelar
               </Button>
               <Button
                 type="submit"
                 className="bg-blue-600 hover:bg-blue-700 text-white"
+                disabled={isLoading}
               >
-                Crear Hoja de Cambio
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Guardando...
+                  </>
+                ) : (
+                  'Crear Hoja de Cambio'
+                )}
               </Button>
             </div>
           </form>
