@@ -1,32 +1,9 @@
-
 export type Language = 'es' | 'en';
-export type Theme = 'light' | 'dark';
 
-export interface Translations {
-  // Navigation and Basic UI
+interface Translations {
   language: string;
   of: string;
   welcome: string;
-  home: string;
-  back: string;
-  save: string;
-  cancel: string;
-  edit: string;
-  delete: string;
-  view: string;
-  actions: string;
-  status: string;
-  name: string;
-  select: string;
-  createNew: string;
-  export: string;
-  import: string;
-  noDataAvailable: string;
-  showingRecords: string;
-  comingSoon: string;
-  page: string;
-  
-  // Authentication
   loginSubtitle: string;
   email: string;
   password: string;
@@ -41,53 +18,30 @@ export interface Translations {
   verify: string;
   resendCode: string;
   backToLogin: string;
-  verifyingAccount: string;
-
-  // Main App
   welcomeMessage: string;
   welcomeSubtitle: string;
   selectSection: string;
   mainContent: string;
   noContentSelected: string;
-  
-  // Sidebar sections
+  home: string;
   bidAnalyzer: string;
   hojasCambio: string;
   employeeAgreements: string;
   realEstateManagement: string;
   businessManagement: string;
-  
-  // Settings and Theme
   settings: string;
   profile: string;
-  userProfile: string;
   logout: string;
-  theme: string;
   darkMode: string;
   lightMode: string;
-  light: string;
-  dark: string;
   spanish: string;
   english: string;
   saveChanges: string;
-
-  // User Profile
-  personalInformation: string;
-  changePhoto: string;
-  departmentPermissions: string;
-  departmentPermissionsDesc: string;
-  actionPermissions: string;
-  actionPermissionsDesc: string;
-  operaciones: string;
-  gestionTecnica: string;
-  gestionTalento: string;
-  create: string;
-
-  // Change Sheets
+  cancel: string;
+  // Change Sheets translations
   changeSheets: string;
   createChangeSheet: string;
   changeSheetsList: string;
-  changeSheetsManagement: string;
   noChangeSheetsFound: string;
   searchChangeSheets: string;
   filterByStatus: string;
@@ -97,8 +51,9 @@ export interface Translations {
   approved: string;
   rejected: string;
   viewDetails: string;
-  
-  // Change Sheet Form
+  edit: string;
+  delete: string;
+  // Change Sheet Form translations
   changeSheetForm: string;
   changeSheetDetails: string;
   basicInformation: string;
@@ -109,6 +64,7 @@ export interface Translations {
   assignedTo: string;
   department: string;
   priority: string;
+  status: string;
   requestDate: string;
   dueDate: string;
   completionDate: string;
@@ -128,86 +84,35 @@ export interface Translations {
   riskAssessment: string;
   testingRequirements: string;
   rollbackPlan: string;
+  save: string;
   saveAndClose: string;
   draft: string;
   submit: string;
-  
-  // Change Sheet specific
-  employeeName: string;
-  employeeLastName: string;
-  originCenter: string;
-  destinationCenter: string;
-  startDate: string;
-  duplicateRecord: string;
-  downloadPDF: string;
-  exportPDF: string;
-  detailViewPlaceholder: string;
-  
-  // Employee Agreements
+  back: string;
+  // Employee Agreements translations
   employeeAgreementsList: string;
-  employeeAgreementsManagement: string;
   createEmployeeAgreement: string;
   noEmployeeAgreementsFound: string;
   searchEmployeeAgreements: string;
-  employeeAgreementDetails: string;
-  employee: string;
-  workCenter: string;
-  agreementConcept: string;
-  agreementDetail: string;
-  
-  // Real Estate
+  // Real Estate translations
   realEstateList: string;
   createRealEstate: string;
   noRealEstateFound: string;
   searchRealEstate: string;
-  realEstateDetails: string;
-  propertyCode: string;
-  address: string;
-  propertyType: string;
-  registrationDate: string;
-  
-  // Bid Analyzer
+  // Bid Analyzer translations
   bidAnalyzerTitle: string;
   uploadPCAP: string;
   uploadPTT: string;
   dragDropPDF: string;
   selectPDF: string;
   analyzeDocuments: string;
-  
-  // Chatbot
-  chatbot: string;
-  askGEEorge: string;
-  typeMessage: string;
-  thinking: string;
-  writing: string;
 }
 
 export const translations: Record<Language, Translations> = {
   es: {
-    // Navigation and Basic UI
     language: 'Idioma',
     of: 'de',
     welcome: 'Bienvenido',
-    home: 'Inicio',
-    back: 'Atrás',
-    save: 'Guardar',
-    cancel: 'Cancelar',
-    edit: 'Editar',
-    delete: 'Eliminar',
-    view: 'Ver',
-    actions: 'Acciones',
-    status: 'Estado',
-    name: 'Nombre',
-    select: 'Seleccionar',
-    createNew: 'Crear Nuevo',
-    export: 'Exportar',
-    import: 'Importar',
-    noDataAvailable: 'No hay datos disponibles',
-    showingRecords: 'Mostrando {start} a {end} de {total} registros',
-    comingSoon: 'Próximamente',
-    page: 'Página',
-    
-    // Authentication
     loginSubtitle: 'Ingresa a tu cuenta para continuar',
     email: 'Correo electrónico',
     password: 'Contraseña',
@@ -222,53 +127,30 @@ export const translations: Record<Language, Translations> = {
     verify: 'Verificar',
     resendCode: 'Reenviar código',
     backToLogin: 'Volver al inicio de sesión',
-    verifyingAccount: 'Verificando cuenta',
-
-    // Main App
     welcomeMessage: 'Bienvenido a GEESTOR',
     welcomeSubtitle: 'Sistema de gestión empresarial del Grupo Empresarial Electromédico',
     selectSection: 'Selecciona una sección del menú para comenzar',
     mainContent: 'Contenido Principal',
     noContentSelected: 'No hay contenido seleccionado',
-    
-    // Sidebar sections
+    home: 'Inicio',
     bidAnalyzer: 'Análisis de Costes',
     hojasCambio: 'Hojas de Cambio',
     employeeAgreements: 'Acuerdo Empleado',
     realEstateManagement: 'Gestión de Inmuebles',
     businessManagement: 'Gestión Empresarial',
-    
-    // Settings and Theme
     settings: 'Configuración',
     profile: 'Perfil',
-    userProfile: 'Perfil de Usuario',
     logout: 'Cerrar sesión',
-    theme: 'Tema',
     darkMode: 'Modo oscuro',
     lightMode: 'Modo claro',
-    light: 'Claro',
-    dark: 'Oscuro',
     spanish: 'Español',
     english: 'Inglés',
     saveChanges: 'Guardar cambios',
-
-    // User Profile
-    personalInformation: 'Información Personal',
-    changePhoto: 'Cambiar Foto',
-    departmentPermissions: 'Permisos de Departamento',
-    departmentPermissionsDesc: 'Gestiona el acceso a diferentes departamentos',
-    actionPermissions: 'Permisos de Acciones',
-    actionPermissionsDesc: 'Controla las acciones que puede realizar el usuario',
-    operaciones: 'Operaciones',
-    gestionTecnica: 'Gestión Técnica',
-    gestionTalento: 'Gestión de Talento',
-    create: 'Crear',
-
-    // Change Sheets
+    cancel: 'Cancelar',
+    // Change Sheets translations
     changeSheets: 'Hojas de Cambio',
     createChangeSheet: 'Crear Hoja de Cambio',
     changeSheetsList: 'Lista de Hojas de Cambio',
-    changeSheetsManagement: 'Gestión de Hojas de Cambio',
     noChangeSheetsFound: 'No se encontraron hojas de cambio',
     searchChangeSheets: 'Buscar hojas de cambio...',
     filterByStatus: 'Filtrar por estado',
@@ -278,8 +160,9 @@ export const translations: Record<Language, Translations> = {
     approved: 'Aprobado',
     rejected: 'Rechazado',
     viewDetails: 'Ver detalles',
-    
-    // Change Sheet Form
+    edit: 'Editar',
+    delete: 'Eliminar',
+    // Change Sheet Form translations
     changeSheetForm: 'Formulario de Hoja de Cambio',
     changeSheetDetails: 'Detalles de la Hoja de Cambio',
     basicInformation: 'Información Básica',
@@ -290,6 +173,7 @@ export const translations: Record<Language, Translations> = {
     assignedTo: 'Asignado a',
     department: 'Departamento',
     priority: 'Prioridad',
+    status: 'Estado',
     requestDate: 'Fecha de Solicitud',
     dueDate: 'Fecha de Vencimiento',
     completionDate: 'Fecha de Finalización',
@@ -309,84 +193,33 @@ export const translations: Record<Language, Translations> = {
     riskAssessment: 'Evaluación de Riesgos',
     testingRequirements: 'Requisitos de Pruebas',
     rollbackPlan: 'Plan de Rollback',
+    save: 'Guardar',
     saveAndClose: 'Guardar y Cerrar',
     draft: 'Borrador',
     submit: 'Enviar',
-    
-    // Change Sheet specific
-    employeeName: 'Nombre del Empleado',
-    employeeLastName: 'Apellidos del Empleado',
-    originCenter: 'Centro de Origen',
-    destinationCenter: 'Centro de Destino',
-    startDate: 'Fecha de Inicio',
-    duplicateRecord: 'Duplicar Registro',
-    downloadPDF: 'Descargar PDF',
-    exportPDF: 'Exportar PDF',
-    detailViewPlaceholder: 'Vista de detalles en desarrollo',
-    
-    // Employee Agreements
+    back: 'Atrás',
+    // Employee Agreements translations
     employeeAgreementsList: 'Lista de Acuerdos de Empleados',
-    employeeAgreementsManagement: 'Gestión de Acuerdos de Empleados',
     createEmployeeAgreement: 'Crear Acuerdo de Empleado',
     noEmployeeAgreementsFound: 'No se encontraron acuerdos de empleados',
     searchEmployeeAgreements: 'Buscar acuerdos de empleados...',
-    employeeAgreementDetails: 'Detalles del Acuerdo de Empleado',
-    employee: 'Empleado',
-    workCenter: 'Centro de Trabajo',
-    agreementConcept: 'Concepto del Acuerdo',
-    agreementDetail: 'Detalle del Acuerdo',
-    
-    // Real Estate
+    // Real Estate translations
     realEstateList: 'Lista de Inmuebles',
     createRealEstate: 'Crear Inmueble',
     noRealEstateFound: 'No se encontraron inmuebles',
     searchRealEstate: 'Buscar inmuebles...',
-    realEstateDetails: 'Detalles del Inmueble',
-    propertyCode: 'Código de Propiedad',
-    address: 'Dirección',
-    propertyType: 'Tipo de Propiedad',
-    registrationDate: 'Fecha de Registro',
-    
-    // Bid Analyzer
+    // Bid Analyzer translations
     bidAnalyzerTitle: 'Analizador de Licitaciones',
     uploadPCAP: 'Subir PCAP',
     uploadPTT: 'Subir PTT',
     dragDropPDF: 'Arrastra y suelta tu archivo PDF aquí',
     selectPDF: 'Seleccionar PDF',
     analyzeDocuments: 'Analizar Documentos',
-    
-    // Chatbot
-    chatbot: 'Chatbot',
-    askGEEorge: 'Pregunta a GEEorge',
-    typeMessage: 'Escribe tu mensaje...',
-    thinking: 'Pensando',
-    writing: 'Escribiendo',
   },
   en: {
-    // Navigation and Basic UI
     language: 'Language',
     of: 'of',
     welcome: 'Welcome',
-    home: 'Home',
-    back: 'Back',
-    save: 'Save',
-    cancel: 'Cancel',
-    edit: 'Edit',
-    delete: 'Delete',
-    view: 'View',
-    actions: 'Actions',
-    status: 'Status',
-    name: 'Name',
-    select: 'Select',
-    createNew: 'Create New',
-    export: 'Export',
-    import: 'Import',
-    noDataAvailable: 'No data available',
-    showingRecords: 'Showing {start} to {end} of {total} records',
-    comingSoon: 'Coming Soon',
-    page: 'Page',
-    
-    // Authentication
     loginSubtitle: 'Enter your account to continue',
     email: 'Email',
     password: 'Password',
@@ -401,53 +234,30 @@ export const translations: Record<Language, Translations> = {
     verify: 'Verify',
     resendCode: 'Resend code',
     backToLogin: 'Back to login',
-    verifyingAccount: 'Verifying account',
-
-    // Main App
     welcomeMessage: 'Welcome to GEESTOR',
     welcomeSubtitle: 'Business management system of the Electromedical Business Group',
     selectSection: 'Select a section from the menu to get started',
     mainContent: 'Main Content',
     noContentSelected: 'No content selected',
-    
-    // Sidebar sections
+    home: 'Home',
     bidAnalyzer: 'Cost Analysis',
     hojasCambio: 'Change Sheets',
     employeeAgreements: 'Employee Agreements',
     realEstateManagement: 'Real Estate Management',
     businessManagement: 'Business Management',
-    
-    // Settings and Theme
     settings: 'Settings',
     profile: 'Profile',
-    userProfile: 'User Profile',
     logout: 'Logout',
-    theme: 'Theme',
     darkMode: 'Dark mode',
     lightMode: 'Light mode',
-    light: 'Light',
-    dark: 'Dark',
     spanish: 'Spanish',
     english: 'English',
     saveChanges: 'Save changes',
-
-    // User Profile
-    personalInformation: 'Personal Information',
-    changePhoto: 'Change Photo',
-    departmentPermissions: 'Department Permissions',
-    departmentPermissionsDesc: 'Manage access to different departments',
-    actionPermissions: 'Action Permissions',
-    actionPermissionsDesc: 'Control the actions the user can perform',
-    operaciones: 'Operations',
-    gestionTecnica: 'Technical Management',
-    gestionTalento: 'Talent Management',
-    create: 'Create',
-
-    // Change Sheets
+    cancel: 'Cancel',
+    // Change Sheets translations
     changeSheets: 'Change Sheets',
     createChangeSheet: 'Create Change Sheet',
     changeSheetsList: 'Change Sheets List',
-    changeSheetsManagement: 'Change Sheets Management',
     noChangeSheetsFound: 'No change sheets found',
     searchChangeSheets: 'Search change sheets...',
     filterByStatus: 'Filter by status',
@@ -457,8 +267,9 @@ export const translations: Record<Language, Translations> = {
     approved: 'Approved',
     rejected: 'Rejected',
     viewDetails: 'View details',
-    
-    // Change Sheet Form
+    edit: 'Edit',
+    delete: 'Delete',
+    // Change Sheet Form translations
     changeSheetForm: 'Change Sheet Form',
     changeSheetDetails: 'Change Sheet Details',
     basicInformation: 'Basic Information',
@@ -469,6 +280,7 @@ export const translations: Record<Language, Translations> = {
     assignedTo: 'Assigned to',
     department: 'Department',
     priority: 'Priority',
+    status: 'Status',
     requestDate: 'Request Date',
     dueDate: 'Due Date',
     completionDate: 'Completion Date',
@@ -488,57 +300,27 @@ export const translations: Record<Language, Translations> = {
     riskAssessment: 'Risk Assessment',
     testingRequirements: 'Testing Requirements',
     rollbackPlan: 'Rollback Plan',
+    save: 'Save',
     saveAndClose: 'Save and Close',
     draft: 'Draft',
     submit: 'Submit',
-    
-    // Change Sheet specific
-    employeeName: 'Employee Name',
-    employeeLastName: 'Employee Last Name',
-    originCenter: 'Origin Center',
-    destinationCenter: 'Destination Center',
-    startDate: 'Start Date',
-    duplicateRecord: 'Duplicate Record',
-    downloadPDF: 'Download PDF',
-    exportPDF: 'Export PDF',
-    detailViewPlaceholder: 'Detail view under development',
-    
-    // Employee Agreements
+    back: 'Back',
+    // Employee Agreements translations
     employeeAgreementsList: 'Employee Agreements List',
-    employeeAgreementsManagement: 'Employee Agreements Management',
     createEmployeeAgreement: 'Create Employee Agreement',
     noEmployeeAgreementsFound: 'No employee agreements found',
     searchEmployeeAgreements: 'Search employee agreements...',
-    employeeAgreementDetails: 'Employee Agreement Details',
-    employee: 'Employee',
-    workCenter: 'Work Center',
-    agreementConcept: 'Agreement Concept',
-    agreementDetail: 'Agreement Detail',
-    
-    // Real Estate
+    // Real Estate translations
     realEstateList: 'Real Estate List',
     createRealEstate: 'Create Real Estate',
     noRealEstateFound: 'No real estate found',
     searchRealEstate: 'Search real estate...',
-    realEstateDetails: 'Real Estate Details',
-    propertyCode: 'Property Code',
-    address: 'Address',
-    propertyType: 'Property Type',
-    registrationDate: 'Registration Date',
-    
-    // Bid Analyzer
+    // Bid Analyzer translations
     bidAnalyzerTitle: 'Bid Analyzer',
     uploadPCAP: 'Upload PCAP',
     uploadPTT: 'Upload PTT',
     dragDropPDF: 'Drag and drop your PDF file here',
     selectPDF: 'Select PDF',
     analyzeDocuments: 'Analyze Documents',
-    
-    // Chatbot
-    chatbot: 'Chatbot',
-    askGEEorge: 'Ask GEEorge',
-    typeMessage: 'Type your message...',
-    thinking: 'Thinking',
-    writing: 'Writing',
   },
 };
