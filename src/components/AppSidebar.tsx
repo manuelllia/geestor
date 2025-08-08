@@ -10,7 +10,6 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarTrigger,
 } from "@/components/ui/sidebar"
 import { 
   Home, 
@@ -127,19 +126,16 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
   return (
     <Sidebar className="border-r border-blue-200 dark:border-blue-800 bg-white dark:bg-gray-900">
       <SidebarHeader className="border-b border-blue-200 dark:border-blue-800 p-4 h-16">
-        <div className="flex items-center justify-between h-full">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">G</span>
-            </div>
-            <div className="group-data-[collapsible=icon]:hidden">
-              <h2 className="font-semibold text-blue-900 dark:text-blue-100">GEESTOR</h2>
-              <p className="text-xs text-blue-600 dark:text-blue-300">
-                Gestión Empresarial
-              </p>
-            </div>
+        <div className="flex items-center space-x-3 h-full">
+          <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center shadow-lg">
+            <span className="text-white font-bold text-lg">G</span>
           </div>
-          <SidebarTrigger className="h-6 w-6" />
+          <div className="group-data-[collapsible=icon]:hidden">
+            <h2 className="font-bold text-lg text-blue-900 dark:text-blue-100">GEESTOR</h2>
+            <p className="text-xs text-blue-600 dark:text-blue-300 -mt-1">
+              Gestión Empresarial Electromédico
+            </p>
+          </div>
         </div>
       </SidebarHeader>
 
@@ -198,16 +194,18 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
                               className="w-full justify-start hover:bg-blue-50 dark:hover:bg-blue-900/20 data-[active=true]:bg-blue-100 dark:data-[active=true]:bg-blue-800 text-gray-700 dark:text-gray-300 py-2"
                             >
                               <item.icon className="w-4 h-4" />
-                              <span>{item.label}</span>
-                              {openSubmenus[item.id] ? (
-                                <ChevronDown className="w-3 h-3 ml-auto" />
-                              ) : (
-                                <ChevronRight className="w-3 h-3 ml-auto" />
-                              )}
+                              <span className="group-data-[collapsible=icon]:hidden">{item.label}</span>
+                              <span className="group-data-[collapsible=icon]:hidden">
+                                {openSubmenus[item.id] ? (
+                                  <ChevronDown className="w-3 h-3 ml-auto" />
+                                ) : (
+                                  <ChevronRight className="w-3 h-3 ml-auto" />
+                                )}
+                              </span>
                             </SidebarMenuButton>
                             
                             {openSubmenus[item.id] && item.submenuItems && (
-                              <div className="ml-6 mt-1 space-y-1">
+                              <div className="ml-6 mt-1 space-y-1 group-data-[collapsible=icon]:hidden">
                                 {item.submenuItems.map((subItem) => (
                                   <SidebarMenuButton
                                     key={subItem.id}
@@ -228,7 +226,7 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
                             className="w-full justify-start hover:bg-blue-50 dark:hover:bg-blue-900/20 data-[active=true]:bg-blue-100 dark:data-[active=true]:bg-blue-800 text-gray-700 dark:text-gray-300 py-2"
                           >
                             <item.icon className="w-4 h-4" />
-                            <span>{item.label}</span>
+                            <span className="group-data-[collapsible=icon]:hidden">{item.label}</span>
                           </SidebarMenuButton>
                         )}
                       </SidebarMenuItem>
