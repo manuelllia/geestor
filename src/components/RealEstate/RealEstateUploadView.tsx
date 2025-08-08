@@ -10,7 +10,7 @@ import { Progress } from '@/components/ui/progress';
 import { Upload, FileSpreadsheet, AlertCircle, CheckCircle } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import Papa from 'papaparse';
-import { checkPisosDocument, createPisosDocument, insertPropertyData, SheetSelection } from '../../services/realEstateService';
+import { checkRealEstateDocument, createRealEstateDocument, insertPropertyData, SheetSelection } from '../../services/realEstateService';
 
 interface RealEstateUploadViewProps {
   language: Language;
@@ -108,10 +108,10 @@ const RealEstateUploadView: React.FC<RealEstateUploadViewProps> = ({ language })
     setProgress(0);
 
     try {
-      // Verificar si existe el documento pisos
-      const pisosExists = await checkPisosDocument();
-      if (!pisosExists) {
-        await createPisosDocument();
+      // Verificar si existe el documento de Gestión Inmuebles
+      const realEstateExists = await checkRealEstateDocument();
+      if (!realEstateExists) {
+        await createRealEstateDocument();
       }
 
       const selectedSheets = sheets.filter(sheet => sheet.selected);
@@ -137,8 +137,8 @@ const RealEstateUploadView: React.FC<RealEstateUploadViewProps> = ({ language })
         }
 
         if (data.length > 0) {
-          // Insertar en la subcolección 'pisos' por defecto
-          await insertPropertyData(data, 'pisos');
+          // Insertar datos usando el nombre de la hoja como subcolección
+          await insertPropertyData(data, sheet.sheetName);
         }
 
         setProgress(((i + 1) / totalSheets) * 100);
@@ -163,6 +163,19 @@ const RealEstateUploadView: React.FC<RealEstateUploadViewProps> = ({ language })
     setStatusMessage('');
   };
 
+  const openFileDialog = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.xlsx,.xls,.csv';
+    input.onchange = (e) => {
+      const selectedFile = (e.target as HTMLInputElement).files?.[0];
+      if (selectedFile) {
+        handleFileSelect(selectedFile);
+      }
+    };
+    input.click();
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -181,7 +194,7 @@ const RealEstateUploadView: React.FC<RealEstateUploadViewProps> = ({ language })
         <CardContent className="space-y-6">
           {!file ? (
             <div
-              className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+              className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors cursor-pointer ${
                 isDragging
                   ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
                   : 'border-gray-300 hover:border-blue-400'
@@ -189,6 +202,7 @@ const RealEstateUploadView: React.FC<RealEstateUploadViewProps> = ({ language })
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
+              onClick={openFileDialog}
             >
               <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <p className="text-lg mb-2">
@@ -197,18 +211,9 @@ const RealEstateUploadView: React.FC<RealEstateUploadViewProps> = ({ language })
               <p className="text-gray-500 mb-4">
                 o haz clic para seleccionar un archivo
               </p>
-              <input
-                type="file"
-                accept=".xlsx,.xls,.csv"
-                onChange={handleFileInputChange}
-                className="hidden"
-                id="file-input"
-              />
-              <label htmlFor="file-input">
-                <Button variant="outline" className="cursor-pointer">
-                  Seleccionar Archivo
-                </Button>
-              </label>
+              <Button variant="outline" className="cursor-pointer">
+                Seleccionar Archivo
+              </Button>
             </div>
           ) : (
             <div className="space-y-4">
@@ -238,7 +243,7 @@ const RealEstateUploadView: React.FC<RealEstateUploadViewProps> = ({ language })
                           checked={sheet.selected}
                           onCheckedChange={() => handleSheetToggle(sheet.sheetName)}
                         />
-                        <label htmlFor={sheet.sheetName} className="text-sm">
+                        <label htmlFor={sheet.sheetName} className="text-sm cursor-pointer">
                           {sheet.sheetName}
                         </label>
                       </div>

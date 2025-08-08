@@ -42,7 +42,6 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
   const [openSubmenus, setOpenSubmenus] = useState<{ [key: string]: boolean }>({});
 
   const handleGroupToggle = (groupId: string) => {
-    // Si el grupo ya está abierto, lo cerramos. Si no, abrimos solo este grupo
     setOpenGroup(openGroup === groupId ? null : groupId);
   };
 
@@ -133,7 +132,7 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-sm">G</span>
             </div>
-            <div>
+            <div className="group-data-[collapsible=icon]:hidden">
               <h2 className="font-semibold text-blue-900 dark:text-blue-100">GEESTOR</h2>
               <p className="text-xs text-blue-600 dark:text-blue-300">
                 Gestión Empresarial
@@ -156,7 +155,7 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
                   className="w-full justify-start hover:bg-blue-50 dark:hover:bg-blue-900/20 data-[active=true]:bg-blue-100 dark:data-[active=true]:bg-blue-800 mb-2"
                 >
                   <Home className="w-4 h-4" />
-                  <span>Inicio</span>
+                  <span className="group-data-[collapsible=icon]:hidden">Inicio</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
@@ -171,17 +170,19 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
               onOpenChange={() => handleGroupToggle(group.id)}
             >
               <CollapsibleTrigger asChild>
-                <SidebarGroupLabel className="group/label hover:bg-blue-50 dark:hover:bg-blue-900/20 cursor-pointer text-blue-600 dark:text-blue-300 font-semibold text-xs uppercase tracking-wide p-2 rounded-md flex items-center justify-between">
-                  <span>{group.label}</span>
-                  {openGroup === group.id ? (
-                    <ChevronDown className="w-4 h-4 transition-transform" />
-                  ) : (
-                    <ChevronRight className="w-4 h-4 transition-transform" />
-                  )}
+                <SidebarGroupLabel className="group/label hover:bg-blue-50 dark:hover:bg-blue-900/20 cursor-pointer text-blue-600 dark:text-blue-300 font-semibold text-xs uppercase tracking-wide p-2 rounded-md flex items-center justify-between group-data-[collapsible=icon]:justify-center">
+                  <span className="group-data-[collapsible=icon]:hidden">{group.label}</span>
+                  <span className="group-data-[collapsible=icon]:hidden">
+                    {openGroup === group.id ? (
+                      <ChevronDown className="w-4 h-4 transition-transform" />
+                    ) : (
+                      <ChevronRight className="w-4 h-4 transition-transform" />
+                    )}
+                  </span>
                 </SidebarGroupLabel>
               </CollapsibleTrigger>
               
-              <CollapsibleContent>
+              <CollapsibleContent className="group-data-[collapsible=icon]:hidden">
                 <SidebarGroupContent>
                   <SidebarMenu className="ml-2">
                     {group.items.map((item) => (

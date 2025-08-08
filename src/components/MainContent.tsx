@@ -11,7 +11,7 @@ import RealEstateDetailView from './RealEstate/RealEstateDetailView';
 import RealEstateUploadView from './RealEstate/RealEstateUploadView';
 import RealEstateDashboard from './RealEstate/RealEstateDashboard';
 import BidAnalyzerView from './BidAnalyzer/BidAnalyzerView';
-import { checkPisosDocument } from '../services/realEstateService';
+import { checkRealEstateDocument } from '../services/realEstateService';
 
 interface MainContentProps {
   activeSection: string;
@@ -22,7 +22,7 @@ const MainContent: React.FC<MainContentProps> = ({ activeSection, language }) =>
   const { t } = useTranslation(language);
   const [currentView, setCurrentView] = useState<'dashboard' | 'list' | 'detail' | 'upload'>('dashboard');
   const [selectedId, setSelectedId] = useState<string>('');
-  const [pisosDocumentExists, setPisosDocumentExists] = useState<boolean | null>(null);
+  const [realEstateDocumentExists, setRealEstateDocumentExists] = useState<boolean | null>(null);
 
   const handleViewDetails = (id: string) => {
     setSelectedId(id);
@@ -38,27 +38,27 @@ const MainContent: React.FC<MainContentProps> = ({ activeSection, language }) =>
     setCurrentView('upload');
   };
 
-  // Verificar si existe el documento pisos cuando se selecciona gestión de inmuebles
+  // Verificar si existe el documento de Gestión Inmuebles cuando se selecciona gestión de inmuebles
   useEffect(() => {
     if (activeSection === 'gestion-inmuebles') {
       const checkDocument = async () => {
         try {
-          const exists = await checkPisosDocument();
-          setPisosDocumentExists(exists);
+          const exists = await checkRealEstateDocument();
+          setRealEstateDocumentExists(exists);
           if (!exists) {
             setCurrentView('upload');
           } else {
             setCurrentView('dashboard');
           }
         } catch (error) {
-          console.error('Error checking pisos document:', error);
-          setPisosDocumentExists(false);
+          console.error('Error checking real estate document:', error);
+          setRealEstateDocumentExists(false);
           setCurrentView('upload');
         }
       };
       checkDocument();
     } else {
-      setPisosDocumentExists(null);
+      setRealEstateDocumentExists(null);
       setCurrentView('dashboard');
     }
   }, [activeSection]);
@@ -120,7 +120,7 @@ const MainContent: React.FC<MainContentProps> = ({ activeSection, language }) =>
         );
 
       case 'gestion-inmuebles':
-        if (pisosDocumentExists === null) {
+        if (realEstateDocumentExists === null) {
           return (
             <div className="flex items-center justify-center h-64">
               <div className="w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
@@ -128,7 +128,7 @@ const MainContent: React.FC<MainContentProps> = ({ activeSection, language }) =>
           );
         }
 
-        if (!pisosDocumentExists || currentView === 'upload') {
+        if (!realEstateDocumentExists || currentView === 'upload') {
           return <RealEstateUploadView language={language} />;
         }
 
