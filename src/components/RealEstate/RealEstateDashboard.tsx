@@ -10,7 +10,9 @@ import {
   MapPin, 
   Upload, 
   Download,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Bed,
+  List
 } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Language } from '../../utils/translations';
@@ -27,16 +29,18 @@ import {
 interface RealEstateDashboardProps {
   language: Language;
   onImportData: () => void;
+  onViewTables: () => void;
 }
 
 const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({ 
   language, 
-  onImportData 
+  onImportData,
+  onViewTables 
 }) => {
   const { t } = useTranslation(language);
   const [chartView, setChartView] = useState<'total' | 'autonomous'>('total');
   const [loading, setLoading] = useState(true);
-  const [propertyCounts, setPropertyCounts] = useState<PropertyCounts>({ active: 0, inactive: 0, total: 0 });
+  const [propertyCounts, setPropertyCounts] = useState<PropertyCounts>({ active: 0, inactive: 0, total: 0, totalRooms: 0 });
   const [annualCostData, setAnnualCostData] = useState<AnnualCostData>({ totalCost: 0, byProvince: {} });
   const [provinceActivity, setProvinceActivity] = useState<ProvinceActivityData>({});
 
@@ -110,6 +114,14 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({
         
         <div className="flex gap-3">
           <Button
+            onClick={onViewTables}
+            variant="outline"
+            className="border-blue-300 text-blue-700 hover:bg-blue-50"
+          >
+            <List className="w-4 h-4 mr-2" />
+            Ver Tablas
+          </Button>
+          <Button
             onClick={onImportData}
             className="bg-blue-600 hover:bg-blue-700 text-white"
           >
@@ -128,7 +140,7 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({
       </div>
 
       {/* Métricas principales */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card className="border-blue-200 dark:border-blue-800">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
@@ -176,6 +188,23 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({
             </div>
             <p className="text-xs text-gray-600 dark:text-gray-400">
               Inventario completo
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-blue-200 dark:border-blue-800">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
+              Total Habitaciones
+            </CardTitle>
+            <Bed className="h-4 w-4 text-purple-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-900 dark:text-blue-100">
+              {hasData ? propertyCounts.totalRooms.toLocaleString() : 'DATA NOT FOUND'}
+            </div>
+            <p className="text-xs text-gray-600 dark:text-gray-400">
+              Suma de todas las habitaciones
             </p>
           </CardContent>
         </Card>

@@ -1,4 +1,3 @@
-
 import { collection, doc, getDoc, setDoc, addDoc, getDocs, Timestamp } from "firebase/firestore";
 import { db } from "../lib/firebase";
 
@@ -15,6 +14,7 @@ export interface PropertyCounts {
   active: number;
   inactive: number;
   total: number;
+  totalRooms: number;
 }
 
 export interface AnnualCostData {
@@ -92,6 +92,28 @@ export const getPropertyCounts = async (): Promise<PropertyCounts> => {
     const activePisosSnapshot = await getDocs(activePisosRef);
     const activeCount = activePisosSnapshot.size;
 
+    // Calcular total de habitaciones
+    let totalRooms = 0;
+    activePisosSnapshot.forEach((doc) => {
+      const data = doc.data();
+      
+      // Buscar campos de habitaciones (puede tener diferentes nombres)
+      const roomFields = ['HABITACIONES', 'Habitaciones', 'habitaciones', 'ROOMS', 'Nº HABITACIONES'];
+      let rooms = 0;
+      
+      for (const field of roomFields) {
+        if (data[field] !== undefined && data[field] !== null && data[field] !== '') {
+          const roomCount = parseInt(String(data[field]));
+          if (!isNaN(roomCount) && roomCount > 0) {
+            rooms = roomCount;
+            break;
+          }
+        }
+      }
+      
+      totalRooms += rooms;
+    });
+
     // Obtener pisos de baja
     const bajaPisosRef = collection(db, "Gestión de Talento", "Gestión Inmuebles", "BAJA PISOS");
     const bajaPisosSnapshot = await getDocs(bajaPisosRef);
@@ -99,16 +121,17 @@ export const getPropertyCounts = async (): Promise<PropertyCounts> => {
 
     const totalCount = activeCount + inactiveCount;
 
-    console.log(`Conteos de propiedades: Activos: ${activeCount}, Inactivos: ${inactiveCount}, Total: ${totalCount}`);
+    console.log(`Conteos de propiedades: Activos: ${activeCount}, Inactivos: ${inactiveCount}, Total: ${totalCount}, Habitaciones: ${totalRooms}`);
     
     return { 
       active: activeCount, 
       inactive: inactiveCount, 
-      total: totalCount 
+      total: totalCount,
+      totalRooms: totalRooms
     };
   } catch (error) {
     console.error('Error al obtener conteos de propiedades:', error);
-    return { active: 0, inactive: 0, total: 0 };
+    return { active: 0, inactive: 0, total: 0, totalRooms: 0 };
   }
 };
 
@@ -178,7 +201,7 @@ export const getProvinceActivityData = async (): Promise<ProvinceActivityData> =
     activePisosSnapshot.forEach((doc) => {
       const data = doc.data();
       
-      // Buscar el campo de provincia
+      // Buscar el campo de provincia únicamente
       const provinceFields = ['PROVINCIA', 'Provincia', 'provincia', 'PROV'];
       let province = 'Sin especificar';
       
@@ -211,5 +234,56 @@ export const getProvinceActivityData = async (): Promise<ProvinceActivityData> =
   } catch (error) {
     console.error('Error al obtener datos de actividad por provincia:', error);
     return {};
+  }
+};
+
+export const getAvailableSheets = async (): Promise<string[]> => {
+  try {
+    const realEstateDocRef = doc(db, "Gestión de Talento", "Gestión Inmuebles");
+    const realEstateDoc = await getDoc(realEstateDocRef);
+    
+    if (!realEstateDoc.exists()) {
+      return [];
+    }
+
+    // Obtener todas las subcolecciones
+    // Nota: En Firestore no podemos listar subcolecciones directamente desde el cliente
+    // Por ahora retornamos las hojas conocidas
+    const knownSheets = ["PISOS ACTIVOS", "BAJA PISOS", "TABLA DINÁMICA"];
+    const existingSheets = [];
+    
+    for (const sheetName of knownSheets) {
+      const sheetRef = collection(db, "Gestión de Talento", "Gestión Inmuebles", sheetName);
+      const sheetSnapshot = await getDocs(sheetRef);
+      if (sheetSnapshot.size > 0) {
+        existingSheets.push(sheetName);
+      }
+    }
+    
+    return existingSheets;
+  } catch (error) {
+    console.error('Error al obtener hojas disponibles:', error);
+    return [];
+  }
+};
+
+export const getSheetData = async (sheetName: string): Promise<PropertyData[]> => {
+  try {
+    const sheetRef = collection(db, "Gestión de Talento", "Gestión Inmuebles", sheetName);
+    const sheetSnapshot = await getDocs(sheetRef);
+    
+    const data: PropertyData[] = [];
+    sheetSnapshot.forEach((doc) => {
+      data.push({
+        id: doc.id,
+        ...doc.data()
+      });
+    });
+    
+    console.log(`Datos obtenidos de ${sheetName}:`, data.length, 'registros');
+    return data;
+  } catch (error) {
+    console.error(`Error al obtener datos de ${sheetName}:`, error);
+    return [];
   }
 };

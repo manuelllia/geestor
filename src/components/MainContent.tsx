@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import { Language } from '../utils/translations';
@@ -36,6 +35,10 @@ const MainContent: React.FC<MainContentProps> = ({ activeSection, language }) =>
 
   const handleShowUpload = () => {
     setCurrentView('upload');
+  };
+
+  const handleViewTables = () => {
+    setCurrentView('list');
   };
 
   // Verificar si existe el documento de Gestión Inmuebles cuando se selecciona gestión de inmuebles
@@ -137,6 +140,18 @@ const MainContent: React.FC<MainContentProps> = ({ activeSection, language }) =>
             <RealEstateDashboard 
               language={language} 
               onImportData={handleShowUpload}
+              onViewTables={handleViewTables}
+            />
+          );
+        }
+
+        if (currentView === 'list') {
+          return (
+            <RealEstateListView
+              language={language}
+              onViewDetails={handleViewDetails}
+              onCreateNew={() => console.log('Crear nuevo registro')}
+              onBack={handleBackToDashboard}
             />
           );
         }
@@ -156,6 +171,7 @@ const MainContent: React.FC<MainContentProps> = ({ activeSection, language }) =>
             language={language}
             onViewDetails={handleViewDetails}
             onCreateNew={() => console.log('Crear nuevo inmueble')}
+            onBack={handleBackToDashboard}
           />
         );
 
