@@ -1,3 +1,4 @@
+
 export type Language = 'es' | 'en';
 
 export const translations = {
@@ -14,6 +15,8 @@ export const translations = {
     // Placeholders
     emailPlaceholder: 'usuario@ejemplo.com',
     passwordPlaceholder: '********',
+    detailViewPlaceholder: 'Vista de detalles en desarrollo',
+    comingSoon: 'Próximamente',
     
     // Buttons
     submit: 'Enviar',
@@ -22,6 +25,7 @@ export const translations = {
     inicio: 'Inicio',
     'analisis-coste': 'Comprobadores',
     'hojas-cambio': 'Hojas de Cambio',
+    hojasCambio: 'Hojas de Cambio',
     'acuerdo-empleado': 'Acuerdo de Empleado',
     'gestion-inmuebles': 'Gestión de Inmuebles',
     settings: 'Configuración',
@@ -70,7 +74,10 @@ export const translations = {
     
     // Change Sheets
     changeSheets: 'Hojas de Cambio',
+    changeSheetsManagement: 'Gestión de Hojas de Cambio',
     createChangeSheet: 'Crear Hoja de Cambio',
+    changeSheetDetails: 'Detalles de la Hoja de Cambio',
+    createNew: 'Crear Nuevo',
     viewDetails: 'Ver Detalles',
     status: 'Estado',
     createdDate: 'Fecha de Creación',
@@ -82,10 +89,29 @@ export const translations = {
     
     // Real Estate
     realEstate: 'Gestión Inmuebles',
+    realEstateDetails: 'Detalles del Inmueble',
     importData: 'Importar Datos',
     viewTables: 'Ver Tablas',
     dashboard: 'Panel de Control',
     uploadDocument: 'Subir Documento',
+    
+    // Form fields
+    name: 'Nombre',
+    employeeName: 'Nombre del Empleado',
+    originCenter: 'Centro de Origen',
+    destinationCenter: 'Centro de Destino',
+    startDate: 'Fecha de Inicio',
+    select: 'Seleccionar',
+    
+    // Actions
+    view: 'Ver',
+    duplicateRecord: 'Duplicar Registro',
+    downloadPDF: 'Descargar PDF',
+    exportPDF: 'Exportar PDF',
+    showingRecords: 'Mostrando {start} a {end} de {total} registros',
+    
+    // Data
+    noDataAvailable: 'No hay datos disponibles',
     
     // Common
     back: 'Volver',
@@ -110,6 +136,8 @@ export const translations = {
     // Placeholders
     emailPlaceholder: 'user@example.com',
     passwordPlaceholder: '********',
+    detailViewPlaceholder: 'Detail view in development',
+    comingSoon: 'Coming Soon',
     
     // Buttons
     submit: 'Submit',
@@ -118,6 +146,7 @@ export const translations = {
     inicio: 'Home',
     'analisis-coste': 'Verifiers',
     'hojas-cambio': 'Change Sheets',
+    hojasCambio: 'Change Sheets',
     'acuerdo-empleado': 'Employee Agreement',
     'gestion-inmuebles': 'Real Estate Management',
     settings: 'Settings',
@@ -166,7 +195,10 @@ export const translations = {
     
     // Change Sheets
     changeSheets: 'Change Sheets',
+    changeSheetsManagement: 'Change Sheets Management',
     createChangeSheet: 'Create Change Sheet',
+    changeSheetDetails: 'Change Sheet Details',
+    createNew: 'Create New',
     viewDetails: 'View Details',
     status: 'Status',
     createdDate: 'Created Date',
@@ -178,10 +210,29 @@ export const translations = {
     
     // Real Estate
     realEstate: 'Real Estate Management',
+    realEstateDetails: 'Real Estate Details',
     importData: 'Import Data',
     viewTables: 'View Tables',
     dashboard: 'Dashboard',
     uploadDocument: 'Upload Document',
+    
+    // Form fields
+    name: 'Name',
+    employeeName: 'Employee Name',
+    originCenter: 'Origin Center',
+    destinationCenter: 'Destination Center',
+    startDate: 'Start Date',
+    select: 'Select',
+    
+    // Actions
+    view: 'View',
+    duplicateRecord: 'Duplicate Record',
+    downloadPDF: 'Download PDF',
+    exportPDF: 'Export PDF',
+    showingRecords: 'Showing {start} to {end} of {total} records',
+    
+    // Data
+    noDataAvailable: 'No data available',
     
     // Common
     back: 'Back',
