@@ -23,7 +23,8 @@ import {
   Briefcase,
   MessageSquare,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  Building2
 } from 'lucide-react';
 import { useTranslation } from '../hooks/useTranslation';
 import { Language } from '../utils/translations';
@@ -38,10 +39,18 @@ interface AppSidebarProps {
 export function AppSidebar({ language, activeSection, onSectionChange }: AppSidebarProps) {
   const { t } = useTranslation(language);
   const [openGroup, setOpenGroup] = useState<string | null>(null);
+  const [openSubmenus, setOpenSubmenus] = useState<{ [key: string]: boolean }>({});
 
   const handleGroupToggle = (groupId: string) => {
     // Si el grupo ya está abierto, lo cerramos. Si no, abrimos solo este grupo
     setOpenGroup(openGroup === groupId ? null : groupId);
+  };
+
+  const handleSubmenuToggle = (submenuId: string) => {
+    setOpenSubmenus(prev => ({
+      ...prev,
+      [submenuId]: !prev[submenuId]
+    }));
   };
 
   const menuGroups = [
@@ -92,10 +101,20 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
           icon: UserCheck,
         },
         {
+          id: 'gestion-inmuebles',
+          label: 'Gestión de Inmuebles',
+          icon: Building2,
+        },
+        {
           id: 'practicas',
           label: 'Prácticas',
           icon: Briefcase,
-          hasSubmenu: true
+          hasSubmenu: true,
+          submenuItems: [
+            { id: 'practicas-generales', label: 'Prácticas Generales' },
+            { id: 'practicas-especializadas', label: 'Prácticas Especializadas' },
+            { id: 'convenios', label: 'Convenios de Prácticas' }
+          ]
         },
         {
           id: 'entrevista-salida',
@@ -108,8 +127,8 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
 
   return (
     <Sidebar className="border-r border-blue-200 dark:border-blue-800 bg-white dark:bg-gray-900">
-      <SidebarHeader className="border-b border-blue-200 dark:border-blue-800 p-4">
-        <div className="flex items-center justify-between h-12">
+      <SidebarHeader className="border-b border-blue-200 dark:border-blue-800 p-4 h-16">
+        <div className="flex items-center justify-between h-full">
           <div className="flex items-center space-x-3">
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-sm">G</span>
@@ -167,17 +186,50 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
                   <SidebarMenu className="ml-2">
                     {group.items.map((item) => (
                       <SidebarMenuItem key={item.id}>
-                        <SidebarMenuButton
-                          isActive={activeSection === item.id}
-                          onClick={() => onSectionChange(item.id)}
-                          className="w-full justify-start hover:bg-blue-50 dark:hover:bg-blue-900/20 data-[active=true]:bg-blue-100 dark:data-[active=true]:bg-blue-800 text-gray-700 dark:text-gray-300 py-2"
-                        >
-                          <item.icon className="w-4 h-4" />
-                          <span>{item.label}</span>
-                          {item.hasSubmenu && (
-                            <ChevronRight className="w-3 h-3 ml-auto" />
-                          )}
-                        </SidebarMenuButton>
+                        {item.hasSubmenu ? (
+                          <div>
+                            <SidebarMenuButton
+                              isActive={activeSection === item.id}
+                              onClick={() => {
+                                handleSubmenuToggle(item.id);
+                                onSectionChange(item.id);
+                              }}
+                              className="w-full justify-start hover:bg-blue-50 dark:hover:bg-blue-900/20 data-[active=true]:bg-blue-100 dark:data-[active=true]:bg-blue-800 text-gray-700 dark:text-gray-300 py-2"
+                            >
+                              <item.icon className="w-4 h-4" />
+                              <span>{item.label}</span>
+                              {openSubmenus[item.id] ? (
+                                <ChevronDown className="w-3 h-3 ml-auto" />
+                              ) : (
+                                <ChevronRight className="w-3 h-3 ml-auto" />
+                              )}
+                            </SidebarMenuButton>
+                            
+                            {openSubmenus[item.id] && item.submenuItems && (
+                              <div className="ml-6 mt-1 space-y-1">
+                                {item.submenuItems.map((subItem) => (
+                                  <SidebarMenuButton
+                                    key={subItem.id}
+                                    isActive={activeSection === subItem.id}
+                                    onClick={() => onSectionChange(subItem.id)}
+                                    className="w-full justify-start hover:bg-blue-50 dark:hover:bg-blue-900/20 data-[active=true]:bg-blue-100 dark:data-[active=true]:bg-blue-800 text-gray-600 dark:text-gray-400 py-1 text-sm"
+                                  >
+                                    <span>{subItem.label}</span>
+                                  </SidebarMenuButton>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <SidebarMenuButton
+                            isActive={activeSection === item.id}
+                            onClick={() => onSectionChange(item.id)}
+                            className="w-full justify-start hover:bg-blue-50 dark:hover:bg-blue-900/20 data-[active=true]:bg-blue-100 dark:data-[active=true]:bg-blue-800 text-gray-700 dark:text-gray-300 py-2"
+                          >
+                            <item.icon className="w-4 h-4" />
+                            <span>{item.label}</span>
+                          </SidebarMenuButton>
+                        )}
                       </SidebarMenuItem>
                     ))}
                   </SidebarMenu>

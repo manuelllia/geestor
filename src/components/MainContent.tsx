@@ -9,6 +9,7 @@ import EmployeeAgreementDetailView from './EmployeeAgreements/EmployeeAgreementD
 import RealEstateListView from './RealEstate/RealEstateListView';
 import RealEstateDetailView from './RealEstate/RealEstateDetailView';
 import RealEstateUploadView from './RealEstate/RealEstateUploadView';
+import RealEstateDashboard from './RealEstate/RealEstateDashboard';
 import BidAnalyzerView from './BidAnalyzer/BidAnalyzerView';
 import { checkPisosDocument } from '../services/realEstateService';
 
@@ -19,7 +20,7 @@ interface MainContentProps {
 
 const MainContent: React.FC<MainContentProps> = ({ activeSection, language }) => {
   const { t } = useTranslation(language);
-  const [currentView, setCurrentView] = useState<'list' | 'detail' | 'upload'>('list');
+  const [currentView, setCurrentView] = useState<'dashboard' | 'list' | 'detail' | 'upload'>('dashboard');
   const [selectedId, setSelectedId] = useState<string>('');
   const [pisosDocumentExists, setPisosDocumentExists] = useState<boolean | null>(null);
 
@@ -28,9 +29,13 @@ const MainContent: React.FC<MainContentProps> = ({ activeSection, language }) =>
     setCurrentView('detail');
   };
 
-  const handleBackToList = () => {
-    setCurrentView('list');
+  const handleBackToDashboard = () => {
+    setCurrentView('dashboard');
     setSelectedId('');
+  };
+
+  const handleShowUpload = () => {
+    setCurrentView('upload');
   };
 
   // Verificar si existe el documento pisos cuando se selecciona gestión de inmuebles
@@ -42,6 +47,8 @@ const MainContent: React.FC<MainContentProps> = ({ activeSection, language }) =>
           setPisosDocumentExists(exists);
           if (!exists) {
             setCurrentView('upload');
+          } else {
+            setCurrentView('dashboard');
           }
         } catch (error) {
           console.error('Error checking pisos document:', error);
@@ -52,7 +59,7 @@ const MainContent: React.FC<MainContentProps> = ({ activeSection, language }) =>
       checkDocument();
     } else {
       setPisosDocumentExists(null);
-      setCurrentView('list');
+      setCurrentView('dashboard');
     }
   }, [activeSection]);
 
@@ -82,7 +89,7 @@ const MainContent: React.FC<MainContentProps> = ({ activeSection, language }) =>
             <ChangeSheetDetailView
               language={language}
               sheetId={selectedId}
-              onBack={handleBackToList}
+              onBack={handleBackToDashboard}
             />
           );
         }
@@ -100,7 +107,7 @@ const MainContent: React.FC<MainContentProps> = ({ activeSection, language }) =>
             <EmployeeAgreementDetailView
               language={language}
               agreementId={selectedId}
-              onBack={handleBackToList}
+              onBack={handleBackToDashboard}
             />
           );
         }
@@ -125,15 +132,25 @@ const MainContent: React.FC<MainContentProps> = ({ activeSection, language }) =>
           return <RealEstateUploadView language={language} />;
         }
 
+        if (currentView === 'dashboard') {
+          return (
+            <RealEstateDashboard 
+              language={language} 
+              onImportData={handleShowUpload}
+            />
+          );
+        }
+
         if (currentView === 'detail') {
           return (
             <RealEstateDetailView
               language={language}
               propertyId={selectedId}
-              onBack={handleBackToList}
+              onBack={handleBackToDashboard}
             />
           );
         }
+
         return (
           <RealEstateListView
             language={language}
