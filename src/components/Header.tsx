@@ -32,14 +32,9 @@ export function Header({
 }: HeaderProps) {
   const { t } = useTranslation(language);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isUserProfileOpen, setIsUserProfileOpen] = useState(false);
 
   const handleSettingsClick = () => {
     setIsSettingsOpen(true);
-  };
-
-  const handleUserProfileClick = () => {
-    setIsUserProfileOpen(true);
   };
 
   return (
@@ -52,15 +47,22 @@ export function Header({
         </div>
         
         <div className="flex items-center space-x-2">
-          <Button 
-            variant="ghost" 
-            size="sm"
-            onClick={handleUserProfileClick}
-            className="text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+          <UserProfileModal
+            user={user}
+            language={language}
+            onUserUpdate={onUserUpdate}
+            onPermissionsUpdate={onPermissionsUpdate}
           >
-            <User className="h-4 w-4 mr-2" />
-            {t('profile')}
-          </Button>
+            <Button 
+              variant="ghost" 
+              size="sm"
+              className="text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+            >
+              <User className="h-4 w-4 mr-2" />
+              {t('profile')}
+            </Button>
+          </UserProfileModal>
+          
           <Button 
             variant="ghost" 
             size="sm"
@@ -80,16 +82,6 @@ export function Header({
         theme={theme}
         onLanguageChange={onLanguageChange}
         onThemeChange={onThemeChange}
-      />
-
-      <UserProfileModal
-        isOpen={isUserProfileOpen}
-        onClose={() => setIsUserProfileOpen(false)}
-        user={user}
-        onLogout={onLogout}
-        onUserUpdate={onUserUpdate}
-        onPermissionsUpdate={onPermissionsUpdate}
-        language={language}
       />
     </>
   );
