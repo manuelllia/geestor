@@ -1,5 +1,6 @@
 
 export type Language = 'es' | 'en';
+export type Theme = 'light' | 'dark';
 
 export const translations = {
   es: {
@@ -36,6 +37,9 @@ export const translations = {
     welcomeMessage: 'Bienvenido a GEESTOR',
     welcomeSubtitle: 'Tu plataforma integral de gestión empresarial',
     selectSection: 'Selecciona una sección del menú lateral para comenzar',
+    welcome: 'Bienvenido',
+    loginSubtitle: 'Inicia sesión para continuar',
+    loginButton: 'Iniciar Sesión con Microsoft',
     
     // Main content
     mainContent: 'Contenido Principal',
@@ -48,6 +52,8 @@ export const translations = {
     theme: 'Tema',
     lightTheme: 'Claro',
     darkTheme: 'Oscuro',
+    light: 'Claro',
+    dark: 'Oscuro',
     save: 'Guardar',
     cancel: 'Cancelar',
     
@@ -85,7 +91,13 @@ export const translations = {
     
     // Employee Agreements
     employeeAgreements: 'Acuerdos de Empleado',
+    employeeAgreementsManagement: 'Gestión de Acuerdos de Empleado',
+    employeeAgreementDetails: 'Detalles del Acuerdo de Empleado',
     createAgreement: 'Crear Acuerdo',
+    employee: 'Empleado',
+    workCenter: 'Centro de Trabajo',
+    agreementConcept: 'Concepto del Acuerdo',
+    agreementDetail: 'Detalle del Acuerdo',
     
     // Real Estate
     realEstate: 'Gestión Inmuebles',
@@ -112,6 +124,19 @@ export const translations = {
     
     // Data
     noDataAvailable: 'No hay datos disponibles',
+    
+    // User Profile
+    userProfile: 'Perfil de Usuario',
+    personalInformation: 'Información Personal',
+    changePhoto: 'Cambiar Foto',
+    departmentPermissions: 'Permisos de Departamento',
+    departmentPermissionsDesc: 'Configura el acceso a diferentes departamentos',
+    actionPermissions: 'Permisos de Acciones',
+    actionPermissionsDesc: 'Controla las acciones que el usuario puede realizar',
+    operaciones: 'Operaciones',
+    gestionTecnica: 'Gestión Técnica',
+    gestionTalento: 'Gestión de Talento',
+    saveChanges: 'Guardar Cambios',
     
     // Common
     back: 'Volver',
@@ -157,6 +182,9 @@ export const translations = {
     welcomeMessage: 'Welcome to GEESTOR',
     welcomeSubtitle: 'Your comprehensive business management platform',
     selectSection: 'Select a section from the sidebar to get started',
+    welcome: 'Welcome',
+    loginSubtitle: 'Sign in to continue',
+    loginButton: 'Sign in with Microsoft',
     
     // Main content
     mainContent: 'Main Content',
@@ -169,6 +197,8 @@ export const translations = {
     theme: 'Theme',
     lightTheme: 'Light',
     darkTheme: 'Dark',
+    light: 'Light',
+    dark: 'Dark',
     save: 'Save',
     cancel: 'Cancel',
     
@@ -206,7 +236,13 @@ export const translations = {
     
     // Employee Agreements
     employeeAgreements: 'Employee Agreements',
+    employeeAgreementsManagement: 'Employee Agreements Management',
+    employeeAgreementDetails: 'Employee Agreement Details',
     createAgreement: 'Create Agreement',
+    employee: 'Employee',
+    workCenter: 'Work Center',
+    agreementConcept: 'Agreement Concept',
+    agreementDetail: 'Agreement Detail',
     
     // Real Estate
     realEstate: 'Real Estate Management',
@@ -233,6 +269,19 @@ export const translations = {
     
     // Data
     noDataAvailable: 'No data available',
+    
+    // User Profile
+    userProfile: 'User Profile',
+    personalInformation: 'Personal Information',
+    changePhoto: 'Change Photo',
+    departmentPermissions: 'Department Permissions',
+    departmentPermissionsDesc: 'Configure access to different departments',
+    actionPermissions: 'Action Permissions',
+    actionPermissionsDesc: 'Control what actions the user can perform',
+    operaciones: 'Operations',
+    gestionTecnica: 'Technical Management',
+    gestionTalento: 'Talent Management',
+    saveChanges: 'Save Changes',
     
     // Common
     back: 'Back',
