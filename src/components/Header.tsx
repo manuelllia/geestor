@@ -2,19 +2,44 @@
 import React from 'react';
 import { User, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Language } from '../utils/translations';
+import { Language, Theme } from '../utils/translations';
 import { useTranslation } from '../hooks/useTranslation';
 import { SidebarTrigger } from '@/components/ui/sidebar';
+import { User as UserType } from '../types/auth';
 
 interface HeaderProps {
+  user: UserType;
+  onLogout: () => void;
   language: Language;
-  isDarkMode: boolean;
-  onSettingsClick: () => void;
-  onUserProfileClick: () => void;
+  theme: Theme;
+  onLanguageChange: (language: Language) => void;
+  onThemeChange: (theme: Theme) => void;
+  onUserUpdate: (updatedUser: UserType) => void;
+  onPermissionsUpdate: () => void;
 }
 
-export function Header({ language, isDarkMode, onSettingsClick, onUserProfileClick }: HeaderProps) {
+export function Header({ 
+  user, 
+  onLogout, 
+  language, 
+  theme, 
+  onLanguageChange, 
+  onThemeChange, 
+  onUserUpdate, 
+  onPermissionsUpdate 
+}: HeaderProps) {
   const { t } = useTranslation(language);
+  const isDarkMode = theme === 'dark';
+
+  const handleSettingsClick = () => {
+    // This will be handled by the settings modal logic
+    console.log('Settings clicked');
+  };
+
+  const handleUserProfileClick = () => {
+    // This will be handled by the user profile modal logic
+    console.log('User profile clicked');
+  };
 
   return (
     <header className="bg-white dark:bg-gray-900 border-b border-blue-200 dark:border-blue-800 px-4 py-3 flex items-center justify-between h-16">
@@ -26,7 +51,7 @@ export function Header({ language, isDarkMode, onSettingsClick, onUserProfileCli
         <Button 
           variant="ghost" 
           size="sm"
-          onClick={onUserProfileClick}
+          onClick={handleUserProfileClick}
           className="text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20"
         >
           <User className="h-4 w-4 mr-2" />
@@ -35,7 +60,7 @@ export function Header({ language, isDarkMode, onSettingsClick, onUserProfileCli
         <Button 
           variant="ghost" 
           size="sm"
-          onClick={onSettingsClick}
+          onClick={handleSettingsClick}
           className="text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20"
         >
           <Settings className="h-4 w-4 mr-2" />
