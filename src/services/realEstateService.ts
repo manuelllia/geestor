@@ -1,5 +1,5 @@
 
-import { collection, doc, getDoc, setDoc, addDoc, Timestamp } from "firebase/firestore";
+import { collection, doc, getDoc, setDoc, addDoc, getDocs, Timestamp } from "firebase/firestore";
 import { db } from "../lib/firebase";
 
 export interface PropertyData {
@@ -9,6 +9,24 @@ export interface PropertyData {
 export interface SheetSelection {
   sheetName: string;
   selected: boolean;
+}
+
+export interface PropertyCounts {
+  active: number;
+  inactive: number;
+  total: number;
+}
+
+export interface AnnualCostData {
+  totalCost: number;
+  byProvince: { [province: string]: number };
+}
+
+export interface ProvinceActivityData {
+  [province: string]: {
+    count: number;
+    percentage: number;
+  };
 }
 
 export const checkRealEstateDocument = async (): Promise<boolean> => {
@@ -42,11 +60,9 @@ export const insertPropertyData = async (
   sheetName: string
 ): Promise<void> => {
   try {
-    // Crear subcolección basada en el nombre de la hoja
     const subcollectionRef = collection(db, "Gestión de Talento", "Gestión Inmuebles", sheetName);
     
     const insertPromises = data.map(async (row) => {
-      // Limpiar datos nulos o undefined
       const cleanedRow = Object.fromEntries(
         Object.entries(row).filter(([key, value]) => value != null && value !== '')
       );
@@ -69,13 +85,131 @@ export const insertPropertyData = async (
   }
 };
 
-export const getPropertyCounts = async (): Promise<{ active: number; inactive: number }> => {
+export const getPropertyCounts = async (): Promise<PropertyCounts> => {
   try {
-    // Esta función se implementará cuando tengamos datos reales
-    // Por ahora devolvemos 0 para mostrar "DATA NOT FOUND"
-    return { active: 0, inactive: 0 };
+    // Obtener pisos activos
+    const activePisosRef = collection(db, "Gestión de Talento", "Gestión Inmuebles", "PISOS ACTIVOS");
+    const activePisosSnapshot = await getDocs(activePisosRef);
+    const activeCount = activePisosSnapshot.size;
+
+    // Obtener pisos de baja
+    const bajaPisosRef = collection(db, "Gestión de Talento", "Gestión Inmuebles", "BAJA PISOS");
+    const bajaPisosSnapshot = await getDocs(bajaPisosRef);
+    const inactiveCount = bajaPisosSnapshot.size;
+
+    const totalCount = activeCount + inactiveCount;
+
+    console.log(`Conteos de propiedades: Activos: ${activeCount}, Inactivos: ${inactiveCount}, Total: ${totalCount}`);
+    
+    return { 
+      active: activeCount, 
+      inactive: inactiveCount, 
+      total: totalCount 
+    };
   } catch (error) {
     console.error('Error al obtener conteos de propiedades:', error);
-    return { active: 0, inactive: 0 };
+    return { active: 0, inactive: 0, total: 0 };
+  }
+};
+
+export const getAnnualCostData = async (): Promise<AnnualCostData> => {
+  try {
+    const activePisosRef = collection(db, "Gestión de Talento", "Gestión Inmuebles", "PISOS ACTIVOS");
+    const activePisosSnapshot = await getDocs(activePisosRef);
+    
+    let totalCost = 0;
+    const byProvince: { [province: string]: number } = {};
+
+    activePisosSnapshot.forEach((doc) => {
+      const data = doc.data();
+      
+      // Buscar el campo de coste anual (puede tener diferentes nombres)
+      const costFields = ['COSTE ANUAL', 'Coste Anual', 'coste_anual', 'COSTE_ANUAL', 'coste anual'];
+      let annualCost = 0;
+      
+      for (const field of costFields) {
+        if (data[field] !== undefined && data[field] !== null && data[field] !== '') {
+          const cost = parseFloat(String(data[field]).replace(/[^\d.-]/g, ''));
+          if (!isNaN(cost)) {
+            annualCost = cost;
+            break;
+          }
+        }
+      }
+
+      if (annualCost > 0) {
+        totalCost += annualCost;
+        
+        // Buscar el campo de provincia
+        const provinceFields = ['PROVINCIA', 'Provincia', 'provincia', 'PROV'];
+        let province = 'Sin especificar';
+        
+        for (const field of provinceFields) {
+          if (data[field] && String(data[field]).trim() !== '') {
+            province = String(data[field]).trim();
+            break;
+          }
+        }
+
+        if (!byProvince[province]) {
+          byProvince[province] = 0;
+        }
+        byProvince[province] += annualCost;
+      }
+    });
+
+    console.log(`Datos de coste anual: Total: ${totalCost}, Por provincia:`, byProvince);
+    
+    return { totalCost, byProvince };
+  } catch (error) {
+    console.error('Error al obtener datos de coste anual:', error);
+    return { totalCost: 0, byProvince: {} };
+  }
+};
+
+export const getProvinceActivityData = async (): Promise<ProvinceActivityData> => {
+  try {
+    const activePisosRef = collection(db, "Gestión de Talento", "Gestión Inmuebles", "PISOS ACTIVOS");
+    const activePisosSnapshot = await getDocs(activePisosRef);
+    
+    const provinceCount: { [province: string]: number } = {};
+    let totalProperties = 0;
+
+    activePisosSnapshot.forEach((doc) => {
+      const data = doc.data();
+      
+      // Buscar el campo de provincia
+      const provinceFields = ['PROVINCIA', 'Provincia', 'provincia', 'PROV'];
+      let province = 'Sin especificar';
+      
+      for (const field of provinceFields) {
+        if (data[field] && String(data[field]).trim() !== '') {
+          province = String(data[field]).trim();
+          break;
+        }
+      }
+
+      if (!provinceCount[province]) {
+        provinceCount[province] = 0;
+      }
+      provinceCount[province]++;
+      totalProperties++;
+    });
+
+    // Calcular porcentajes
+    const activityData: ProvinceActivityData = {};
+    Object.keys(provinceCount).forEach(province => {
+      activityData[province] = {
+        count: provinceCount[province],
+        percentage: totalProperties > 0 ? (provinceCount[province] / totalProperties) * 100 : 0
+      };
+    });
+
+    console.log(`Datos de actividad por provincia:`, activityData);
+    
+    return activityData;
+  } catch (error) {
+    console.error('Error al obtener datos de actividad por provincia:', error);
+    return {};
   }
 };

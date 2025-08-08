@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -15,6 +15,14 @@ import {
 import { useTranslation } from '../../hooks/useTranslation';
 import { Language } from '../../utils/translations';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { 
+  getPropertyCounts, 
+  getAnnualCostData, 
+  getProvinceActivityData,
+  PropertyCounts,
+  AnnualCostData,
+  ProvinceActivityData 
+} from '../../services/realEstateService';
 
 interface RealEstateDashboardProps {
   language: Language;
@@ -27,20 +35,65 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({
 }) => {
   const { t } = useTranslation(language);
   const [chartView, setChartView] = useState<'total' | 'autonomous'>('total');
+  const [loading, setLoading] = useState(true);
+  const [propertyCounts, setPropertyCounts] = useState<PropertyCounts>({ active: 0, inactive: 0, total: 0 });
+  const [annualCostData, setAnnualCostData] = useState<AnnualCostData>({ totalCost: 0, byProvince: {} });
+  const [provinceActivity, setProvinceActivity] = useState<ProvinceActivityData>({});
 
-  // Datos vacíos para mostrar "DATA NOT FOUND"
-  const activePisos = 0;
-  const bajaPisos = 0;
-  const hasData = false;
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true);
+      try {
+        const [counts, costData, activityData] = await Promise.all([
+          getPropertyCounts(),
+          getAnnualCostData(),
+          getProvinceActivityData()
+        ]);
+
+        setPropertyCounts(counts);
+        setAnnualCostData(costData);
+        setProvinceActivity(activityData);
+      } catch (error) {
+        console.error('Error al cargar datos del dashboard:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
 
   const handleExport = () => {
     console.log('Exportando datos...');
     // Implementación futura para exportar datos
   };
 
-  const chartData = hasData ? [] : [
-    { name: 'Datos', value: 0 }
-  ];
+  const hasData = propertyCounts.total > 0;
+
+  // Preparar datos para la gráfica
+  const chartData = React.useMemo(() => {
+    if (!hasData) return [];
+
+    if (chartView === 'total') {
+      return [{
+        name: 'Coste Total',
+        value: annualCostData.totalCost
+      }];
+    } else {
+      return Object.entries(annualCostData.byProvince).map(([province, cost]) => ({
+        name: province,
+        value: cost
+      }));
+    }
+  }, [chartView, annualCostData, hasData]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -85,7 +138,7 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-900 dark:text-blue-100">
-              {hasData ? activePisos : 'DATA NOT FOUND'}
+              {hasData ? propertyCounts.active.toLocaleString() : 'DATA NOT FOUND'}
             </div>
             <p className="text-xs text-gray-600 dark:text-gray-400">
               Propiedades en uso
@@ -102,7 +155,7 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-900 dark:text-blue-100">
-              {hasData ? bajaPisos : 'DATA NOT FOUND'}
+              {hasData ? propertyCounts.inactive.toLocaleString() : 'DATA NOT FOUND'}
             </div>
             <p className="text-xs text-gray-600 dark:text-gray-400">
               Propiedades desactivadas
@@ -119,7 +172,7 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-900 dark:text-blue-100">
-              {hasData ? (activePisos + bajaPisos) : 'DATA NOT FOUND'}
+              {hasData ? propertyCounts.total.toLocaleString() : 'DATA NOT FOUND'}
             </div>
             <p className="text-xs text-gray-600 dark:text-gray-400">
               Inventario completo
@@ -136,6 +189,11 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({
             <div className="flex justify-between items-center">
               <CardTitle className="text-blue-800 dark:text-blue-200">
                 Costes Anuales
+                {hasData && (
+                  <span className="text-sm font-normal text-gray-600 dark:text-gray-400 ml-2">
+                    (€{annualCostData.totalCost.toLocaleString()})
+                  </span>
+                )}
               </CardTitle>
               <Select value={chartView} onValueChange={(value: 'total' | 'autonomous') => setChartView(value)}>
                 <SelectTrigger className="w-48">
@@ -143,7 +201,7 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="total">Total General</SelectItem>
-                  <SelectItem value="autonomous">Por Comunidades</SelectItem>
+                  <SelectItem value="autonomous">Por Provincias</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -155,7 +213,9 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
                   <YAxis />
-                  <Tooltip />
+                  <Tooltip 
+                    formatter={(value) => [`€${Number(value).toLocaleString()}`, 'Coste']}
+                  />
                   <Bar dataKey="value" fill="#3B82F6" />
                 </BarChart>
               </ResponsiveContainer>
@@ -177,13 +237,44 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({
             <CardTitle className="text-blue-800 dark:text-blue-200 flex items-center gap-2">
               <MapPin className="w-5 h-5" />
               Mapa de Actividad
+              {hasData && (
+                <span className="text-sm font-normal text-gray-600 dark:text-gray-400">
+                  ({Object.keys(provinceActivity).length} provincias)
+                </span>
+              )}
             </CardTitle>
           </CardHeader>
           <CardContent>
             {hasData ? (
-              <div className="h-[300px] bg-blue-50 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
-                {/* Aquí iría el mapa de España con los círculos de actividad */}
-                <p className="text-blue-600 dark:text-blue-400">Mapa de España con actividad</p>
+              <div className="h-[300px] bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 overflow-y-auto">
+                <div className="space-y-2">
+                  {Object.entries(provinceActivity)
+                    .sort(([,a], [,b]) => b.count - a.count)
+                    .map(([province, data]) => (
+                      <div key={province} className="flex items-center justify-between p-2 bg-white dark:bg-blue-800/50 rounded border border-blue-100 dark:border-blue-700">
+                        <div className="flex items-center gap-2">
+                          <div 
+                            className="w-3 h-3 rounded-full bg-blue-500"
+                            style={{ 
+                              transform: `scale(${Math.max(0.5, data.percentage / 50)})`,
+                              opacity: Math.max(0.6, data.percentage / 100)
+                            }}
+                          />
+                          <span className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                            {province}
+                          </span>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-sm font-bold text-blue-700 dark:text-blue-300">
+                            {data.count} propiedades
+                          </div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400">
+                            {data.percentage.toFixed(1)}%
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                </div>
               </div>
             ) : (
               <div className="h-[300px] flex items-center justify-center bg-gray-50 dark:bg-gray-800 rounded-lg">
