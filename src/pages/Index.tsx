@@ -5,7 +5,7 @@ import { useAuth } from '../hooks/useAuth';
 import { usePreferences } from '../hooks/usePreferences';
 import LoginScreen from '../components/LoginScreen';
 import VerificationScreen from '../components/VerificationScreen';
-import Header from '../components/Header';
+import { Header } from '../components/Header';
 import { AppSidebar } from '../components/AppSidebar';
 import MainContent from '../components/MainContent';
 
