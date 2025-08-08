@@ -92,26 +92,24 @@ export const getPropertyCounts = async (): Promise<PropertyCounts> => {
     const activePisosSnapshot = await getDocs(activePisosRef);
     const activeCount = activePisosSnapshot.size;
 
-    // Calcular total de habitaciones
+    // Calcular total de habitaciones usando el campo HABIT
     let totalRooms = 0;
     activePisosSnapshot.forEach((doc) => {
       const data = doc.data();
       
-      // Buscar campos de habitaciones (puede tener diferentes nombres)
-      const roomFields = ['HABITACIONES', 'Habitaciones', 'habitaciones', 'ROOMS', 'Nº HABITACIONES'];
-      let rooms = 0;
-      
-      for (const field of roomFields) {
-        if (data[field] !== undefined && data[field] !== null && data[field] !== '') {
-          const roomCount = parseInt(String(data[field]));
+      // Buscar específicamente el campo HABIT
+      if (data['HABIT'] !== undefined && data['HABIT'] !== null && data['HABIT'] !== '') {
+        const habitValue = String(data['HABIT']).trim();
+        
+        // Extraer solo el número antes del "+" si existe
+        const roomMatch = habitValue.match(/^(\d+)/);
+        if (roomMatch) {
+          const roomCount = parseInt(roomMatch[1]);
           if (!isNaN(roomCount) && roomCount > 0) {
-            rooms = roomCount;
-            break;
+            totalRooms += roomCount;
           }
         }
       }
-      
-      totalRooms += rooms;
     });
 
     // Obtener pisos de baja

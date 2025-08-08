@@ -25,6 +25,7 @@ import {
   AnnualCostData,
   ProvinceActivityData 
 } from '../../services/realEstateService';
+import { useExportToPDF } from '../../hooks/useExportToPDF';
 
 interface RealEstateDashboardProps {
   language: Language;
@@ -38,6 +39,7 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({
   onViewTables 
 }) => {
   const { t } = useTranslation(language);
+  const { exportDashboardToPDF } = useExportToPDF();
   const [chartView, setChartView] = useState<'total' | 'autonomous'>('total');
   const [loading, setLoading] = useState(true);
   const [propertyCounts, setPropertyCounts] = useState<PropertyCounts>({ active: 0, inactive: 0, total: 0, totalRooms: 0 });
@@ -68,8 +70,8 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({
   }, []);
 
   const handleExport = () => {
-    console.log('Exportando datos...');
-    // Implementación futura para exportar datos
+    console.log('Exportando dashboard a PDF...');
+    exportDashboardToPDF();
   };
 
   const hasData = propertyCounts.total > 0;
@@ -100,7 +102,7 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-dashboard="real-estate">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
