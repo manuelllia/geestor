@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -71,7 +70,11 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({
 
   const handleExport = () => {
     console.log('Exportando dashboard a PDF...');
-    exportDashboardToPDF();
+    exportDashboardToPDF({
+      propertyCounts,
+      annualCostData,
+      provinceActivity
+    });
   };
 
   const hasData = propertyCounts.total > 0;
