@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import { Language } from '../utils/translations';
 import ChangeSheetsListView from './ChangeSheets/ChangeSheetsListView';
@@ -8,7 +8,9 @@ import EmployeeAgreementsListView from './EmployeeAgreements/EmployeeAgreementsL
 import EmployeeAgreementDetailView from './EmployeeAgreements/EmployeeAgreementDetailView';
 import RealEstateListView from './RealEstate/RealEstateListView';
 import RealEstateDetailView from './RealEstate/RealEstateDetailView';
+import RealEstateUploadView from './RealEstate/RealEstateUploadView';
 import BidAnalyzerView from './BidAnalyzer/BidAnalyzerView';
+import { checkPisosDocument } from '../services/realEstateService';
 
 interface MainContentProps {
   activeSection: string;
@@ -17,8 +19,9 @@ interface MainContentProps {
 
 const MainContent: React.FC<MainContentProps> = ({ activeSection, language }) => {
   const { t } = useTranslation(language);
-  const [currentView, setCurrentView] = useState<'list' | 'detail'>('list');
+  const [currentView, setCurrentView] = useState<'list' | 'detail' | 'upload'>('list');
   const [selectedId, setSelectedId] = useState<string>('');
+  const [pisosDocumentExists, setPisosDocumentExists] = useState<boolean | null>(null);
 
   const handleViewDetails = (id: string) => {
     setSelectedId(id);
@@ -29,6 +32,29 @@ const MainContent: React.FC<MainContentProps> = ({ activeSection, language }) =>
     setCurrentView('list');
     setSelectedId('');
   };
+
+  // Verificar si existe el documento pisos cuando se selecciona gestión de inmuebles
+  useEffect(() => {
+    if (activeSection === 'gestion-inmuebles') {
+      const checkDocument = async () => {
+        try {
+          const exists = await checkPisosDocument();
+          setPisosDocumentExists(exists);
+          if (!exists) {
+            setCurrentView('upload');
+          }
+        } catch (error) {
+          console.error('Error checking pisos document:', error);
+          setPisosDocumentExists(false);
+          setCurrentView('upload');
+        }
+      };
+      checkDocument();
+    } else {
+      setPisosDocumentExists(null);
+      setCurrentView('list');
+    }
+  }, [activeSection]);
 
   const renderContent = () => {
     switch (activeSection) {
@@ -87,6 +113,18 @@ const MainContent: React.FC<MainContentProps> = ({ activeSection, language }) =>
         );
 
       case 'gestion-inmuebles':
+        if (pisosDocumentExists === null) {
+          return (
+            <div className="flex items-center justify-center h-64">
+              <div className="w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
+            </div>
+          );
+        }
+
+        if (!pisosDocumentExists || currentView === 'upload') {
+          return <RealEstateUploadView language={language} />;
+        }
+
         if (currentView === 'detail') {
           return (
             <RealEstateDetailView
