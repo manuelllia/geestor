@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { User, Settings } from 'lucide-react';
+import { User, Settings, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Language, Theme } from '../utils/translations';
 import { useTranslation } from '../hooks/useTranslation';
@@ -44,7 +44,9 @@ export function Header({
   return (
     <header className="bg-white dark:bg-gray-900 border-b border-blue-200 dark:border-blue-800 px-4 py-3 flex items-center justify-between h-16">
       <div className="flex items-center space-x-4">
-        <SidebarTrigger className="h-8 w-8" />
+        <SidebarTrigger className="h-8 w-8">
+          <Menu className="h-4 w-4" />
+        </SidebarTrigger>
       </div>
       
       <div className="flex items-center space-x-2">

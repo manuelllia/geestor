@@ -126,16 +126,12 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
   return (
     <Sidebar className="border-r border-blue-200 dark:border-blue-800 bg-white dark:bg-gray-900">
       <SidebarHeader className="border-b border-blue-200 dark:border-blue-800 p-4 h-16">
-        <div className="flex items-center space-x-3 h-full">
-          <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center shadow-lg">
-            <span className="text-white font-bold text-lg">G</span>
-          </div>
-          <div className="group-data-[collapsible=icon]:hidden">
-            <h2 className="font-bold text-lg text-blue-900 dark:text-blue-100">GEESTOR</h2>
-            <p className="text-xs text-blue-600 dark:text-blue-300 -mt-1">
-              Gestión Empresarial Electromédico
-            </p>
-          </div>
+        <div className="flex items-center justify-center h-full">
+          <img 
+            src="/lovable-uploads/f7fd6e9d-43a7-47ba-815e-fdaa1b630f6b.png" 
+            alt="GEESTOR Logo" 
+            className="h-10 w-auto object-contain group-data-[collapsible=icon]:h-8"
+          />
         </div>
       </SidebarHeader>
 
