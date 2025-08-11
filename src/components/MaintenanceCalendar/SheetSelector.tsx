@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -28,28 +29,51 @@ const SheetSelector: React.FC<SheetSelectorProps> = ({ file, onSheetsSelected, o
   const [error, setError] = useState<string | null>(null);
 
   const detectSheetType = (sheetName: string, columns: string[]): 'inventory' | 'frec-tipo' | 'planning' | 'anexo' | 'other' => {
-    const name = sheetName.toLowerCase();
-    const columnNames = columns.map(col => col.toLowerCase());
+    const name = sheetName.toLowerCase().trim();
+    const columnNames = columns.map(col => col.toLowerCase().trim());
     
     // Detectar hoja de inventario
-    if (columnNames.some(col => col.includes('denominación homogénea') || col.includes('denominacion homogenea')) &&
-        columnNames.some(col => col.includes('serie') || col.includes('modelo'))) {
+    if (columnNames.some(col => 
+        col.includes('denominación homogénea') || 
+        col.includes('denominacion homogenea') ||
+        col.includes('denominacion_homogenea')
+      ) && 
+      (columnNames.some(col => col.includes('serie') || col.includes('modelo') || col.includes('ubicación') || col.includes('ubicacion')))) {
       return 'inventory';
     }
     
-    // Detectar FREC Y TIPO
-    if (name.includes('frec') && name.includes('tipo')) {
+    // Detectar FREC Y TIPO - mejorado
+    if ((name.includes('frec') && name.includes('tipo')) || 
+        name === 'frec y tipo' ||
+        name === 'frecuencia y tipo' ||
+        name.includes('frecuencia') ||
+        (columnNames.some(col => col.includes('frecuencia')) && columnNames.some(col => col.includes('tipo')))) {
       return 'frec-tipo';
     }
     
-    // Detectar PLANNING
-    if (name.includes('planning') || name.includes('planificacion')) {
+    // Detectar PLANNING - mejorado  
+    if (name.includes('planning') || 
+        name.includes('planificacion') ||
+        name === 'planning' ||
+        name.includes('plan') ||
+        columnNames.some(col => col.includes('fecha') && col.includes('mantenimiento'))) {
       return 'planning';
     }
     
-    // Detectar ANEXO
-    if (name.includes('anexo')) {
+    // Detectar ANEXO - mejorado
+    if (name.includes('anexo') || 
+        name === 'anexo' ||
+        name.includes('annex') ||
+        columnNames.some(col => col.includes('anexo'))) {
       return 'anexo';
+    }
+    
+    // Detectar hojas de ubicaciones para excluirlas
+    if (name.includes('ubicacion') || 
+        name.includes('ubicación') || 
+        name.includes('location') ||
+        columnNames.every(col => col.includes('ubicacion') || col.includes('ubicación') || col.includes('location'))) {
+      return 'other';
     }
     
     return 'other';
@@ -81,9 +105,15 @@ const SheetSelector: React.FC<SheetSelectorProps> = ({ file, onSheetsSelected, o
           const worksheet = workbook.Sheets[sheetName];
           const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
           const headers = jsonData[0] as string[] || [];
-          const dataRows = jsonData.slice(1);
+          const dataRows = jsonData.slice(1).filter(row => row && row.length > 0); // Filtrar filas vacías
           const preview = dataRows.slice(0, 3);
           const sheetType = detectSheetType(sheetName, headers);
+          
+          console.log(`Detectando hoja: ${sheetName}`, {
+            columns: headers.slice(0, 5), // Solo primeras 5 para debug
+            detectedType: sheetType,
+            rowCount: dataRows.length
+          });
           
           return {
             name: sheetName,
@@ -95,6 +125,7 @@ const SheetSelector: React.FC<SheetSelectorProps> = ({ file, onSheetsSelected, o
           };
         });
         
+        console.log('Hojas detectadas:', sheetInfos.map(s => ({ name: s.name, type: s.sheetType, selected: s.selected })));
         setSheets(sheetInfos);
       } catch (err) {
         setError('Error al analizar el archivo Excel');
