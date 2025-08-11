@@ -51,7 +51,7 @@ const FileUploadBox: React.FC<FileUploadBoxProps> = ({
     }
   };
 
-  const truncateFileName = (fileName: string, maxLength: number = 30) => {
+  const truncateFileName = (fileName: string, maxLength: number = 25) => {
     if (fileName.length <= maxLength) return fileName;
     const extension = fileName.split('.').pop();
     const nameWithoutExt = fileName.substring(0, fileName.lastIndexOf('.'));
@@ -115,7 +115,13 @@ const FileUploadBox: React.FC<FileUploadBoxProps> = ({
                   const input = document.createElement('input');
                   input.type = 'file';
                   input.accept = accept;
-                  input.onchange = handleFileSelect;
+                  input.addEventListener('change', (e) => {
+                    const target = e.target as HTMLInputElement;
+                    const selectedFile = target.files?.[0];
+                    if (selectedFile) {
+                      onFileUpload(selectedFile);
+                    }
+                  });
                   input.click();
                 }
               }}

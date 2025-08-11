@@ -109,10 +109,13 @@ const BidAnalyzerView: React.FC<BidAnalyzerViewProps> = ({ language }) => {
                 </CardHeader>
                 <CardContent>
                   <FileUploadBox
+                    title="Pliego de Cláusulas Administrativas Particulares"
+                    description="Sube el archivo PCAP en formato PDF"
+                    file={pcapFile}
                     onFileUpload={handlePcapUpload}
-                    uploadedFile={pcapFile}
-                    fileType="PCAP"
-                    acceptedFormats=".pdf"
+                    onFileRemove={() => setPcapFile(null)}
+                    accept=".pdf"
+                    isLoading={isAnalyzing}
                   />
                 </CardContent>
               </Card>
@@ -125,10 +128,13 @@ const BidAnalyzerView: React.FC<BidAnalyzerViewProps> = ({ language }) => {
                 </CardHeader>
                 <CardContent>
                   <FileUploadBox
+                    title="Pliego de Prescripciones Técnicas"
+                    description="Sube el archivo PPT en formato PDF"
+                    file={pptFile}
                     onFileUpload={handlePptUpload}
-                    uploadedFile={pptFile}
-                    fileType="PPT"
-                    acceptedFormats=".pdf"
+                    onFileRemove={() => setPptFile(null)}
+                    accept=".pdf"
+                    isLoading={isAnalyzing}
                   />
                 </CardContent>
               </Card>
