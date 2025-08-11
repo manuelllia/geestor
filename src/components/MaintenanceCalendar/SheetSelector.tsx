@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,6 +12,7 @@ interface SheetInfo {
   rowCount: number;
   columns: string[];
   preview: any[];
+  sheetType?: 'inventory' | 'frec-tipo' | 'planning' | 'anexo' | 'other';
 }
 
 interface SheetSelectorProps {
@@ -26,6 +26,49 @@ const SheetSelector: React.FC<SheetSelectorProps> = ({ file, onSheetsSelected, o
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const detectSheetType = (sheetName: string, columns: string[]): 'inventory' | 'frec-tipo' | 'planning' | 'anexo' | 'other' => {
+    const name = sheetName.toLowerCase();
+    const columnNames = columns.map(col => col.toLowerCase());
+    
+    // Detectar hoja de inventario
+    if (columnNames.some(col => col.includes('denominación homogénea') || col.includes('denominacion homogenea')) &&
+        columnNames.some(col => col.includes('serie') || col.includes('modelo'))) {
+      return 'inventory';
+    }
+    
+    // Detectar FREC Y TIPO
+    if (name.includes('frec') && name.includes('tipo')) {
+      return 'frec-tipo';
+    }
+    
+    // Detectar PLANNING
+    if (name.includes('planning') || name.includes('planificacion')) {
+      return 'planning';
+    }
+    
+    // Detectar ANEXO
+    if (name.includes('anexo')) {
+      return 'anexo';
+    }
+    
+    return 'other';
+  };
+
+  const getSheetTypeLabel = (sheetType: string) => {
+    switch (sheetType) {
+      case 'inventory':
+        return { label: 'Inventario', color: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300' };
+      case 'frec-tipo':
+        return { label: 'Frecuencia y Tipo', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300' };
+      case 'planning':
+        return { label: 'Planificación', color: 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-300' };
+      case 'anexo':
+        return { label: 'Anexo', color: 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-300' };
+      default:
+        return { label: 'Otra', color: 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-300' };
+    }
+  };
+
   React.useEffect(() => {
     const analyzeFile = async () => {
       try {
@@ -38,14 +81,16 @@ const SheetSelector: React.FC<SheetSelectorProps> = ({ file, onSheetsSelected, o
           const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
           const headers = jsonData[0] as string[] || [];
           const dataRows = jsonData.slice(1);
-          const preview = dataRows.slice(0, 3); // Primeras 3 filas como preview
+          const preview = dataRows.slice(0, 3);
+          const sheetType = detectSheetType(sheetName, headers);
           
           return {
             name: sheetName,
-            selected: true, // Por defecto todas seleccionadas
+            selected: sheetType !== 'other', // Auto-seleccionar hojas relevantes
             rowCount: dataRows.length,
             columns: headers,
-            preview
+            preview,
+            sheetType
           };
         });
         
@@ -136,50 +181,56 @@ const SheetSelector: React.FC<SheetSelectorProps> = ({ file, onSheetsSelected, o
           </div>
 
           <div className="grid gap-4">
-            {sheets.map((sheet) => (
-              <Card key={sheet.name} className={`transition-all ${sheet.selected ? 'ring-2 ring-blue-500 bg-blue-50/50 dark:bg-blue-900/20' : ''}`}>
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-3">
-                    <Checkbox
-                      checked={sheet.selected}
-                      onCheckedChange={() => toggleSheet(sheet.name)}
-                      className="mt-1"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-2">
-                        <h3 className="font-medium text-gray-900 dark:text-gray-100 truncate">
-                          {sheet.name}
-                        </h3>
-                        <span className="text-xs bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 px-2 py-1 rounded-full">
-                          {sheet.rowCount} filas
-                        </span>
-                      </div>
-                      
-                      {sheet.columns.length > 0 && (
-                        <div className="space-y-2">
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
-                            Columnas: {sheet.columns.join(', ')}
-                          </p>
-                          
-                          {sheet.preview.length > 0 && (
-                            <div className="text-xs">
-                              <p className="text-gray-500 dark:text-gray-400 mb-1">Vista previa:</p>
-                              <div className="bg-gray-50 dark:bg-gray-800 p-2 rounded text-gray-600 dark:text-gray-300 max-h-20 overflow-hidden">
-                                {sheet.preview.slice(0, 2).map((row: any[], idx) => (
-                                  <div key={idx} className="truncate">
-                                    {Array.isArray(row) ? row.join(' | ') : JSON.stringify(row)}
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
+            {sheets.map((sheet) => {
+              const typeInfo = getSheetTypeLabel(sheet.sheetType || 'other');
+              return (
+                <Card key={sheet.name} className={`transition-all ${sheet.selected ? 'ring-2 ring-blue-500 bg-blue-50/50 dark:bg-blue-900/20' : ''}`}>
+                  <CardContent className="p-4">
+                    <div className="flex items-start gap-3">
+                      <Checkbox
+                        checked={sheet.selected}
+                        onCheckedChange={() => toggleSheet(sheet.name)}
+                        className="mt-1"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-2">
+                          <h3 className="font-medium text-gray-900 dark:text-gray-100 truncate">
+                            {sheet.name}
+                          </h3>
+                          <Badge className={typeInfo.color}>
+                            {typeInfo.label}
+                          </Badge>
+                          <span className="text-xs bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 px-2 py-1 rounded-full">
+                            {sheet.rowCount} filas
+                          </span>
                         </div>
-                      )}
+                        
+                        {sheet.columns.length > 0 && (
+                          <div className="space-y-2">
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                              Columnas: {sheet.columns.join(', ')}
+                            </p>
+                            
+                            {sheet.preview.length > 0 && (
+                              <div className="text-xs">
+                                <p className="text-gray-500 dark:text-gray-400 mb-1">Vista previa:</p>
+                                <div className="bg-gray-50 dark:bg-gray-800 p-2 rounded text-gray-600 dark:text-gray-300 max-h-20 overflow-hidden">
+                                  {sheet.preview.slice(0, 2).map((row: any[], idx) => (
+                                    <div key={idx} className="truncate">
+                                      {Array.isArray(row) ? row.join(' | ') : JSON.stringify(row)}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
 
           <div className="flex items-center justify-between pt-4 border-t">

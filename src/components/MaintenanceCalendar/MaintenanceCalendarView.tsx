@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
@@ -11,6 +10,7 @@ import MaintenanceInventoryTable from './MaintenanceInventoryTable';
 import MaintenanceCalendarGrid from './MaintenanceCalendarGrid';
 import SheetSelector from './SheetSelector';
 import DataSummary from './DataSummary';
+import DenominacionAnalysis from './DenominacionAnalysis';
 
 interface MaintenanceCalendarViewProps {
   language: Language;
@@ -26,6 +26,7 @@ const MaintenanceCalendarView: React.FC<MaintenanceCalendarViewProps> = ({ langu
   const {
     inventory,
     maintenanceCalendar,
+    denominacionesData,
     processInventoryFile,
     processMaintenanceFile,
     isLoading,
@@ -128,7 +129,7 @@ const MaintenanceCalendarView: React.FC<MaintenanceCalendarViewProps> = ({ langu
             <CardContent className="flex items-center justify-center py-12">
               <div className="flex flex-col items-center space-y-4">
                 <div className="w-12 h-12 border-4 border-purple-500/20 border-t-purple-500 rounded-full animate-spin" />
-                <p className="text-lg font-medium">Generando calendario con IA...</p>
+                <p className="text-lg font-medium">Analizando denominaciones homogéneas...</p>
                 <p className="text-gray-600 dark:text-gray-300">Esto puede tomar unos momentos</p>
               </div>
             </CardContent>
@@ -137,21 +138,27 @@ const MaintenanceCalendarView: React.FC<MaintenanceCalendarViewProps> = ({ langu
 
       case 'complete':
         return (
-          <Card className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700">
-            <CardContent className="pt-6">
-              <div className="text-center">
-                <div className="text-green-600 dark:text-green-400 text-lg font-medium mb-2">
-                  ¡Calendario generado exitosamente!
+          <div className="space-y-6">
+            {denominacionesData.length > 0 && (
+              <DenominacionAnalysis denominaciones={denominacionesData} />
+            )}
+            
+            <Card className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700">
+              <CardContent className="pt-6">
+                <div className="text-center">
+                  <div className="text-green-600 dark:text-green-400 text-lg font-medium mb-2">
+                    ¡Análisis completado exitosamente!
+                  </div>
+                  <p className="text-green-700 dark:text-green-300 mb-4">
+                    Se han detectado {denominacionesData.length} tipos de equipos en el inventario
+                  </p>
+                  <Button onClick={handleBackToUpload} variant="outline">
+                    Importar Más Archivos
+                  </Button>
                 </div>
-                <p className="text-green-700 dark:text-green-300 mb-4">
-                  Puedes ver los resultados en las pestañas de Inventario y Calendario
-                </p>
-                <Button onClick={handleBackToUpload} variant="outline">
-                  Importar Más Archivos
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
         );
 
       default:
@@ -273,8 +280,11 @@ const MaintenanceCalendarView: React.FC<MaintenanceCalendarViewProps> = ({ langu
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="upload">📁 Subir Archivos</TabsTrigger>
+          <TabsTrigger value="analysis" disabled={denominacionesData.length === 0}>
+            📊 Análisis ({denominacionesData.length})
+          </TabsTrigger>
           <TabsTrigger value="inventory" disabled={inventory.length === 0}>
             📋 Inventario ({inventory.length})
           </TabsTrigger>
@@ -285,6 +295,10 @@ const MaintenanceCalendarView: React.FC<MaintenanceCalendarViewProps> = ({ langu
 
         <TabsContent value="upload" className="space-y-6">
           {renderUploadContent()}
+        </TabsContent>
+
+        <TabsContent value="analysis">
+          <DenominacionAnalysis denominaciones={denominacionesData} />
         </TabsContent>
 
         <TabsContent value="inventory">

@@ -13,6 +13,7 @@ interface InventoryItem {
   lastMaintenance: string;
   nextMaintenance: string;
   status: string;
+  denominacionHomogenea?: string;
 }
 
 interface MaintenanceEvent {
@@ -34,16 +35,54 @@ interface SheetInfo {
   rowCount: number;
   columns: string[];
   preview: any[];
+  sheetType?: 'inventory' | 'frec-tipo' | 'planning' | 'anexo' | 'other';
+}
+
+interface DenominacionHomogeneaData {
+  denominacion: string;
+  cantidad: number;
+  frecuencia?: string;
+  tipoMantenimiento?: string;
 }
 
 export const useMaintenanceCalendar = () => {
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [maintenanceCalendar, setMaintenanceCalendar] = useState<MaintenanceEvent[]>([]);
+  const [denominacionesData, setDenominacionesData] = useState<DenominacionHomogeneaData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentFile, setCurrentFile] = useState<File | null>(null);
   const [selectedSheets, setSelectedSheets] = useState<SheetInfo[]>([]);
   const [processingStep, setProcessingStep] = useState<'upload' | 'select-sheets' | 'summary' | 'processing' | 'complete'>('upload');
+  const [frecTipoData, setFrecTipoData] = useState<any[]>([]);
+
+  const detectSheetType = (sheetName: string, columns: string[]): 'inventory' | 'frec-tipo' | 'planning' | 'anexo' | 'other' => {
+    const name = sheetName.toLowerCase();
+    const columnNames = columns.map(col => col.toLowerCase());
+    
+    // Detectar hoja de inventario (buscar columnas típicas de inventario)
+    if (columnNames.some(col => col.includes('denominación homogénea') || col.includes('denominacion homogenea')) &&
+        columnNames.some(col => col.includes('serie') || col.includes('modelo'))) {
+      return 'inventory';
+    }
+    
+    // Detectar FREC Y TIPO
+    if (name.includes('frec') && name.includes('tipo')) {
+      return 'frec-tipo';
+    }
+    
+    // Detectar PLANNING
+    if (name.includes('planning') || name.includes('planificacion')) {
+      return 'planning';
+    }
+    
+    // Detectar ANEXO
+    if (name.includes('anexo')) {
+      return 'anexo';
+    }
+    
+    return 'other';
+  };
 
   const analyzeFileSheets = async (file: File): Promise<SheetInfo[]> => {
     const arrayBuffer = await file.arrayBuffer();
@@ -55,15 +94,86 @@ export const useMaintenanceCalendar = () => {
       const headers = jsonData[0] as string[] || [];
       const dataRows = jsonData.slice(1);
       const preview = dataRows.slice(0, 3);
+      const sheetType = detectSheetType(sheetName, headers);
       
       return {
         name: sheetName,
-        selected: true,
+        selected: sheetType !== 'other', // Auto-seleccionar hojas relevantes
         rowCount: dataRows.length,
         columns: headers,
-        preview
+        preview,
+        sheetType
       };
     });
+  };
+
+  const processInventoryData = (jsonData: any[], headers: string[]) => {
+    const denominacionIndex = headers.findIndex(h => 
+      h.toLowerCase().includes('denominación homogénea') || 
+      h.toLowerCase().includes('denominacion homogenea')
+    );
+    
+    return jsonData.slice(1).map((row: any, index: number) => ({
+      id: `inv_${index + 1}`,
+      equipment: row[0] || '',
+      model: row[1] || '',
+      serialNumber: row[2] || '',
+      location: row[3] || '',
+      department: row[4] || '',
+      acquisitionDate: row[5] || '',
+      lastMaintenance: row[6] || '',
+      nextMaintenance: row[7] || '',
+      status: row[8] || 'Activo',
+      denominacionHomogenea: denominacionIndex !== -1 ? row[denominacionIndex] : ''
+    }));
+  };
+
+  const processFrecTipoData = (jsonData: any[], headers: string[]) => {
+    const denominacionIndex = headers.findIndex(h => 
+      h.toLowerCase().includes('denominación') || 
+      h.toLowerCase().includes('denominacion')
+    );
+    const frecuenciaIndex = headers.findIndex(h => 
+      h.toLowerCase().includes('frecuencia')
+    );
+    const tipoIndex = headers.findIndex(h => 
+      h.toLowerCase().includes('tipo')
+    );
+    
+    return jsonData.slice(1).map((row: any) => ({
+      denominacion: denominacionIndex !== -1 ? row[denominacionIndex] : '',
+      frecuencia: frecuenciaIndex !== -1 ? row[frecuenciaIndex] : '',
+      tipo: tipoIndex !== -1 ? row[tipoIndex] : ''
+    })).filter(item => item.denominacion); // Filtrar filas vacías
+  };
+
+  const countDenominacionesHomogeneas = (inventoryData: InventoryItem[], frecTipoData: any[]) => {
+    const denominacionCount: { [key: string]: number } = {};
+    
+    // Contar denominaciones en el inventario
+    inventoryData.forEach(item => {
+      if (item.denominacionHomogenea && item.denominacionHomogenea.trim()) {
+        const denominacion = item.denominacionHomogenea.trim();
+        denominacionCount[denominacion] = (denominacionCount[denominacion] || 0) + 1;
+      }
+    });
+    
+    // Crear array con datos combinados
+    const result: DenominacionHomogeneaData[] = Object.entries(denominacionCount).map(([denominacion, cantidad]) => {
+      // Buscar información en FREC Y TIPO
+      const frecTipoInfo = frecTipoData.find(item => 
+        item.denominacion && item.denominacion.toLowerCase().trim() === denominacion.toLowerCase().trim()
+      );
+      
+      return {
+        denominacion,
+        cantidad,
+        frecuencia: frecTipoInfo?.frecuencia || 'No especificada',
+        tipoMantenimiento: frecTipoInfo?.tipo || 'No especificado'
+      };
+    });
+    
+    return result.sort((a, b) => a.denominacion.localeCompare(b.denominacion));
   };
 
   const processInventoryFile = async (file: File): Promise<void> => {
@@ -72,36 +182,9 @@ export const useMaintenanceCalendar = () => {
     setCurrentFile(file);
 
     try {
-      // Analizar hojas del archivo
       const sheets = await analyzeFileSheets(file);
-      
-      if (sheets.length === 1) {
-        // Si solo hay una hoja, procesar directamente
-        const data = await file.arrayBuffer();
-        const workbook = XLSX.read(data);
-        const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-
-        const processedData = jsonData.slice(1).map((row: any, index: number) => ({
-          id: `inv_${index + 1}`,
-          equipment: row[0] || '',
-          model: row[1] || '',
-          serialNumber: row[2] || '',
-          location: row[3] || '',
-          department: row[4] || '',
-          acquisitionDate: row[5] || '',
-          lastMaintenance: row[6] || '',
-          nextMaintenance: row[7] || '',
-          status: row[8] || 'Activo'
-        }));
-
-        setInventory(processedData);
-        setProcessingStep('complete');
-      } else {
-        // Si hay múltiples hojas, mostrar selector
-        setSelectedSheets(sheets);
-        setProcessingStep('select-sheets');
-      }
+      setSelectedSheets(sheets);
+      setProcessingStep('select-sheets');
     } catch (err) {
       setError('Error al procesar el archivo de inventario');
       console.error('Error processing inventory file:', err);
@@ -117,32 +200,8 @@ export const useMaintenanceCalendar = () => {
 
     try {
       const sheets = await analyzeFileSheets(file);
-      
-      if (sheets.length === 1) {
-        const data = await file.arrayBuffer();
-        const workbook = XLSX.read(data);
-        const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-
-        const processedData = jsonData.slice(1).map((row: any, index: number) => ({
-          id: `maint_${index + 1}`,
-          equipmentId: row[0] || '',
-          equipmentName: row[1] || '',
-          maintenanceType: row[2] || '',
-          scheduledDate: row[3] || '',
-          duration: row[4] || '',
-          technician: row[5] || '',
-          priority: row[6] || 'Media',
-          status: row[7] || 'Programado',
-          notes: row[8] || ''
-        }));
-
-        setMaintenanceCalendar(processedData);
-        setProcessingStep('complete');
-      } else {
-        setSelectedSheets(sheets);
-        setProcessingStep('select-sheets');
-      }
+      setSelectedSheets(sheets);
+      setProcessingStep('select-sheets');
     } catch (err) {
       setError('Error al procesar el archivo de calendario');
       console.error('Error processing maintenance file:', err);
@@ -160,50 +219,31 @@ export const useMaintenanceCalendar = () => {
     try {
       const data = await currentFile.arrayBuffer();
       const workbook = XLSX.read(data);
-      let allProcessedData: any[] = [];
-
-      // Procesar hojas seleccionadas
-      selectedSheets.filter(s => s.selected).forEach((sheet, sheetIndex) => {
-        const worksheet = workbook.Sheets[sheet.name];
-        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-        
-        const sheetData = jsonData.slice(1).map((row: any, index: number) => {
-          if (isInventory) {
-            return {
-              id: `inv_${sheetIndex}_${index + 1}`,
-              equipment: row[0] || '',
-              model: row[1] || '',
-              serialNumber: row[2] || '',
-              location: row[3] || '',
-              department: row[4] || '',
-              acquisitionDate: row[5] || '',
-              lastMaintenance: row[6] || '',
-              nextMaintenance: row[7] || '',
-              status: row[8] || 'Activo'
-            };
-          } else {
-            return {
-              id: `maint_${sheetIndex}_${index + 1}`,
-              equipmentId: row[0] || '',
-              equipmentName: row[1] || '',
-              maintenanceType: row[2] || '',
-              scheduledDate: row[3] || '',
-              duration: row[4] || '',
-              technician: row[5] || '',
-              priority: row[6] || 'Media',
-              status: row[7] || 'Programado',
-              notes: row[8] || ''
-            };
-          }
-        });
-
-        allProcessedData = [...allProcessedData, ...sheetData];
-      });
-
+      
       if (isInventory) {
-        setInventory(allProcessedData);
+        // Procesar inventario
+        const inventorySheet = selectedSheets.find(s => s.selected && s.sheetType === 'inventory');
+        if (inventorySheet) {
+          const worksheet = workbook.Sheets[inventorySheet.name];
+          const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+          const processedInventory = processInventoryData(jsonData, inventorySheet.columns);
+          setInventory(processedInventory);
+        }
       } else {
-        setMaintenanceCalendar(allProcessedData);
+        // Procesar archivo de mantenimiento
+        let frecTipoProcessed: any[] = [];
+        
+        selectedSheets.filter(s => s.selected).forEach(sheet => {
+          const worksheet = workbook.Sheets[sheet.name];
+          const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+          
+          if (sheet.sheetType === 'frec-tipo') {
+            frecTipoProcessed = processFrecTipoData(jsonData, sheet.columns);
+          }
+          // Aquí podríamos procesar las otras hojas (PLANNING, ANEXO) si es necesario
+        });
+        
+        setFrecTipoData(frecTipoProcessed);
       }
 
       setProcessingStep('complete');
@@ -218,8 +258,13 @@ export const useMaintenanceCalendar = () => {
   const generateAICalendar = async () => {
     setIsLoading(true);
     try {
+      // Generar el análisis de denominaciones homogéneas
+      const denominacionesAnalysis = countDenominacionesHomogeneas(inventory, frecTipoData);
+      setDenominacionesData(denominacionesAnalysis);
+      
+      console.log('Análisis de Denominaciones Homogéneas:', denominacionesAnalysis);
+      
       // Aquí irá la lógica de IA para generar el calendario
-      // Por ahora simulamos un procesamiento
       await new Promise(resolve => setTimeout(resolve, 3000));
       setProcessingStep('complete');
     } catch (err) {
@@ -234,11 +279,14 @@ export const useMaintenanceCalendar = () => {
     setSelectedSheets([]);
     setCurrentFile(null);
     setError(null);
+    setDenominacionesData([]);
+    setFrecTipoData([]);
   };
 
   return {
     inventory,
     maintenanceCalendar,
+    denominacionesData,
     isLoading,
     error,
     processingStep,
