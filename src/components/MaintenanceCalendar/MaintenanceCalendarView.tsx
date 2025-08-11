@@ -19,7 +19,9 @@ interface MaintenanceCalendarViewProps {
 const MaintenanceCalendarView: React.FC<MaintenanceCalendarViewProps> = ({ language }) => {
   const { t } = useTranslation(language);
   const [activeTab, setActiveTab] = useState('upload');
-  const [fileType, setFileType] = useState<'inventory' | 'maintenance'>('inventory');
+  const [inventoryFile, setInventoryFile] = useState<File | null>(null);
+  const [maintenanceFile, setMaintenanceFile] = useState<File | null>(null);
+  const [currentProcessingFile, setCurrentProcessingFile] = useState<'inventory' | 'maintenance' | null>(null);
   
   const {
     inventory,
@@ -38,19 +40,41 @@ const MaintenanceCalendarView: React.FC<MaintenanceCalendarViewProps> = ({ langu
   } = useMaintenanceCalendar();
 
   const hasData = inventory.length > 0 || maintenanceCalendar.length > 0;
+  const bothFilesUploaded = inventoryFile && maintenanceFile;
 
-  const handleFileUpload = (file: File, type: 'inventory' | 'maintenance') => {
-    setFileType(type);
-    if (type === 'inventory') {
-      processInventoryFile(file);
-    } else {
-      processMaintenanceFile(file);
-    }
+  const handleInventoryUpload = (file: File) => {
+    setInventoryFile(file);
+    console.log('Archivo de inventario cargado:', file.name);
+  };
+
+  const handleMaintenanceUpload = (file: File) => {
+    setMaintenanceFile(file);
+    console.log('Archivo de mantenimiento cargado:', file.name);
+  };
+
+  const handleProcessFiles = () => {
+    if (!bothFilesUploaded) return;
+    
+    // Primero procesamos el archivo de inventario
+    setCurrentProcessingFile('inventory');
+    processInventoryFile(inventoryFile);
   };
 
   const handleSheetsSelected = (sheets: any[]) => {
     setSelectedSheets(sheets);
-    setProcessingStep('summary');
+    
+    // Si estamos procesando inventario y hay archivo de mantenimiento pendiente
+    if (currentProcessingFile === 'inventory' && maintenanceFile) {
+      // Procesamos las hojas seleccionadas del inventario
+      processFinalSheets(true);
+      // Después procesamos el archivo de mantenimiento
+      setCurrentProcessingFile('maintenance');
+      processMaintenanceFile(maintenanceFile);
+    } else if (currentProcessingFile === 'maintenance') {
+      // Procesamos las hojas seleccionadas del mantenimiento
+      processFinalSheets(false);
+      setProcessingStep('summary');
+    }
   };
 
   const handleGenerateCalendar = () => {
@@ -63,17 +87,30 @@ const MaintenanceCalendarView: React.FC<MaintenanceCalendarViewProps> = ({ langu
 
   const handleBackToUpload = () => {
     resetProcess();
+    setInventoryFile(null);
+    setMaintenanceFile(null);
+    setCurrentProcessingFile(null);
   };
 
   const renderUploadContent = () => {
     switch (processingStep) {
       case 'select-sheets':
+        const currentFile = currentProcessingFile === 'inventory' ? inventoryFile : maintenanceFile;
+        const fileTitle = currentProcessingFile === 'inventory' ? 'Inventario Hospitalario' : 'Calendario de Mantenimiento';
+        
         return (
-          <SheetSelector
-            file={selectedSheets[0] ? new File([], selectedSheets[0].name) : new File([], 'file')}
-            onSheetsSelected={handleSheetsSelected}
-            onBack={handleBackToUpload}
-          />
+          <Card>
+            <CardHeader>
+              <CardTitle>📋 Seleccionar Hojas - {fileTitle}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <SheetSelector
+                file={currentFile!}
+                onSheetsSelected={handleSheetsSelected}
+                onBack={handleBackToUpload}
+              />
+            </CardContent>
+          </Card>
         );
 
       case 'summary':
@@ -119,38 +156,108 @@ const MaintenanceCalendarView: React.FC<MaintenanceCalendarViewProps> = ({ langu
 
       default:
         return (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>📦 Inventario Hospitalario</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <MaintenanceFileUploader
-                  title="Inventario Hospitalario"
-                  description="Sube un archivo Excel o CSV con el inventario de equipos médicos"
-                  acceptedFormats=".xlsx,.xls,.csv"
-                  onFileUpload={(file) => handleFileUpload(file, 'inventory')}
-                  isLoading={isLoading}
-                  icon={<span>📦</span>}
-                />
-              </CardContent>
-            </Card>
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>📦 Inventario Hospitalario</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <MaintenanceFileUploader
+                    title="Inventario Hospitalario"
+                    description="Sube un archivo Excel o CSV con el inventario de equipos médicos"
+                    acceptedFormats=".xlsx,.xls,.csv"
+                    onFileUpload={handleInventoryUpload}
+                    isLoading={isLoading}
+                    icon={<span>📦</span>}
+                  />
+                  {inventoryFile && (
+                    <div className="mt-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-700">
+                      <p className="text-sm text-green-700 dark:text-green-300 font-medium">
+                        ✅ Archivo cargado: {inventoryFile.name}
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>🔧 Calendario de Mantenimiento</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <MaintenanceFileUploader
-                  title="Calendario de Mantenimiento"
-                  description="Sube un archivo Excel o CSV con la programación de mantenimiento"
-                  acceptedFormats=".xlsx,.xls,.csv"
-                  onFileUpload={(file) => handleFileUpload(file, 'maintenance')}
-                  isLoading={isLoading}
-                  icon={<span>🔧</span>}
-                />
-              </CardContent>
-            </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>🔧 Calendario de Mantenimiento</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <MaintenanceFileUploader
+                    title="Calendario de Mantenimiento"
+                    description="Sube un archivo Excel o CSV con la programación de mantenimiento"
+                    acceptedFormats=".xlsx,.xls,.csv"
+                    onFileUpload={handleMaintenanceUpload}
+                    isLoading={isLoading}
+                    icon={<span>🔧</span>}
+                  />
+                  {maintenanceFile && (
+                    <div className="mt-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-700">
+                      <p className="text-sm text-green-700 dark:text-green-300 font-medium">
+                        ✅ Archivo cargado: {maintenanceFile.name}
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {bothFilesUploaded && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-xl font-semibold text-blue-900 dark:text-blue-100">
+                    📈 Procesar Archivos
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-6 border border-blue-200 dark:border-blue-700">
+                    <p className="text-blue-800 dark:text-blue-200 font-medium mb-4">
+                      ✅ Ambos archivos están listos para procesar
+                    </p>
+                    <p className="text-blue-600 dark:text-blue-300 text-sm mb-4">
+                      Se analizarán las hojas de cada archivo y podrás seleccionar cuáles importar.
+                    </p>
+                    <Button
+                      onClick={handleProcessFiles}
+                      disabled={isLoading}
+                      className="w-full bg-emerald-600 hover:bg-emerald-700"
+                    >
+                      {isLoading ? (
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                          Procesando Archivos...
+                        </div>
+                      ) : (
+                        'Procesar Archivos'
+                      )}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {hasData && processingStep === 'upload' && !bothFilesUploaded && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>✅ Estado de los Archivos</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="flex items-center space-x-2">
+                      <div className={`w-3 h-3 rounded-full ${inventory.length > 0 ? 'bg-green-500' : 'bg-gray-300'}`} />
+                      <span>Inventario: {inventory.length} elementos</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <div className={`w-3 h-3 rounded-full ${maintenanceCalendar.length > 0 ? 'bg-green-500' : 'bg-gray-300'}`} />
+                      <span>Mantenimiento: {maintenanceCalendar.length} programaciones</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
         );
     }
@@ -178,26 +285,6 @@ const MaintenanceCalendarView: React.FC<MaintenanceCalendarViewProps> = ({ langu
 
         <TabsContent value="upload" className="space-y-6">
           {renderUploadContent()}
-
-          {hasData && processingStep === 'upload' && (
-            <Card>
-              <CardHeader>
-                <CardTitle>✅ Estado de los Archivos</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex items-center space-x-2">
-                    <div className={`w-3 h-3 rounded-full ${inventory.length > 0 ? 'bg-green-500' : 'bg-gray-300'}`} />
-                    <span>Inventario: {inventory.length} elementos</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div className={`w-3 h-3 rounded-full ${maintenanceCalendar.length > 0 ? 'bg-green-500' : 'bg-gray-300'}`} />
-                    <span>Mantenimiento: {maintenanceCalendar.length} programaciones</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
         </TabsContent>
 
         <TabsContent value="inventory">
