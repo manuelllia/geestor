@@ -1,9 +1,8 @@
 
 import React, { useState } from 'react';
-import { Upload, FileSpreadsheet, Calendar, AlertCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Button } from '../ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Language } from '../../utils/translations';
 import { useMaintenanceCalendar } from '../../hooks/useMaintenanceCalendar';
@@ -17,145 +16,102 @@ interface MaintenanceCalendarViewProps {
 
 const MaintenanceCalendarView: React.FC<MaintenanceCalendarViewProps> = ({ language }) => {
   const { t } = useTranslation(language);
+  const [activeTab, setActiveTab] = useState('upload');
+  
   const {
-    inventory,
-    maintenanceCalendar,
+    inventoryData,
+    maintenanceData,
+    uploadInventoryFile,
+    uploadMaintenanceFile,
     isLoading,
-    error,
-    processInventoryFile,
-    processMaintenanceFile
+    error
   } = useMaintenanceCalendar();
 
-  const [activeTab, setActiveTab] = useState<'upload' | 'inventory' | 'calendar'>('upload');
-
-  const hasData = inventory.length > 0 || maintenanceCalendar.length > 0;
+  const hasData = inventoryData.length > 0 || maintenanceData.length > 0;
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-blue-900 dark:text-blue-100">
-            Calendario de Mantenimiento
-          </h1>
-          <p className="text-gray-600 dark:text-gray-300 mt-2">
-            Gestiona el inventario de equipos y programa el mantenimiento
-          </p>
-        </div>
+      <div className="bg-gradient-to-r from-emerald-500 to-emerald-700 text-white rounded-lg p-8">
+        <h1 className="text-3xl font-bold mb-4">Calendario de Mantenimiento</h1>
+        <p className="text-emerald-100 text-lg">
+          Gestiona el inventario hospitalario y programa el mantenimiento de equipos
+        </p>
       </div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="upload">📁 Subir Archivos</TabsTrigger>
+          <TabsTrigger value="inventory" disabled={inventoryData.length === 0}>
+            📋 Inventario
+          </TabsTrigger>
+          <TabsTrigger value="calendar" disabled={maintenanceData.length === 0}>
+            📅 Calendario
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="upload" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>📦 Inventario Hospitalario</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <MaintenanceFileUploader
+                  type="inventory"
+                  onFileUpload={uploadInventoryFile}
+                  isLoading={isLoading}
+                />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>🔧 Calendario de Mantenimiento</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <MaintenanceFileUploader
+                  type="maintenance"
+                  onFileUpload={uploadMaintenanceFile}
+                  isLoading={isLoading}
+                />
+              </CardContent>
+            </Card>
+          </div>
+
+          {hasData && (
+            <Card>
+              <CardHeader>
+                <CardTitle>✅ Estado de los Archivos</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-center space-x-2">
+                    <div className={`w-3 h-3 rounded-full ${inventoryData.length > 0 ? 'bg-green-500' : 'bg-gray-300'}`} />
+                    <span>Inventario: {inventoryData.length} elementos</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className={`w-3 h-3 rounded-full ${maintenanceData.length > 0 ? 'bg-green-500' : 'bg-gray-300'}`} />
+                    <span>Mantenimiento: {maintenanceData.length} programaciones</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        <TabsContent value="inventory">
+          <MaintenanceInventoryTable data={inventoryData} />
+        </TabsContent>
+
+        <TabsContent value="calendar">
+          <MaintenanceCalendarGrid data={maintenanceData} />
+        </TabsContent>
+      </Tabs>
 
       {error && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-
-      {/* Navigation Tabs */}
-      <div className="flex space-x-1 bg-blue-50 dark:bg-blue-900/30 p-1 rounded-lg">
-        <Button
-          variant={activeTab === 'upload' ? 'default' : 'ghost'}
-          onClick={() => setActiveTab('upload')}
-          className="flex-1"
-        >
-          <Upload className="h-4 w-4 mr-2" />
-          Subir Archivos
-        </Button>
-        <Button
-          variant={activeTab === 'inventory' ? 'default' : 'ghost'}
-          onClick={() => setActiveTab('inventory')}
-          className="flex-1"
-          disabled={inventory.length === 0}
-        >
-          <FileSpreadsheet className="h-4 w-4 mr-2" />
-          Inventario ({inventory.length})
-        </Button>
-        <Button
-          variant={activeTab === 'calendar' ? 'default' : 'ghost'}
-          onClick={() => setActiveTab('calendar')}
-          className="flex-1"
-          disabled={maintenanceCalendar.length === 0}
-        >
-          <Calendar className="h-4 w-4 mr-2" />
-          Calendario ({maintenanceCalendar.length})
-        </Button>
-      </div>
-
-      {/* Content */}
-      {activeTab === 'upload' && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <MaintenanceFileUploader
-            title="Inventario de Hospital"
-            description="Sube un archivo Excel o CSV con el inventario de equipos médicos"
-            acceptedFormats=".xlsx,.xls,.csv"
-            onFileUpload={processInventoryFile}
-            isLoading={isLoading}
-            icon={<FileSpreadsheet className="h-8 w-8 text-blue-500" />}
-          />
-          <MaintenanceFileUploader
-            title="Calendario de Mantenimiento"
-            description="Sube un archivo Excel o CSV con la programación de mantenimientos"
-            acceptedFormats=".xlsx,.xls,.csv"
-            onFileUpload={processMaintenanceFile}
-            isLoading={isLoading}
-            icon={<Calendar className="h-8 w-8 text-green-500" />}
-          />
-        </div>
-      )}
-
-      {activeTab === 'inventory' && inventory.length > 0 && (
-        <MaintenanceInventoryTable inventory={inventory} language={language} />
-      )}
-
-      {activeTab === 'calendar' && maintenanceCalendar.length > 0 && (
-        <MaintenanceCalendarGrid calendar={maintenanceCalendar} language={language} />
-      )}
-
-      {/* Instructions */}
-      {!hasData && activeTab === 'upload' && (
-        <Card className="border-blue-200 dark:border-blue-700">
-          <CardHeader>
-            <CardTitle className="text-blue-900 dark:text-blue-100">
-              Instrucciones de Uso
-            </CardTitle>
-            <CardDescription>
-              Sigue estos pasos para configurar tu calendario de mantenimiento
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-3">
-                <h4 className="font-semibold text-blue-800 dark:text-blue-200">
-                  Archivo de Inventario
-                </h4>
-                <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
-                  <li>• Columna A: Nombre del equipo</li>
-                  <li>• Columna B: Modelo</li>
-                  <li>• Columna C: Número de serie</li>
-                  <li>• Columna D: Ubicación</li>
-                  <li>• Columna E: Departamento</li>
-                  <li>• Columna F: Fecha de adquisición</li>
-                  <li>• Columna G: Último mantenimiento</li>
-                  <li>• Columna H: Próximo mantenimiento</li>
-                  <li>• Columna I: Estado</li>
-                </ul>
-              </div>
-              <div className="space-y-3">
-                <h4 className="font-semibold text-green-800 dark:text-green-200">
-                  Archivo de Calendario
-                </h4>
-                <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
-                  <li>• Columna A: ID del equipo</li>
-                  <li>• Columna B: Nombre del equipo</li>
-                  <li>• Columna C: Tipo de mantenimiento</li>
-                  <li>• Columna D: Fecha programada</li>
-                  <li>• Columna E: Duración estimada</li>
-                  <li>• Columna F: Técnico asignado</li>
-                  <li>• Columna G: Prioridad</li>
-                  <li>• Columna H: Estado</li>
-                  <li>• Columna I: Notas</li>
-                </ul>
-              </div>
-            </div>
+        <Card className="border-red-200 bg-red-50 dark:bg-red-900/20">
+          <CardContent className="pt-6">
+            <p className="text-red-700 dark:text-red-300">{error}</p>
           </CardContent>
         </Card>
       )}
