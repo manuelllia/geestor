@@ -372,6 +372,7 @@ export const useMaintenanceCalendar = () => {
     error,
     processingStep,
     selectedSheets,
+    frecTipoData,
     processInventoryFile,
     processMaintenanceFile,
     processFinalSheets,
