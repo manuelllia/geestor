@@ -129,7 +129,7 @@ const MaintenanceCalendarView: React.FC<MaintenanceCalendarViewProps> = ({ langu
                 maintenanceDataCount={frecTipoData.length}
                 onGenerateCalendar={() => generateAICalendar()}
                 isLoading={isLoading}
-                disabled={processingStep === 'processing'}
+                disabled={isLoading}
               />
             )}
           </div>
