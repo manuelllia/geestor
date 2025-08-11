@@ -19,15 +19,15 @@ const MaintenanceCalendarView: React.FC<MaintenanceCalendarViewProps> = ({ langu
   const [activeTab, setActiveTab] = useState('upload');
   
   const {
-    inventoryData,
-    maintenanceData,
-    uploadInventoryFile,
-    uploadMaintenanceFile,
+    inventory,
+    maintenanceCalendar,
+    processInventoryFile,
+    processMaintenanceFile,
     isLoading,
     error
   } = useMaintenanceCalendar();
 
-  const hasData = inventoryData.length > 0 || maintenanceData.length > 0;
+  const hasData = inventory.length > 0 || maintenanceCalendar.length > 0;
 
   return (
     <div className="space-y-6">
@@ -41,10 +41,10 @@ const MaintenanceCalendarView: React.FC<MaintenanceCalendarViewProps> = ({ langu
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="upload">📁 Subir Archivos</TabsTrigger>
-          <TabsTrigger value="inventory" disabled={inventoryData.length === 0}>
+          <TabsTrigger value="inventory" disabled={inventory.length === 0}>
             📋 Inventario
           </TabsTrigger>
-          <TabsTrigger value="calendar" disabled={maintenanceData.length === 0}>
+          <TabsTrigger value="calendar" disabled={maintenanceCalendar.length === 0}>
             📅 Calendario
           </TabsTrigger>
         </TabsList>
@@ -57,9 +57,12 @@ const MaintenanceCalendarView: React.FC<MaintenanceCalendarViewProps> = ({ langu
               </CardHeader>
               <CardContent>
                 <MaintenanceFileUploader
-                  type="inventory"
-                  onFileUpload={uploadInventoryFile}
+                  title="Inventario Hospitalario"
+                  description="Sube un archivo Excel o CSV con el inventario de equipos médicos"
+                  acceptedFormats=".xlsx,.xls,.csv"
+                  onFileUpload={processInventoryFile}
                   isLoading={isLoading}
+                  icon={<span>📦</span>}
                 />
               </CardContent>
             </Card>
@@ -70,9 +73,12 @@ const MaintenanceCalendarView: React.FC<MaintenanceCalendarViewProps> = ({ langu
               </CardHeader>
               <CardContent>
                 <MaintenanceFileUploader
-                  type="maintenance"
-                  onFileUpload={uploadMaintenanceFile}
+                  title="Calendario de Mantenimiento"
+                  description="Sube un archivo Excel o CSV con la programación de mantenimiento"
+                  acceptedFormats=".xlsx,.xls,.csv"
+                  onFileUpload={processMaintenanceFile}
                   isLoading={isLoading}
+                  icon={<span>🔧</span>}
                 />
               </CardContent>
             </Card>
@@ -86,12 +92,12 @@ const MaintenanceCalendarView: React.FC<MaintenanceCalendarViewProps> = ({ langu
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="flex items-center space-x-2">
-                    <div className={`w-3 h-3 rounded-full ${inventoryData.length > 0 ? 'bg-green-500' : 'bg-gray-300'}`} />
-                    <span>Inventario: {inventoryData.length} elementos</span>
+                    <div className={`w-3 h-3 rounded-full ${inventory.length > 0 ? 'bg-green-500' : 'bg-gray-300'}`} />
+                    <span>Inventario: {inventory.length} elementos</span>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <div className={`w-3 h-3 rounded-full ${maintenanceData.length > 0 ? 'bg-green-500' : 'bg-gray-300'}`} />
-                    <span>Mantenimiento: {maintenanceData.length} programaciones</span>
+                    <div className={`w-3 h-3 rounded-full ${maintenanceCalendar.length > 0 ? 'bg-green-500' : 'bg-gray-300'}`} />
+                    <span>Mantenimiento: {maintenanceCalendar.length} programaciones</span>
                   </div>
                 </div>
               </CardContent>
@@ -100,11 +106,11 @@ const MaintenanceCalendarView: React.FC<MaintenanceCalendarViewProps> = ({ langu
         </TabsContent>
 
         <TabsContent value="inventory">
-          <MaintenanceInventoryTable data={inventoryData} />
+          <MaintenanceInventoryTable inventory={inventory} language={language} />
         </TabsContent>
 
         <TabsContent value="calendar">
-          <MaintenanceCalendarGrid data={maintenanceData} />
+          <MaintenanceCalendarGrid calendar={maintenanceCalendar} language={language} />
         </TabsContent>
       </Tabs>
 
