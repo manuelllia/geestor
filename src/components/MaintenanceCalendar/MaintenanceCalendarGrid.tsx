@@ -109,7 +109,9 @@ const MaintenanceCalendarGrid: React.FC<MaintenanceCalendarGridProps> = ({
                       {event.status}
                     </Badge>
                     {event.notes && (
-                      <AlertTriangle className="h-4 w-4 text-amber-500" title={event.notes} />
+                      <div className="flex items-center">
+                        <AlertTriangle className="h-4 w-4 text-amber-500" />
+                      </div>
                     )}
                   </div>
                   
