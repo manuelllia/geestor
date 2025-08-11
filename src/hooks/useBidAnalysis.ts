@@ -168,64 +168,89 @@ ${pptText}
 RESPUESTA REQUERIDA: Proporciona ÚNICAMENTE un objeto JSON válido con la estructura BidAnalysisData solicitada. No agregues explicaciones, texto adicional o bloques de código markdown.
 `;
 
-  const callAIService = async (prompt: string): Promise<BidAnalysisData> => {
-    // Aquí deberías implementar la llamada real a tu servicio de IA
-    // Por ejemplo, OpenAI, Anthropic, o tu propia API
+  const callGeminiAPI = async (prompt: string): Promise<BidAnalysisData> => {
+    const GEMINI_API_KEY = 'AIzaSyANIWvIMRvCW7f0meHRk4SobRz4s0pnxtg';
+    const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
     
-    console.log('Prompt enviado a IA:', prompt.substring(0, 500) + '...');
-    
-    // Por ahora, devolvemos datos simulados con información más realista
-    // basada en el análisis real de los archivos
-    const mockResponse: BidAnalysisData = {
-      esPorLotes: false,
-      lotes: [],
-      variablesDinamicas: [
-        {
-          nombre: "P",
-          descripcion: "Precio de la oferta evaluada",
-          mapeo: "price"
+    try {
+      console.log('Enviando prompt a Gemini API...');
+      
+      const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-        {
-          nombre: "Plic",
-          descripcion: "Presupuesto base de licitación",
-          mapeo: "tenderBudget"
-        },
-        {
-          nombre: "Pmin",
-          descripcion: "Precio más bajo de todas las ofertas",
-          mapeo: "lowestPrice"
-        }
-      ],
-      formulaEconomica: '{"type":"binary_operation","operator":"*","left":{"type":"literal","value":70},"right":{"type":"binary_operation","operator":"-","left":{"type":"literal","value":1},"right":{"type":"binary_operation","operator":"/","left":{"type":"binary_operation","operator":"-","left":{"type":"variable","name":"P"},"right":{"type":"variable","name":"Pmin"}},"right":{"type":"binary_operation","operator":"-","left":{"type":"variable","name":"Plic"},"right":{"type":"variable","name":"Pmin"}}}}}',
-      formulasDetectadas: [
-        {
-          formulaOriginal: "70 * (1 - (P - Pmin) / (Plic - Pmin))",
-          representacionLatex: "70 \\times \\left(1 - \\frac{P - P_{min}}{P_{lic} - P_{min}}\\right)",
-          descripcionVariables: "P: Precio de la oferta, Pmin: Precio mínimo, Plic: Presupuesto de licitación",
-          condicionesLogicas: "Se aplica cuando P >= Pmin"
-        }
-      ],
-      umbralBajaTemeraria: "No especificado en los documentos",
-      criteriosAutomaticos: [
-        {
-          nombre: "Criterio económico",
-          descripcion: "Evaluación del precio ofertado",
-          puntuacionMaxima: 70
-        }
-      ],
-      criteriosSubjetivos: [
-        {
-          nombre: "Criterio técnico",
-          descripcion: "Valoración de la propuesta técnica",
-          puntuacionMaxima: 30
-        }
-      ],
-      otrosCriterios: [],
-      presupuestoGeneral: "No especificado en los documentos",
-      costesDetalladosRecomendados: {}
-    };
-    
-    return mockResponse;
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: prompt
+            }]
+          }],
+          generationConfig: {
+            temperature: 0.1,
+            topK: 1,
+            topP: 1,
+            maxOutputTokens: 8192,
+          },
+          safetySettings: [
+            {
+              category: "HARM_CATEGORY_HARASSMENT",
+              threshold: "BLOCK_NONE"
+            },
+            {
+              category: "HARM_CATEGORY_HATE_SPEECH", 
+              threshold: "BLOCK_NONE"
+            },
+            {
+              category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+              threshold: "BLOCK_NONE"
+            },
+            {
+              category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+              threshold: "BLOCK_NONE"
+            }
+          ]
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.text();
+        console.error('Error de Gemini API:', errorData);
+        throw new Error(`Error de Gemini API: ${response.status} - ${errorData}`);
+      }
+
+      const data = await response.json();
+      console.log('Respuesta de Gemini recibida:', data);
+
+      if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
+        throw new Error('Respuesta inválida de Gemini API');
+      }
+
+      const responseText = data.candidates[0].content.parts[0].text;
+      console.log('Texto de respuesta:', responseText);
+
+      // Intentar parsear la respuesta JSON
+      try {
+        // Limpiar la respuesta si tiene bloques de código markdown
+        const cleanedResponse = responseText
+          .replace(/```json\n?/g, '')
+          .replace(/```\n?/g, '')
+          .trim();
+        
+        const analysisResult: BidAnalysisData = JSON.parse(cleanedResponse);
+        console.log('Análisis parseado exitosamente:', analysisResult);
+        
+        return analysisResult;
+      } catch (parseError) {
+        console.error('Error parseando JSON de Gemini:', parseError);
+        console.error('Respuesta recibida:', responseText);
+        throw new Error('La respuesta de Gemini no es un JSON válido');
+      }
+
+    } catch (error) {
+      console.error('Error en llamada a Gemini API:', error);
+      throw error;
+    }
   };
 
   const analyzeBid = async (pcapFile: File, pptFile: File) => {
@@ -233,7 +258,7 @@ RESPUESTA REQUERIDA: Proporciona ÚNICAMENTE un objeto JSON válido con la estru
     setError(null);
     
     try {
-      console.log('Iniciando análisis de licitación...');
+      console.log('Iniciando análisis de licitación con Gemini...');
       
       // Extraer texto real de los PDFs
       const pcapText = await extractTextFromPDF(pcapFile);
@@ -244,16 +269,19 @@ RESPUESTA REQUERIDA: Proporciona ÚNICAMENTE un objeto JSON válido con la estru
         throw new Error('No se pudo extraer texto de los archivos PDF. Verifica que los archivos no estén corruptos o protegidos.');
       }
       
-      // Generar el prompt para la IA
+      console.log(`PCAP extraído: ${pcapText.length} caracteres`);
+      console.log(`PPT extraído: ${pptText.length} caracteres`);
+      
+      // Generar el prompt para Gemini
       const prompt = generatePrompt(pcapText, pptText);
       
-      console.log('Enviando análisis a IA...');
+      console.log('Enviando análisis a Gemini API...');
       
-      // Llamar al servicio de IA real
-      const analysis = await callAIService(prompt);
+      // Llamar a la API de Gemini
+      const analysis = await callGeminiAPI(prompt);
       
       setAnalysisResult(analysis);
-      console.log('Análisis completado exitosamente');
+      console.log('Análisis completado exitosamente con Gemini');
       
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Error desconocido durante el análisis';
