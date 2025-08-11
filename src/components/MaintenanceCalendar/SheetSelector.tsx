@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -104,20 +103,20 @@ const SheetSelector: React.FC<SheetSelectorProps> = ({ file, onSheetsSelected, o
         const sheetInfos: SheetInfo[] = workbook.SheetNames.map(sheetName => {
           const worksheet = workbook.Sheets[sheetName];
           const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-          const headers = jsonData[0] as string[] || [];
-          const dataRows = jsonData.slice(1).filter(row => row && row.length > 0); // Filtrar filas vacías
+          const headers = (jsonData[0] as string[]) || [];
+          const dataRows = jsonData.slice(1).filter(row => Array.isArray(row) && row.length > 0);
           const preview = dataRows.slice(0, 3);
           const sheetType = detectSheetType(sheetName, headers);
           
           console.log(`Detectando hoja: ${sheetName}`, {
-            columns: headers.slice(0, 5), // Solo primeras 5 para debug
+            columns: headers.slice(0, 5),
             detectedType: sheetType,
             rowCount: dataRows.length
           });
           
           return {
             name: sheetName,
-            selected: sheetType !== 'other', // Auto-seleccionar hojas relevantes
+            selected: sheetType !== 'other',
             rowCount: dataRows.length,
             columns: headers,
             preview,
@@ -203,10 +202,10 @@ const SheetSelector: React.FC<SheetSelectorProps> = ({ file, onSheetsSelected, o
               <span>({sheets.length} hojas detectadas)</span>
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={selectAll}>
+              <Button variant="outline" size="sm" onClick={() => setSheets(prev => prev.map(sheet => ({ ...sheet, selected: true })))}>
                 Seleccionar Todas
               </Button>
-              <Button variant="outline" size="sm" onClick={deselectAll}>
+              <Button variant="outline" size="sm" onClick={() => setSheets(prev => prev.map(sheet => ({ ...sheet, selected: false })))}>
                 Deseleccionar Todas
               </Button>
             </div>
@@ -221,7 +220,7 @@ const SheetSelector: React.FC<SheetSelectorProps> = ({ file, onSheetsSelected, o
                     <div className="flex items-start gap-3">
                       <Checkbox
                         checked={sheet.selected}
-                        onCheckedChange={() => toggleSheet(sheet.name)}
+                        onCheckedChange={() => setSheets(prev => prev.map(s => s.name === sheet.name ? { ...s, selected: !s.selected } : s))}
                         className="mt-1"
                       />
                       <div className="flex-1 min-w-0">
@@ -278,7 +277,12 @@ const SheetSelector: React.FC<SheetSelectorProps> = ({ file, onSheetsSelected, o
                 Volver
               </Button>
               <Button 
-                onClick={handleContinue}
+                onClick={() => {
+                  const selectedSheets = sheets.filter(sheet => sheet.selected);
+                  if (selectedSheets.length > 0) {
+                    onSheetsSelected(selectedSheets);
+                  }
+                }}
                 disabled={selectedCount === 0}
                 className="flex items-center gap-2"
               >

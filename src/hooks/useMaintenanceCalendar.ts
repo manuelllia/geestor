@@ -113,20 +113,20 @@ export const useMaintenanceCalendar = () => {
     return workbook.SheetNames.map(sheetName => {
       const worksheet = workbook.Sheets[sheetName];
       const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-      const headers = jsonData[0] as string[] || [];
-      const dataRows = jsonData.slice(1).filter(row => row && row.length > 0); // Filtrar filas vacías
+      const headers = (jsonData[0] as string[]) || [];
+      const dataRows = jsonData.slice(1).filter(row => Array.isArray(row) && row.length > 0);
       const preview = dataRows.slice(0, 3);
       const sheetType = detectSheetType(sheetName, headers);
       
       console.log(`Analizando hoja: ${sheetName}`, {
-        headers: headers.slice(0, 5), // Solo primeras 5 columnas para debug
+        headers: headers.slice(0, 5),
         sheetType,
         rowCount: dataRows.length
       });
       
       return {
         name: sheetName,
-        selected: sheetType !== 'other', // Auto-seleccionar hojas relevantes
+        selected: sheetType !== 'other',
         rowCount: dataRows.length,
         columns: headers,
         preview,
@@ -190,12 +190,12 @@ export const useMaintenanceCalendar = () => {
         tipo: tipoIndex !== -1 ? String(row[tipoIndex] || '').trim() : ''
       };
       
-      if (index < 3) { // Log primeras 3 filas para debug
+      if (index < 3) {
         console.log(`Fila ${index + 1}:`, item);
       }
       
       return item;
-    }).filter(item => item.denominacion && item.denominacion.length > 0); // Filtrar filas vacías
+    }).filter(item => item.denominacion && item.denominacion.length > 0);
     
     console.log('FREC Y TIPO procesado:', result.length, 'elementos');
     return result;
@@ -203,20 +203,12 @@ export const useMaintenanceCalendar = () => {
 
   const processPlanningData = (jsonData: any[], headers: string[]) => {
     console.log('Procesando PLANNING:', { headers, dataCount: jsonData.length });
-    
-    // Aquí puedes agregar lógica específica para procesar la hoja de PLANNING
-    // Por ahora solo la registramos para futuro uso
-    
-    return jsonData.slice(1).filter(row => row && row.length > 0);
+    return jsonData.slice(1).filter(row => Array.isArray(row) && row.length > 0);
   };
 
   const processAnexoData = (jsonData: any[], headers: string[]) => {
     console.log('Procesando ANEXO:', { headers, dataCount: jsonData.length });
-    
-    // Aquí puedes agregar lógica específica para procesar la hoja de ANEXO
-    // Por ahora solo la registramos para futuro uso
-    
-    return jsonData.slice(1).filter(row => row && row.length > 0);
+    return jsonData.slice(1).filter(row => Array.isArray(row) && row.length > 0);
   };
 
   const countDenominacionesHomogeneas = (inventoryData: InventoryItem[], frecTipoData: any[]) => {

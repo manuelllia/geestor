@@ -11,6 +11,7 @@ import MaintenanceCalendarGrid from './MaintenanceCalendarGrid';
 import SheetSelector from './SheetSelector';
 import DataSummary from './DataSummary';
 import DenominacionAnalysis from './DenominacionAnalysis';
+import AICalendarGenerator from './AICalendarGenerator';
 
 interface MaintenanceCalendarViewProps {
   language: Language;
@@ -37,11 +38,13 @@ const MaintenanceCalendarView: React.FC<MaintenanceCalendarViewProps> = ({ langu
     generateAICalendar,
     resetProcess,
     setSelectedSheets,
-    setProcessingStep
+    setProcessingStep,
+    frecTipoData
   } = useMaintenanceCalendar();
 
   const hasData = inventory.length > 0 || maintenanceCalendar.length > 0;
   const bothFilesUploaded = inventoryFile && maintenanceFile;
+  const bothFilesProcessed = inventory.length > 0 && frecTipoData.length > 0;
 
   const handleInventoryUpload = (file: File) => {
     setInventoryFile(file);
@@ -64,15 +67,11 @@ const MaintenanceCalendarView: React.FC<MaintenanceCalendarViewProps> = ({ langu
   const handleSheetsSelected = (sheets: any[]) => {
     setSelectedSheets(sheets);
     
-    // Si estamos procesando inventario y hay archivo de mantenimiento pendiente
     if (currentProcessingFile === 'inventory' && maintenanceFile) {
-      // Procesamos las hojas seleccionadas del inventario
       processFinalSheets(true);
-      // Después procesamos el archivo de mantenimiento
       setCurrentProcessingFile('maintenance');
       processMaintenanceFile(maintenanceFile);
     } else if (currentProcessingFile === 'maintenance') {
-      // Procesamos las hojas seleccionadas del mantenimiento
       processFinalSheets(false);
       setProcessingStep('summary');
     }
@@ -108,7 +107,7 @@ const MaintenanceCalendarView: React.FC<MaintenanceCalendarViewProps> = ({ langu
               <SheetSelector
                 file={currentFile!}
                 onSheetsSelected={handleSheetsSelected}
-                onBack={handleBackToUpload}
+                onBack={() => handleBackToUpload()}
               />
             </CardContent>
           </Card>
@@ -116,11 +115,23 @@ const MaintenanceCalendarView: React.FC<MaintenanceCalendarViewProps> = ({ langu
 
       case 'summary':
         return (
-          <DataSummary
-            sheets={selectedSheets.filter(s => s.selected)}
-            onBack={handleBackToSheetSelection}
-            onGenerateCalendar={handleGenerateCalendar}
-          />
+          <div className="space-y-6">
+            <DataSummary
+              sheets={selectedSheets.filter(s => s.selected)}
+              onBack={() => setProcessingStep('select-sheets')}
+              onGenerateCalendar={() => generateAICalendar()}
+            />
+            
+            {bothFilesProcessed && (
+              <AICalendarGenerator
+                inventoryCount={inventory.length}
+                maintenanceDataCount={frecTipoData.length}
+                onGenerateCalendar={() => generateAICalendar()}
+                isLoading={isLoading}
+                disabled={processingStep === 'processing'}
+              />
+            )}
+          </div>
         );
 
       case 'processing':
@@ -152,7 +163,7 @@ const MaintenanceCalendarView: React.FC<MaintenanceCalendarViewProps> = ({ langu
                   <p className="text-green-700 dark:text-green-300 mb-4">
                     Se han detectado {denominacionesData.length} tipos de equipos en el inventario
                   </p>
-                  <Button onClick={handleBackToUpload} variant="outline">
+                  <Button onClick={() => handleBackToUpload()} variant="outline">
                     Importar Más Archivos
                   </Button>
                 </div>
@@ -174,7 +185,7 @@ const MaintenanceCalendarView: React.FC<MaintenanceCalendarViewProps> = ({ langu
                     title="Inventario Hospitalario"
                     description="Sube un archivo Excel o CSV con el inventario de equipos médicos"
                     acceptedFormats=".xlsx,.xls,.csv"
-                    onFileUpload={handleInventoryUpload}
+                    onFileUpload={(file) => setInventoryFile(file)}
                     isLoading={isLoading}
                     icon={<span>📦</span>}
                   />
@@ -197,7 +208,7 @@ const MaintenanceCalendarView: React.FC<MaintenanceCalendarViewProps> = ({ langu
                     title="Calendario de Mantenimiento"
                     description="Sube un archivo Excel o CSV con la programación de mantenimiento"
                     acceptedFormats=".xlsx,.xls,.csv"
-                    onFileUpload={handleMaintenanceUpload}
+                    onFileUpload={(file) => setMaintenanceFile(file)}
                     isLoading={isLoading}
                     icon={<span>🔧</span>}
                   />
@@ -228,7 +239,11 @@ const MaintenanceCalendarView: React.FC<MaintenanceCalendarViewProps> = ({ langu
                       Se analizarán las hojas de cada archivo y podrás seleccionar cuáles importar.
                     </p>
                     <Button
-                      onClick={handleProcessFiles}
+                      onClick={() => {
+                        if (!bothFilesUploaded) return;
+                        setCurrentProcessingFile('inventory');
+                        processInventoryFile(inventoryFile);
+                      }}
                       disabled={isLoading}
                       className="w-full bg-emerald-600 hover:bg-emerald-700"
                     >
@@ -244,6 +259,15 @@ const MaintenanceCalendarView: React.FC<MaintenanceCalendarViewProps> = ({ langu
                   </div>
                 </CardContent>
               </Card>
+            )}
+
+            {bothFilesProcessed && processingStep === 'upload' && (
+              <AICalendarGenerator
+                inventoryCount={inventory.length}
+                maintenanceDataCount={frecTipoData.length}
+                onGenerateCalendar={() => generateAICalendar()}
+                isLoading={isLoading}
+              />
             )}
 
             {hasData && processingStep === 'upload' && !bothFilesUploaded && (
