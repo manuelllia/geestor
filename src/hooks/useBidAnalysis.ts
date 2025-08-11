@@ -63,6 +63,7 @@ export const useBidAnalysis = () => {
       let fullText = '';
       
       for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+        console.log(`Procesando página ${pageNum}/${pdf.numPages} de ${file.name}`);
         const page = await pdf.getPage(pageNum);
         const textContent = await page.getTextContent();
         
@@ -70,15 +71,15 @@ export const useBidAnalysis = () => {
           .map((item: any) => item.str)
           .join(' ');
         
-        fullText += pageText + '\n';
+        fullText += `\n--- PÁGINA ${pageNum} ---\n${pageText}\n`;
       }
       
-      console.log(`Texto extraído del ${file.name} (${fullText.length} caracteres)`);
+      console.log(`Texto extraído del ${file.name}: ${fullText.length} caracteres, ${pdf.numPages} páginas`);
       return fullText;
       
     } catch (error) {
       console.error(`Error extrayendo texto del archivo ${file.name}:`, error);
-      throw new Error(`No se pudo extraer el texto del archivo ${file.name}`);
+      throw new Error(`No se pudo extraer el texto del archivo ${file.name}. Verifica que el PDF no esté protegido o corrupto.`);
     }
   };
 
@@ -170,10 +171,11 @@ RESPUESTA REQUERIDA: Proporciona ÚNICAMENTE un objeto JSON válido con la estru
 
   const callGeminiAPI = async (prompt: string): Promise<BidAnalysisData> => {
     const GEMINI_API_KEY = 'AIzaSyANIWvIMRvCW7f0meHRk4SobRz4s0pnxtg';
-    const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+    const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent';
     
     try {
-      console.log('Enviando prompt a Gemini API...');
+      console.log('Enviando análisis completo a Gemini 2.0 Flash...');
+      console.log(`Tamaño del prompt: ${prompt.length} caracteres`);
       
       const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
         method: 'POST',
@@ -188,9 +190,10 @@ RESPUESTA REQUERIDA: Proporciona ÚNICAMENTE un objeto JSON válido con la estru
           }],
           generationConfig: {
             temperature: 0.1,
-            topK: 1,
-            topP: 1,
+            topK: 40,
+            topP: 0.95,
             maxOutputTokens: 8192,
+            responseMimeType: "application/json"
           },
           safetySettings: [
             {
@@ -220,36 +223,52 @@ RESPUESTA REQUERIDA: Proporciona ÚNICAMENTE un objeto JSON válido con la estru
       }
 
       const data = await response.json();
-      console.log('Respuesta de Gemini recibida:', data);
+      console.log('Respuesta completa de Gemini recibida:', data);
 
       if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
-        throw new Error('Respuesta inválida de Gemini API');
+        console.error('Estructura de respuesta inválida:', data);
+        throw new Error('Respuesta inválida de Gemini API - estructura incorrecta');
       }
 
       const responseText = data.candidates[0].content.parts[0].text;
-      console.log('Texto de respuesta:', responseText);
+      console.log('Texto de respuesta:', responseText.substring(0, 500) + '...');
 
       // Intentar parsear la respuesta JSON
       try {
         // Limpiar la respuesta si tiene bloques de código markdown
-        const cleanedResponse = responseText
+        let cleanedResponse = responseText
           .replace(/```json\n?/g, '')
           .replace(/```\n?/g, '')
           .trim();
         
+        // Si la respuesta empieza y termina con comillas, quitarlas
+        if (cleanedResponse.startsWith('"') && cleanedResponse.endsWith('"')) {
+          cleanedResponse = cleanedResponse.slice(1, -1);
+          // Escapar comillas internas
+          cleanedResponse = cleanedResponse.replace(/\\"/g, '"');
+        }
+        
         const analysisResult: BidAnalysisData = JSON.parse(cleanedResponse);
         console.log('Análisis parseado exitosamente:', analysisResult);
+        
+        // Validar que el resultado tenga la estructura esperada
+        if (typeof analysisResult !== 'object' || analysisResult === null) {
+          throw new Error('El resultado no es un objeto válido');
+        }
         
         return analysisResult;
       } catch (parseError) {
         console.error('Error parseando JSON de Gemini:', parseError);
         console.error('Respuesta recibida:', responseText);
-        throw new Error('La respuesta de Gemini no es un JSON válido');
+        throw new Error(`La respuesta de Gemini no es un JSON válido: ${parseError instanceof Error ? parseError.message : 'Error desconocido'}`);
       }
 
     } catch (error) {
       console.error('Error en llamada a Gemini API:', error);
-      throw error;
+      if (error instanceof Error) {
+        throw new Error(`Error en análisis con Gemini: ${error.message}`);
+      }
+      throw new Error('Error desconocido en análisis con Gemini');
     }
   };
 
@@ -258,9 +277,10 @@ RESPUESTA REQUERIDA: Proporciona ÚNICAMENTE un objeto JSON válido con la estru
     setError(null);
     
     try {
-      console.log('Iniciando análisis de licitación con Gemini...');
+      console.log('Iniciando análisis completo de licitación con Gemini 2.0 Flash...');
       
       // Extraer texto real de los PDFs
+      console.log('Extrayendo texto de archivos PDF...');
       const pcapText = await extractTextFromPDF(pcapFile);
       const pptText = await extractTextFromPDF(pptFile);
       
@@ -269,19 +289,28 @@ RESPUESTA REQUERIDA: Proporciona ÚNICAMENTE un objeto JSON válido con la estru
         throw new Error('No se pudo extraer texto de los archivos PDF. Verifica que los archivos no estén corruptos o protegidos.');
       }
       
+      if (!pcapText.trim()) {
+        console.warn('No se extrajo texto del archivo PCAP');
+      }
+      
+      if (!pptText.trim()) {
+        console.warn('No se extrajo texto del archivo PPT');
+      }
+      
       console.log(`PCAP extraído: ${pcapText.length} caracteres`);
       console.log(`PPT extraído: ${pptText.length} caracteres`);
+      console.log(`Total de texto para análisis: ${pcapText.length + pptText.length} caracteres`);
       
       // Generar el prompt para Gemini
       const prompt = generatePrompt(pcapText, pptText);
+      console.log(`Prompt generado: ${prompt.length} caracteres`);
       
-      console.log('Enviando análisis a Gemini API...');
-      
-      // Llamar a la API de Gemini
+      // Llamar a la API de Gemini con el modelo optimizado
+      console.log('Enviando análisis completo a Gemini API...');
       const analysis = await callGeminiAPI(prompt);
       
       setAnalysisResult(analysis);
-      console.log('Análisis completado exitosamente con Gemini');
+      console.log('Análisis completado exitosamente con Gemini 2.0 Flash');
       
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Error desconocido durante el análisis';
