@@ -10,6 +10,7 @@ import RealEstateDetailView from './RealEstate/RealEstateDetailView';
 import RealEstateUploadView from './RealEstate/RealEstateUploadView';
 import RealEstateDashboard from './RealEstate/RealEstateDashboard';
 import BidAnalyzerView from './BidAnalyzer/BidAnalyzerView';
+import MaintenanceCalendarView from './MaintenanceCalendar/MaintenanceCalendarView';
 import { checkRealEstateDocument } from '../services/realEstateService';
 
 interface MainContentProps {
@@ -85,6 +86,9 @@ const MainContent: React.FC<MainContentProps> = ({ activeSection, language }) =>
 
       case 'analisis-coste':
         return <BidAnalyzerView language={language} />;
+
+      case 'calendario-mantenimiento':
+        return <MaintenanceCalendarView language={language} />;
 
       case 'hojas-cambio':
         if (currentView === 'detail') {
