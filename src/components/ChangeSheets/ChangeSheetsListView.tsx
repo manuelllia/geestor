@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Eye, Copy, Download, Plus, Upload, FileDown, RefreshCw } from 'lucide-react';
+import { Eye, Copy, Download, Plus, Upload, FileDown, RefreshCw, AlertCircle } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Language } from '../../utils/translations';
 import ChangeSheetCreateForm from './ChangeSheetCreateForm';
