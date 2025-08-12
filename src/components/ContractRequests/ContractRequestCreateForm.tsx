@@ -33,7 +33,7 @@ const ContractRequestCreateForm: React.FC<ContractRequestCreateFormProps> = ({
     requestDate: new Date(),
     expectedStartDate: undefined,
     salary: '',
-    experience: '',
+    experience: '', // Agregado correctamente
     qualifications: [],
     status: 'Pendiente',
     observations: ''

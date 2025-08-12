@@ -66,10 +66,10 @@ const ImportContractRequestsModal: React.FC<ImportContractRequestsModalProps> = 
             position: row[getColumnIndex('puesto')] || '',
             department: row[getColumnIndex('departamento')] || '',
             requestType: row[getColumnIndex('tipo_solicitud')] || '',
-            requestDate: row[getColumnIndex('fecha_solicitud')] ? new Date(row[getColumnIndex('fecha_solicitud')]) : undefined,
+            requestDate: row[getColumnIndex('fecha_solicitud')] ? new Date(row[getColumnIndex('fecha_solicitud')]) : new Date(),
             expectedStartDate: row[getColumnIndex('fecha_inicio_esperada')] ? new Date(row[getColumnIndex('fecha_inicio_esperada')]) : undefined,
             salary: row[getColumnIndex('salario')] || '',
-            experience: row[getColumnIndex('experiencia')] || '',
+            experience: row[getColumnIndex('experiencia')] || '', // Agregado correctamente
             qualifications: row[getColumnIndex('cualificaciones')] ? String(row[getColumnIndex('cualificaciones')]).split(',').map(q => q.trim()) : [],
             status: row[getColumnIndex('estado')] || '',
             observations: row[getColumnIndex('observaciones')] || ''
