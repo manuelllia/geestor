@@ -1,14 +1,15 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Eye, Copy, Download, Plus, Upload, FileDown } from 'lucide-react';
+import { Eye, Copy, Download, Plus, Upload, FileDown, RefreshCw } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Language } from '../../utils/translations';
 import ChangeSheetCreateForm from './ChangeSheetCreateForm';
 import ImportChangeSheetsModal from './ImportChangeSheetsModal';
+import { getChangeSheets, ChangeSheetRecord } from '../../services/changeSheetsService';
 
 interface ChangeSheetsListViewProps {
   language: Language;
@@ -25,15 +26,34 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [changeSheets, setChangeSheets] = useState<ChangeSheetRecord[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const itemsPerPage = 30;
 
-  // Datos vacíos - eliminando simulaciones
-  const mockData: any[] = [];
+  const loadChangeSheets = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const sheets = await getChangeSheets();
+      setChangeSheets(sheets);
+      console.log('Hojas de cambio cargadas:', sheets.length);
+    } catch (err) {
+      console.error('Error cargando hojas de cambio:', err);
+      setError('Error al cargar las hojas de cambio');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-  const totalPages = Math.ceil(mockData.length / itemsPerPage);
+  useEffect(() => {
+    loadChangeSheets();
+  }, []);
+
+  const totalPages = Math.ceil(changeSheets.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = Math.min(startIndex + itemsPerPage, mockData.length);
-  const currentData = mockData.slice(startIndex, endIndex);
+  const endIndex = Math.min(startIndex + itemsPerPage, changeSheets.length);
+  const currentData = changeSheets.slice(startIndex, endIndex);
 
   const handleDuplicate = (id: string) => {
     console.log('Duplicar registro:', id);
@@ -45,6 +65,10 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({
 
   const handleExport = () => {
     console.log('Exportar datos');
+  };
+
+  const handleRefresh = () => {
+    loadChangeSheets();
   };
 
   const getStatusBadge = (status: string) => {
@@ -64,7 +88,10 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({
     return (
       <ChangeSheetCreateForm 
         language={language} 
-        onBack={() => setShowCreateForm(false)} 
+        onBack={() => {
+          setShowCreateForm(false);
+          loadChangeSheets(); // Recargar datos después de crear
+        }} 
       />
     );
   }
@@ -78,6 +105,16 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({
         </h1>
         
         <div className="flex flex-wrap gap-2">
+          <Button
+            onClick={handleRefresh}
+            variant="outline"
+            disabled={isLoading}
+            className="border-blue-300 text-blue-700 hover:bg-blue-50"
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+            Actualizar
+          </Button>
+          
           <Button
             onClick={() => setShowCreateForm(true)}
             className="bg-blue-600 hover:bg-blue-700 text-white"
@@ -114,7 +151,35 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {mockData.length === 0 ? (
+          {error && (
+            <div className="text-center py-8">
+              <div className="mx-auto w-16 h-16 bg-red-100 dark:bg-red-800 rounded-lg flex items-center justify-center mb-4">
+                <AlertCircle className="w-8 h-8 text-red-400" />
+              </div>
+              <h3 className="text-lg font-medium text-red-900 dark:text-red-100 mb-2">
+                Error al cargar datos
+              </h3>
+              <p className="text-red-600 dark:text-red-400 mb-4">
+                {error}
+              </p>
+              <Button onClick={handleRefresh} className="bg-blue-600 hover:bg-blue-700 text-white">
+                Intentar de nuevo
+              </Button>
+            </div>
+          )}
+          
+          {isLoading && (
+            <div className="text-center py-12">
+              <div className="mx-auto w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center mb-4">
+                <RefreshCw className="w-8 h-8 text-gray-400 animate-spin" />
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+                Cargando hojas de cambio...
+              </h3>
+            </div>
+          )}
+          
+          {!isLoading && !error && changeSheets.length === 0 && (
             <div className="text-center py-12">
               <div className="mx-auto w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center mb-4">
                 <Upload className="w-8 h-8 text-gray-400" />
@@ -143,7 +208,9 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({
                 </Button>
               </div>
             </div>
-          ) : (
+          )}
+          
+          {!isLoading && !error && changeSheets.length > 0 && (
             <>
               <div className="overflow-x-auto">
                 <Table>
@@ -151,7 +218,7 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({
                     <TableRow>
                       <TableHead>{t('employeeName')}</TableHead>
                       <TableHead>{t('originCenter')}</TableHead>
-                      <TableHead>{t('destinationCenter')}</TableHead>
+                      <TableHead>Nuevo Puesto</TableHead>
                       <TableHead>{t('startDate')}</TableHead>
                       <TableHead>{t('status')}</TableHead>
                       <TableHead className="text-center">{t('actions')}</TableHead>
@@ -161,11 +228,13 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({
                     {currentData.map((sheet) => (
                       <TableRow key={sheet.id}>
                         <TableCell className="font-medium">
-                          {sheet.employeeName}
+                          {sheet.employeeName} {sheet.employeeLastName}
                         </TableCell>
                         <TableCell>{sheet.originCenter}</TableCell>
-                        <TableCell>{sheet.destinationCenter}</TableCell>
-                        <TableCell>{formatDate(sheet.startDate)}</TableCell>
+                        <TableCell>{sheet.newPosition}</TableCell>
+                        <TableCell>
+                          {sheet.startDate ? formatDate(sheet.startDate) : 'No especificada'}
+                        </TableCell>
                         <TableCell>
                           <Badge className={getStatusBadge(sheet.status)}>
                             {sheet.status}
@@ -205,15 +274,11 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({
                 </Table>
               </div>
 
-              {/* Paginación - solo mostrar si hay datos */}
-              {mockData.length > 0 && (
+              {/* Paginación */}
+              {changeSheets.length > itemsPerPage && (
                 <div className="flex flex-col sm:flex-row justify-between items-center mt-4 gap-4">
                   <div className="text-sm text-gray-600 dark:text-gray-400">
-                    {t('showingRecords', {
-                      start: startIndex + 1,
-                      end: endIndex,
-                      total: mockData.length
-                    })}
+                    Mostrando {startIndex + 1} a {endIndex} de {changeSheets.length} registros
                   </div>
                   
                   <div className="flex items-center space-x-2">
@@ -272,7 +337,10 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({
       {/* Modal de importación */}
       <ImportChangeSheetsModal
         open={showImportModal}
-        onClose={() => setShowImportModal(false)}
+        onClose={() => {
+          setShowImportModal(false);
+          loadChangeSheets(); // Recargar datos después de importar
+        }}
         language={language}
       />
     </div>
