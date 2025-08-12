@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import * as XLSX from 'xlsx';
 
@@ -211,7 +212,101 @@ export const useMaintenanceCalendar = () => {
     return jsonData.slice(1).filter(row => Array.isArray(row) && row.length > 0);
   };
 
-  const countDenominacionesHomogeneas = (inventoryData: InventoryItem[], frecTipoData: any[]) => {
+  const enhanceDenominacionesWithAI = async (inventoryData: InventoryItem[]): Promise<DenominacionHomogeneaData[]> => {
+    console.log('🤖 Mejorando detección de denominaciones homogéneas con IA...');
+    
+    try {
+      // Extraer equipos únicos del inventario
+      const equipmentList = inventoryData.map(item => ({
+        equipment: item.equipment,
+        model: item.model,
+        denominacion: item.denominacionHomogenea
+      })).filter(item => item.equipment);
+
+      const prompt = `
+Eres un experto en gestión de equipos médicos y mantenimiento hospitalario. Analiza la siguiente lista de equipos y ayúdame a agruparlos por denominaciones homogéneas para crear un plan de mantenimiento eficiente.
+
+EQUIPOS A ANALIZAR:
+${JSON.stringify(equipmentList, null, 2)}
+
+TAREA:
+1. Identifica y agrupa equipos similares que requieran el mismo tipo de mantenimiento
+2. Crea denominaciones homogéneas claras y descriptivas 
+3. Sugiere frecuencias de mantenimiento típicas para cada grupo
+4. Propón tipos de mantenimiento (preventivo, correctivo, calibración, etc.)
+
+RESPUESTA REQUERIDA:
+Proporciona un JSON con la siguiente estructura:
+{
+  "denominacionesHomogeneas": [
+    {
+      "denominacion": "nombre descriptivo del grupo",
+      "equiposIncluidos": ["equipo1", "equipo2"],
+      "cantidad": numero_total,
+      "frecuenciaSugerida": "mensual|trimestral|semestral|anual",
+      "tipoMantenimiento": "descripción del tipo de mantenimiento"
+    }
+  ]
+}
+
+Responde ÚNICAMENTE con el JSON, sin explicaciones adicionales.
+`;
+
+      const GEMINI_API_KEY = 'AIzaSyANIWvIMRvCW7f0meHRk4SobRz4s0pnxtg';
+      const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent';
+
+      const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: prompt
+            }]
+          }],
+          generationConfig: {
+            temperature: 0.1,
+            topK: 40,
+            topP: 0.95,
+            maxOutputTokens: 4096,
+            responseMimeType: "application/json"
+          }
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error de Gemini API: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const responseText = data.candidates[0].content.parts[0].text;
+      
+      let cleanedResponse = responseText
+        .replace(/```json\n?/g, '')
+        .replace(/```\n?/g, '')
+        .trim();
+      
+      const aiResult = JSON.parse(cleanedResponse);
+      
+      if (aiResult.denominacionesHomogeneas) {
+        return aiResult.denominacionesHomogeneas.map((item: any) => ({
+          denominacion: item.denominacion,
+          cantidad: item.cantidad,
+          frecuencia: item.frecuenciaSugerida,
+          tipoMantenimiento: item.tipoMantenimiento
+        }));
+      }
+      
+      return [];
+    } catch (error) {
+      console.error('❌ Error mejorando denominaciones con IA:', error);
+      return [];
+    }
+  };
+
+  const countDenominacionesHomogeneas = async (inventoryData: InventoryItem[], frecTipoData: any[]) => {
     const denominacionCount: { [key: string]: number } = {};
     
     // Contar denominaciones en el inventario
@@ -222,7 +317,14 @@ export const useMaintenanceCalendar = () => {
       }
     });
     
-    // Crear array con datos combinados
+    // Si no hay denominaciones homogéneas detectadas automáticamente, usar IA
+    if (Object.keys(denominacionCount).length === 0) {
+      console.log('🤖 No se detectaron denominaciones homogéneas, usando IA para análisis...');
+      const aiDenominaciones = await enhanceDenominacionesWithAI(inventoryData);
+      return aiDenominaciones;
+    }
+    
+    // Crear array con datos combinados del análisis tradicional
     const result: DenominacionHomogeneaData[] = Object.entries(denominacionCount).map(([denominacion, cantidad]) => {
       // Buscar información en FREC Y TIPO
       const frecTipoInfo = frecTipoData.find(item => 
@@ -339,11 +441,12 @@ export const useMaintenanceCalendar = () => {
   const generateAICalendar = async () => {
     setIsLoading(true);
     try {
-      // Generar el análisis de denominaciones homogéneas
-      const denominacionesAnalysis = countDenominacionesHomogeneas(inventory, frecTipoData);
+      // Generar el análisis de denominaciones homogéneas (ahora con IA si es necesario)
+      console.log('🤖 Analizando denominaciones homogéneas...');
+      const denominacionesAnalysis = await countDenominacionesHomogeneas(inventory, frecTipoData);
       setDenominacionesData(denominacionesAnalysis);
       
-      console.log('Análisis de Denominaciones Homogéneas:', denominacionesAnalysis);
+      console.log('✅ Análisis de Denominaciones Homogéneas completado:', denominacionesAnalysis);
       
       // Aquí irá la lógica de IA para generar el calendario
       await new Promise(resolve => setTimeout(resolve, 3000));

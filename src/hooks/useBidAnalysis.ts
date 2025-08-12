@@ -174,64 +174,71 @@ RESPUESTA REQUERIDA: Proporciona ÚNICAMENTE un objeto JSON válido con la estru
     const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent';
     
     try {
-      console.log('Enviando análisis completo a Gemini 2.0 Flash...');
-      console.log(`Tamaño del prompt: ${prompt.length} caracteres`);
+      console.log('🤖 Enviando análisis completo a Gemini 2.0 Flash...');
+      console.log(`📄 Tamaño del prompt: ${prompt.length} caracteres`);
       
+      const requestBody = {
+        contents: [{
+          parts: [{
+            text: prompt
+          }]
+        }],
+        generationConfig: {
+          temperature: 0.1,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 8192,
+          responseMimeType: "application/json"
+        },
+        safetySettings: [
+          {
+            category: "HARM_CATEGORY_HARASSMENT",
+            threshold: "BLOCK_NONE"
+          },
+          {
+            category: "HARM_CATEGORY_HATE_SPEECH", 
+            threshold: "BLOCK_NONE"
+          },
+          {
+            category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+            threshold: "BLOCK_NONE"
+          },
+          {
+            category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+            threshold: "BLOCK_NONE"
+          }
+        ]
+      };
+
+      console.log('📤 Enviando request a Gemini:', JSON.stringify(requestBody, null, 2).substring(0, 500) + '...');
+
       const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          contents: [{
-            parts: [{
-              text: prompt
-            }]
-          }],
-          generationConfig: {
-            temperature: 0.1,
-            topK: 40,
-            topP: 0.95,
-            maxOutputTokens: 8192,
-            responseMimeType: "application/json"
-          },
-          safetySettings: [
-            {
-              category: "HARM_CATEGORY_HARASSMENT",
-              threshold: "BLOCK_NONE"
-            },
-            {
-              category: "HARM_CATEGORY_HATE_SPEECH", 
-              threshold: "BLOCK_NONE"
-            },
-            {
-              category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-              threshold: "BLOCK_NONE"
-            },
-            {
-              category: "HARM_CATEGORY_DANGEROUS_CONTENT",
-              threshold: "BLOCK_NONE"
-            }
-          ]
-        }),
+        body: JSON.stringify(requestBody),
       });
+
+      console.log('📥 Response status:', response.status);
+      console.log('📥 Response headers:', Object.fromEntries(response.headers.entries()));
 
       if (!response.ok) {
         const errorData = await response.text();
-        console.error('Error de Gemini API:', errorData);
+        console.error('❌ Error de Gemini API:', errorData);
         throw new Error(`Error de Gemini API: ${response.status} - ${errorData}`);
       }
 
       const data = await response.json();
-      console.log('Respuesta completa de Gemini recibida:', data);
+      console.log('✅ Respuesta completa de Gemini recibida:', JSON.stringify(data, null, 2).substring(0, 1000) + '...');
 
       if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
-        console.error('Estructura de respuesta inválida:', data);
+        console.error('❌ Estructura de respuesta inválida:', data);
         throw new Error('Respuesta inválida de Gemini API - estructura incorrecta');
       }
 
       const responseText = data.candidates[0].content.parts[0].text;
-      console.log('Texto de respuesta:', responseText.substring(0, 500) + '...');
+      console.log('📝 Texto de respuesta:', responseText.substring(0, 500) + '...');
 
       // Intentar parsear la respuesta JSON
       try {
@@ -249,7 +256,7 @@ RESPUESTA REQUERIDA: Proporciona ÚNICAMENTE un objeto JSON válido con la estru
         }
         
         const analysisResult: BidAnalysisData = JSON.parse(cleanedResponse);
-        console.log('Análisis parseado exitosamente:', analysisResult);
+        console.log('✅ Análisis parseado exitosamente:', analysisResult);
         
         // Validar que el resultado tenga la estructura esperada
         if (typeof analysisResult !== 'object' || analysisResult === null) {
@@ -258,13 +265,13 @@ RESPUESTA REQUERIDA: Proporciona ÚNICAMENTE un objeto JSON válido con la estru
         
         return analysisResult;
       } catch (parseError) {
-        console.error('Error parseando JSON de Gemini:', parseError);
-        console.error('Respuesta recibida:', responseText);
+        console.error('❌ Error parseando JSON de Gemini:', parseError);
+        console.error('📝 Respuesta recibida:', responseText);
         throw new Error(`La respuesta de Gemini no es un JSON válido: ${parseError instanceof Error ? parseError.message : 'Error desconocido'}`);
       }
 
     } catch (error) {
-      console.error('Error en llamada a Gemini API:', error);
+      console.error('❌ Error en llamada a Gemini API:', error);
       if (error instanceof Error) {
         throw new Error(`Error en análisis con Gemini: ${error.message}`);
       }
@@ -275,12 +282,13 @@ RESPUESTA REQUERIDA: Proporciona ÚNICAMENTE un objeto JSON válido con la estru
   const analyzeBid = async (pcapFile: File, pptFile: File) => {
     setIsLoading(true);
     setError(null);
+    setAnalysisResult(null);
     
     try {
-      console.log('Iniciando análisis completo de licitación con Gemini 2.0 Flash...');
+      console.log('🚀 Iniciando análisis completo de licitación con Gemini 2.0 Flash...');
       
       // Extraer texto real de los PDFs
-      console.log('Extrayendo texto de archivos PDF...');
+      console.log('📄 Extrayendo texto de archivos PDF...');
       const pcapText = await extractTextFromPDF(pcapFile);
       const pptText = await extractTextFromPDF(pptFile);
       
@@ -290,32 +298,32 @@ RESPUESTA REQUERIDA: Proporciona ÚNICAMENTE un objeto JSON válido con la estru
       }
       
       if (!pcapText.trim()) {
-        console.warn('No se extrajo texto del archivo PCAP');
+        console.warn('⚠️ No se extrajo texto del archivo PCAP');
       }
       
       if (!pptText.trim()) {
-        console.warn('No se extrajo texto del archivo PPT');
+        console.warn('⚠️ No se extrajo texto del archivo PPT');
       }
       
-      console.log(`PCAP extraído: ${pcapText.length} caracteres`);
-      console.log(`PPT extraído: ${pptText.length} caracteres`);
-      console.log(`Total de texto para análisis: ${pcapText.length + pptText.length} caracteres`);
+      console.log(`📊 PCAP extraído: ${pcapText.length} caracteres`);
+      console.log(`📊 PPT extraído: ${pptText.length} caracteres`);
+      console.log(`📊 Total de texto para análisis: ${pcapText.length + pptText.length} caracteres`);
       
       // Generar el prompt para Gemini
       const prompt = generatePrompt(pcapText, pptText);
-      console.log(`Prompt generado: ${prompt.length} caracteres`);
+      console.log(`🔤 Prompt generado: ${prompt.length} caracteres`);
       
       // Llamar a la API de Gemini con el modelo optimizado
-      console.log('Enviando análisis completo a Gemini API...');
+      console.log('🤖 Enviando análisis completo a Gemini API...');
       const analysis = await callGeminiAPI(prompt);
       
       setAnalysisResult(analysis);
-      console.log('Análisis completado exitosamente con Gemini 2.0 Flash');
+      console.log('✅ Análisis completado exitosamente con Gemini 2.0 Flash');
       
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Error desconocido durante el análisis';
       setError(errorMessage);
-      console.error('Error en análisis de licitación:', err);
+      console.error('❌ Error en análisis de licitación:', err);
     } finally {
       setIsLoading(false);
     }
