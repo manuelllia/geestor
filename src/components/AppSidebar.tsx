@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   Sidebar,
@@ -10,6 +9,7 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
+  useSidebar,
 } from "@/components/ui/sidebar"
 import { 
   Home, 
@@ -28,6 +28,7 @@ import {
 import { useTranslation } from '../hooks/useTranslation';
 import { Language } from '../utils/translations';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { useIsMobile } from '../hooks/use-mobile';
 
 interface AppSidebarProps {
   language: Language;
@@ -37,6 +38,8 @@ interface AppSidebarProps {
 
 export function AppSidebar({ language, activeSection, onSectionChange }: AppSidebarProps) {
   const { t } = useTranslation(language);
+  const { setOpenMobile } = useSidebar();
+  const isMobile = useIsMobile();
   const [openGroup, setOpenGroup] = useState<string | null>(null);
   const [openSubmenus, setOpenSubmenus] = useState<{ [key: string]: boolean }>({});
 
@@ -49,6 +52,14 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
       ...prev,
       [submenuId]: !prev[submenuId]
     }));
+  };
+
+  const handleSectionChange = (section: string) => {
+    onSectionChange(section);
+    // Auto-close sidebar on mobile when a section is selected
+    if (isMobile) {
+      setOpenMobile(false);
+    }
   };
 
   const menuGroups = [
@@ -143,7 +154,7 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
               <SidebarMenuItem>
                 <SidebarMenuButton
                   isActive={activeSection === 'inicio'}
-                  onClick={() => onSectionChange('inicio')}
+                  onClick={() => handleSectionChange('inicio')}
                   className="w-full justify-start hover:bg-blue-50 dark:hover:bg-blue-900/20 data-[active=true]:bg-blue-100 dark:data-[active=true]:bg-blue-800 mb-2"
                 >
                   <Home className="w-4 h-4" />
@@ -185,7 +196,7 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
                               isActive={activeSection === item.id}
                               onClick={() => {
                                 handleSubmenuToggle(item.id);
-                                onSectionChange(item.id);
+                                handleSectionChange(item.id);
                               }}
                               className="w-full justify-start hover:bg-blue-50 dark:hover:bg-blue-900/20 data-[active=true]:bg-blue-100 dark:data-[active=true]:bg-blue-800 text-gray-700 dark:text-gray-300 py-2"
                             >
@@ -206,7 +217,7 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
                                   <SidebarMenuButton
                                     key={subItem.id}
                                     isActive={activeSection === subItem.id}
-                                    onClick={() => onSectionChange(subItem.id)}
+                                    onClick={() => handleSectionChange(subItem.id)}
                                     className="w-full justify-start hover:bg-blue-50 dark:hover:bg-blue-900/20 data-[active=true]:bg-blue-100 dark:data-[active=true]:bg-blue-800 text-gray-600 dark:text-gray-400 py-1 text-sm"
                                   >
                                     <span>{subItem.label}</span>
@@ -218,7 +229,7 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
                         ) : (
                           <SidebarMenuButton
                             isActive={activeSection === item.id}
-                            onClick={() => onSectionChange(item.id)}
+                            onClick={() => handleSectionChange(item.id)}
                             className="w-full justify-start hover:bg-blue-50 dark:hover:bg-blue-900/20 data-[active=true]:bg-blue-100 dark:data-[active=true]:bg-blue-800 text-gray-700 dark:text-gray-300 py-2"
                           >
                             <item.icon className="w-4 h-4" />
