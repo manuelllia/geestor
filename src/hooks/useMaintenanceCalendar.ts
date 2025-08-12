@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import * as XLSX from 'xlsx';
 
@@ -53,7 +52,7 @@ export const useMaintenanceCalendar = () => {
   const [error, setError] = useState<string | null>(null);
   const [currentFile, setCurrentFile] = useState<File | null>(null);
   const [selectedSheets, setSelectedSheets] = useState<SheetInfo[]>([]);
-  const [processingStep, setProcessingStep] = useState<'upload' | 'select-sheets' | 'summary' | 'processing' | 'complete'>('upload');
+  const [processingStep, setProcessingStep] = useState<'upload' | 'select-sheets' | 'generate-calendar' | 'processing' | 'complete'>('upload');
   const [frecTipoData, setFrecTipoData] = useState<any[]>([]);
 
   const detectSheetType = (sheetName: string, columns: string[]): 'inventory' | 'frec-tipo' | 'planning' | 'anexo' | 'other' => {
@@ -429,7 +428,7 @@ Responde ÚNICAMENTE con el JSON, sin explicaciones adicionales.
         });
       }
 
-      setProcessingStep('complete');
+      setProcessingStep('generate-calendar');
     } catch (err) {
       setError('Error al procesar las hojas seleccionadas');
       console.error('Error processing selected sheets:', err);
@@ -440,6 +439,7 @@ Responde ÚNICAMENTE con el JSON, sin explicaciones adicionales.
 
   const generateAICalendar = async () => {
     setIsLoading(true);
+    setProcessingStep('processing');
     try {
       // Generar el análisis de denominaciones homogéneas (ahora con IA si es necesario)
       console.log('🤖 Analizando denominaciones homogéneas...');

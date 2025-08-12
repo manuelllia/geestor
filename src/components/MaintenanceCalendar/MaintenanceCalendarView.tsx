@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
@@ -13,6 +12,7 @@ import SheetSelector from './SheetSelector';
 import DataSummary from './DataSummary';
 import DenominacionAnalysis from './DenominacionAnalysis';
 import AICalendarGenerator from './AICalendarGenerator';
+import DenominacionesTable from './DenominacionesTable';
 
 interface MaintenanceCalendarViewProps {
   language: Language;
@@ -74,7 +74,7 @@ const MaintenanceCalendarView: React.FC<MaintenanceCalendarViewProps> = ({ langu
       processMaintenanceFile(maintenanceFile);
     } else if (currentProcessingFile === 'maintenance') {
       processFinalSheets(false);
-      setProcessingStep('summary');
+      setProcessingStep('generate-calendar');
     }
   };
 
@@ -114,24 +114,71 @@ const MaintenanceCalendarView: React.FC<MaintenanceCalendarViewProps> = ({ langu
           </Card>
         );
 
-      case 'summary':
+      case 'generate-calendar':
         return (
           <div className="space-y-6">
-            <DataSummary
-              sheets={selectedSheets.filter(s => s.selected)}
-              onBack={() => setProcessingStep('select-sheets')}
-              onGenerateCalendar={() => generateAICalendar()}
-            />
-            
-            {bothFilesProcessed && (
-              <AICalendarGenerator
-                inventoryCount={inventory.length}
-                maintenanceDataCount={frecTipoData.length}
-                onGenerateCalendar={() => generateAICalendar()}
-                isLoading={isLoading}
-                disabled={isLoading}
-              />
-            )}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  🤖 Generar Calendario de Mantenimiento
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-6 border border-blue-200 dark:border-blue-700">
+                  <p className="text-blue-800 dark:text-blue-200 font-medium mb-4">
+                    ✅ Archivos procesados correctamente
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border">
+                      <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                        {inventory.length}
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                        Equipos en Inventario
+                      </div>
+                    </div>
+                    
+                    <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border">
+                      <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                        {frecTipoData.length}
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                        Datos de Mantenimiento
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <p className="text-blue-600 dark:text-blue-300 text-sm mb-4">
+                    La IA analizará las denominaciones homogéneas y generará un calendario de mantenimiento personalizado.
+                  </p>
+                  
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={handleGenerateCalendar}
+                      disabled={isLoading}
+                      className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold"
+                      size="lg"
+                    >
+                      {isLoading ? (
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                          Generando Calendario...
+                        </div>
+                      ) : (
+                        'Generar Calendario de Mantenimiento con IA'
+                      )}
+                    </Button>
+                    
+                    <Button 
+                      onClick={handleBackToUpload}
+                      variant="outline"
+                    >
+                      Volver al Inicio
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         );
 
@@ -151,7 +198,9 @@ const MaintenanceCalendarView: React.FC<MaintenanceCalendarViewProps> = ({ langu
       case 'complete':
         return (
           <div className="space-y-6">
-            {denominacionesData.length > 0 && (
+            {denominacionesData.length > 0 ? (
+              <DenominacionesTable denominaciones={denominacionesData} />
+            ) : (
               <DenominacionAnalysis denominaciones={denominacionesData} />
             )}
             
