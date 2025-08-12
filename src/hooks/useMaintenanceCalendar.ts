@@ -13,6 +13,7 @@ interface InventoryItem {
   nextMaintenance: string;
   status: string;
   denominacionHomogenea?: string;
+  codigoDenominacion?: string;
 }
 
 interface MaintenanceEvent {
@@ -38,6 +39,7 @@ interface SheetInfo {
 }
 
 interface DenominacionHomogeneaData {
+  codigo?: string;
   denominacion: string;
   cantidad: number;
   frecuencia?: string;
@@ -141,6 +143,12 @@ export const useMaintenanceCalendar = () => {
       h.toLowerCase().includes('denominacion homogenea')
     );
     
+    const codigoIndex = headers.findIndex(h => 
+      h.toLowerCase().includes('código') || 
+      h.toLowerCase().includes('codigo') ||
+      h.toLowerCase().includes('cod')
+    );
+    
     return jsonData.slice(1).map((row: any, index: number) => ({
       id: `inv_${index + 1}`,
       equipment: row[0] || '',
@@ -152,7 +160,8 @@ export const useMaintenanceCalendar = () => {
       lastMaintenance: row[6] || '',
       nextMaintenance: row[7] || '',
       status: row[8] || 'Activo',
-      denominacionHomogenea: denominacionIndex !== -1 ? row[denominacionIndex] : ''
+      denominacionHomogenea: denominacionIndex !== -1 ? row[denominacionIndex] : '',
+      codigoDenominacion: codigoIndex !== -1 ? row[codigoIndex] : ''
     }));
   };
 
@@ -219,7 +228,8 @@ export const useMaintenanceCalendar = () => {
       const equipmentList = inventoryData.map(item => ({
         equipment: item.equipment,
         model: item.model,
-        denominacion: item.denominacionHomogenea
+        denominacion: item.denominacionHomogenea,
+        codigo: item.codigoDenominacion
       })).filter(item => item.equipment);
 
       const prompt = `
@@ -231,14 +241,16 @@ ${JSON.stringify(equipmentList, null, 2)}
 TAREA:
 1. Identifica y agrupa equipos similares que requieran el mismo tipo de mantenimiento
 2. Crea denominaciones homogéneas claras y descriptivas 
-3. Sugiere frecuencias de mantenimiento típicas para cada grupo
-4. Propón tipos de mantenimiento (preventivo, correctivo, calibración, etc.)
+3. Asigna códigos únicos para cada denominación (formato: DH-001, DH-002, etc.)
+4. Sugiere frecuencias de mantenimiento típicas para cada grupo
+5. Propón tipos de mantenimiento (preventivo, correctivo, calibración, etc.)
 
 RESPUESTA REQUERIDA:
 Proporciona un JSON con la siguiente estructura:
 {
   "denominacionesHomogeneas": [
     {
+      "codigo": "DH-001",
       "denominacion": "nombre descriptivo del grupo",
       "equiposIncluidos": ["equipo1", "equipo2"],
       "cantidad": numero_total,
@@ -291,6 +303,7 @@ Responde ÚNICAMENTE con el JSON, sin explicaciones adicionales.
       
       if (aiResult.denominacionesHomogeneas) {
         return aiResult.denominacionesHomogeneas.map((item: any) => ({
+          codigo: item.codigo,
           denominacion: item.denominacion,
           cantidad: item.cantidad,
           frecuencia: item.frecuenciaSugerida,
@@ -306,13 +319,16 @@ Responde ÚNICAMENTE con el JSON, sin explicaciones adicionales.
   };
 
   const countDenominacionesHomogeneas = async (inventoryData: InventoryItem[], frecTipoData: any[]) => {
-    const denominacionCount: { [key: string]: number } = {};
+    const denominacionCount: { [key: string]: { cantidad: number, codigo?: string } } = {};
     
     // Contar denominaciones en el inventario
     inventoryData.forEach(item => {
       if (item.denominacionHomogenea && item.denominacionHomogenea.trim()) {
         const denominacion = item.denominacionHomogenea.trim();
-        denominacionCount[denominacion] = (denominacionCount[denominacion] || 0) + 1;
+        if (!denominacionCount[denominacion]) {
+          denominacionCount[denominacion] = { cantidad: 0, codigo: item.codigoDenominacion };
+        }
+        denominacionCount[denominacion].cantidad += 1;
       }
     });
     
@@ -324,15 +340,16 @@ Responde ÚNICAMENTE con el JSON, sin explicaciones adicionales.
     }
     
     // Crear array con datos combinados del análisis tradicional
-    const result: DenominacionHomogeneaData[] = Object.entries(denominacionCount).map(([denominacion, cantidad]) => {
+    const result: DenominacionHomogeneaData[] = Object.entries(denominacionCount).map(([denominacion, info]) => {
       // Buscar información en FREC Y TIPO
       const frecTipoInfo = frecTipoData.find(item => 
         item.denominacion && item.denominacion.toLowerCase().trim() === denominacion.toLowerCase().trim()
       );
       
       return {
+        codigo: info.codigo || `DH-${Object.keys(denominacionCount).indexOf(denominacion) + 1}`.padStart(6, '0'),
         denominacion,
-        cantidad,
+        cantidad: info.cantidad,
         frecuencia: frecTipoInfo?.frecuencia || 'No especificada',
         tipoMantenimiento: frecTipoInfo?.tipo || 'No especificado'
       };

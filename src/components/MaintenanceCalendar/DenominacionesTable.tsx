@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 
 interface DenominacionHomogeneaData {
+  codigo?: string;
   denominacion: string;
   cantidad: number;
   frecuencia?: string;
@@ -47,6 +48,7 @@ const DenominacionesTable: React.FC<DenominacionesTableProps> = ({ denominacione
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="font-semibold">Código</TableHead>
                 <TableHead className="font-semibold">Denominación Homogénea</TableHead>
                 <TableHead className="font-semibold text-center">Cantidad</TableHead>
                 <TableHead className="font-semibold text-center">Frecuencia</TableHead>
@@ -56,6 +58,11 @@ const DenominacionesTable: React.FC<DenominacionesTableProps> = ({ denominacione
             <TableBody>
               {denominaciones.map((denominacion, index) => (
                 <TableRow key={index} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                  <TableCell className="font-medium">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
+                      {denominacion.codigo || `COD-${index + 1}`}
+                    </span>
+                  </TableCell>
                   <TableCell className="font-medium">
                     {denominacion.denominacion}
                   </TableCell>

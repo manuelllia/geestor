@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,6 +8,7 @@ import { Eye, Copy, Download, Plus, Upload, FileDown } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Language } from '../../utils/translations';
 import ChangeSheetCreateForm from './ChangeSheetCreateForm';
+import ImportChangeSheetsModal from './ImportChangeSheetsModal';
 
 interface ChangeSheetsListViewProps {
   language: Language;
@@ -21,18 +23,12 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({
 }) => {
   const { t } = useTranslation(language);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 30;
 
-  // Datos de ejemplo
-  const mockData = Array.from({ length: 85 }, (_, index) => ({
-    id: `CS-${String(index + 1).padStart(3, '0')}`,
-    employeeName: `Empleado ${index + 1}`,
-    originCenter: index % 3 === 0 ? 'Centro Madrid' : index % 3 === 1 ? 'Centro Barcelona' : 'Centro Valencia',
-    destinationCenter: index % 3 === 0 ? 'Centro Barcelona' : index % 3 === 1 ? 'Centro Valencia' : 'Centro Madrid',
-    startDate: new Date(2024, Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1),
-    status: ['Pendiente', 'Aprobado', 'Rechazado'][Math.floor(Math.random() * 3)]
-  }));
+  // Datos vacíos - eliminando simulaciones
+  const mockData: any[] = [];
 
   const totalPages = Math.ceil(mockData.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -49,10 +45,6 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({
 
   const handleExport = () => {
     console.log('Exportar datos');
-  };
-
-  const handleImport = () => {
-    console.log('Importar datos');
   };
 
   const getStatusBadge = (status: string) => {
@@ -105,7 +97,7 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({
           
           <Button
             variant="outline"
-            onClick={handleImport}
+            onClick={() => setShowImportModal(true)}
             className="border-blue-300 text-blue-700 hover:bg-blue-50"
           >
             <Upload className="w-4 h-4 mr-2" />
@@ -123,8 +115,33 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({
         </CardHeader>
         <CardContent>
           {mockData.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              <p>{t('noDataAvailable')}</p>
+            <div className="text-center py-12">
+              <div className="mx-auto w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center mb-4">
+                <Upload className="w-8 h-8 text-gray-400" />
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+                No hay hojas de cambio
+              </h3>
+              <p className="text-gray-500 dark:text-gray-400 mb-4">
+                Comienza creando una nueva hoja de cambio o importa datos desde un archivo.
+              </p>
+              <div className="flex justify-center space-x-2">
+                <Button
+                  onClick={() => setShowCreateForm(true)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Crear Nueva
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowImportModal(true)}
+                  className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                >
+                  <Upload className="w-4 h-4 mr-2" />
+                  Importar Datos
+                </Button>
+              </div>
             </div>
           ) : (
             <>
@@ -188,67 +205,76 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({
                 </Table>
               </div>
 
-              {/* Paginación */}
-              <div className="flex flex-col sm:flex-row justify-between items-center mt-4 gap-4">
-                <div className="text-sm text-gray-600 dark:text-gray-400">
-                  {t('showingRecords', {
-                    start: startIndex + 1,
-                    end: endIndex,
-                    total: mockData.length
-                  })}
-                </div>
-                
-                <div className="flex items-center space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                    disabled={currentPage === 1}
-                  >
-                    Anterior
-                  </Button>
-                  
-                  <div className="flex space-x-1">
-                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                      let pageNumber;
-                      if (totalPages <= 5) {
-                        pageNumber = i + 1;
-                      } else if (currentPage <= 3) {
-                        pageNumber = i + 1;
-                      } else if (currentPage >= totalPages - 2) {
-                        pageNumber = totalPages - 4 + i;
-                      } else {
-                        pageNumber = currentPage - 2 + i;
-                      }
-                      
-                      return (
-                        <Button
-                          key={pageNumber}
-                          variant={currentPage === pageNumber ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setCurrentPage(pageNumber)}
-                          className={currentPage === pageNumber ? "bg-blue-600 text-white" : ""}
-                        >
-                          {pageNumber}
-                        </Button>
-                      );
+              {/* Paginación - solo mostrar si hay datos */}
+              {mockData.length > 0 && (
+                <div className="flex flex-col sm:flex-row justify-between items-center mt-4 gap-4">
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    {t('showingRecords', {
+                      start: startIndex + 1,
+                      end: endIndex,
+                      total: mockData.length
                     })}
                   </div>
                   
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                    disabled={currentPage === totalPages}
-                  >
-                    Siguiente
-                  </Button>
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                      disabled={currentPage === 1}
+                    >
+                      Anterior
+                    </Button>
+                    
+                    <div className="flex space-x-1">
+                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        let pageNumber;
+                        if (totalPages <= 5) {
+                          pageNumber = i + 1;
+                        } else if (currentPage <= 3) {
+                          pageNumber = i + 1;
+                        } else if (currentPage >= totalPages - 2) {
+                          pageNumber = totalPages - 4 + i;
+                        } else {
+                          pageNumber = currentPage - 2 + i;
+                        }
+                        
+                        return (
+                          <Button
+                            key={pageNumber}
+                            variant={currentPage === pageNumber ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => setCurrentPage(pageNumber)}
+                            className={currentPage === pageNumber ? "bg-blue-600 text-white" : ""}
+                          >
+                            {pageNumber}
+                          </Button>
+                        );
+                      })}
+                    </div>
+                    
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                      disabled={currentPage === totalPages}
+                    >
+                      Siguiente
+                    </Button>
+                  </div>
                 </div>
-              </div>
+              )}
             </>
           )}
         </CardContent>
       </Card>
+
+      {/* Modal de importación */}
+      <ImportChangeSheetsModal
+        open={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        language={language}
+      />
     </div>
   );
 };
