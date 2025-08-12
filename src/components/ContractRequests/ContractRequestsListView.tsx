@@ -1,346 +1,202 @@
 
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Eye, Copy, Download, Plus, Upload, FileDown, RefreshCw, AlertCircle } from 'lucide-react';
-import { useTranslation } from '../../hooks/useTranslation';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Button } from '../ui/button';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
+import { Badge } from '../ui/badge';
+import { Plus, Upload, Download, AlertCircle, Loader2 } from 'lucide-react';
 import { Language } from '../../utils/translations';
+import { useTranslation } from '../../hooks/useTranslation';
+import { getContractRequests, ContractRequestData } from '../../services/contractRequestsService';
 import ContractRequestCreateForm from './ContractRequestCreateForm';
 import ImportContractRequestsModal from '../ChangeSheets/ImportContractRequestsModal';
-import { getContractRequests, ContractRequestRecord } from '../../services/contractRequestsService';
 
 interface ContractRequestsListViewProps {
   language: Language;
-  onViewDetails: (requestId: string) => void;
-  onCreateNew: () => void;
 }
 
-const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ 
-  language, 
-  onViewDetails,
-  onCreateNew
-}) => {
+const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ language }) => {
   const { t } = useTranslation(language);
+  const [requests, setRequests] = useState<ContractRequestData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [contractRequests, setContractRequests] = useState<ContractRequestRecord[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const itemsPerPage = 30;
 
-  const loadContractRequests = async () => {
-    setIsLoading(true);
-    setError(null);
+  useEffect(() => {
+    loadRequests();
+  }, []);
+
+  const loadRequests = async () => {
     try {
-      const requests = await getContractRequests();
-      setContractRequests(requests);
-      console.log('Solicitudes de contrato cargadas:', requests.length);
+      setLoading(true);
+      setError(null);
+      const data = await getContractRequests();
+      setRequests(data);
     } catch (err) {
-      console.error('Error cargando solicitudes de contrato:', err);
+      console.error('Error loading contract requests:', err);
       setError('Error al cargar las solicitudes de contrato');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  useEffect(() => {
-    loadContractRequests();
-  }, []);
-
-  const totalPages = Math.ceil(contractRequests.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = Math.min(startIndex + itemsPerPage, contractRequests.length);
-  const currentData = contractRequests.slice(startIndex, endIndex);
-
-  const handleDuplicate = (id: string) => {
-    console.log('Duplicar registro:', id);
-  };
-
-  const handleDownloadPDF = (id: string) => {
-    console.log('Descargar PDF:', id);
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'pendiente':
+        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300';
+      case 'en proceso':
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300';
+      case 'aprobado':
+        return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300';
+      case 'rechazado':
+        return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300';
+      default:
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-300';
+    }
   };
 
   const handleExport = () => {
-    console.log('Exportar datos');
-  };
-
-  const handleRefresh = () => {
-    loadContractRequests();
-  };
-
-  const getStatusBadge = (status: string) => {
-    const statusConfig = {
-      'Pendiente': 'bg-yellow-100 text-yellow-800 border-yellow-300',
-      'Aprobado': 'bg-green-100 text-green-800 border-green-300',
-      'Rechazado': 'bg-red-100 text-red-800 border-red-300'
-    };
-    return statusConfig[status as keyof typeof statusConfig] || 'bg-gray-100 text-gray-800 border-gray-300';
-  };
-
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString(language === 'es' ? 'es-ES' : 'en-US');
+    console.log('Exportar solicitudes de contrato');
   };
 
   if (showCreateForm) {
     return (
-      <ContractRequestCreateForm 
-        language={language} 
-        onBack={() => {
-          setShowCreateForm(false);
-          loadContractRequests(); // Recargar datos después de crear
-        }} 
+      <ContractRequestCreateForm
+        language={language}
+        onBack={() => setShowCreateForm(false)}
+        onSave={loadRequests}
       />
     );
   }
 
   return (
     <div className="space-y-6">
-      {/* Header con botones de acción */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h1 className="text-2xl font-semibold text-blue-800 dark:text-blue-200">
-          Gestión de Solicitudes de Contratación
-        </h1>
-        
-        <div className="flex flex-wrap gap-2">
-          <Button
-            onClick={handleRefresh}
-            variant="outline"
-            disabled={isLoading}
-            className="border-blue-300 text-blue-700 hover:bg-blue-50"
-          >
-            <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-            Actualizar
-          </Button>
-          
-          <Button
-            onClick={() => setShowCreateForm(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            {t('createNew')}
-          </Button>
-          
-          <Button
-            variant="outline"
-            onClick={handleExport}
-            className="border-blue-300 text-blue-700 hover:bg-blue-50"
-          >
-            <FileDown className="w-4 h-4 mr-2" />
-            {t('export')}
-          </Button>
-          
-          <Button
-            variant="outline"
-            onClick={() => setShowImportModal(true)}
-            className="border-blue-300 text-blue-700 hover:bg-blue-50"
-          >
-            <Upload className="w-4 h-4 mr-2" />
-            {t('import')}
-          </Button>
-        </div>
-      </div>
-
-      {/* Tabla de solicitudes de contrato */}
-      <Card className="border-blue-200 dark:border-blue-800">
+      <Card>
         <CardHeader>
-          <CardTitle className="text-blue-800 dark:text-blue-200">
-            Solicitudes de Contratación
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {error && (
-            <div className="text-center py-8">
-              <div className="mx-auto w-16 h-16 bg-red-100 dark:bg-red-800 rounded-lg flex items-center justify-center mb-4">
-                <AlertCircle className="w-8 h-8 text-red-400" />
-              </div>
-              <h3 className="text-lg font-medium text-red-900 dark:text-red-100 mb-2">
-                Error al cargar datos
-              </h3>
-              <p className="text-red-600 dark:text-red-400 mb-4">
-                {error}
-              </p>
-              <Button onClick={handleRefresh} className="bg-blue-600 hover:bg-blue-700 text-white">
-                Intentar de nuevo
+          <div className="flex justify-between items-center">
+            <CardTitle className="text-2xl font-bold text-blue-900 dark:text-blue-100">
+              Solicitudes de Contratación
+            </CardTitle>
+            <div className="flex space-x-2">
+              <Button
+                variant="outline"
+                onClick={() => setShowImportModal(true)}
+                className="flex items-center space-x-2"
+              >
+                <Upload className="h-4 w-4" />
+                <span>Importar</span>
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleExport}
+                className="flex items-center space-x-2"
+              >
+                <Download className="h-4 w-4" />
+                <span>Exportar</span>
+              </Button>
+              <Button
+                onClick={() => setShowCreateForm(true)}
+                className="bg-blue-600 hover:bg-blue-700 flex items-center space-x-2"
+              >
+                <Plus className="h-4 w-4" />
+                <span>Crear Nuevo</span>
               </Button>
             </div>
-          )}
-          
-          {isLoading && (
-            <div className="text-center py-12">
-              <div className="mx-auto w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center mb-4">
-                <RefreshCw className="w-8 h-8 text-gray-400 animate-spin" />
-              </div>
-              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
-                Cargando solicitudes de contratación...
-              </h3>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+              <span className="ml-2 text-gray-600 dark:text-gray-400">Cargando solicitudes...</span>
             </div>
-          )}
-          
-          {!isLoading && !error && contractRequests.length === 0 && (
-            <div className="text-center py-12">
-              <div className="mx-auto w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center mb-4">
-                <Upload className="w-8 h-8 text-gray-400" />
-              </div>
-              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
-                No hay solicitudes de contratación
-              </h3>
-              <p className="text-gray-500 dark:text-gray-400 mb-4">
-                Comienza creando una nueva solicitud o importa datos desde un archivo.
-              </p>
-              <div className="flex justify-center space-x-2">
-                <Button
-                  onClick={() => setShowCreateForm(true)}
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Crear Nueva
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => setShowImportModal(true)}
-                  className="border-blue-300 text-blue-700 hover:bg-blue-50"
-                >
-                  <Upload className="w-4 h-4 mr-2" />
-                  Importar Datos
-                </Button>
-              </div>
+          ) : error ? (
+            <div className="flex items-center justify-center py-8">
+              <AlertCircle className="h-8 w-8 text-red-500 mr-2" />
+              <span className="text-red-600 dark:text-red-400">{error}</span>
+              <Button 
+                variant="outline" 
+                onClick={loadRequests}
+                className="ml-4"
+              >
+                Reintentar
+              </Button>
             </div>
-          )}
-          
-          {!isLoading && !error && contractRequests.length > 0 && (
-            <>
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nombre</TableHead>
+                    <TableHead>Apellidos</TableHead>
+                    <TableHead>Puesto</TableHead>
+                    <TableHead>Departamento</TableHead>
+                    <TableHead>Tipo de Solicitud</TableHead>
+                    <TableHead>Fecha de Solicitud</TableHead>
+                    <TableHead>Fecha de Inicio Esperada</TableHead>
+                    <TableHead>Salario</TableHead>
+                    <TableHead>Estado</TableHead>
+                    <TableHead>Observaciones</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {requests.length === 0 ? (
                     <TableRow>
-                      <TableHead>Candidato</TableHead>
-                      <TableHead>Puesto</TableHead>
-                      <TableHead>Empresa</TableHead>
-                      <TableHead>Fecha Incorporación</TableHead>
-                      <TableHead>Estado</TableHead>
-                      <TableHead className="text-center">Acciones</TableHead>
+                      <TableCell colSpan={10} className="text-center py-8 text-gray-500 dark:text-gray-400">
+                        No hay solicitudes de contrato registradas.
+                        <br />
+                        <Button 
+                          variant="link" 
+                          onClick={() => setShowCreateForm(true)}
+                          className="mt-2"
+                        >
+                          Crear la primera solicitud
+                        </Button>
+                      </TableCell>
                     </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {currentData.map((request) => (
+                  ) : (
+                    requests.map((request) => (
                       <TableRow key={request.id}>
-                        <TableCell className="font-medium">
-                          {request.applicantName} {request.applicantLastName}
-                        </TableCell>
+                        <TableCell className="font-medium">{request.applicantName}</TableCell>
+                        <TableCell>{request.applicantLastName}</TableCell>
                         <TableCell>{request.position}</TableCell>
-                        <TableCell>{request.company}</TableCell>
+                        <TableCell>{request.department}</TableCell>
+                        <TableCell>{request.requestType}</TableCell>
                         <TableCell>
-                          {request.incorporationDate ? formatDate(request.incorporationDate) : 'No especificada'}
+                          {request.requestDate 
+                            ? request.requestDate.toLocaleDateString() 
+                            : '-'
+                          }
                         </TableCell>
                         <TableCell>
-                          <Badge className={getStatusBadge(request.status)}>
+                          {request.expectedStartDate 
+                            ? request.expectedStartDate.toLocaleDateString() 
+                            : '-'
+                          }
+                        </TableCell>
+                        <TableCell>{request.salary}</TableCell>
+                        <TableCell>
+                          <Badge className={getStatusColor(request.status)}>
                             {request.status}
                           </Badge>
                         </TableCell>
-                        <TableCell>
-                          <div className="flex justify-center space-x-1">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => onViewDetails(request.id)}
-                              title="Ver detalles"
-                            >
-                              <Eye className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDuplicate(request.id)}
-                              title="Duplicar registro"
-                            >
-                              <Copy className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDownloadPDF(request.id)}
-                              title="Descargar PDF"
-                            >
-                              <Download className="w-4 h-4" />
-                            </Button>
-                          </div>
+                        <TableCell className="max-w-xs truncate">
+                          {request.observations || '-'}
                         </TableCell>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-
-              {/* Paginación */}
-              {contractRequests.length > itemsPerPage && (
-                <div className="flex flex-col sm:flex-row justify-between items-center mt-4 gap-4">
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
-                    Mostrando {startIndex + 1} a {endIndex} de {contractRequests.length} registros
-                  </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                      disabled={currentPage === 1}
-                    >
-                      Anterior
-                    </Button>
-                    
-                    <div className="flex space-x-1">
-                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                        let pageNumber;
-                        if (totalPages <= 5) {
-                          pageNumber = i + 1;
-                        } else if (currentPage <= 3) {
-                          pageNumber = i + 1;
-                        } else if (currentPage >= totalPages - 2) {
-                          pageNumber = totalPages - 4 + i;
-                        } else {
-                          pageNumber = currentPage - 2 + i;
-                        }
-                        
-                        return (
-                          <Button
-                            key={pageNumber}
-                            variant={currentPage === pageNumber ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => setCurrentPage(pageNumber)}
-                            className={currentPage === pageNumber ? "bg-blue-600 text-white" : ""}
-                          >
-                            {pageNumber}
-                          </Button>
-                        );
-                      })}
-                    </div>
-                    
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                      disabled={currentPage === totalPages}
-                    >
-                      Siguiente
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
           )}
         </CardContent>
       </Card>
 
-      {/* Modal de importación */}
       <ImportContractRequestsModal
         open={showImportModal}
-        onClose={() => {
-          setShowImportModal(false);
-          loadContractRequests(); // Recargar datos después de importar
-        }}
+        onClose={() => setShowImportModal(false)}
         language={language}
       />
     </div>

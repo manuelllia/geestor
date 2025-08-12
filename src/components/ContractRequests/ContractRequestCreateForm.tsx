@@ -1,526 +1,286 @@
 
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Save } from 'lucide-react';
-import { useTranslation } from '../../hooks/useTranslation';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
+import { Label } from '../ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { Textarea } from '../ui/textarea';
+import { ArrowLeft, Save, Loader2 } from 'lucide-react';
 import { Language } from '../../utils/translations';
-import { ContractRequestData, saveContractRequest } from '../../services/contractRequestsService';
+import { useTranslation } from '../../hooks/useTranslation';
+import { saveContractRequest, ContractRequestData } from '../../services/contractRequestsService';
 
 interface ContractRequestCreateFormProps {
   language: Language;
   onBack: () => void;
+  onSave: () => void;
 }
 
-const ContractRequestCreateForm: React.FC<ContractRequestCreateFormProps> = ({ 
-  language, 
-  onBack 
+const ContractRequestCreateForm: React.FC<ContractRequestCreateFormProps> = ({
+  language,
+  onBack,
+  onSave
 }) => {
   const { t } = useTranslation(language);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState<ContractRequestData>({
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState<Partial<ContractRequestData>>({
     applicantName: '',
     applicantLastName: '',
-    contractType: '',
-    salary: '',
-    incorporationDate: undefined,
-    company: '',
     position: '',
-    professionalCategory: '',
-    population: '',
-    province: '',
-    autonomousCommunity: '',
-    workCenter: '',
-    directManagerName: '',
-    directManagerLastName: '',
-    expenseValidatorName: '',
-    expenseValidatorLastName: '',
-    companyFloor: '',
-    language1: '',
-    language1Level: '',
-    language2: '',
-    language2Level: '',
-    electromedicalExperience: '',
-    electromedicalExperienceDuration: '',
-    installationsExperience: '',
-    installationsExperienceDuration: '',
-    contractingReason: '',
-    observationsCommitments: '',
+    department: '',
+    requestType: '',
+    requestDate: new Date(),
+    expectedStartDate: undefined,
+    salary: '',
+    experience: '',
+    qualifications: [],
     status: 'Pendiente',
     observations: ''
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-
-    try {
-      await saveContractRequest(formData);
-      console.log('Solicitud de contrato guardada exitosamente');
-      onBack(); // Volver a la lista
-    } catch (error) {
-      console.error('Error al guardar la solicitud:', error);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleInputChange = (field: keyof ContractRequestData, value: string) => {
+  const handleInputChange = (field: keyof ContractRequestData, value: any) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
   };
 
-  const handleDateChange = (field: keyof ContractRequestData, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value ? new Date(value) : undefined
-    }));
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.applicantName || !formData.applicantLastName || !formData.position || !formData.department) {
+      alert('Por favor, complete todos los campos obligatorios');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await saveContractRequest(formData as ContractRequestData);
+      onSave();
+      onBack();
+    } catch (error) {
+      console.error('Error saving contract request:', error);
+      alert('Error al guardar la solicitud de contrato');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-4">
-        <Button
-          variant="outline"
-          onClick={onBack}
-          className="border-blue-300 text-blue-700 hover:bg-blue-50"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Volver
-        </Button>
-        <h1 className="text-2xl font-semibold text-blue-800 dark:text-blue-200">
-          Nueva Solicitud de Contratación
-        </h1>
-      </div>
-
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Candidato Seleccionado */}
-        <Card className="border-blue-200 dark:border-blue-800">
-          <CardHeader>
-            <CardTitle className="text-blue-800 dark:text-blue-200">
-              Candidato Seleccionado <span className="text-red-500">(Obligatorio)</span>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center space-x-4">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={onBack}
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <CardTitle className="text-2xl font-bold text-blue-900 dark:text-blue-100">
+              Nueva Solicitud de Contratación
             </CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="applicantName">Nombre</Label>
-              <Input
-                id="applicantName"
-                value={formData.applicantName}
-                onChange={(e) => handleInputChange('applicantName', e.target.value)}
-                required
-              />
+          </div>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Información del Solicitante */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="applicantName">Nombre *</Label>
+                <Input
+                  id="applicantName"
+                  value={formData.applicantName || ''}
+                  onChange={(e) => handleInputChange('applicantName', e.target.value)}
+                  placeholder="Nombre del solicitante"
+                  required
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="applicantLastName">Apellidos *</Label>
+                <Input
+                  id="applicantLastName"
+                  value={formData.applicantLastName || ''}
+                  onChange={(e) => handleInputChange('applicantLastName', e.target.value)}
+                  placeholder="Apellidos del solicitante"
+                  required
+                />
+              </div>
             </div>
-            <div>
-              <Label htmlFor="applicantLastName">Apellidos</Label>
-              <Input
-                id="applicantLastName"
-                value={formData.applicantLastName}
-                onChange={(e) => handleInputChange('applicantLastName', e.target.value)}
-                required
-              />
-            </div>
-          </CardContent>
-        </Card>
 
-        {/* Información del Contrato */}
-        <Card className="border-blue-200 dark:border-blue-800">
-          <CardHeader>
-            <CardTitle className="text-blue-800 dark:text-blue-200">
-              Información del Contrato
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <Label htmlFor="contractType">Tipo de Contrato <span className="text-red-500">(Obligatorio)</span></Label>
-              <Select onValueChange={(value) => handleInputChange('contractType', value)}>
+            {/* Información del Puesto */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="position">Puesto *</Label>
+                <Input
+                  id="position"
+                  value={formData.position || ''}
+                  onChange={(e) => handleInputChange('position', e.target.value)}
+                  placeholder="Puesto solicitado"
+                  required
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="department">Departamento *</Label>
+                <Select 
+                  value={formData.department || ''} 
+                  onValueChange={(value) => handleInputChange('department', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar departamento" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Recursos Humanos">Recursos Humanos</SelectItem>
+                    <SelectItem value="Tecnología">Tecnología</SelectItem>
+                    <SelectItem value="Ventas">Ventas</SelectItem>
+                    <SelectItem value="Marketing">Marketing</SelectItem>
+                    <SelectItem value="Finanzas">Finanzas</SelectItem>
+                    <SelectItem value="Operaciones">Operaciones</SelectItem>
+                    <SelectItem value="Administración">Administración</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Tipo de Solicitud y Fechas */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="requestType">Tipo de Solicitud</Label>
+                <Select 
+                  value={formData.requestType || ''} 
+                  onValueChange={(value) => handleInputChange('requestType', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Tipo de solicitud" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Nueva contratación">Nueva contratación</SelectItem>
+                    <SelectItem value="Reemplazo">Reemplazo</SelectItem>
+                    <SelectItem value="Temporal">Temporal</SelectItem>
+                    <SelectItem value="Prácticas">Prácticas</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="requestDate">Fecha de Solicitud</Label>
+                <Input
+                  id="requestDate"
+                  type="date"
+                  value={formData.requestDate ? formData.requestDate.toISOString().split('T')[0] : ''}
+                  onChange={(e) => handleInputChange('requestDate', new Date(e.target.value))}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="expectedStartDate">Fecha de Inicio Esperada</Label>
+                <Input
+                  id="expectedStartDate"
+                  type="date"
+                  value={formData.expectedStartDate ? formData.expectedStartDate.toISOString().split('T')[0] : ''}
+                  onChange={(e) => handleInputChange('expectedStartDate', new Date(e.target.value))}
+                />
+              </div>
+            </div>
+
+            {/* Salario y Experiencia */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="salary">Salario</Label>
+                <Input
+                  id="salary"
+                  value={formData.salary || ''}
+                  onChange={(e) => handleInputChange('salary', e.target.value)}
+                  placeholder="Rango salarial"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="experience">Experiencia Requerida</Label>
+                <Select 
+                  value={formData.experience || ''} 
+                  onValueChange={(value) => handleInputChange('experience', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Nivel de experiencia" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Sin experiencia">Sin experiencia</SelectItem>
+                    <SelectItem value="1-2 años">1-2 años</SelectItem>
+                    <SelectItem value="3-5 años">3-5 años</SelectItem>
+                    <SelectItem value="5+ años">5+ años</SelectItem>
+                    <SelectItem value="Senior">Senior</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Estado */}
+            <div className="space-y-2">
+              <Label htmlFor="status">Estado</Label>
+              <Select 
+                value={formData.status || ''} 
+                onValueChange={(value) => handleInputChange('status', value)}
+              >
                 <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar" />
+                  <SelectValue placeholder="Estado de la solicitud" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="indefinido">Indefinido</SelectItem>
-                  <SelectItem value="temporal">Temporal</SelectItem>
-                  <SelectItem value="practicas">Prácticas</SelectItem>
-                  <SelectItem value="obra-servicio">Obra y Servicio</SelectItem>
+                  <SelectItem value="Pendiente">Pendiente</SelectItem>
+                  <SelectItem value="En proceso">En proceso</SelectItem>
+                  <SelectItem value="Aprobado">Aprobado</SelectItem>
+                  <SelectItem value="Rechazado">Rechazado</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            <div>
-              <Label htmlFor="salary">Salario</Label>
-              <Input
-                id="salary"
-                value={formData.salary}
-                onChange={(e) => handleInputChange('salary', e.target.value)}
-                placeholder="Indicar importe"
-              />
-            </div>
-            <div>
+
+            {/* Observaciones */}
+            <div className="space-y-2">
               <Label htmlFor="observations">Observaciones</Label>
-              <Input
+              <Textarea
                 id="observations"
-                value={formData.observations}
+                value={formData.observations || ''}
                 onChange={(e) => handleInputChange('observations', e.target.value)}
-                placeholder="Ej: Según convenio"
-              />
-            </div>
-            <div>
-              <Label htmlFor="incorporationDate">Fecha de Incorporación <span className="text-red-500">(Obligatorio)</span></Label>
-              <Input
-                id="incorporationDate"
-                type="date"
-                onChange={(e) => handleDateChange('incorporationDate', e.target.value)}
-              />
-            </div>
-            <div>
-              <Label htmlFor="company">Empresa <span className="text-red-500">(Obligatorio)</span></Label>
-              <Select onValueChange={(value) => handleInputChange('company', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="iberman-sa">IBERMAN SA</SelectItem>
-                  <SelectItem value="asime-sa">ASIME SA</SelectItem>
-                  <SelectItem value="mantelec-sa">MANTELEC SA</SelectItem>
-                  <SelectItem value="insanex-sl">INSANEX SL</SelectItem>
-                  <SelectItem value="ssm">SSM</SelectItem>
-                  <SelectItem value="rd-healing">RD HEALING</SelectItem>
-                  <SelectItem value="ainatec">AINATEC</SelectItem>
-                  <SelectItem value="indel-facilities">INDEL FACILITIES</SelectItem>
-                  <SelectItem value="otra">OTRA</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="position">Puesto de Trabajo <span className="text-red-500">(Obligatorio)</span></Label>
-              <Select onValueChange={(value) => handleInputChange('position', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="tecnico-electromedicina">TÉCNICO/A DE ELECTROMEDICINA</SelectItem>
-                  <SelectItem value="rc">RC</SelectItem>
-                  <SelectItem value="ingeniero-electronico">INGENIERO/A ELECTRÓNICO</SelectItem>
-                  <SelectItem value="ingeniero-mecanico">INGENIERO/A MECÁNICO</SelectItem>
-                  <SelectItem value="ingeniero-desarrollo">INGENIERO/A DESARROLLO HW Y SW</SelectItem>
-                  <SelectItem value="electricista">ELECTRICISTA</SelectItem>
-                  <SelectItem value="frigorista">FRIGORISTA</SelectItem>
-                  <SelectItem value="tecnico-instalaciones">TÉCNICO/A DE INSTALACIONES</SelectItem>
-                  <SelectItem value="albanil">ALBAÑIL</SelectItem>
-                  <SelectItem value="otro">OTRO</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="professionalCategory">Categoría Profesional <span className="text-red-500">(Obligatorio)</span></Label>
-              <Select onValueChange={(value) => handleInputChange('professionalCategory', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="tecnico">TÉCNICO/A</SelectItem>
-                  <SelectItem value="ingeniero">INGENIERO/A</SelectItem>
-                  <SelectItem value="oficial-1">OFICIAL 1ª</SelectItem>
-                  <SelectItem value="oficial-2">OFICIAL 2ª</SelectItem>
-                  <SelectItem value="oficial-3">OFICIAL 3ª</SelectItem>
-                  <SelectItem value="otra">OTRA</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Ubicación */}
-        <Card className="border-blue-200 dark:border-blue-800">
-          <CardHeader>
-            <CardTitle className="text-blue-800 dark:text-blue-200">
-              Ubicación
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <Label htmlFor="population">Población</Label>
-              <Input
-                id="population"
-                value={formData.population}
-                onChange={(e) => handleInputChange('population', e.target.value)}
-              />
-            </div>
-            <div>
-              <Label htmlFor="province">Provincia</Label>
-              <Input
-                id="province"
-                value={formData.province}
-                onChange={(e) => handleInputChange('province', e.target.value)}
-              />
-            </div>
-            <div>
-              <Label htmlFor="autonomousCommunity">Comunidad Autónoma</Label>
-              <Input
-                id="autonomousCommunity"
-                value={formData.autonomousCommunity}
-                onChange={(e) => handleInputChange('autonomousCommunity', e.target.value)}
-              />
-            </div>
-            <div className="md:col-span-3">
-              <Label htmlFor="workCenter">Centro de Trabajo <span className="text-red-500">(Obligatorio)</span></Label>
-              <Select onValueChange={(value) => handleInputChange('workCenter', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="sede-central">Sede Central</SelectItem>
-                  <SelectItem value="delegacion-madrid">Delegación Madrid</SelectItem>
-                  <SelectItem value="delegacion-barcelona">Delegación Barcelona</SelectItem>
-                  <SelectItem value="delegacion-valencia">Delegación Valencia</SelectItem>
-                  <SelectItem value="otro">Otro</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Responsable Directo */}
-        <Card className="border-blue-200 dark:border-blue-800">
-          <CardHeader>
-            <CardTitle className="text-blue-800 dark:text-blue-200">
-              Responsable Directo
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="directManagerName">Nombre</Label>
-              <Input
-                id="directManagerName"
-                value={formData.directManagerName}
-                onChange={(e) => handleInputChange('directManagerName', e.target.value)}
-              />
-            </div>
-            <div>
-              <Label htmlFor="directManagerLastName">Apellidos</Label>
-              <Input
-                id="directManagerLastName"
-                value={formData.directManagerLastName}
-                onChange={(e) => handleInputChange('directManagerLastName', e.target.value)}
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Validador de Gastos y Vacaciones */}
-        <Card className="border-blue-200 dark:border-blue-800">
-          <CardHeader>
-            <CardTitle className="text-blue-800 dark:text-blue-200">
-              Validador de Gastos y Vacaciones
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="expenseValidatorName">Nombre</Label>
-              <Input
-                id="expenseValidatorName"
-                value={formData.expenseValidatorName}
-                onChange={(e) => handleInputChange('expenseValidatorName', e.target.value)}
-              />
-            </div>
-            <div>
-              <Label htmlFor="expenseValidatorLastName">Apellidos</Label>
-              <Input
-                id="expenseValidatorLastName"
-                value={formData.expenseValidatorLastName}
-                onChange={(e) => handleInputChange('expenseValidatorLastName', e.target.value)}
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Piso de Empresa */}
-        <Card className="border-blue-200 dark:border-blue-800">
-          <CardHeader>
-            <CardTitle className="text-blue-800 dark:text-blue-200">
-              Piso de Empresa <span className="text-red-500">(Obligatorio)</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex gap-4">
-              <label className="flex items-center gap-2">
-                <input
-                  type="radio"
-                  name="companyFloor"
-                  value="Si"
-                  checked={formData.companyFloor === 'Si'}
-                  onChange={(e) => handleInputChange('companyFloor', e.target.value)}
-                />
-                Sí
-              </label>
-              <label className="flex items-center gap-2">
-                <input
-                  type="radio"
-                  name="companyFloor"
-                  value="No"
-                  checked={formData.companyFloor === 'No'}
-                  onChange={(e) => handleInputChange('companyFloor', e.target.value)}
-                />
-                No
-              </label>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Otros Datos de Interés */}
-        <Card className="border-blue-200 dark:border-blue-800">
-          <CardHeader>
-            <CardTitle className="text-blue-800 dark:text-blue-200">
-              Otros Datos de Interés
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="language1">Idioma</Label>
-                <Select onValueChange={(value) => handleInputChange('language1', value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ingles">INGLÉS</SelectItem>
-                    <SelectItem value="frances">FRANCÉS</SelectItem>
-                    <SelectItem value="portugues">PORTUGUÉS</SelectItem>
-                    <SelectItem value="otro">OTRO</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="language1Level">Nivel</Label>
-                <Select onValueChange={(value) => handleInputChange('language1Level', value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="a1-a2">A1-A2 (BÁSICO)</SelectItem>
-                    <SelectItem value="b1">B1 (INTERMEDIO-BAJO)</SelectItem>
-                    <SelectItem value="b1-b2">B1-B2</SelectItem>
-                    <SelectItem value="b2">B2 (FIRST CERTIFICATE)</SelectItem>
-                    <SelectItem value="b2-c1">B2-C1</SelectItem>
-                    <SelectItem value="c1">C1 (ADVANCED)</SelectItem>
-                    <SelectItem value="c2">C2 (BILINGÜE)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="language2">Idioma 2</Label>
-                <Select onValueChange={(value) => handleInputChange('language2', value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="frances">FRANCÉS</SelectItem>
-                    <SelectItem value="portugues">PORTUGUÉS</SelectItem>
-                    <SelectItem value="otro">OTRO</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="language2Level">Nivel 2</Label>
-                <Select onValueChange={(value) => handleInputChange('language2Level', value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="a1-a2">A1-A2 (BÁSICO)</SelectItem>
-                    <SelectItem value="b1">B1 (INTERMEDIO-BAJO)</SelectItem>
-                    <SelectItem value="b1-b2">B1-B2</SelectItem>
-                    <SelectItem value="b2">B2 (FIRST CERTIFICATE)</SelectItem>
-                    <SelectItem value="b2-c1">B2-C1</SelectItem>
-                    <SelectItem value="c1">C1 (ADVANCED)</SelectItem>
-                    <SelectItem value="c2">C2 (BILINGÜE)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="electromedicalExperience">Experiencia Previa en Electromedicina</Label>
-                <Input
-                  id="electromedicalExperience"
-                  value={formData.electromedicalExperience}
-                  onChange={(e) => handleInputChange('electromedicalExperience', e.target.value)}
-                />
-                <Label htmlFor="electromedicalExperienceDuration" className="text-sm text-gray-600">Duración</Label>
-                <Input
-                  id="electromedicalExperienceDuration"
-                  value={formData.electromedicalExperienceDuration}
-                  onChange={(e) => handleInputChange('electromedicalExperienceDuration', e.target.value)}
-                />
-              </div>
-              <div>
-                <Label htmlFor="installationsExperience">Experiencia Previa en Instalaciones</Label>
-                <Input
-                  id="installationsExperience"
-                  value={formData.installationsExperience}
-                  onChange={(e) => handleInputChange('installationsExperience', e.target.value)}
-                />
-                <Label htmlFor="installationsExperienceDuration" className="text-sm text-gray-600">Duración</Label>
-                <Input
-                  id="installationsExperienceDuration"
-                  value={formData.installationsExperienceDuration}
-                  onChange={(e) => handleInputChange('installationsExperienceDuration', e.target.value)}
-                />
-              </div>
-            </div>
-
-            <div>
-              <Label htmlFor="contractingReason">Motivo de la Contratación</Label>
-              <Textarea
-                id="contractingReason"
-                value={formData.contractingReason}
-                onChange={(e) => handleInputChange('contractingReason', e.target.value)}
-                rows={3}
+                placeholder="Comentarios adicionales sobre la solicitud"
+                rows={4}
               />
             </div>
 
-            <div>
-              <Label htmlFor="observationsCommitments">Observaciones y/o Compromisos</Label>
-              <Textarea
-                id="observationsCommitments"
-                value={formData.observationsCommitments}
-                onChange={(e) => handleInputChange('observationsCommitments', e.target.value)}
-                rows={3}
-              />
+            {/* Botones de Acción */}
+            <div className="flex justify-end space-x-4 pt-6">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onBack}
+                disabled={loading}
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                disabled={loading}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                {loading ? (
+                  <div className="flex items-center space-x-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Guardando...</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center space-x-2">
+                    <Save className="h-4 w-4" />
+                    <span>Guardar Solicitud</span>
+                  </div>
+                )}
+              </Button>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Botones de acción */}
-        <div className="flex justify-end gap-4">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onBack}
-            className="border-gray-300"
-          >
-            Cancelar
-          </Button>
-          <Button
-            type="submit"
-            disabled={isSubmitting}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
-          >
-            <Save className="w-4 h-4 mr-2" />
-            {isSubmitting ? 'Guardando...' : 'Guardar'}
-          </Button>
-        </div>
-      </form>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 };
