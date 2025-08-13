@@ -42,12 +42,10 @@ const ImportContractRequestsModal: React.FC<ImportContractRequestsModalProps> = 
       let data: any[] = [];
 
       if (fileExtension === 'csv') {
-        // Procesar CSV
         const text = await file.text();
         const result = Papa.parse(text, { header: true, skipEmptyLines: true });
         data = result.data;
       } else if (fileExtension === 'xlsx' || fileExtension === 'xls') {
-        // Procesar Excel
         const buffer = await file.arrayBuffer();
         const workbook = XLSX.read(buffer, { type: 'array' });
         const sheetName = workbook.SheetNames[0];
@@ -57,7 +55,6 @@ const ImportContractRequestsModal: React.FC<ImportContractRequestsModalProps> = 
         throw new Error('Formato de archivo no soportado. Use CSV o Excel (.xlsx, .xls)');
       }
 
-      // Mapear datos al formato requerido
       const requests: ContractRequestInput[] = data.map((row: any) => ({
         applicantName: row['Nombre'] || row['applicantName'] || '',
         applicantLastName: row['Apellidos'] || row['applicantLastName'] || '',
@@ -73,7 +70,6 @@ const ImportContractRequestsModal: React.FC<ImportContractRequestsModalProps> = 
 
       console.log('Datos procesados para importar:', requests);
 
-      // Importar a Firebase
       const result = await importContractRequests(requests);
       setUploadResult(result);
 
@@ -91,7 +87,6 @@ const ImportContractRequestsModal: React.FC<ImportContractRequestsModalProps> = 
   const parseDate = (dateString: string): Date | null => {
     if (!dateString) return null;
     
-    // Intentar diferentes formatos de fecha
     const formats = [
       () => new Date(dateString),
       () => {
@@ -121,7 +116,7 @@ const ImportContractRequestsModal: React.FC<ImportContractRequestsModalProps> = 
       }
     }
 
-    return new Date(); // Fallback a fecha actual
+    return new Date();
   };
 
   const handleDragOver = (e: React.DragEvent) => {

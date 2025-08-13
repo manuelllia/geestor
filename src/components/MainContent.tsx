@@ -3,6 +3,7 @@ import { useTranslation } from '../hooks/useTranslation';
 import { Language } from '../utils/translations';
 import ChangeSheetsListView from './ChangeSheets/ChangeSheetsListView';
 import ChangeSheetDetailView from './ChangeSheets/ChangeSheetDetailView';
+import ContractRequestsListView from './ContractRequests/ContractRequestsListView';
 import EmployeeAgreementsListView from './EmployeeAgreements/EmployeeAgreementsListView';
 import EmployeeAgreementDetailView from './EmployeeAgreements/EmployeeAgreementDetailView';
 import RealEstateListView from './RealEstate/RealEstateListView';
@@ -105,6 +106,13 @@ const MainContent: React.FC<MainContentProps> = ({ activeSection, language }) =>
             language={language}
             onViewDetails={handleViewDetails}
             onCreateNew={() => console.log('Crear nueva hoja de cambio')}
+          />
+        );
+
+      case 'solicitudes-contratacion':
+        return (
+          <ContractRequestsListView
+            language={language}
           />
         );
 
