@@ -91,7 +91,11 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({
         onBack={() => {
           setShowCreateForm(false);
           loadChangeSheets(); // Recargar datos después de crear
-        }} 
+        }}
+        onSave={() => {
+          setShowCreateForm(false);
+          loadChangeSheets(); // Recargar datos después de guardar
+        }}
       />
     );
   }

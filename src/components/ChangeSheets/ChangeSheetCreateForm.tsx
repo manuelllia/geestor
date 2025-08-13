@@ -87,10 +87,10 @@ const ChangeSheetCreateForm: React.FC<ChangeSheetCreateFormProps> = ({
       newSupervisorName: '',
       newSupervisorLastName: '',
       startDate: undefined,
-      changeType: '',
+      changeType: undefined,
       needs: [],
       currentCompany: '',
-      companyChange: '',
+      companyChange: undefined,
       observations: '',
     },
   });
