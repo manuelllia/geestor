@@ -6,6 +6,7 @@ import ChangeSheetDetailView from './ChangeSheets/ChangeSheetDetailView';
 import ContractRequestsListView from './ContractRequests/ContractRequestsListView';
 import EmployeeAgreementsListView from './EmployeeAgreements/EmployeeAgreementsListView';
 import EmployeeAgreementDetailView from './EmployeeAgreements/EmployeeAgreementDetailView';
+import EmployeeAgreementCreateForm from './EmployeeAgreements/EmployeeAgreementCreateForm';
 import RealEstateListView from './RealEstate/RealEstateListView';
 import RealEstateDetailView from './RealEstate/RealEstateDetailView';
 import RealEstateUploadView from './RealEstate/RealEstateUploadView';
@@ -21,7 +22,7 @@ interface MainContentProps {
 
 const MainContent: React.FC<MainContentProps> = ({ activeSection, language }) => {
   const { t } = useTranslation(language);
-  const [currentView, setCurrentView] = useState<'dashboard' | 'list' | 'detail' | 'upload'>('dashboard');
+  const [currentView, setCurrentView] = useState<'dashboard' | 'list' | 'detail' | 'upload' | 'create'>('dashboard');
   const [selectedId, setSelectedId] = useState<string>('');
   const [realEstateDocumentExists, setRealEstateDocumentExists] = useState<boolean | null>(null);
 
@@ -35,12 +36,21 @@ const MainContent: React.FC<MainContentProps> = ({ activeSection, language }) =>
     setSelectedId('');
   };
 
+  const handleBackToList = () => {
+    setCurrentView('list');
+    setSelectedId('');
+  };
+
   const handleShowUpload = () => {
     setCurrentView('upload');
   };
 
   const handleViewTables = () => {
     setCurrentView('list');
+  };
+
+  const handleCreateNew = () => {
+    setCurrentView('create');
   };
 
   // Verificar si existe el documento de Gestión Inmuebles cuando se selecciona gestión de inmuebles
@@ -117,12 +127,23 @@ const MainContent: React.FC<MainContentProps> = ({ activeSection, language }) =>
         );
 
       case 'acuerdo-empleado':
+        if (currentView === 'create') {
+          return (
+            <EmployeeAgreementCreateForm
+              language={language}
+              onBack={handleBackToList}
+              onSave={() => {
+                handleBackToList();
+              }}
+            />
+          );
+        }
         if (currentView === 'detail') {
           return (
             <EmployeeAgreementDetailView
               language={language}
               agreementId={selectedId}
-              onBack={handleBackToDashboard}
+              onBack={handleBackToList}
             />
           );
         }
@@ -130,7 +151,7 @@ const MainContent: React.FC<MainContentProps> = ({ activeSection, language }) =>
           <EmployeeAgreementsListView
             language={language}
             onViewDetails={handleViewDetails}
-            onCreateNew={() => console.log('Crear nuevo acuerdo')}
+            onCreateNew={handleCreateNew}
           />
         );
 
