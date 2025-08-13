@@ -1,444 +1,490 @@
-
 import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { format } from 'date-fns';
+import { CalendarIcon, ArrowLeft, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, ArrowLeft, Loader2 } from 'lucide-react';
-import { format } from 'date-fns';
-import { es, enUS } from 'date-fns/locale';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Language } from '../../utils/translations';
+import { saveChangeSheet, ChangeSheetData } from '../../services/changeSheetService';
 import { useToast } from '@/hooks/use-toast';
-import { saveChangeSheet, type ChangeSheetData } from '../../services/changeSheetService';
+import { useWorkCenters } from '../../hooks/useWorkCenters';
+
+const formSchema = z.object({
+  employeeName: z.string().min(1, 'Nombre del empleado es obligatorio'),
+  employeeLastName: z.string().min(1, 'Apellidos del empleado es obligatorio'),
+  originCenter: z.string().min(1, 'Centro de origen es obligatorio'),
+  currentPosition: z.string().min(1, 'Puesto actual es obligatorio'),
+  currentSupervisorName: z.string().min(1, 'Nombre del supervisor actual es obligatorio'),
+  currentSupervisorLastName: z.string().min(1, 'Apellidos del supervisor actual es obligatorio'),
+  newPosition: z.string().min(1, 'Nuevo puesto es obligatorio'),
+  newSupervisorName: z.string().min(1, 'Nombre del nuevo supervisor es obligatorio'),
+  newSupervisorLastName: z.string().min(1, 'Apellidos del nuevo supervisor es obligatorio'),
+  startDate: z.date({
+    required_error: 'Fecha de inicio es obligatoria',
+  }),
+  changeType: z.enum(['permanent', 'temporary'], {
+    required_error: 'Tipo de cambio es obligatorio',
+  }),
+  needs: z.array(z.string()).optional(),
+  currentCompany: z.string().min(1, 'Compañía actual es obligatoria'),
+  companyChange: z.enum(['yes', 'no'], {
+    required_error: 'Cambio de compañía es obligatorio',
+  }),
+  observations: z.string().optional(),
+});
+
+type FormData = z.infer<typeof formSchema>;
 
 interface ChangeSheetCreateFormProps {
   language: Language;
   onBack: () => void;
+  onSave: () => void;
 }
 
-const ChangeSheetCreateForm: React.FC<ChangeSheetCreateFormProps> = ({ 
-  language, 
-  onBack 
+const ChangeSheetCreateForm: React.FC<ChangeSheetCreateFormProps> = ({
+  language,
+  onBack,
+  onSave,
 }) => {
   const { t } = useTranslation(language);
   const { toast } = useToast();
+  const { workCenters, isLoading: loadingCenters, error: centersError } = useWorkCenters();
   const [isLoading, setIsLoading] = useState(false);
 
-  // TODO: Estas opciones vendrán de una base de datos o configuración
-  const originCenters = [
-    'Seleccionar',
-    // Aquí irán los centros de salida que no especificaste
-    'Centro Madrid',
-    'Centro Barcelona',
-    'Centro Valencia'
-  ];
-
-  const positions = [
-    'Seleccionar',
-    'Técnico/a',
-    'Responsable de Centro',
-    'Especialista (EDE)',
-    'Administrativo/a',
-    'Otro'
-  ];
-
-  const companies = [
-    'ASIME SA',
-    'IBERMAN SA',
-    'MANTELEC SA',
-    'INDEL FACILITIES',
-    'INSANEX SL',
-    'SSM',
-    'RD HEALING',
-    'AINATEC',
-    'OTRA'
-  ];
-
-  const needsOptions = [
-    { id: 'prl', label: 'Actuación PRL' },
-    { id: 'displacement', label: 'Desplazamiento' },
-    { id: 'accommodation', label: 'Alojamiento' },
-    { id: 'psio', label: 'Psio GEE' },
-    { id: 'vehicle', label: 'Vehículo' }
-  ];
-
-  const [formData, setFormData] = useState<ChangeSheetData>({
-    employeeName: '',
-    employeeLastName: '',
-    originCenter: '',
-    currentPosition: '',
-    currentSupervisorName: '',
-    currentSupervisorLastName: '',
-    newPosition: '',
-    newSupervisorName: '',
-    newSupervisorLastName: '',
-    startDate: undefined,
-    changeType: '',
-    needs: [],
-    currentCompany: '',
-    companyChange: '',
-    observations: ''
+  const form = useForm<FormData>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      employeeName: '',
+      employeeLastName: '',
+      originCenter: '',
+      currentPosition: '',
+      currentSupervisorName: '',
+      currentSupervisorLastName: '',
+      newPosition: '',
+      newSupervisorName: '',
+      newSupervisorLastName: '',
+      startDate: undefined,
+      changeType: '',
+      needs: [],
+      currentCompany: '',
+      companyChange: '',
+      observations: '',
+    },
   });
 
-  const handleInputChange = (field: keyof ChangeSheetData, value: any) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
-  const handleNeedChange = (needId: string, checked: boolean) => {
-    setFormData(prev => ({
-      ...prev,
-      needs: checked 
-        ? [...prev.needs, needId]
-        : prev.needs.filter(need => need !== needId)
-    }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-
+  const onSubmit = async (data: FormData) => {
     try {
-      console.log('Enviando formulario:', formData);
+      setIsLoading(true);
       
-      // Guardar en Firebase
-      const docId = await saveChangeSheet(formData);
+      const changeSheetData: ChangeSheetData = {
+        employeeName: data.employeeName,
+        employeeLastName: data.employeeLastName,
+        originCenter: data.originCenter,
+        currentPosition: data.currentPosition,
+        currentSupervisorName: data.currentSupervisorName,
+        currentSupervisorLastName: data.currentSupervisorLastName,
+        newPosition: data.newPosition,
+        newSupervisorName: data.newSupervisorName,
+        newSupervisorLastName: data.newSupervisorLastName,
+        startDate: data.startDate,
+        changeType: data.changeType,
+        needs: data.needs || [],
+        currentCompany: data.currentCompany,
+        companyChange: data.companyChange,
+        observations: data.observations || '',
+      };
+
+      const docId = await saveChangeSheet(changeSheetData);
       
-      // Mostrar notificación de éxito
       toast({
-        title: "¡Éxito!",
-        description: `Hoja de cambio guardada correctamente con ID: ${docId}`,
-        className: "bg-green-50 border-green-200 text-green-800",
+        title: 'Hoja de cambio creada exitosamente',
+        description: `La hoja de cambio ha sido guardada con ID: ${docId}`,
       });
-
-      // Limpiar formulario después de guardar exitosamente
-      setFormData({
-        employeeName: '',
-        employeeLastName: '',
-        originCenter: '',
-        currentPosition: '',
-        currentSupervisorName: '',
-        currentSupervisorLastName: '',
-        newPosition: '',
-        newSupervisorName: '',
-        newSupervisorLastName: '',
-        startDate: undefined,
-        changeType: '',
-        needs: [],
-        currentCompany: '',
-        companyChange: '',
-        observations: ''
-      });
-
+      
+      onSave();
     } catch (error) {
-      console.error('Error al guardar:', error);
-      
-      // Mostrar notificación de error
+      console.error('Error al guardar la hoja de cambio:', error);
       toast({
-        title: "Error",
-        description: "Ha ocurrido un error al guardar la hoja de cambio. Por favor, inténtalo de nuevo.",
-        className: "bg-red-50 border-red-200 text-red-800",
+        title: 'Error al guardar',
+        description: 'No se pudo guardar la hoja de cambio. Inténtalo de nuevo.',
+        variant: 'destructive',
       });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const dateLocale = language === 'es' ? es : enUS;
-
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex justify-between items-center">
         <Button
           variant="outline"
           onClick={onBack}
           className="border-blue-300 text-blue-700 hover:bg-blue-50"
-          disabled={isLoading}
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           {t('back')}
         </Button>
+        
         <h1 className="text-2xl font-semibold text-blue-800 dark:text-blue-200">
-          {t('createNew')} - {t('hojasCambio')}
+          Nueva Hoja de Cambio
         </h1>
       </div>
 
-      {/* Formulario */}
       <Card className="border-blue-200 dark:border-blue-800">
         <CardHeader>
           <CardTitle className="text-blue-800 dark:text-blue-200">
-            {t('changeSheetDetails')}
+            Datos de la Hoja de Cambio
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Datos del Empleado */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="employeeName">{t('name')} *</Label>
-                <Input
-                  id="employeeName"
-                  value={formData.employeeName}
-                  onChange={(e) => handleInputChange('employeeName', e.target.value)}
-                  placeholder={t('name')}
-                  disabled={isLoading}
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              {/* Datos del Empleado */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="employeeName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nombre Empleado/a *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Nombre del empleado" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="employeeLastName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Apellidos Empleado/a *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Apellidos del empleado" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="employeeLastName">Apellidos *</Label>
-                <Input
-                  id="employeeLastName"
-                  value={formData.employeeLastName}
-                  onChange={(e) => handleInputChange('employeeLastName', e.target.value)}
-                  placeholder="Apellidos"
-                  disabled={isLoading}
-                />
-              </div>
-            </div>
 
-            {/* Centro de Salida */}
-            <div className="space-y-2">
-              <Label>{t('originCenter')} *</Label>
-              <Select 
-                value={formData.originCenter} 
-                onValueChange={(value) => handleInputChange('originCenter', value)}
-                disabled={isLoading}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder={`${t('select')} ${t('originCenter')}`} />
-                </SelectTrigger>
-                <SelectContent>
-                  {originCenters.map((center) => (
-                    <SelectItem key={center} value={center} disabled={center === 'Seleccionar'}>
-                      {center}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Puesto Actual */}
-            <div className="space-y-2">
-              <Label>Puesto Actual *</Label>
-              <Select value={formData.currentPosition} onValueChange={(value) => handleInputChange('currentPosition', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar Puesto Actual" />
-                </SelectTrigger>
-                <SelectContent>
-                  {positions.map((position) => (
-                    <SelectItem key={position} value={position} disabled={position === 'Seleccionar'}>
-                      {position}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Responsable Actual */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="currentSupervisorName">Nombre Responsable Actual *</Label>
-                <Input
-                  id="currentSupervisorName"
-                  value={formData.currentSupervisorName}
-                  onChange={(e) => handleInputChange('currentSupervisorName', e.target.value)}
-                  placeholder="Nombre del responsable"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="currentSupervisorLastName">Apellidos Responsable Actual *</Label>
-                <Input
-                  id="currentSupervisorLastName"
-                  value={formData.currentSupervisorLastName}
-                  onChange={(e) => handleInputChange('currentSupervisorLastName', e.target.value)}
-                  placeholder="Apellidos del responsable"
-                />
-              </div>
-            </div>
-
-            {/* Nuevo Puesto */}
-            <div className="space-y-2">
-              <Label>Nuevo Puesto *</Label>
-              <Select value={formData.newPosition} onValueChange={(value) => handleInputChange('newPosition', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar Nuevo Puesto" />
-                </SelectTrigger>
-                <SelectContent>
-                  {positions.map((position) => (
-                    <SelectItem key={position} value={position} disabled={position === 'Seleccionar'}>
-                      {position}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Nuevo Responsable */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="newSupervisorName">Nombre Nuevo Responsable *</Label>
-                <Input
-                  id="newSupervisorName"
-                  value={formData.newSupervisorName}
-                  onChange={(e) => handleInputChange('newSupervisorName', e.target.value)}
-                  placeholder="Nombre del nuevo responsable"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="newSupervisorLastName">Apellidos Nuevo Responsable *</Label>
-                <Input
-                  id="newSupervisorLastName"
-                  value={formData.newSupervisorLastName}
-                  onChange={(e) => handleInputChange('newSupervisorLastName', e.target.value)}
-                  placeholder="Apellidos del nuevo responsable"
-                />
-              </div>
-            </div>
-
-            {/* Fecha de Inicio */}
-            <div className="space-y-2">
-              <Label>{t('startDate')} *</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !formData.startDate && "text-muted-foreground"
+              {/* Centro Origen */}
+              <FormField
+                control={form.control}
+                name="originCenter"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Centro Origen *</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder={
+                            loadingCenters ? "Cargando centros..." : 
+                            centersError ? "Error al cargar centros" : 
+                            "Seleccionar centro origen"
+                          } />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {workCenters.map((center) => (
+                          <SelectItem key={center.id} value={center.displayText}>
+                            {center.displayText}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                    {centersError && (
+                      <p className="text-sm text-red-600 mt-1">{centersError}</p>
                     )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {formData.startDate ? (
-                      format(formData.startDate, "PPP", { locale: dateLocale })
-                    ) : (
-                      <span>Seleccionar fecha</span>
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={formData.startDate}
-                    onSelect={(date) => handleInputChange('startDate', date)}
-                    initialFocus
-                    className={cn("p-3 pointer-events-auto")}
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            {/* Tipo de Cambio */}
-            <div className="space-y-2">
-              <Label>Tipo de Cambio *</Label>
-              <Select value={formData.changeType} onValueChange={(value) => handleInputChange('changeType', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar Tipo de Cambio" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="permanent">Cambio Permanente</SelectItem>
-                  <SelectItem value="temporary">Cambio Temporal</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Necesidades */}
-            <div className="space-y-2">
-              <Label>Necesidades</Label>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {needsOptions.map((need) => (
-                  <div key={need.id} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={need.id}
-                      checked={formData.needs.includes(need.id)}
-                      onCheckedChange={(checked) => handleNeedChange(need.id, !!checked)}
-                    />
-                    <Label htmlFor={need.id} className="text-sm">
-                      {need.label}
-                    </Label>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Empresa Actual */}
-            <div className="space-y-2">
-              <Label>Empresa Actual *</Label>
-              <Select value={formData.currentCompany} onValueChange={(value) => handleInputChange('currentCompany', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar Empresa Actual" />
-                </SelectTrigger>
-                <SelectContent>
-                  {companies.map((company) => (
-                    <SelectItem key={company} value={company}>
-                      {company}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Cambio de Empresa */}
-            <div className="space-y-2">
-              <Label>Cambio de Empresa *</Label>
-              <Select value={formData.companyChange} onValueChange={(value) => handleInputChange('companyChange', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="¿Habrá cambio de empresa?" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="yes">Sí</SelectItem>
-                  <SelectItem value="no">No</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Observaciones */}
-            <div className="space-y-2">
-              <Label htmlFor="observations">Motivo del Cambio/Observaciones *</Label>
-              <Textarea
-                id="observations"
-                value={formData.observations}
-                onChange={(e) => handleInputChange('observations', e.target.value)}
-                placeholder="Describe el motivo del cambio y cualquier observación relevante..."
-                rows={4}
-              />
-            </div>
-
-            {/* Botones de acción */}
-            <div className="flex justify-end space-x-4 pt-6 border-t">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={onBack}
-                disabled={isLoading}
-              >
-                Cancelar
-              </Button>
-              <Button
-                type="submit"
-                className="bg-blue-600 hover:bg-blue-700 text-white"
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Guardando...
-                  </>
-                ) : (
-                  'Crear Hoja de Cambio'
+                  </FormItem>
                 )}
-              </Button>
-            </div>
-          </form>
+              />
+
+              {/* Puesto Actual */}
+              <FormField
+                control={form.control}
+                name="currentPosition"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Puesto Actual *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Puesto actual" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Supervisor Actual */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="currentSupervisorName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nombre Supervisor Actual *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Nombre del supervisor actual" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="currentSupervisorLastName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Apellidos Supervisor Actual *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Apellidos del supervisor actual" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Nuevo Puesto */}
+              <FormField
+                control={form.control}
+                name="newPosition"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nuevo Puesto *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Nuevo puesto" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Nuevo Supervisor */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="newSupervisorName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nombre Nuevo Supervisor *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Nombre del nuevo supervisor" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="newSupervisorLastName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Apellidos Nuevo Supervisor *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Apellidos del nuevo supervisor" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Fecha de Inicio */}
+              <FormField
+                control={form.control}
+                name="startDate"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Fecha de Inicio *</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "w-full pl-3 text-left font-normal",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            {field.value ? (
+                              format(field.value, "PPP")
+                            ) : (
+                              <span>Seleccionar fecha</span>
+                            )}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          onSelect={field.onChange}
+                          initialFocus
+                          className={cn("p-3 pointer-events-auto")}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Tipo de Cambio */}
+              <FormField
+                control={form.control}
+                name="changeType"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tipo de Cambio *</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Seleccionar tipo" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="permanent">Permanente</SelectItem>
+                        <SelectItem value="temporary">Temporal</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Necesidades */}
+              <FormField
+                control={form.control}
+                name="needs"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Necesidades</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Necesidades adicionales..."
+                        className="min-h-[100px]"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Compañía Actual */}
+              <FormField
+                control={form.control}
+                name="currentCompany"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Compañía Actual *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Compañía actual" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Cambio de Compañía */}
+              <FormField
+                control={form.control}
+                name="companyChange"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Cambio de Compañía *</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Seleccionar opción" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="yes">Sí</SelectItem>
+                        <SelectItem value="no">No</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Observaciones */}
+              <FormField
+                control={form.control}
+                name="observations"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Observaciones</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Observaciones adicionales..."
+                        className="min-h-[100px]"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Botones */}
+              <div className="flex justify-end space-x-4 pt-6">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={onBack}
+                  disabled={isLoading}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="submit"
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin mr-2" />
+                  ) : (
+                    <Save className="w-4 h-4 mr-2" />
+                  )}
+                  {isLoading ? 'Guardando...' : 'Guardar Hoja de Cambio'}
+                </Button>
+              </div>
+            </form>
+          </Form>
         </CardContent>
       </Card>
     </div>

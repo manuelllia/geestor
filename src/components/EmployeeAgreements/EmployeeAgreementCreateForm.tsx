@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -28,6 +27,7 @@ import {
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '../../hooks/useTranslation';
+import { useWorkCenters } from '../../hooks/useWorkCenters';
 import { Language } from '../../utils/translations';
 import { saveEmployeeAgreement, EmployeeAgreementData } from '../../services/employeeAgreementsService';
 import { useToast } from '@/hooks/use-toast';
@@ -70,6 +70,7 @@ const EmployeeAgreementCreateForm: React.FC<EmployeeAgreementCreateFormProps> = 
 }) => {
   const { t } = useTranslation(language);
   const { toast } = useToast();
+  const { workCenters, isLoading: loadingCenters, error: centersError } = useWorkCenters();
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<FormData>({
@@ -93,17 +94,6 @@ const EmployeeAgreementCreateForm: React.FC<EmployeeAgreementCreateFormProps> = 
       observations: '',
     },
   });
-
-  const workCenters = [
-    'Centro Madrid Norte',
-    'Centro Madrid Sur',
-    'Centro Barcelona',
-    'Centro Valencia',
-    'Centro Sevilla',
-    'Centro Bilbao',
-    'Centro Zaragoza',
-    'Sede Central Madrid',
-  ];
 
   const agreementConcepts = [
     { value: 'cambio-puesto', label: 'Cambio de Puesto' },
@@ -223,18 +213,25 @@ const EmployeeAgreementCreateForm: React.FC<EmployeeAgreementCreateFormProps> = 
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Seleccionar centro" />
+                            <SelectValue placeholder={
+                              loadingCenters ? "Cargando centros..." : 
+                              centersError ? "Error al cargar centros" : 
+                              "Seleccionar centro"
+                            } />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
                           {workCenters.map((center) => (
-                            <SelectItem key={center} value={center}>
-                              {center}
+                            <SelectItem key={center.id} value={center.displayText}>
+                              {center.displayText}
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
                       <FormMessage />
+                      {centersError && (
+                        <p className="text-sm text-red-600 mt-1">{centersError}</p>
+                      )}
                     </FormItem>
                   )}
                 />
