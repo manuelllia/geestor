@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import { Language } from '../utils/translations';
@@ -7,6 +8,7 @@ import ContractRequestsListView from './ContractRequests/ContractRequestsListVie
 import EmployeeAgreementsListView from './EmployeeAgreements/EmployeeAgreementsListView';
 import EmployeeAgreementDetailView from './EmployeeAgreements/EmployeeAgreementDetailView';
 import EmployeeAgreementCreateForm from './EmployeeAgreements/EmployeeAgreementCreateForm';
+import ExitInterviewsListView from './ExitInterviews/ExitInterviewsListView';
 import RealEstateListView from './RealEstate/RealEstateListView';
 import RealEstateDetailView from './RealEstate/RealEstateDetailView';
 import RealEstateUploadView from './RealEstate/RealEstateUploadView';
@@ -154,6 +156,9 @@ const MainContent: React.FC<MainContentProps> = ({ activeSection, language }) =>
             onCreateNew={handleCreateNew}
           />
         );
+
+      case 'entrevista-salida':
+        return <ExitInterviewsListView language={language} />;
 
       case 'gestion-inmuebles':
         if (realEstateDocumentExists === null) {
