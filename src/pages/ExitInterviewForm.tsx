@@ -643,7 +643,7 @@ const ExitInterviewForm = () => {
                                 placeholder="1-10"
                                 {...field}
                                 onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
-                                value={field.value || ''}
+                                value={typeof field.value === 'number' ? field.value.toString() : ''}
                               />
                             </FormControl>
                             <FormMessage />
