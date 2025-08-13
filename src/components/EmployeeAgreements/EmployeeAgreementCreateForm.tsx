@@ -106,7 +106,6 @@ const EmployeeAgreementCreateForm: React.FC<EmployeeAgreementCreateFormProps> = 
   ];
 
   const agreementConcepts = [
-    { value: '', label: 'Seleccionar uno' },
     { value: 'cambio-puesto', label: 'Cambio de Puesto' },
     { value: 'complemento-responsabilidad', label: 'Complemento de Responsabilidad' },
     { value: 'complemento-destino', label: 'Complemento de Destino' },
