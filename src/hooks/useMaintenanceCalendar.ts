@@ -61,7 +61,7 @@ export const useMaintenanceCalendar = () => {
     const name = sheetName.toLowerCase().trim();
     const columnNames = columns.map(col => col.toLowerCase().trim());
     
-    // Detectar hoja de inventario (buscar columnas típicas de inventario)
+    // Detectar hoja de inventario
     if (columnNames.some(col => 
         col.includes('denominación homogénea') || 
         col.includes('denominacion homogenea') ||
@@ -71,7 +71,7 @@ export const useMaintenanceCalendar = () => {
       return 'inventory';
     }
     
-    // Detectar FREC Y TIPO - más específico
+    // Detectar FREC Y TIPO
     if ((name.includes('frec') && name.includes('tipo')) || 
         name === 'frec y tipo' ||
         name === 'frecuencia y tipo' ||
@@ -80,7 +80,7 @@ export const useMaintenanceCalendar = () => {
       return 'frec-tipo';
     }
     
-    // Detectar PLANNING - más específico  
+    // Detectar PLANNING
     if (name.includes('planning') || 
         name.includes('planificacion') ||
         name === 'planning' ||
@@ -89,7 +89,7 @@ export const useMaintenanceCalendar = () => {
       return 'planning';
     }
     
-    // Detectar ANEXO - más específico
+    // Detectar ANEXO
     if (name.includes('anexo') || 
         name === 'anexo' ||
         name.includes('annex') ||
@@ -97,7 +97,7 @@ export const useMaintenanceCalendar = () => {
       return 'anexo';
     }
     
-    // Detectar hojas relacionadas con ubicaciones para excluirlas del inventario
+    // Detectar hojas de ubicaciones para excluirlas
     if (name.includes('ubicacion') || 
         name.includes('ubicación') || 
         name.includes('location') ||
@@ -141,18 +141,23 @@ export const useMaintenanceCalendar = () => {
     console.log('🔍 Procesando datos de inventario...');
     console.log('Headers disponibles:', headers);
     
-    // Buscar índices de las columnas importantes
+    // Buscar índices de las columnas importantes mejorado
     const denominacionIndex = headers.findIndex(h => {
       const lower = h.toLowerCase().trim();
       return lower.includes('denominación homogénea') || 
              lower.includes('denominacion homogenea') ||
-             lower.includes('denominacion_homogenea');
+             lower.includes('denominacion_homogenea') ||
+             lower === 'denominación homogénea' ||
+             lower === 'denominacion homogenea';
     });
     
     const codigoIndex = headers.findIndex(h => {
       const lower = h.toLowerCase().trim();
       return (lower.includes('código') || lower.includes('codigo')) && 
-             (lower.includes('denominación') || lower.includes('denominacion'));
+             (lower.includes('denominación') || lower.includes('denominacion')) ||
+             lower === 'código denominación homogénea' ||
+             lower === 'codigo denominacion homogenea' ||
+             lower.includes('codigo_denominacion');
     });
     
     console.log('📋 Índices encontrados:', {
@@ -183,7 +188,7 @@ export const useMaintenanceCalendar = () => {
     });
     
     console.log('✅ Inventario procesado:', inventoryItems.length, 'elementos');
-    console.log('📊 Muestra de denominaciones:', inventoryItems.slice(0, 3).map(item => ({
+    console.log('📊 Muestra de denominaciones:', inventoryItems.slice(0, 5).map(item => ({
       codigo: item.codigoDenominacion,
       denominacion: item.denominacionHomogenea
     })));
@@ -195,25 +200,31 @@ export const useMaintenanceCalendar = () => {
     console.log('🔧 Procesando FREC Y TIPO...');
     console.log('Headers disponibles:', headers);
     
-    // Buscar índices de las columnas importantes
+    // Buscar índices de las columnas importantes - mejorado
     const denominacionIndex = headers.findIndex(h => {
       const lower = h.toLowerCase().trim();
       return lower.includes('denominacion') || 
              lower.includes('denominación') ||
-             lower === 'denominacion';
+             lower === 'denominacion' ||
+             lower === 'denominación' ||
+             lower.includes('nombre');
     });
     
     const tipoIndex = headers.findIndex(h => {
       const lower = h.toLowerCase().trim();
       return lower.includes('tipo de mantenimiento habitual') ||
              lower.includes('tipo_mantenimiento_habitual') ||
-             (lower.includes('tipo') && lower.includes('mantenimiento') && lower.includes('habitual'));
+             lower.includes('tipo mantenimiento') ||
+             lower.includes('tipo_mantenimiento') ||
+             (lower.includes('tipo') && lower.includes('mantenimiento'));
     });
     
     const cadenciaIndex = headers.findIndex(h => {
       const lower = h.toLowerCase().trim();
       return lower.includes('cadencia') ||
-             lower.includes('frecuencia');
+             lower.includes('frecuencia') ||
+             lower === 'cadencia' ||
+             lower === 'frecuencia';
     });
     
     console.log('🎯 Índices FREC Y TIPO:', {
@@ -237,7 +248,7 @@ export const useMaintenanceCalendar = () => {
       };
       
       if (index < 5) {
-        console.log(`📝 Fila ${index + 1}:`, item);
+        console.log(`📝 FREC Y TIPO Fila ${index + 1}:`, item);
       }
       
       return item;
@@ -261,7 +272,6 @@ export const useMaintenanceCalendar = () => {
     console.log('🤖 Mejorando detección de denominaciones homogéneas con IA...');
     
     try {
-      // Extraer equipos únicos del inventario
       const equipmentList = inventoryData.map(item => ({
         equipment: item.equipment,
         model: item.model,
@@ -278,7 +288,7 @@ ${JSON.stringify(equipmentList, null, 2)}
 TAREA:
 1. Identifica y agrupa equipos similares que requieran el mismo tipo de mantenimiento
 2. Crea denominaciones homogéneas claras y descriptivas 
-3. Asigna códigos únicos para cada denominación (formato: DH-001, DH-002, etc.)
+3. Asigna códigos únicos para cada denominación (formato: GEE-001, GEE-002, etc.)
 4. Sugiere frecuencias de mantenimiento típicas para cada grupo
 5. Propón tipos de mantenimiento (preventivo, correctivo, calibración, etc.)
 
@@ -287,8 +297,8 @@ Proporciona un JSON con la siguiente estructura:
 {
   "denominacionesHomogeneas": [
     {
-      "codigo": "DH-001",
-      "denominacion": "nombre descriptivo del grupo",
+      "codigo": "GEE-001",
+      "denominacion": "VENTILADOR MECÁNICO",
       "equiposIncluidos": ["equipo1", "equipo2"],
       "cantidad": numero_total,
       "frecuenciaSugerida": "mensual|trimestral|semestral|anual",
@@ -365,7 +375,7 @@ Responde ÚNICAMENTE con el JSON, sin explicaciones adicionales.
     
     inventoryData.forEach(item => {
       if (item.denominacionHomogenea && item.denominacionHomogenea.trim()) {
-        const denominacion = item.denominacionHomogenea.trim();
+        const denominacion = item.denominacionHomogenea.trim().toUpperCase();
         const codigo = item.codigoDenominacion?.trim() || 'SIN-CODIGO';
         const key = `${codigo}-${denominacion}`;
         
@@ -398,10 +408,17 @@ Responde ÚNICAMENTE con el JSON, sin explicaciones adicionales.
         const frecDenominacion = frecItem.denominacion.toLowerCase().trim();
         const inventoryDenominacion = group.denominacion.toLowerCase().trim();
         
-        // Hacer matching más flexible
+        // Hacer matching más flexible y mejorado
         return frecDenominacion === inventoryDenominacion ||
                frecDenominacion.includes(inventoryDenominacion) ||
-               inventoryDenominacion.includes(frecDenominacion);
+               inventoryDenominacion.includes(frecDenominacion) ||
+               // Matching por palabras clave
+               frecDenominacion.split(' ').some((word: string) => 
+                 word.length > 3 && inventoryDenominacion.includes(word)
+               ) ||
+               inventoryDenominacion.split(' ').some((word: string) => 
+                 word.length > 3 && frecDenominacion.includes(word)
+               );
       });
       
       console.log(`🔍 Para "${group.denominacion}" encontradas ${matches.length} coincidencias en FREC Y TIPO`);

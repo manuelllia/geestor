@@ -1,34 +1,33 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageCircle, X, Send, Bot } from 'lucide-react';
-import { Button } from '../ui/button';
-import { Textarea } from '../ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-
-interface GeenioChatbotProps {
-  isOpen: boolean;
-  onToggle: () => void;
-}
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
+import { Send, Bot, User, Loader2 } from 'lucide-react';
+import { ScrollArea } from '../ui/scroll-area';
 
 interface Message {
   id: string;
   text: string;
-  isBot: boolean;
+  sender: 'user' | 'bot';
   timestamp: Date;
-  isTyping?: boolean;
 }
 
-const GeenioChatbot: React.FC<GeenioChatbotProps> = ({ isOpen, onToggle }) => {
+interface GeenioChatbotProps {
+  context?: any;
+}
+
+const GeenioChatbot: React.FC<GeenioChatbotProps> = ({ context }) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: '¡Hola! Soy GEEnio, tu experto en licitaciones de electromedicina. Para realizar un análisis completo de la licitación, necesitarás subir tanto el archivo PCAP como el PPT. Una vez que tengas ambos archivos, podremos analizar automáticamente la licitación con IA. ¿En qué puedo ayudarte?',
-      isBot: true,
+      text: '¡Hola! Soy Genie, tu asistente inteligente para análisis de licitaciones. ¿En qué puedo ayudarte hoy?',
+      sender: 'bot',
       timestamp: new Date()
     }
   ]);
-  const [inputMessage, setInputMessage] = useState('');
-  const [isThinking, setIsThinking] = useState(false);
+  const [inputText, setInputText] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -39,163 +38,149 @@ const GeenioChatbot: React.FC<GeenioChatbotProps> = ({ isOpen, onToggle }) => {
     scrollToBottom();
   }, [messages]);
 
-  const handleSendMessage = () => {
-    if (!inputMessage.trim()) return;
+  const sendMessage = async () => {
+    if (!inputText.trim() || isLoading) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
-      text: inputMessage,
-      isBot: false,
+      text: inputText.trim(),
+      sender: 'user',
       timestamp: new Date()
     };
 
     setMessages(prev => [...prev, userMessage]);
-    setInputMessage('');
-    setIsThinking(true);
+    setInputText('');
+    setIsLoading(true);
 
-    // Simular tiempo de pensamiento de la IA
-    setTimeout(() => {
-      setIsThinking(false);
+    try {
+      // Simular respuesta del bot (aquí iría la integración con IA real)
+      await new Promise(resolve => setTimeout(resolve, 1500));
       
-      // Agregar mensaje "escribiendo"
-      const typingMessage: Message = {
+      const botResponse: Message = {
         id: (Date.now() + 1).toString(),
-        text: 'Escribiendo...',
-        isBot: true,
-        timestamp: new Date(),
-        isTyping: true
+        text: `He analizado tu consulta sobre "${userMessage.text}". Basándome en la información disponible, te recomiendo revisar los criterios técnicos y económicos. ¿Te gustaría que profundice en algún aspecto específico?`,
+        sender: 'bot',
+        timestamp: new Date()
       };
-      setMessages(prev => [...prev, typingMessage]);
 
-      // Simular tiempo de escritura
-      setTimeout(() => {
-        setMessages(prev => 
-          prev.filter(msg => !msg.isTyping).concat({
-            id: (Date.now() + 2).toString(),
-            text: 'Gracias por tu consulta. Como experto en licitaciones de electromedicina, puedo ayudarte con el análisis una vez que subas los archivos PCAP y PPT. ¿Hay algo específico sobre el proceso de licitación que te gustaría saber?',
-            isBot: true,
-            timestamp: new Date()
-          })
-        );
-      }, 1500);
-    }, 1000);
+      setMessages(prev => [...prev, botResponse]);
+    } catch (error) {
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        text: 'Lo siento, hubo un error al procesar tu consulta. Por favor, inténtalo de nuevo.',
+        sender: 'bot',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSendMessage();
+      sendMessage();
     }
   };
 
-  if (!isOpen) {
-    return (
-      <div className="fixed bottom-4 right-4 md:bottom-6 md:right-6 z-50">
-        <Button
-          onClick={onToggle}
-          className="rounded-full w-14 h-14 md:w-16 md:h-16 bg-blue-600 hover:bg-blue-700 shadow-lg"
-          size="icon"
-        >
-          <MessageCircle className="w-5 h-5 md:w-6 md:h-6 text-white" />
-        </Button>
-      </div>
-    );
-  }
-
   return (
-    <>
-      {/* Overlay for mobile */}
-      <div className="fixed inset-0 bg-black/50 z-40 md:hidden" onClick={onToggle} />
+    <Card className="h-full max-h-[500px] sm:max-h-[600px] flex flex-col rounded-xl shadow-lg border-2 border-blue-200 dark:border-blue-700">
+      <CardHeader className="pb-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-t-xl">
+        <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+          <div className="w-6 h-6 sm:w-8 sm:h-8 bg-white/20 rounded-full flex items-center justify-center">
+            <Bot className="w-3 h-3 sm:w-4 sm:h-4" />
+          </div>
+          <span className="font-semibold">Genie - Asistente IA</span>
+          <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse ml-auto"></div>
+        </CardTitle>
+      </CardHeader>
       
-      {/* Chatbot container */}
-      <div className="fixed bottom-0 right-0 z-50 w-full h-full md:bottom-4 md:right-4 md:w-96 md:h-[500px] md:max-h-[80vh]">
-        <Card className="h-full flex flex-col shadow-2xl rounded-none md:rounded-lg">
-          <CardHeader className="bg-blue-600 text-white rounded-none md:rounded-t-lg flex-shrink-0">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Bot className="w-5 h-5" />
-                <CardTitle className="text-lg">GEEnio</CardTitle>
-              </div>
-              <Button
-                onClick={onToggle}
-                variant="ghost"
-                size="icon"
-                className="text-white hover:bg-blue-700"
+      <CardContent className="flex-1 flex flex-col p-0 bg-gradient-to-b from-blue-50/30 to-white dark:from-blue-900/20 dark:to-gray-900">
+        <ScrollArea className="flex-1 p-3 sm:p-4">
+          <div className="space-y-3 sm:space-y-4">
+            {messages.map((message) => (
+              <div
+                key={message.id}
+                className={`flex gap-2 sm:gap-3 ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
               >
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
-            <p className="text-blue-100 text-sm">
-              Experto en licitaciones de electromedicina
-            </p>
-          </CardHeader>
-          
-          <CardContent className="flex-1 flex flex-col p-0 min-h-0">
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {messages.map((message) => (
+                {message.sender === 'bot' && (
+                  <div className="w-6 h-6 sm:w-8 sm:h-8 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                    <Bot className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
+                  </div>
+                )}
+                
                 <div
-                  key={message.id}
-                  className={`flex ${message.isBot ? 'justify-start' : 'justify-end'}`}
+                  className={`max-w-[85%] sm:max-w-[80%] p-2 sm:p-3 rounded-2xl shadow-sm ${
+                    message.sender === 'user'
+                      ? 'bg-blue-500 text-white rounded-br-md'
+                      : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-700 rounded-bl-md'
+                  }`}
                 >
-                  <div
-                    className={`max-w-[80%] p-3 rounded-lg ${
-                      message.isBot
-                        ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'
-                        : 'bg-blue-600 text-white'
-                    } ${message.isTyping ? 'animate-pulse' : ''}`}
-                  >
-                    <p className="text-sm">{message.text}</p>
-                    <p className={`text-xs mt-1 ${
-                      message.isBot ? 'text-gray-500' : 'text-blue-100'
-                    }`}>
-                      {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </p>
-                  </div>
+                  <p className="text-xs sm:text-sm leading-relaxed break-words">{message.text}</p>
+                  <p className={`text-xs mt-1 ${
+                    message.sender === 'user' 
+                      ? 'text-blue-100' 
+                      : 'text-gray-500 dark:text-gray-400'
+                  }`}>
+                    {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </p>
                 </div>
-              ))}
-              
-              {isThinking && (
-                <div className="flex justify-start">
-                  <div className="bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 p-3 rounded-lg">
-                    <div className="flex items-center space-x-2">
-                      <div className="flex space-x-1">
-                        <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"></div>
-                        <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                        <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                      </div>
-                      <span className="text-sm text-gray-500">Pensando...</span>
-                    </div>
+                
+                {message.sender === 'user' && (
+                  <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gray-500 dark:bg-gray-600 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                    <User className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
                   </div>
-                </div>
-              )}
-              
-              <div ref={messagesEndRef} />
-            </div>
-            
-            <div className="border-t p-4 flex-shrink-0">
-              <div className="flex gap-2">
-                <Textarea
-                  value={inputMessage}
-                  onChange={(e) => setInputMessage(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  placeholder="Escribe tu mensaje..."
-                  className="flex-1 min-h-[40px] max-h-[80px] resize-none"
-                  disabled={isThinking}
-                />
-                <Button
-                  onClick={handleSendMessage}
-                  disabled={!inputMessage.trim() || isThinking}
-                  size="icon"
-                  className="bg-blue-600 hover:bg-blue-700"
-                >
-                  <Send className="w-4 h-4" />
-                </Button>
+                )}
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </>
+            ))}
+            
+            {isLoading && (
+              <div className="flex gap-2 sm:gap-3 justify-start">
+                <div className="w-6 h-6 sm:w-8 sm:h-8 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                  <Bot className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
+                </div>
+                <div className="bg-white dark:bg-gray-800 p-2 sm:p-3 rounded-2xl rounded-bl-md shadow-sm border border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center gap-1 sm:gap-2">
+                    <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 animate-spin text-blue-500" />
+                    <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Escribiendo...</span>
+                  </div>
+                </div>
+              </div>
+            )}
+            <div ref={messagesEndRef} />
+          </div>
+        </ScrollArea>
+        
+        <div className="p-3 sm:p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-b-xl">
+          <div className="flex gap-2">
+            <Input
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Escribe tu consulta sobre la licitación..."
+              disabled={isLoading}
+              className="flex-1 rounded-xl border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-blue-500 text-xs sm:text-sm"
+            />
+            <Button
+              onClick={sendMessage}
+              disabled={!inputText.trim() || isLoading}
+              size="sm"
+              className="bg-blue-500 hover:bg-blue-600 text-white rounded-xl px-3 sm:px-4 shadow-md"
+            >
+              {isLoading ? (
+                <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" />
+              ) : (
+                <Send className="w-3 h-3 sm:w-4 sm:h-4" />
+              )}
+            </Button>
+          </div>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center">
+            Genie puede cometer errores. Verifica la información importante.
+          </p>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
