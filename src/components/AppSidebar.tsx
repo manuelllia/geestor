@@ -137,164 +137,136 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
     },
   ];
 
-  // Flatten all items for collapsed view
-  const allItems = [
-    { id: 'inicio', label: 'Inicio', icon: Home },
-    ...menuGroups.flatMap(group => 
-      group.items.flatMap(item => 
-        item.hasSubmenu && item.submenuItems 
-          ? [item, ...item.submenuItems.map(sub => ({ ...sub, icon: item.icon }))]
-          : [item]
-      )
-    )
-  ];
-
   return (
     <Sidebar 
       className="border-r border-blue-200 dark:border-blue-800 bg-white dark:bg-gray-900"
       collapsible="icon"
     >
-      <SidebarHeader className="border-b border-blue-200 dark:border-blue-800 p-2 h-20 flex items-center justify-center">
-        <div className="flex items-center justify-center h-full w-full">
+      <SidebarHeader className="border-b border-blue-200 dark:border-blue-800 p-4 h-16">
+        <div className="flex items-center justify-center h-full">
           {isCollapsed ? (
             <img 
               src="/lovable-uploads/1e2990fc-768b-4645-bfc4-725186d26e5b.png" 
               alt="GEE Logo" 
-              className="h-12 w-12 object-contain"
+              className="h-8 w-8 object-contain"
             />
           ) : (
             <img 
               src="/lovable-uploads/f7fd6e9d-43a7-47ba-815e-fdaa1b630f6b.png" 
               alt="GEESTOR Logo" 
-              className="h-12 w-auto object-contain max-w-full"
+              className="h-10 w-auto object-contain"
             />
           )}
         </div>
       </SidebarHeader>
 
       <SidebarContent className="p-2">
-        {isCollapsed ? (
-          // Collapsed view - show all icons
-          <SidebarGroup>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {allItems.map((item) => (
-                  <SidebarMenuItem key={item.id}>
-                    <SidebarMenuButton
-                      isActive={activeSection === item.id}
-                      onClick={() => handleSectionChange(item.id)}
-                      className="w-full justify-center hover:bg-blue-50 dark:hover:bg-blue-900/20 data-[active=true]:bg-blue-100 dark:data-[active=true]:bg-blue-800 mb-1 h-10 p-2"
-                      tooltip={item.label}
-                    >
-                      <item.icon className="w-5 h-5" />
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        ) : (
-          // Expanded view - show grouped structure
-          <>
-            {/* Inicio - Item individual */}
-            <SidebarGroup>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton
-                      isActive={activeSection === 'inicio'}
-                      onClick={() => handleSectionChange('inicio')}
-                      className="w-full justify-start hover:bg-blue-50 dark:hover:bg-blue-900/20 data-[active=true]:bg-blue-100 dark:data-[active=true]:bg-blue-800 mb-2"
-                    >
-                      <Home className="w-4 h-4" />
-                      <span>Inicio</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-
-            {/* Grupos desplegables */}
-            {menuGroups.map((group) => (
-              <SidebarGroup key={group.id} className="mb-2">
-                <Collapsible 
-                  open={openGroup === group.id} 
-                  onOpenChange={() => handleGroupToggle(group.id)}
+        {/* Inicio - Item individual */}
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  isActive={activeSection === 'inicio'}
+                  onClick={() => handleSectionChange('inicio')}
+                  className="w-full justify-start hover:bg-blue-50 dark:hover:bg-blue-900/20 data-[active=true]:bg-blue-100 dark:data-[active=true]:bg-blue-800 mb-2"
+                  tooltip={isCollapsed ? "Inicio" : undefined}
                 >
-                  <CollapsibleTrigger asChild>
-                    <SidebarGroupLabel className="group/label hover:bg-blue-50 dark:hover:bg-blue-900/20 cursor-pointer text-blue-600 dark:text-blue-300 font-semibold text-xs uppercase tracking-wide p-2 rounded-md flex items-center justify-between">
-                      <span>{group.label}</span>
-                      <span>
-                        {openGroup === group.id ? (
-                          <ChevronDown className="w-4 h-4 transition-transform" />
-                        ) : (
-                          <ChevronRight className="w-4 h-4 transition-transform" />
-                        )}
-                      </span>
-                    </SidebarGroupLabel>
-                  </CollapsibleTrigger>
-                  
-                  <CollapsibleContent>
-                    <SidebarGroupContent>
-                      <SidebarMenu className="ml-2">
-                        {group.items.map((item) => (
-                          <SidebarMenuItem key={item.id}>
-                            {item.hasSubmenu ? (
-                              <div>
-                                <SidebarMenuButton
-                                  isActive={activeSection === item.id}
-                                  onClick={() => {
-                                    handleSubmenuToggle(item.id);
-                                    handleSectionChange(item.id);
-                                  }}
-                                  className="w-full justify-start hover:bg-blue-50 dark:hover:bg-blue-900/20 data-[active=true]:bg-blue-100 dark:data-[active=true]:bg-blue-800 text-gray-700 dark:text-gray-300 py-2"
-                                >
-                                  <item.icon className="w-4 h-4" />
-                                  <span>{item.label}</span>
-                                  <span>
-                                    {openSubmenus[item.id] ? (
-                                      <ChevronDown className="w-3 h-3 ml-auto" />
-                                    ) : (
-                                      <ChevronRight className="w-3 h-3 ml-auto" />
-                                    )}
-                                  </span>
-                                </SidebarMenuButton>
-                                
-                                {openSubmenus[item.id] && item.submenuItems && (
-                                  <div className="ml-6 mt-1 space-y-1">
-                                    {item.submenuItems.map((subItem) => (
-                                      <SidebarMenuButton
-                                        key={subItem.id}
-                                        isActive={activeSection === subItem.id}
-                                        onClick={() => handleSectionChange(subItem.id)}
-                                        className="w-full justify-start hover:bg-blue-50 dark:hover:bg-blue-900/20 data-[active=true]:bg-blue-100 dark:data-[active=true]:bg-blue-800 text-gray-600 dark:text-gray-400 py-1 text-sm"
-                                      >
-                                        <span>{subItem.label}</span>
-                                      </SidebarMenuButton>
-                                    ))}
-                                  </div>
-                                )}
+                  <Home className="w-4 h-4" />
+                  <span>Inicio</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        {/* Grupos desplegables */}
+        {menuGroups.map((group) => (
+          <SidebarGroup key={group.id} className="mb-2">
+            <Collapsible 
+              open={!isCollapsed && openGroup === group.id} 
+              onOpenChange={() => !isCollapsed && handleGroupToggle(group.id)}
+            >
+              <CollapsibleTrigger asChild>
+                <SidebarGroupLabel className="group/label hover:bg-blue-50 dark:hover:bg-blue-900/20 cursor-pointer text-blue-600 dark:text-blue-300 font-semibold text-xs uppercase tracking-wide p-2 rounded-md flex items-center justify-between">
+                  <span>{group.label}</span>
+                  {!isCollapsed && (
+                    <span>
+                      {openGroup === group.id ? (
+                        <ChevronDown className="w-4 h-4 transition-transform" />
+                      ) : (
+                        <ChevronRight className="w-4 h-4 transition-transform" />
+                      )}
+                    </span>
+                  )}
+                </SidebarGroupLabel>
+              </CollapsibleTrigger>
+              
+              <CollapsibleContent>
+                <SidebarGroupContent>
+                  <SidebarMenu className="ml-2">
+                    {group.items.map((item) => (
+                      <SidebarMenuItem key={item.id}>
+                        {item.hasSubmenu ? (
+                          <div>
+                            <SidebarMenuButton
+                              isActive={activeSection === item.id}
+                              onClick={() => {
+                                if (!isCollapsed) {
+                                  handleSubmenuToggle(item.id);
+                                }
+                                handleSectionChange(item.id);
+                              }}
+                              className="w-full justify-start hover:bg-blue-50 dark:hover:bg-blue-900/20 data-[active=true]:bg-blue-100 dark:data-[active=true]:bg-blue-800 text-gray-700 dark:text-gray-300 py-2"
+                              tooltip={isCollapsed ? item.label : undefined}
+                            >
+                              <item.icon className="w-4 h-4" />
+                              <span>{item.label}</span>
+                              {!isCollapsed && (
+                                <span>
+                                  {openSubmenus[item.id] ? (
+                                    <ChevronDown className="w-3 h-3 ml-auto" />
+                                  ) : (
+                                    <ChevronRight className="w-3 h-3 ml-auto" />
+                                  )}
+                                </span>
+                              )}
+                            </SidebarMenuButton>
+                            
+                            {!isCollapsed && openSubmenus[item.id] && item.submenuItems && (
+                              <div className="ml-6 mt-1 space-y-1">
+                                {item.submenuItems.map((subItem) => (
+                                  <SidebarMenuButton
+                                    key={subItem.id}
+                                    isActive={activeSection === subItem.id}
+                                    onClick={() => handleSectionChange(subItem.id)}
+                                    className="w-full justify-start hover:bg-blue-50 dark:hover:bg-blue-900/20 data-[active=true]:bg-blue-100 dark:data-[active=true]:bg-blue-800 text-gray-600 dark:text-gray-400 py-1 text-sm"
+                                  >
+                                    <span>{subItem.label}</span>
+                                  </SidebarMenuButton>
+                                ))}
                               </div>
-                            ) : (
-                              <SidebarMenuButton
-                                isActive={activeSection === item.id}
-                                onClick={() => handleSectionChange(item.id)}
-                                className="w-full justify-start hover:bg-blue-50 dark:hover:bg-blue-900/20 data-[active=true]:bg-blue-100 dark:data-[active=true]:bg-blue-800 text-gray-700 dark:text-gray-300 py-2"
-                              >
-                                <item.icon className="w-4 h-4" />
-                                <span>{item.label}</span>
-                              </SidebarMenuButton>
                             )}
-                          </SidebarMenuItem>
-                        ))}
-                      </SidebarMenu>
-                    </SidebarGroupContent>
-                  </CollapsibleContent>
-                </Collapsible>
-              </SidebarGroup>
-            ))}
-          </>
-        )}
+                          </div>
+                        ) : (
+                          <SidebarMenuButton
+                            isActive={activeSection === item.id}
+                            onClick={() => handleSectionChange(item.id)}
+                            className="w-full justify-start hover:bg-blue-50 dark:hover:bg-blue-900/20 data-[active=true]:bg-blue-100 dark:data-[active=true]:bg-blue-800 text-gray-700 dark:text-gray-300 py-2"
+                            tooltip={isCollapsed ? item.label : undefined}
+                          >
+                            <item.icon className="w-4 h-4" />
+                            <span>{item.label}</span>
+                          </SidebarMenuButton>
+                        )}
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </CollapsibleContent>
+            </Collapsible>
+          </SidebarGroup>
+        ))}
       </SidebarContent>
     </Sidebar>
   );
