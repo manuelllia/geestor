@@ -1,52 +1,137 @@
 
 import { useState } from 'react';
-import * as pdfjsLib from 'pdfjs-dist';
-
-// Configurar el worker de PDF.js
-pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+import { getDocument } from 'pdfjs-dist';
 
 interface ReportData {
-  esPorLotes: boolean;
-  lotes: Array<{
-    nombre: string;
-    centroAsociado: string;
-    descripcion: string;
-    presupuesto: string;
-    requisitosClave: string[];
-  }>;
-  variablesDinamicas: Array<{
-    nombre: string;
-    descripcion: string;
-    mapeo: 'price' | 'tenderBudget' | 'maxScore' | 'lowestPrice' | 'averagePrice';
-  }>;
-  formulaEconomica: string;
-  formulasDetectadas: Array<{
-    formulaOriginal: string;
-    representacionLatex: string;
-    descripcionVariables: string;
-    condicionesLogicas: string;
-  }>;
-  umbralBajaTemeraria: string;
-  criteriosAutomaticos: Array<{
-    nombre: string;
-    descripcion: string;
-    puntuacionMaxima: number;
-  }>;
-  criteriosSubjetivos: Array<{
-    nombre: string;
-    descripcion: string;
-    puntuacionMaxima: number;
-  }>;
-  otrosCriterios: Array<{
-    nombre: string;
-    descripcion: string;
-    puntuacionMaxima: number;
-  }>;
   presupuestoGeneral: string;
-  costesDetalladosRecomendados: {
-    [key: string]: any;
-  };
+  esPorLotes: boolean;
+  lotes: any[];
+  variablesDinamicas: any[];
+  formulaEconomica: string;
+  formulasDetectadas: any[];
+  umbralBajaTemeraria: string;
+  criteriosAutomaticos: any[];
+  criteriosSubjetivos: any[];
+  otrosCriterios: any[];
+  costesDetalladosRecomendados: any[];
 }
+
+const responseSchema = {
+  type: "object",
+  properties: {
+    presupuestoGeneral: { type: "string" },
+    esPorLotes: { type: "boolean" },
+    lotes: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          nombre: { type: "string" },
+          centroAsociado: { type: "string" },
+          descripcion: { type: "string" },
+          presupuesto: { type: "string" },
+          requisitosClave: {
+            type: "array",
+            items: { type: "string" }
+          }
+        },
+        required: ["nombre", "centroAsociado", "descripcion", "presupuesto"]
+      }
+    },
+    variablesDinamicas: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          nombre: { type: "string" },
+          descripcion: { type: "string" },
+          mapeo: { 
+            type: "string",
+            enum: ["price", "tenderBudget", "maxScore", "lowestPrice", "averagePrice"] 
+          }
+        },
+        required: ["nombre", "descripcion", "mapeo"]
+      }
+    },
+    formulaEconomica: { type: "string" },
+    formulasDetectadas: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          formulaOriginal: { type: "string" },
+          representacionLatex: { type: "string" },
+          descripcionVariables: { type: "string" },
+          condicionesLogicas: { type: "string" }
+        },
+        required: ["formulaOriginal", "representacionLatex", "descripcionVariables"]
+      }
+    },
+    umbralBajaTemeraria: { type: "string" },
+    criteriosAutomaticos: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          nombre: { type: "string" },
+          descripcion: { type: "string" },
+          puntuacionMaxima: { type: "number" }
+        },
+        required: ["nombre", "descripcion", "puntuacionMaxima"]
+      }
+    },
+    criteriosSubjetivos: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          nombre: { type: "string" },
+          descripcion: { type: "string" },
+          puntuacionMaxima: { type: "number" }
+        },
+        required: ["nombre", "descripcion", "puntuacionMaxima"]
+      }
+    },
+    otrosCriterios: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          nombre: { type: "string" },
+          descripcion: { type: "string" },
+          puntuacionMaxima: { type: "number" }
+        },
+        required: ["nombre", "descripcion", "puntuacionMaxima"]
+      }
+    },
+    costesDetalladosRecomendados: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          categoria: { type: "string" },
+          concepto: { type: "string" },
+          costeEstimado: { type: "number" },
+          justificacion: { type: "string" }
+        },
+        required: ["categoria", "concepto", "costeEstimado", "justificacion"]
+      }
+    }
+  },
+  required: [
+    "presupuestoGeneral",
+    "esPorLotes", 
+    "lotes",
+    "variablesDinamicas",
+    "formulaEconomica",
+    "formulasDetectadas",
+    "umbralBajaTemeraria",
+    "criteriosAutomaticos",
+    "criteriosSubjetivos",
+    "otrosCriterios",
+    "costesDetalladosRecomendados"
+  ]
+};
 
 export const useCostAnalysis = () => {
   const [analysisResult, setAnalysisResult] = useState<ReportData | null>(null);
@@ -55,36 +140,28 @@ export const useCostAnalysis = () => {
 
   const extractTextFromPDF = async (file: File): Promise<string> => {
     try {
-      console.log(`Extrayendo texto del archivo: ${file.name}`);
-      
       const arrayBuffer = await file.arrayBuffer();
-      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-      
+      const pdf = await getDocument({ data: arrayBuffer }).promise;
       let fullText = '';
-      
+
       for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-        console.log(`Procesando página ${pageNum}/${pdf.numPages} de ${file.name}`);
         const page = await pdf.getPage(pageNum);
         const textContent = await page.getTextContent();
-        
         const pageText = textContent.items
           .map((item: any) => item.str)
           .join(' ');
-        
-        fullText += `\n--- PÁGINA ${pageNum} ---\n${pageText}\n`;
+        fullText += pageText + '\n';
       }
-      
-      console.log(`Texto extraído del ${file.name}: ${fullText.length} caracteres, ${pdf.numPages} páginas`);
+
       return fullText;
-      
     } catch (error) {
-      console.error(`Error extrayendo texto del archivo ${file.name}:`, error);
-      throw new Error(`No se pudo extraer el texto del archivo ${file.name}. Verifica que el PDF no esté protegido o corrupto.`);
+      console.error('Error extracting text from PDF:', error);
+      throw new Error('Error al extraer texto del PDF');
     }
   };
 
-  const generateCostAnalysisPrompt = (pcapText: string, pptText: string): string => `
-Actúa como un prestigioso matemático y un experto consultor especializado en licitaciones públicas de electromedicina en España. Tu tarea es analizar el texto extraído de un Pliego de Cláusulas Administrativas Particulares (PCAP) y un Pliego de Prescripciones Técnicas (PPT).
+  const createAnalysisPrompt = (pcapText: string, pptText: string): string => {
+    return `Actúa como un prestigioso matemático y un experto consultor especializado en licitaciones públicas de electromedicina en España. Tu tarea es analizar el texto extraído de un Pliego de Cláusulas Administrativas Particulares (PCAP) y un Pliego de Prescripciones Técnicas (PPT).
 
 **Instrucción de Idioma (CRÍTICA):** Los documentos de entrada (PCAP y PPT) pueden estar escritos en español, catalán, gallego, euskera (vasco), valenciano o inglés. Independientemente del idioma de origen, TU RESPUESTA Y TODOS LOS DATOS EXTRAÍDOS en el JSON final DEBEN ESTAR OBLIGATORIAMENTE EN ESPAÑOL. Realiza la traducción necesaria para todos los campos.
 
@@ -164,20 +241,21 @@ ${pcapText}
 
 --- TEXTO PPT ---
 ${pptText}
---- FIN TEXTO PPT ---
-
-RESPUESTA REQUERIDA: Proporciona ÚNICAMENTE un objeto JSON válido con la estructura ReportData solicitada. No agregues explicaciones, texto adicional o bloques de código markdown.
-`;
+--- FIN TEXTO PPT ---`;
+  };
 
   const callGeminiAPI = async (prompt: string): Promise<ReportData> => {
     const GEMINI_API_KEY = 'AIzaSyANIWvIMRvCW7f0meHRk4SobRz4s0pnxtg';
-    const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent';
-    
-    try {
-      console.log('🤖 Enviando análisis de costes a Gemini 2.5 Flash Lite...');
-      console.log(`📄 Tamaño del prompt: ${prompt.length} caracteres`);
-      
-      const requestBody = {
+    const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent';
+
+    console.log('🤖 Llamando a Gemini API...');
+
+    const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
         contents: [{
           parts: [{
             text: prompt
@@ -188,135 +266,87 @@ RESPUESTA REQUERIDA: Proporciona ÚNICAMENTE un objeto JSON válido con la estru
           topK: 40,
           topP: 0.95,
           maxOutputTokens: 8192,
-          responseMimeType: "application/json"
-        },
-        safetySettings: [
-          {
-            category: "HARM_CATEGORY_HARASSMENT",
-            threshold: "BLOCK_NONE"
-          },
-          {
-            category: "HARM_CATEGORY_HATE_SPEECH", 
-            threshold: "BLOCK_NONE"
-          },
-          {
-            category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-            threshold: "BLOCK_NONE"
-          },
-          {
-            category: "HARM_CATEGORY_DANGEROUS_CONTENT",
-            threshold: "BLOCK_NONE"
-          }
-        ]
-      };
-
-      console.log('📤 Enviando request a Gemini:', JSON.stringify(requestBody, null, 2).substring(0, 500) + '...');
-
-      const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody),
-      });
-
-      console.log('📥 Response status:', response.status);
-      console.log('📥 Response headers:', Object.fromEntries(response.headers.entries()));
-
-      if (!response.ok) {
-        const errorData = await response.text();
-        console.error('❌ Error de Gemini API:', errorData);
-        throw new Error(`Error de Gemini API: ${response.status} - ${errorData}`);
-      }
-
-      const data = await response.json();
-      console.log('✅ Respuesta completa de Gemini recibida:', JSON.stringify(data, null, 2).substring(0, 1000) + '...');
-
-      if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
-        console.error('❌ Estructura de respuesta inválida:', data);
-        throw new Error('Respuesta inválida de Gemini API - estructura incorrecta');
-      }
-
-      const responseText = data.candidates[0].content.parts[0].text;
-      console.log('📝 Texto de respuesta:', responseText.substring(0, 500) + '...');
-
-      try {
-        let cleanedResponse = responseText
-          .replace(/```json\n?/g, '')
-          .replace(/```\n?/g, '')
-          .trim();
-        
-        if (cleanedResponse.startsWith('"') && cleanedResponse.endsWith('"')) {
-          cleanedResponse = cleanedResponse.slice(1, -1);
-          cleanedResponse = cleanedResponse.replace(/\\"/g, '"');
+          responseMimeType: "application/json",
+          responseSchema: responseSchema
         }
-        
-        const analysisResult: ReportData = JSON.parse(cleanedResponse);
-        console.log('✅ Análisis parseado exitosamente:', analysisResult);
-        
-        // Post-procesamiento: parsear formulaEconomica si es un string JSON
-        if (analysisResult.formulaEconomica && analysisResult.formulaEconomica !== '{}') {
-          try {
-            const parsedFormula = JSON.parse(analysisResult.formulaEconomica);
-            analysisResult.formulaEconomica = JSON.stringify(parsedFormula);
-          } catch (parseError) {
-            console.warn('⚠️ No se pudo parsear formulaEconomica como JSON, manteniendo como string');
-          }
-        }
-        
-        if (typeof analysisResult !== 'object' || analysisResult === null) {
-          throw new Error('El resultado no es un objeto válido');
-        }
-        
-        return analysisResult;
-      } catch (parseError) {
-        console.error('❌ Error parseando JSON de Gemini:', parseError);
-        console.error('📝 Respuesta recibida:', responseText);
-        throw new Error(`La respuesta de Gemini no es un JSON válido: ${parseError instanceof Error ? parseError.message : 'Error desconocido'}`);
-      }
+      }),
+    });
 
-    } catch (error) {
-      console.error('❌ Error en llamada a Gemini API:', error);
-      if (error instanceof Error) {
-        throw new Error(`Error en análisis con Gemini: ${error.message}`);
-      }
-      throw new Error('Error desconocido en análisis con Gemini');
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ Error de Gemini API:', response.status, errorText);
+      throw new Error(`Error de Gemini API: ${response.status} - ${errorText}`);
     }
+
+    const data = await response.json();
+    console.log('✅ Respuesta de Gemini recibida:', data);
+    
+    if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
+      throw new Error('Respuesta inválida de Gemini API');
+    }
+
+    const responseText = data.candidates[0].content.parts[0].text;
+    console.log('📝 Texto de respuesta:', responseText);
+    
+    let parsedResult: ReportData;
+    try {
+      parsedResult = JSON.parse(responseText);
+      console.log('✅ JSON parseado correctamente:', parsedResult);
+    } catch (parseError) {
+      console.error('❌ Error al parsear JSON:', parseError);
+      throw new Error('Error al parsear la respuesta de la IA');
+    }
+
+    // Post-procesamiento: parsear formulaEconomica si existe y no está vacía
+    if (parsedResult.formulaEconomica && parsedResult.formulaEconomica !== '{}') {
+      try {
+        const formulaObject = JSON.parse(parsedResult.formulaEconomica);
+        console.log('✅ Fórmula económica parseada:', formulaObject);
+        parsedResult.formulaEconomica = JSON.stringify(formulaObject);
+      } catch (formulaError) {
+        console.warn('⚠️ Error al parsear formulaEconomica, manteniendo como string:', formulaError);
+      }
+    }
+
+    return parsedResult;
   };
 
-  const analyzeCosts = async (pcapFile: File, pptFile: File) => {
+  const analyzeCosts = async (pcapFile: File, pptFile: File): Promise<void> => {
     setIsLoading(true);
     setError(null);
     setAnalysisResult(null);
-    
+
     try {
-      console.log('🚀 Iniciando análisis de costes con Gemini 2.5 Flash Lite...');
-      
-      console.log('📄 Extrayendo texto de archivos PDF...');
+      console.log('🔍 Iniciando análisis de costes...');
+      console.log('📄 Archivos recibidos:', {
+        pcap: pcapFile.name,
+        ppt: pptFile.name
+      });
+
+      // Extraer texto de ambos PDFs
+      console.log('📝 Extrayendo texto del PCAP...');
       const pcapText = await extractTextFromPDF(pcapFile);
+      console.log('✅ PCAP procesado, caracteres:', pcapText.length);
+
+      console.log('📝 Extrayendo texto del PPT...');
       const pptText = await extractTextFromPDF(pptFile);
-      
-      if (!pcapText.trim() && !pptText.trim()) {
-        throw new Error('No se pudo extraer texto de los archivos PDF. Verifica que los archivos no estén corruptos o protegidos.');
-      }
-      
-      console.log(`📊 PCAP extraído: ${pcapText.length} caracteres`);
-      console.log(`📊 PPT extraído: ${pptText.length} caracteres`);
-      console.log(`📊 Total de texto para análisis: ${pcapText.length + pptText.length} caracteres`);
-      
-      const prompt = generateCostAnalysisPrompt(pcapText, pptText);
-      console.log(`🔤 Prompt generado: ${prompt.length} caracteres`);
-      
-      console.log('🤖 Enviando análisis de costes a Gemini API...');
-      const analysis = await callGeminiAPI(prompt);
-      
-      setAnalysisResult(analysis);
-      console.log('✅ Análisis de costes completado exitosamente con Gemini 2.5 Flash Lite');
-      
+      console.log('✅ PPT procesado, caracteres:', pptText.length);
+
+      // Crear prompt
+      console.log('🔧 Creando prompt para análisis...');
+      const prompt = createAnalysisPrompt(pcapText, pptText);
+      console.log('✅ Prompt creado, longitud:', prompt.length);
+
+      // Llamar a Gemini API
+      console.log('🤖 Enviando a Gemini API...');
+      const result = await callGeminiAPI(prompt);
+      console.log('✅ Análisis completado:', result);
+
+      setAnalysisResult(result);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Error desconocido durante el análisis';
-      setError(errorMessage);
       console.error('❌ Error en análisis de costes:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Error desconocido';
+      setError(`Error en el análisis: ${errorMessage}`);
     } finally {
       setIsLoading(false);
     }
