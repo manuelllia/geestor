@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { useTranslation } from '@/hooks/useTranslation';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Calendar } from "@/components/ui/calendar"
 import {
@@ -18,13 +17,8 @@ import { useMaintenanceCalendar } from '@/hooks/useMaintenanceCalendar';
 import MaintenanceCalendarGrid from './MaintenanceCalendarGrid';
 import EditableMaintenanceCalendar from './EditableMaintenanceCalendar';
 import DenominacionesPaginatedTable from './DenominacionesPaginatedTable';
-import { Language } from '@/utils/translations';
 
-interface MaintenanceCalendarViewProps {
-  language: Language;
-}
-
-const MaintenanceCalendarView: React.FC<MaintenanceCalendarViewProps> = ({ language }) => {
+const MaintenanceCalendarView = () => {
   const {
     inventory,
     maintenanceCalendar,
@@ -46,21 +40,21 @@ const MaintenanceCalendarView: React.FC<MaintenanceCalendarViewProps> = ({ langu
     hideCalendarView
   } = useMaintenanceCalendar();
 
-  const { t } = useTranslation(language);
+  const { t } = useTranslation();
 
   if (isLoading) {
-    return <div>{t('loading')}</div>;
+    return <div>Cargando...</div>;
   }
 
   if (error) {
-    return <div>{t('error')}: {error}</div>;
+    return <div>Error: {error}</div>;
   }
 
   if (processingStep === 'upload') {
     return (
       <div className="flex flex-col items-center justify-center h-full">
-        <h2 className="text-2xl font-bold mb-4">Subir Archivos de Mantenimiento</h2>
-        <p className="text-gray-500 mb-4">Sube los archivos de inventario y mantenimiento</p>
+        <h2 className="text-2xl font-bold mb-4">{t.maintenanceCalendar.uploadTitle}</h2>
+        <p className="text-gray-500 mb-4">{t.maintenanceCalendar.uploadDescription}</p>
         <div className="flex space-x-4">
           <input
             type="file"
@@ -69,7 +63,7 @@ const MaintenanceCalendarView: React.FC<MaintenanceCalendarViewProps> = ({ langu
             id="inventory-upload"
           />
           <label htmlFor="inventory-upload" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded cursor-pointer">
-            Subir Inventario
+            {t.maintenanceCalendar.uploadInventoryButton}
           </label>
           <input
             type="file"
@@ -78,7 +72,7 @@ const MaintenanceCalendarView: React.FC<MaintenanceCalendarViewProps> = ({ langu
             id="maintenance-upload"
           />
           <label htmlFor="maintenance-upload" className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded cursor-pointer">
-            Subir Mantenimiento
+            {t.maintenanceCalendar.uploadMaintenanceButton}
           </label>
         </div>
       </div>
@@ -88,15 +82,15 @@ const MaintenanceCalendarView: React.FC<MaintenanceCalendarViewProps> = ({ langu
   if (processingStep === 'select-sheets') {
     return (
       <div className="space-y-4">
-        <h2 className="text-2xl font-bold">Seleccionar Hojas</h2>
-        <p className="text-gray-500">Selecciona las hojas que deseas procesar</p>
+        <h2 className="text-2xl font-bold">{t.maintenanceCalendar.selectSheetsTitle}</h2>
+        <p className="text-gray-500">{t.maintenanceCalendar.selectSheetsDescription}</p>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {selectedSheets.map(sheet => (
             <Card key={sheet.name} className="shadow-sm">
               <CardHeader>
                 <CardTitle className="text-blue-900 dark:text-blue-100">{sheet.name}</CardTitle>
                 <CardDescription>
-                  {sheet.rowCount} filas
+                  {sheet.rowCount} {t.maintenanceCalendar.rows}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -135,7 +129,7 @@ const MaintenanceCalendarView: React.FC<MaintenanceCalendarViewProps> = ({ langu
                       prev.map(s => s.name === sheet.name ? { ...s, selected: !s.selected } : s)
                     )}
                   />
-                  <span className="ml-2 text-gray-700 dark:text-gray-300">Seleccionar hoja</span>
+                  <span className="ml-2 text-gray-700 dark:text-gray-300">{t.maintenanceCalendar.selectSheet}</span>
                 </label>
               </CardFooter>
             </Card>
@@ -143,10 +137,10 @@ const MaintenanceCalendarView: React.FC<MaintenanceCalendarViewProps> = ({ langu
         </div>
         <div className="flex justify-between">
           <Button onClick={resetProcess} variant="outline">
-            {t('cancel')}
+            {t.maintenanceCalendar.cancel}
           </Button>
           <Button onClick={() => processFinalSheets()}>
-            Procesar Hojas Seleccionadas
+            {t.maintenanceCalendar.processSelectedSheets}
           </Button>
         </div>
       </div>
@@ -160,10 +154,10 @@ const MaintenanceCalendarView: React.FC<MaintenanceCalendarViewProps> = ({ langu
   if (processingStep === 'generate-calendar') {
     return (
       <div className="space-y-4">
-        <h2 className="text-2xl font-bold">Generar Calendario</h2>
-        <p className="text-gray-500">Genera el calendario de mantenimiento con IA</p>
+        <h2 className="text-2xl font-bold">{t.maintenanceCalendar.generateCalendarTitle}</h2>
+        <p className="text-gray-500">{t.maintenanceCalendar.generateCalendarDescription}</p>
         <Button onClick={generateAICalendar}>
-          Generar Calendario de Mantenimiento con IA
+          {t.maintenanceCalendar.generateCalendarButton}
         </Button>
       </div>
     );
@@ -185,7 +179,7 @@ const MaintenanceCalendarView: React.FC<MaintenanceCalendarViewProps> = ({ langu
         <div className="flex justify-between items-center">
           <div>
             <h2 className="text-2xl font-bold text-blue-900 dark:text-blue-100">
-              Calendario de Mantenimiento
+              {t.maintenanceCalendar.title}
             </h2>
             <p className="text-gray-600 dark:text-gray-400">
               Análisis completado - {denominacionesData.length} denominaciones procesadas
@@ -211,7 +205,7 @@ const MaintenanceCalendarView: React.FC<MaintenanceCalendarViewProps> = ({ langu
   return (
     <div>
       <h2>Calendario de Mantenimiento</h2>
-      <MaintenanceCalendarGrid calendar={maintenanceCalendar} language={language} />
+      <MaintenanceCalendarGrid calendar={maintenanceCalendar} language="es" />
     </div>
   );
 };
