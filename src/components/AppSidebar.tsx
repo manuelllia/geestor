@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import {
   Sidebar,
@@ -38,10 +39,12 @@ interface AppSidebarProps {
 
 export function AppSidebar({ language, activeSection, onSectionChange }: AppSidebarProps) {
   const { t } = useTranslation(language);
-  const { setOpenMobile } = useSidebar();
+  const { setOpenMobile, state } = useSidebar();
   const isMobile = useIsMobile();
   const [openGroup, setOpenGroup] = useState<string | null>(null);
   const [openSubmenus, setOpenSubmenus] = useState<{ [key: string]: boolean }>({});
+  
+  const isCollapsed = state === 'collapsed';
 
   const handleGroupToggle = (groupId: string) => {
     setOpenGroup(openGroup === groupId ? null : groupId);
@@ -138,11 +141,19 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
     <Sidebar className="border-r border-blue-200 dark:border-blue-800 bg-white dark:bg-gray-900">
       <SidebarHeader className="border-b border-blue-200 dark:border-blue-800 p-4 h-16">
         <div className="flex items-center justify-center h-full">
-          <img 
-            src="/lovable-uploads/f7fd6e9d-43a7-47ba-815e-fdaa1b630f6b.png" 
-            alt="GEESTOR Logo" 
-            className="h-10 w-auto object-contain group-data-[collapsible=icon]:h-8"
-          />
+          {isCollapsed ? (
+            <img 
+              src="/lovable-uploads/1e2990fc-768b-4645-bfc4-725186d26e5b.png" 
+              alt="GEEstor Logo" 
+              className="h-8 w-8 object-contain"
+            />
+          ) : (
+            <img 
+              src="/lovable-uploads/f7fd6e9d-43a7-47ba-815e-fdaa1b630f6b.png" 
+              alt="GEESTOR Logo" 
+              className="h-10 w-auto object-contain"
+            />
+          )}
         </div>
       </SidebarHeader>
 
@@ -156,6 +167,7 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
                   isActive={activeSection === 'inicio'}
                   onClick={() => handleSectionChange('inicio')}
                   className="w-full justify-start hover:bg-blue-50 dark:hover:bg-blue-900/20 data-[active=true]:bg-blue-100 dark:data-[active=true]:bg-blue-800 mb-2"
+                  tooltip={isCollapsed ? "Inicio" : undefined}
                 >
                   <Home className="w-4 h-4" />
                   <span className="group-data-[collapsible=icon]:hidden">Inicio</span>
@@ -199,6 +211,7 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
                                 handleSectionChange(item.id);
                               }}
                               className="w-full justify-start hover:bg-blue-50 dark:hover:bg-blue-900/20 data-[active=true]:bg-blue-100 dark:data-[active=true]:bg-blue-800 text-gray-700 dark:text-gray-300 py-2"
+                              tooltip={isCollapsed ? item.label : undefined}
                             >
                               <item.icon className="w-4 h-4" />
                               <span className="group-data-[collapsible=icon]:hidden">{item.label}</span>
@@ -219,6 +232,7 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
                                     isActive={activeSection === subItem.id}
                                     onClick={() => handleSectionChange(subItem.id)}
                                     className="w-full justify-start hover:bg-blue-50 dark:hover:bg-blue-900/20 data-[active=true]:bg-blue-100 dark:data-[active=true]:bg-blue-800 text-gray-600 dark:text-gray-400 py-1 text-sm"
+                                    tooltip={isCollapsed ? subItem.label : undefined}
                                   >
                                     <span>{subItem.label}</span>
                                   </SidebarMenuButton>
@@ -231,6 +245,7 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
                             isActive={activeSection === item.id}
                             onClick={() => handleSectionChange(item.id)}
                             className="w-full justify-start hover:bg-blue-50 dark:hover:bg-blue-900/20 data-[active=true]:bg-blue-100 dark:data-[active=true]:bg-blue-800 text-gray-700 dark:text-gray-300 py-2"
+                            tooltip={isCollapsed ? item.label : undefined}
                           >
                             <item.icon className="w-4 h-4" />
                             <span className="group-data-[collapsible=icon]:hidden">{item.label}</span>
