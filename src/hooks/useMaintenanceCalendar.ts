@@ -56,6 +56,7 @@ export const useMaintenanceCalendar = () => {
   const [selectedSheets, setSelectedSheets] = useState<SheetInfo[]>([]);
   const [processingStep, setProcessingStep] = useState<'upload' | 'select-sheets' | 'generate-calendar' | 'processing' | 'complete'>('upload');
   const [frecTipoData, setFrecTipoData] = useState<any[]>([]);
+  const [showEditableCalendar, setShowEditableCalendar] = useState(false);
 
   const detectSheetType = (sheetName: string, columns: string[]): 'inventory' | 'frec-tipo' | 'planning' | 'anexo' | 'other' => {
     const name = sheetName.toLowerCase().trim();
@@ -626,7 +627,6 @@ Responde ÚNICAMENTE con el JSON, sin explicaciones adicionales.
       
       console.log('✅ Análisis de Denominaciones Homogéneas completado:', denominacionesAnalysis);
       
-      // Aquí irá la lógica de IA para generar el calendario
       await new Promise(resolve => setTimeout(resolve, 3000));
       setProcessingStep('complete');
     } catch (err) {
@@ -634,6 +634,14 @@ Responde ÚNICAMENTE con el JSON, sin explicaciones adicionales.
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const showCalendarView = () => {
+    setShowEditableCalendar(true);
+  };
+
+  const hideCalendarView = () => {
+    setShowEditableCalendar(false);
   };
 
   const resetProcess = () => {
@@ -660,6 +668,9 @@ Responde ÚNICAMENTE con el JSON, sin explicaciones adicionales.
     generateAICalendar,
     resetProcess,
     setSelectedSheets,
-    setProcessingStep
+    setProcessingStep,
+    showEditableCalendar,
+    showCalendarView,
+    hideCalendarView
   };
 };
