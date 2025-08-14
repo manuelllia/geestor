@@ -44,6 +44,7 @@ interface DenominacionHomogeneaData {
   cantidad: number;
   frecuencia: string;
   tipoMantenimiento: string;
+  tiempo?: string;
 }
 
 export const useMaintenanceCalendar = () => {
