@@ -6,38 +6,28 @@ export const useTranslation = (language: Language) => {
     const translation = translations[language]?.[key];
     
     if (translation) {
-      // Check if translation is a string before calling replace
-      if (typeof translation === 'string') {
-        let result = translation;
-        
-        // Si se proporcionan parámetros, reemplazar los placeholders
-        if (params) {
-          Object.entries(params).forEach(([paramKey, value]) => {
-            result = result.replace(new RegExp(`\\{${paramKey}\\}`, 'g'), String(value));
-          });
-        }
-        
-        return result;
-      } else {
-        // If it's an object, return the key as fallback
-        return String(key);
+      let result = translation;
+      
+      // Si se proporcionan parámetros, reemplazar los placeholders
+      if (params) {
+        Object.entries(params).forEach(([paramKey, value]) => {
+          result = result.replace(new RegExp(`\\{${paramKey}\\}`, 'g'), String(value));
+        });
       }
+      
+      return result;
     }
     
     // Fallback al español si no existe la traducción en el idioma solicitado
     const fallback = translations.es[key];
     if (fallback) {
-      if (typeof fallback === 'string') {
-        let result = fallback;
-        if (params) {
-          Object.entries(params).forEach(([paramKey, value]) => {
-            result = result.replace(new RegExp(`\\{${paramKey}\\}`, 'g'), String(value));
-          });
-        }
-        return result;
-      } else {
-        return String(key);
+      let result = fallback;
+      if (params) {
+        Object.entries(params).forEach(([paramKey, value]) => {
+          result = result.replace(new RegExp(`\\{${paramKey}\\}`, 'g'), String(value));
+        });
       }
+      return result;
     }
     
     // Fallback al string de la clave si no existe traducción
