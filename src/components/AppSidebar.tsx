@@ -177,7 +177,7 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
                     <SidebarMenuButton
                       isActive={activeSection === item.id}
                       onClick={() => handleSectionChange(item.id)}
-                      className="w-full justify-center hover:bg-blue-50 dark:hover:bg-blue-900/20 data-[active=true]:bg-blue-100 dark:data-[active=true]:bg-blue-800 p-2"
+                      className="w-full flex justify-center items-center hover:bg-blue-50 dark:hover:bg-blue-900/20 data-[active=true]:bg-blue-100 dark:data-[active=true]:bg-blue-800 p-2"
                       tooltip={item.label}
                     >
                       <item.icon className="w-5 h-5" />
