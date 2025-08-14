@@ -144,7 +144,7 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
           {isCollapsed ? (
             <img 
               src="/lovable-uploads/1e2990fc-768b-4645-bfc4-725186d26e5b.png" 
-              alt="GEEstor Logo" 
+              alt="GEE Logo" 
               className="h-8 w-8 object-contain"
             />
           ) : (
