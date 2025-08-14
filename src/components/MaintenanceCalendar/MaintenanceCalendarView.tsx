@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from '@/hooks/useTranslation';
 import { Button } from '@/components/ui/button';
 import { Calendar } from "@/components/ui/calendar"
 import {
@@ -17,8 +18,13 @@ import { useMaintenanceCalendar } from '@/hooks/useMaintenanceCalendar';
 import MaintenanceCalendarGrid from './MaintenanceCalendarGrid';
 import EditableMaintenanceCalendar from './EditableMaintenanceCalendar';
 import DenominacionesPaginatedTable from './DenominacionesPaginatedTable';
+import { Language } from '@/utils/translations';
 
-const MaintenanceCalendarView = () => {
+interface MaintenanceCalendarViewProps {
+  language: Language;
+}
+
+const MaintenanceCalendarView: React.FC<MaintenanceCalendarViewProps> = ({ language }) => {
   const {
     inventory,
     maintenanceCalendar,
@@ -40,21 +46,21 @@ const MaintenanceCalendarView = () => {
     hideCalendarView
   } = useMaintenanceCalendar();
 
-  const { t } = useTranslation();
+  const { t } = useTranslation(language);
 
   if (isLoading) {
-    return <div>Cargando...</div>;
+    return <div>{t('loading')}</div>;
   }
 
   if (error) {
-    return <div>Error: {error}</div>;
+    return <div>{t('error')}: {error}</div>;
   }
 
   if (processingStep === 'upload') {
     return (
       <div className="flex flex-col items-center justify-center h-full">
-        <h2 className="text-2xl font-bold mb-4">{t.maintenanceCalendar.uploadTitle}</h2>
-        <p className="text-gray-500 mb-4">{t.maintenanceCalendar.uploadDescription}</p>
+        <h2 className="text-2xl font-bold mb-4">Subir Archivos de Mantenimiento</h2>
+        <p className="text-gray-500 mb-4">Sube los archivos de inventario y mantenimiento</p>
         <div className="flex space-x-4">
           <input
             type="file"
@@ -63,7 +69,7 @@ const MaintenanceCalendarView = () => {
             id="inventory-upload"
           />
           <label htmlFor="inventory-upload" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded cursor-pointer">
-            {t.maintenanceCalendar.uploadInventoryButton}
+            Subir Inventario
           </label>
           <input
             type="file"
@@ -72,7 +78,7 @@ const MaintenanceCalendarView = () => {
             id="maintenance-upload"
           />
           <label htmlFor="maintenance-upload" className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded cursor-pointer">
-            {t.maintenanceCalendar.uploadMaintenanceButton}
+            Subir Mantenimiento
           </label>
         </div>
       </div>
@@ -82,15 +88,15 @@ const MaintenanceCalendarView = () => {
   if (processingStep === 'select-sheets') {
     return (
       <div className="space-y-4">
-        <h2 className="text-2xl font-bold">{t.maintenanceCalendar.selectSheetsTitle}</h2>
-        <p className="text-gray-500">{t.maintenanceCalendar.selectSheetsDescription}</p>
+        <h2 className="text-2xl font-bold">Seleccionar Hojas</h2>
+        <p className="text-gray-500">Selecciona las hojas que deseas procesar</p>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {selectedSheets.map(sheet => (
             <Card key={sheet.name} className="shadow-sm">
               <CardHeader>
                 <CardTitle className="text-blue-900 dark:text-blue-100">{sheet.name}</CardTitle>
                 <CardDescription>
-                  {sheet.rowCount} {t.maintenanceCalendar.rows}
+                  {sheet.rowCount} filas
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -129,7 +135,7 @@ const MaintenanceCalendarView = () => {
                       prev.map(s => s.name === sheet.name ? { ...s, selected: !s.selected } : s)
                     )}
                   />
-                  <span className="ml-2 text-gray-700 dark:text-gray-300">{t.maintenanceCalendar.selectSheet}</span>
+                  <span className="ml-2 text-gray-700 dark:text-gray-300">Seleccionar hoja</span>
                 </label>
               </CardFooter>
             </Card>
@@ -137,10 +143,10 @@ const MaintenanceCalendarView = () => {
         </div>
         <div className="flex justify-between">
           <Button onClick={resetProcess} variant="outline">
-            {t.maintenanceCalendar.cancel}
+            {t('cancel')}
           </Button>
           <Button onClick={() => processFinalSheets()}>
-            {t.maintenanceCalendar.processSelectedSheets}
+            Procesar Hojas Seleccionadas
           </Button>
         </div>
       </div>
@@ -154,10 +160,10 @@ const MaintenanceCalendarView = () => {
   if (processingStep === 'generate-calendar') {
     return (
       <div className="space-y-4">
-        <h2 className="text-2xl font-bold">{t.maintenanceCalendar.generateCalendarTitle}</h2>
-        <p className="text-gray-500">{t.maintenanceCalendar.generateCalendarDescription}</p>
+        <h2 className="text-2xl font-bold">Generar Calendario</h2>
+        <p className="text-gray-500">Genera el calendario de mantenimiento con IA</p>
         <Button onClick={generateAICalendar}>
-          {t.maintenanceCalendar.generateCalendarButton}
+          Generar Calendario de Mantenimiento con IA
         </Button>
       </div>
     );
@@ -179,7 +185,7 @@ const MaintenanceCalendarView = () => {
         <div className="flex justify-between items-center">
           <div>
             <h2 className="text-2xl font-bold text-blue-900 dark:text-blue-100">
-              {t.maintenanceCalendar.title}
+              Calendario de Mantenimiento
             </h2>
             <p className="text-gray-600 dark:text-gray-400">
               Análisis completado - {denominacionesData.length} denominaciones procesadas
@@ -205,7 +211,7 @@ const MaintenanceCalendarView = () => {
   return (
     <div>
       <h2>Calendario de Mantenimiento</h2>
-      <MaintenanceCalendarGrid calendar={maintenanceCalendar} language="es" />
+      <MaintenanceCalendarGrid calendar={maintenanceCalendar} language={language} />
     </div>
   );
 };

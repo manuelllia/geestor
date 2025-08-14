@@ -25,10 +25,13 @@ export const translations = {
     // Navigation
     inicio: 'Inicio',
     'analisis-coste': 'Comprobadores',
+    'calendario-mantenimiento': 'Calendario de Mantenimiento',
     'hojas-cambio': 'Hojas de Cambio',
     hojasCambio: 'Hojas de Cambio',
     'acuerdo-empleado': 'Acuerdo de Empleado',
     'gestion-inmuebles': 'Gestión de Inmuebles',
+    'solicitudes-contratacion': 'Solicitudes de Contratación',
+    'entrevista-salida': 'Entrevistas de Salida',
     settings: 'Configuración',
     profile: 'Perfil',
     logout: 'Cerrar Sesión',
@@ -107,6 +110,24 @@ export const translations = {
     dashboard: 'Panel de Control',
     uploadDocument: 'Subir Documento',
     
+    // Maintenance Calendar
+    maintenanceCalendar: {
+      title: 'Calendario de Mantenimiento',
+      uploadTitle: 'Subir Archivos de Mantenimiento',
+      uploadDescription: 'Sube los archivos de inventario y mantenimiento para generar el calendario',
+      uploadInventoryButton: 'Subir Inventario',
+      uploadMaintenanceButton: 'Subir Mantenimiento',
+      selectSheetsTitle: 'Seleccionar Hojas',
+      selectSheetsDescription: 'Selecciona las hojas que deseas procesar',
+      selectSheet: 'Seleccionar hoja',
+      rows: 'filas',
+      processSelectedSheets: 'Procesar Hojas Seleccionadas',
+      generateCalendarTitle: 'Generar Calendario',
+      generateCalendarDescription: 'Genera el calendario de mantenimiento con IA',
+      generateCalendarButton: 'Generar Calendario de Mantenimiento con IA',
+      cancel: 'Cancelar'
+    },
+    
     // Form fields
     name: 'Nombre',
     employeeName: 'Nombre del Empleado',
@@ -170,10 +191,13 @@ export const translations = {
     // Navigation
     inicio: 'Home',
     'analisis-coste': 'Verifiers',
+    'calendario-mantenimiento': 'Maintenance Calendar',
     'hojas-cambio': 'Change Sheets',
     hojasCambio: 'Change Sheets',
     'acuerdo-empleado': 'Employee Agreement',
     'gestion-inmuebles': 'Real Estate Management',
+    'solicitudes-contratacion': 'Contract Requests',
+    'entrevista-salida': 'Exit Interviews',
     settings: 'Settings',
     profile: 'Profile',
     logout: 'Logout',
@@ -251,6 +275,24 @@ export const translations = {
     viewTables: 'View Tables',
     dashboard: 'Dashboard',
     uploadDocument: 'Upload Document',
+    
+    // Maintenance Calendar
+    maintenanceCalendar: {
+      title: 'Maintenance Calendar',
+      uploadTitle: 'Upload Maintenance Files',
+      uploadDescription: 'Upload inventory and maintenance files to generate the calendar',
+      uploadInventoryButton: 'Upload Inventory',
+      uploadMaintenanceButton: 'Upload Maintenance',
+      selectSheetsTitle: 'Select Sheets',
+      selectSheetsDescription: 'Select the sheets you want to process',
+      selectSheet: 'Select sheet',
+      rows: 'rows',
+      processSelectedSheets: 'Process Selected Sheets',
+      generateCalendarTitle: 'Generate Calendar',
+      generateCalendarDescription: 'Generate maintenance calendar with AI',
+      generateCalendarButton: 'Generate Maintenance Calendar with AI',
+      cancel: 'Cancel'
+    },
     
     // Form fields
     name: 'Name',
