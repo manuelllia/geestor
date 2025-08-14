@@ -243,7 +243,6 @@ export const useMaintenanceCalendar = () => {
     console.log('🔧 Procesando FREC Y TIPO MEJORADO...');
     console.log('Headers disponibles:', headers);
     
-    // Buscar las columnas de FREC Y TIPO con mayor precisión
     const denominacionIndex = headers.findIndex(h => {
       const lower = h.toLowerCase().trim();
       return lower.includes('denominacion') || 
@@ -276,25 +275,42 @@ export const useMaintenanceCalendar = () => {
              lower.includes('periodicidad') ||
              lower.includes('freq');
     });
+
+    // Buscar columna TIEMPO
+    const tiempoIndex = headers.findIndex(h => {
+      const lower = h.toLowerCase().trim();
+      return lower.includes('tiempo') ||
+             lower === 'tiempo' ||
+             lower.includes('duracion') ||
+             lower.includes('duración') ||
+             lower.includes('horas') ||
+             lower.includes('minutos') ||
+             lower.includes('time') ||
+             lower.includes('duration');
+    });
     
     console.log('🎯 Índices FREC Y TIPO detectados:', {
       denominacionIndex,
       tipoIndex,
       cadenciaIndex,
+      tiempoIndex,
       denominacionHeader: denominacionIndex !== -1 ? headers[denominacionIndex] : 'NO ENCONTRADA',
       tipoHeader: tipoIndex !== -1 ? headers[tipoIndex] : 'NO ENCONTRADA',
-      cadenciaHeader: cadenciaIndex !== -1 ? headers[cadenciaIndex] : 'NO ENCONTRADA'
+      cadenciaHeader: cadenciaIndex !== -1 ? headers[cadenciaIndex] : 'NO ENCONTRADA',
+      tiempoHeader: tiempoIndex !== -1 ? headers[tiempoIndex] : 'NO ENCONTRADA'
     });
     
     const frecTipoItems = jsonData.slice(1).map((row: any, index) => {
       const denominacion = denominacionIndex !== -1 ? String(row[denominacionIndex] || '').trim() : '';
       const tipo = tipoIndex !== -1 ? String(row[tipoIndex] || '').trim() : '';
       const cadencia = cadenciaIndex !== -1 ? String(row[cadenciaIndex] || '').trim() : '';
-      
+      const tiempo = tiempoIndex !== -1 ? String(row[tiempoIndex] || '').trim() : '';
+
       const item = {
         denominacion,
         tipo,
-        cadencia
+        cadencia,
+        tiempo
       };
       
       if (index < 3) {
@@ -428,7 +444,6 @@ Responde ÚNICAMENTE con el JSON, sin explicaciones adicionales.
         const denominacion = item.denominacionHomogenea.trim();
         const codigo = item.codigoDenominacion?.trim() || 'SIN-CODIGO';
         
-        // Usar denominación como clave principal
         const key = denominacion.toUpperCase();
         
         if (!denominacionGroups[key]) {
@@ -440,7 +455,6 @@ Responde ÚNICAMENTE con el JSON, sin explicaciones adicionales.
         }
         denominacionGroups[key].cantidad += 1;
         
-        // Actualizar el código si encontramos uno mejor
         if (!denominacionGroups[key].codigo || denominacionGroups[key].codigo === 'SIN-CODIGO') {
           if (codigo && codigo !== 'SIN-CODIGO') {
             denominacionGroups[key].codigo = codigo;
@@ -452,25 +466,19 @@ Responde ÚNICAMENTE con el JSON, sin explicaciones adicionales.
     console.log('📋 Grupos de denominaciones encontrados:', Object.keys(denominacionGroups).length);
     console.log('📋 Primeras 3 denominaciones:', Object.values(denominacionGroups).slice(0, 3));
     
-    // Crear array con datos combinados usando MATCHING EXACTO por nombre
     const result: DenominacionHomogeneaData[] = [];
     
     Object.values(denominacionGroups).forEach(group => {
       console.log(`🔍 Buscando matches para: "${group.denominacion}"`);
       
-      // Buscar coincidencias exactas en FREC Y TIPO por denominación
       const matches = frecTipoData.filter(frecItem => {
         const frecDenominacion = frecItem.denominacion.trim();
         const inventoryDenominacion = group.denominacion.trim();
         
-        // Matching exacto (sin case sensitivity)
         const exactMatch = frecDenominacion.toLowerCase() === inventoryDenominacion.toLowerCase();
-        
-        // Matching por inclusión
         const inclusionMatch = frecDenominacion.toLowerCase().includes(inventoryDenominacion.toLowerCase()) || 
                               inventoryDenominacion.toLowerCase().includes(frecDenominacion.toLowerCase());
         
-        // Matching por palabras clave principales
         const frecWords = frecDenominacion.toLowerCase().split(/\s+/).filter(word => word.length > 3);
         const inventoryWords = inventoryDenominacion.toLowerCase().split(/\s+/).filter(word => word.length > 3);
         
@@ -483,32 +491,33 @@ Responde ÚNICAMENTE con el JSON, sin explicaciones adicionales.
       console.log(`✅ Para "${group.denominacion}" encontradas ${matches.length} coincidencias`);
       
       if (matches.length > 0) {
-        // Crear una entrada por cada tipo de mantenimiento encontrado
         matches.forEach((match, index) => {
           result.push({
             codigo: group.codigo,
             denominacion: group.denominacion,
             cantidad: group.cantidad,
             frecuencia: match.cadencia || 'No especificada',
-            tipoMantenimiento: match.tipo || 'No especificado'
+            tipoMantenimiento: match.tipo || 'No especificado',
+            tiempo: match.tiempo || 'No especificado'
           });
           
           if (index === 0) {
             console.log(`✅ Primer match para "${group.denominacion}":`, {
               frecuencia: match.cadencia,
               tipo: match.tipo,
+              tiempo: match.tiempo,
               matchedWith: match.denominacion
             });
           }
         });
       } else {
-        // Si no se encuentra en FREC Y TIPO, crear entrada con datos por defecto
         result.push({
           codigo: group.codigo,
           denominacion: group.denominacion,
           cantidad: group.cantidad,
           frecuencia: 'No especificada',
-          tipoMantenimiento: 'No especificado'
+          tipoMantenimiento: 'No especificado',
+          tiempo: 'No especificado'
         });
         
         console.log(`⚠️ Sin matches para "${group.denominacion}"`);

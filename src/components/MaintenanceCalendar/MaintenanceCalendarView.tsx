@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
@@ -13,6 +14,7 @@ import DataSummary from './DataSummary';
 import DenominacionAnalysis from './DenominacionAnalysis';
 import AICalendarGenerator from './AICalendarGenerator';
 import DenominacionesTable from './DenominacionesTable';
+import EditableMaintenanceCalendar from './EditableMaintenanceCalendar';
 
 interface MaintenanceCalendarViewProps {
   language: Language;
@@ -24,6 +26,7 @@ const MaintenanceCalendarView: React.FC<MaintenanceCalendarViewProps> = ({ langu
   const [inventoryFile, setInventoryFile] = useState<File | null>(null);
   const [maintenanceFile, setMaintenanceFile] = useState<File | null>(null);
   const [currentProcessingFile, setCurrentProcessingFile] = useState<'inventory' | 'maintenance' | null>(null);
+  const [showEditableCalendar, setShowEditableCalendar] = useState(false);
   
   const {
     inventory,
@@ -60,7 +63,6 @@ const MaintenanceCalendarView: React.FC<MaintenanceCalendarViewProps> = ({ langu
   const handleProcessFiles = () => {
     if (!bothFilesUploaded) return;
     
-    // Primero procesamos el archivo de inventario
     setCurrentProcessingFile('inventory');
     processInventoryFile(inventoryFile);
   };
@@ -92,6 +94,24 @@ const MaintenanceCalendarView: React.FC<MaintenanceCalendarViewProps> = ({ langu
     setMaintenanceFile(null);
     setCurrentProcessingFile(null);
   };
+
+  const handleShowEditableCalendar = () => {
+    setShowEditableCalendar(true);
+  };
+
+  const handleBackToAnalysis = () => {
+    setShowEditableCalendar(false);
+  };
+
+  // Si se está mostrando el calendario editable
+  if (showEditableCalendar) {
+    return (
+      <EditableMaintenanceCalendar
+        denominaciones={denominacionesData}
+        onBack={handleBackToAnalysis}
+      />
+    );
+  }
 
   const renderUploadContent = () => {
     switch (processingStep) {
@@ -198,11 +218,10 @@ const MaintenanceCalendarView: React.FC<MaintenanceCalendarViewProps> = ({ langu
       case 'complete':
         return (
           <div className="space-y-6">
-            {denominacionesData.length > 0 ? (
-              <DenominacionesTable denominaciones={denominacionesData} />
-            ) : (
-              <DenominacionAnalysis denominaciones={denominacionesData} />
-            )}
+            <DenominacionesTable 
+              denominaciones={denominacionesData} 
+              onGenerateCalendar={handleShowEditableCalendar}
+            />
             
             <Card className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700">
               <CardContent className="pt-6">
@@ -372,7 +391,10 @@ const MaintenanceCalendarView: React.FC<MaintenanceCalendarViewProps> = ({ langu
         </TabsContent>
 
         <TabsContent value="analysis">
-          <DenominacionAnalysis denominaciones={denominacionesData} />
+          <DenominacionesTable 
+            denominaciones={denominacionesData}
+            onGenerateCalendar={handleShowEditableCalendar}
+          />
         </TabsContent>
 
         <TabsContent value="inventory">

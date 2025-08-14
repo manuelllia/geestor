@@ -1,8 +1,9 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
+import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
+import { ChevronLeft, ChevronRight, Calendar, Edit } from 'lucide-react';
 
 interface DenominacionHomogeneaData {
   codigo: string;
@@ -10,184 +11,155 @@ interface DenominacionHomogeneaData {
   cantidad: number;
   frecuencia: string;
   tipoMantenimiento: string;
+  tiempo?: string;
 }
 
 interface DenominacionesTableProps {
   denominaciones: DenominacionHomogeneaData[];
+  onGenerateCalendar?: () => void;
 }
 
-const DenominacionesTable: React.FC<DenominacionesTableProps> = ({ denominaciones }) => {
-  if (denominaciones.length === 0) {
-    return (
-      <Card className="w-full">
-        <CardHeader>
-          <CardTitle className="text-sm sm:text-base md:text-lg">📋 Denominaciones Homogéneas</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-4 sm:py-8">
-            <p className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm">
-              No se encontraron denominaciones homogéneas en el inventario
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
+const ITEMS_PER_PAGE = 100;
 
-  // Agrupar por denominación para mostrar estadísticas
-  const groupedStats = denominaciones.reduce((acc, item) => {
-    const key = `${item.codigo}-${item.denominacion}`;
-    if (!acc[key]) {
-      acc[key] = {
-        codigo: item.codigo,
-        denominacion: item.denominacion,
-        cantidad: item.cantidad,
-        mantenimientos: []
-      };
-    }
-    acc[key].mantenimientos.push({
-      frecuencia: item.frecuencia,
-      tipo: item.tipoMantenimiento
-    });
-    return acc;
-  }, {} as any);
+const DenominacionesTable: React.FC<DenominacionesTableProps> = ({ 
+  denominaciones, 
+  onGenerateCalendar 
+}) => {
+  const [currentPage, setCurrentPage] = useState(1);
+  
+  const totalPages = Math.ceil(denominaciones.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const currentItems = denominaciones.slice(startIndex, endIndex);
 
-  const uniqueDenominaciones = Object.keys(groupedStats).length;
-  const totalEquipos = denominaciones.reduce((sum, item) => sum + item.cantidad, 0);
-  const totalMantenimientos = denominaciones.length;
+  const goToPage = (page: number) => {
+    setCurrentPage(Math.max(1, Math.min(page, totalPages)));
+  };
 
   const getFrecuenciaColor = (frecuencia: string) => {
     const freq = frecuencia.toLowerCase();
-    if (freq.includes('diario') || freq.includes('semanal')) {
-      return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300';
-    } else if (freq.includes('mensual')) {
-      return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300';
-    } else if (freq.includes('trimestral') || freq.includes('semestral')) {
-      return 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300';
-    } else if (freq.includes('anual')) {
-      return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300';
-    }
-    return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-300';
+    if (freq.includes('mensual')) return 'bg-red-100 text-red-800 border-red-200';
+    if (freq.includes('trimestral')) return 'bg-orange-100 text-orange-800 border-orange-200';
+    if (freq.includes('semestral')) return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+    if (freq.includes('anual')) return 'bg-green-100 text-green-800 border-green-200';
+    return 'bg-gray-100 text-gray-800 border-gray-200';
   };
 
-  const getTipoColor = (tipo: string) => {
+  const getTipoMantenimientoColor = (tipo: string) => {
     const tipoLower = tipo.toLowerCase();
-    if (tipoLower.includes('preventivo')) {
-      return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300';
-    } else if (tipoLower.includes('correctivo')) {
-      return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300';
-    } else if (tipoLower.includes('calibración') || tipoLower.includes('calibracion')) {
-      return 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-300';
-    }
-    return 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300';
+    if (tipoLower.includes('preventivo')) return 'bg-blue-100 text-blue-800 border-blue-200';
+    if (tipoLower.includes('correctivo')) return 'bg-red-100 text-red-800 border-red-200';
+    if (tipoLower.includes('calibración')) return 'bg-purple-100 text-purple-800 border-purple-200';
+    if (tipoLower.includes('verificación')) return 'bg-indigo-100 text-indigo-800 border-indigo-200';
+    return 'bg-gray-100 text-gray-800 border-gray-200';
   };
 
   return (
-    <Card className="w-full">
-      <CardHeader className="pb-4">
-        <CardTitle className="flex flex-col sm:flex-row sm:items-center gap-2 text-sm sm:text-base md:text-lg">
-          <span>📋 Denominaciones Homogéneas - Plan de Mantenimiento</span>
-          <span className="text-xs sm:text-sm font-normal text-gray-500 dark:text-gray-400">
-            ({uniqueDenominaciones} denominaciones, {totalMantenimientos} tipos de mantenimiento)
-          </span>
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4 sm:space-y-6">
-        {/* Estadísticas resumidas - Responsive Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-          <div className="bg-blue-50 dark:bg-blue-900/20 p-3 sm:p-4 rounded-lg border border-blue-200 dark:border-blue-700">
-            <div className="text-xl sm:text-2xl font-bold text-blue-600 dark:text-blue-400">
-              {uniqueDenominaciones}
-            </div>
-            <div className="text-xs sm:text-sm text-blue-600/70 dark:text-blue-400/70">
-              Denominaciones Únicas
-            </div>
+    <div className="space-y-6">
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <Edit className="h-5 w-5" />
+            📊 Análisis de Denominaciones Homogéneas
+          </CardTitle>
+          {denominaciones.length > 0 && (
+            <Button
+              onClick={onGenerateCalendar}
+              className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold"
+              size="lg"
+            >
+              <Calendar className="h-4 w-4 mr-2" />
+              Generar Calendario Modificable
+            </Button>
+          )}
+        </CardHeader>
+        <CardContent>
+          <div className="mb-4 text-sm text-gray-600 dark:text-gray-300">
+            Mostrando {startIndex + 1}-{Math.min(endIndex, denominaciones.length)} de {denominaciones.length} denominaciones
           </div>
-          <div className="bg-green-50 dark:bg-green-900/20 p-3 sm:p-4 rounded-lg border border-green-200 dark:border-green-700">
-            <div className="text-xl sm:text-2xl font-bold text-green-600 dark:text-green-400">
-              {totalEquipos}
-            </div>
-            <div className="text-xs sm:text-sm text-green-600/70 dark:text-green-400/70">
-              Total de Equipos
-            </div>
-          </div>
-          <div className="bg-purple-50 dark:bg-purple-900/20 p-3 sm:p-4 rounded-lg border border-purple-200 dark:border-purple-700 sm:col-span-2 lg:col-span-1">
-            <div className="text-xl sm:text-2xl font-bold text-purple-600 dark:text-purple-400">
-              {totalMantenimientos}
-            </div>
-            <div className="text-xs sm:text-sm text-purple-600/70 dark:text-purple-400/70">
-              Tipos de Mantenimiento
-            </div>
-          </div>
-        </div>
-
-        {/* Tabla detallada - Responsive */}
-        <div className="w-full overflow-x-auto rounded-md border">
-          <Table className="min-w-full">
-            <TableHeader>
-              <TableRow>
-                <TableHead className="font-semibold text-xs sm:text-sm w-20 sm:w-24">Código</TableHead>
-                <TableHead className="font-semibold text-xs sm:text-sm min-w-32 sm:min-w-40">Denominación Homogénea</TableHead>
-                <TableHead className="font-semibold text-center text-xs sm:text-sm w-16 sm:w-20">Cant.</TableHead>
-                <TableHead className="font-semibold text-center text-xs sm:text-sm min-w-24 sm:min-w-28">Frecuencia</TableHead>
-                <TableHead className="font-semibold text-center text-xs sm:text-sm min-w-28 sm:min-w-36">Tipo de Mantenimiento</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {denominaciones.map((denominacion, index) => (
-                <TableRow key={index} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                  <TableCell className="p-2 sm:p-4">
-                    <Badge variant="outline" className="font-mono text-xs break-all">
-                      {denominacion.codigo}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="p-2 sm:p-4">
-                    <div className="flex flex-col">
-                      <span className="font-semibold text-gray-900 dark:text-gray-100 text-xs sm:text-sm break-words">
-                        {denominacion.denominacion}
+          
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="border-b border-gray-200 dark:border-gray-700">
+                  <th className="text-left p-3 font-semibold text-gray-700 dark:text-gray-300">Código</th>
+                  <th className="text-left p-3 font-semibold text-gray-700 dark:text-gray-300">Denominación</th>
+                  <th className="text-center p-3 font-semibold text-gray-700 dark:text-gray-300">Cantidad</th>
+                  <th className="text-center p-3 font-semibold text-gray-700 dark:text-gray-300">Frecuencia</th>
+                  <th className="text-center p-3 font-semibold text-gray-700 dark:text-gray-300">Tipo</th>
+                  <th className="text-center p-3 font-semibold text-gray-700 dark:text-gray-300">Tiempo</th>
+                </tr>
+              </thead>
+              <tbody>
+                {currentItems.map((item, index) => (
+                  <tr 
+                    key={`${item.codigo}-${index}`}
+                    className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                  >
+                    <td className="p-3">
+                      <span className="font-mono text-sm bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
+                        {item.codigo}
                       </span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-center p-2 sm:p-4">
-                    <Badge variant="secondary" className="font-semibold text-xs">
-                      {denominacion.cantidad}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-center p-2 sm:p-4">
-                    <Badge className={`${getFrecuenciaColor(denominacion.frecuencia)} text-xs break-words`}>
-                      {denominacion.frecuencia}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-center p-2 sm:p-4">
-                    <Badge className={`${getTipoColor(denominacion.tipoMantenimiento)} text-xs break-words`}>
-                      {denominacion.tipoMantenimiento}
-                    </Badge>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-        
-        <div className="p-3 sm:p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-700">
-          <div className="flex items-start gap-2 sm:gap-3">
-            <div className="text-green-600 dark:text-green-400 text-lg sm:text-2xl">✅</div>
-            <div className="min-w-0 flex-1">
-              <p className="text-green-700 dark:text-green-300 font-semibold mb-1 text-xs sm:text-sm">
-                Análisis Completado Exitosamente
-              </p>
-              <p className="text-green-600 dark:text-green-400 text-xs sm:text-sm break-words">
-                Se han procesado <strong>{uniqueDenominaciones} denominaciones homogéneas</strong> diferentes 
-                con un total de <strong>{totalEquipos} equipos</strong> distribuidos en <strong>{totalMantenimientos} tipos de mantenimiento</strong> específicos.
-              </p>
-              <p className="text-green-600 dark:text-green-400 text-xs mt-1 sm:mt-2">
-                * Cada fila representa un tipo específico de mantenimiento para cada denominación homogénea.
-              </p>
-            </div>
+                    </td>
+                    <td className="p-3">
+                      <span className="font-medium text-gray-900 dark:text-gray-100">
+                        {item.denominacion}
+                      </span>
+                    </td>
+                    <td className="p-3 text-center">
+                      <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                        {item.cantidad}
+                      </Badge>
+                    </td>
+                    <td className="p-3 text-center">
+                      <Badge className={getFrecuenciaColor(item.frecuencia)}>
+                        {item.frecuencia}
+                      </Badge>
+                    </td>
+                    <td className="p-3 text-center">
+                      <Badge className={getTipoMantenimientoColor(item.tipoMantenimiento)}>
+                        {item.tipoMantenimiento}
+                      </Badge>
+                    </td>
+                    <td className="p-3 text-center">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">
+                        {item.tiempo || 'No especificado'}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        </div>
-      </CardContent>
-    </Card>
+
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between mt-6">
+              <div className="text-sm text-gray-600 dark:text-gray-300">
+                Página {currentPage} de {totalPages}
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => goToPage(currentPage - 1)}
+                  disabled={currentPage === 1}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => goToPage(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
