@@ -138,7 +138,10 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
   ];
 
   return (
-    <Sidebar className="border-r border-blue-200 dark:border-blue-800 bg-white dark:bg-gray-900">
+    <Sidebar 
+      className="border-r border-blue-200 dark:border-blue-800 bg-white dark:bg-gray-900"
+      collapsible="icon"
+    >
       <SidebarHeader className="border-b border-blue-200 dark:border-blue-800 p-4 h-16">
         <div className="flex items-center justify-center h-full">
           {isCollapsed ? (
@@ -170,7 +173,7 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
                   tooltip={isCollapsed ? "Inicio" : undefined}
                 >
                   <Home className="w-4 h-4" />
-                  <span className="group-data-[collapsible=icon]:hidden">Inicio</span>
+                  <span>Inicio</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
@@ -181,23 +184,25 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
         {menuGroups.map((group) => (
           <SidebarGroup key={group.id} className="mb-2">
             <Collapsible 
-              open={openGroup === group.id} 
-              onOpenChange={() => handleGroupToggle(group.id)}
+              open={!isCollapsed && openGroup === group.id} 
+              onOpenChange={() => !isCollapsed && handleGroupToggle(group.id)}
             >
               <CollapsibleTrigger asChild>
-                <SidebarGroupLabel className="group/label hover:bg-blue-50 dark:hover:bg-blue-900/20 cursor-pointer text-blue-600 dark:text-blue-300 font-semibold text-xs uppercase tracking-wide p-2 rounded-md flex items-center justify-between group-data-[collapsible=icon]:justify-center">
-                  <span className="group-data-[collapsible=icon]:hidden">{group.label}</span>
-                  <span className="group-data-[collapsible=icon]:hidden">
-                    {openGroup === group.id ? (
-                      <ChevronDown className="w-4 h-4 transition-transform" />
-                    ) : (
-                      <ChevronRight className="w-4 h-4 transition-transform" />
-                    )}
-                  </span>
+                <SidebarGroupLabel className="group/label hover:bg-blue-50 dark:hover:bg-blue-900/20 cursor-pointer text-blue-600 dark:text-blue-300 font-semibold text-xs uppercase tracking-wide p-2 rounded-md flex items-center justify-between">
+                  <span>{group.label}</span>
+                  {!isCollapsed && (
+                    <span>
+                      {openGroup === group.id ? (
+                        <ChevronDown className="w-4 h-4 transition-transform" />
+                      ) : (
+                        <ChevronRight className="w-4 h-4 transition-transform" />
+                      )}
+                    </span>
+                  )}
                 </SidebarGroupLabel>
               </CollapsibleTrigger>
               
-              <CollapsibleContent className="group-data-[collapsible=icon]:hidden">
+              <CollapsibleContent>
                 <SidebarGroupContent>
                   <SidebarMenu className="ml-2">
                     {group.items.map((item) => (
@@ -207,32 +212,35 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
                             <SidebarMenuButton
                               isActive={activeSection === item.id}
                               onClick={() => {
-                                handleSubmenuToggle(item.id);
+                                if (!isCollapsed) {
+                                  handleSubmenuToggle(item.id);
+                                }
                                 handleSectionChange(item.id);
                               }}
                               className="w-full justify-start hover:bg-blue-50 dark:hover:bg-blue-900/20 data-[active=true]:bg-blue-100 dark:data-[active=true]:bg-blue-800 text-gray-700 dark:text-gray-300 py-2"
                               tooltip={isCollapsed ? item.label : undefined}
                             >
                               <item.icon className="w-4 h-4" />
-                              <span className="group-data-[collapsible=icon]:hidden">{item.label}</span>
-                              <span className="group-data-[collapsible=icon]:hidden">
-                                {openSubmenus[item.id] ? (
-                                  <ChevronDown className="w-3 h-3 ml-auto" />
-                                ) : (
-                                  <ChevronRight className="w-3 h-3 ml-auto" />
-                                )}
-                              </span>
+                              <span>{item.label}</span>
+                              {!isCollapsed && (
+                                <span>
+                                  {openSubmenus[item.id] ? (
+                                    <ChevronDown className="w-3 h-3 ml-auto" />
+                                  ) : (
+                                    <ChevronRight className="w-3 h-3 ml-auto" />
+                                  )}
+                                </span>
+                              )}
                             </SidebarMenuButton>
                             
-                            {openSubmenus[item.id] && item.submenuItems && (
-                              <div className="ml-6 mt-1 space-y-1 group-data-[collapsible=icon]:hidden">
+                            {!isCollapsed && openSubmenus[item.id] && item.submenuItems && (
+                              <div className="ml-6 mt-1 space-y-1">
                                 {item.submenuItems.map((subItem) => (
                                   <SidebarMenuButton
                                     key={subItem.id}
                                     isActive={activeSection === subItem.id}
                                     onClick={() => handleSectionChange(subItem.id)}
                                     className="w-full justify-start hover:bg-blue-50 dark:hover:bg-blue-900/20 data-[active=true]:bg-blue-100 dark:data-[active=true]:bg-blue-800 text-gray-600 dark:text-gray-400 py-1 text-sm"
-                                    tooltip={isCollapsed ? subItem.label : undefined}
                                   >
                                     <span>{subItem.label}</span>
                                   </SidebarMenuButton>
@@ -248,7 +256,7 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
                             tooltip={isCollapsed ? item.label : undefined}
                           >
                             <item.icon className="w-4 h-4" />
-                            <span className="group-data-[collapsible=icon]:hidden">{item.label}</span>
+                            <span>{item.label}</span>
                           </SidebarMenuButton>
                         )}
                       </SidebarMenuItem>
