@@ -27,6 +27,7 @@ import {
   Building2
 } from 'lucide-react';
 import { useTranslation } from '../hooks/useTranslation';
+import { useUserPermissions } from '../hooks/useUserPermissions';
 import { Language } from '../utils/translations';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useIsMobile } from '../hooks/use-mobile';
@@ -40,6 +41,7 @@ interface AppSidebarProps {
 export function AppSidebar({ language, activeSection, onSectionChange }: AppSidebarProps) {
   const { t } = useTranslation(language);
   const { setOpenMobile, state } = useSidebar();
+  const { permissions, isLoading } = useUserPermissions();
   const isMobile = useIsMobile();
   const [openGroup, setOpenGroup] = useState<string | null>(null);
   const [openSubmenus, setOpenSubmenus] = useState<{ [key: string]: boolean }>({});
@@ -65,10 +67,34 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
     }
   };
 
+  // Si los permisos están cargando, mostrar skeleton
+  if (isLoading) {
+    return (
+      <Sidebar 
+        className="border-r border-blue-200 dark:border-blue-800 bg-white dark:bg-gray-900"
+        collapsible="icon"
+      >
+        <SidebarHeader className="border-b border-blue-200 dark:border-blue-800 p-4 h-16">
+          <div className="flex items-center justify-center h-full">
+            <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+          </div>
+        </SidebarHeader>
+        <SidebarContent className="p-2">
+          <div className="space-y-2">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="h-8 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+            ))}
+          </div>
+        </SidebarContent>
+      </Sidebar>
+    );
+  }
+
   const menuGroups = [
     {
       id: 'operaciones',
       label: 'OPERACIONES',
+      visible: permissions?.Per_Ope ?? true,
       items: [
         {
           id: 'analisis-coste',
@@ -80,6 +106,7 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
     {
       id: 'gestion-tecnica',
       label: 'GESTIÓN TÉCNICA',
+      visible: permissions?.Per_GT ?? true,
       items: [
         {
           id: 'calendario-mantenimiento',
@@ -96,6 +123,7 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
     {
       id: 'gestion-talento',
       label: 'GESTIÓN DE TALENTO',
+      visible: permissions?.Per_GDT ?? true,
       items: [
         {
           id: 'solicitudes-contratacion',
@@ -135,9 +163,9 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
         },
       ]
     },
-  ];
+  ].filter(group => group.visible);
 
-  // Get all items for collapsed view
+  // Get all visible items for collapsed view
   const allItems = [
     { id: 'inicio', label: 'Inicio', icon: Home },
     ...menuGroups.flatMap(group => group.items.flatMap(item => {
@@ -213,7 +241,7 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
               </SidebarGroupContent>
             </SidebarGroup>
 
-            {/* Grupos desplegables */}
+            {/* Grupos desplegables - solo mostrar los permitidos */}
             {menuGroups.map((group) => (
               <SidebarGroup key={group.id} className="mb-2">
                 <Collapsible 

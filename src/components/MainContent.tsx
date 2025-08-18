@@ -1,6 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
+import { useUserPermissions } from '../hooks/useUserPermissions';
 import { Language } from '../utils/translations';
 import ChangeSheetsListView from './ChangeSheets/ChangeSheetsListView';
 import ChangeSheetDetailView from './ChangeSheets/ChangeSheetDetailView';
@@ -24,9 +24,39 @@ interface MainContentProps {
 
 const MainContent: React.FC<MainContentProps> = ({ activeSection, language }) => {
   const { t } = useTranslation(language);
+  const { permissions, isLoading: permissionsLoading } = useUserPermissions();
   const [currentView, setCurrentView] = useState<'dashboard' | 'list' | 'detail' | 'upload' | 'create'>('dashboard');
   const [selectedId, setSelectedId] = useState<string>('');
   const [realEstateDocumentExists, setRealEstateDocumentExists] = useState<boolean | null>(null);
+
+  // Verificar permisos para la sección activa
+  const hasPermissionForSection = (section: string): boolean => {
+    if (!permissions) return true; // Si no hay permisos cargados, permitir acceso por defecto
+
+    switch (section) {
+      case 'analisis-coste':
+        return permissions.Per_Ope;
+      
+      case 'calendario-mantenimiento':
+      case 'comprobadores':
+        return permissions.Per_GT;
+      
+      case 'solicitudes-contratacion':
+      case 'hojas-cambio':
+      case 'acuerdo-empleado':
+      case 'gestion-inmuebles':
+      case 'practicas':
+      case 'practicas-generales':
+      case 'practicas-especializadas':
+      case 'convenios':
+      case 'entrevista-salida':
+        return permissions.Per_GDT;
+      
+      case 'inicio':
+      default:
+        return true; // Inicio siempre es accesible
+    }
+  };
 
   const handleViewDetails = (id: string) => {
     setSelectedId(id);
@@ -54,6 +84,48 @@ const MainContent: React.FC<MainContentProps> = ({ activeSection, language }) =>
   const handleCreateNew = () => {
     setCurrentView('create');
   };
+
+  // Mostrar loading mientras se cargan los permisos
+  if (permissionsLoading) {
+    return (
+      <main className="flex-1 p-6 bg-gradient-to-br from-blue-25 via-white to-blue-50 dark:from-blue-950 dark:via-gray-900 dark:to-blue-900 min-h-screen overflow-auto">
+        <div className="flex items-center justify-center h-64">
+          <div className="w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
+        </div>
+      </main>
+    );
+  }
+
+  // Verificar si el usuario tiene permisos para la sección actual
+  if (!hasPermissionForSection(activeSection)) {
+    return (
+      <main className="flex-1 p-6 bg-gradient-to-br from-blue-25 via-white to-blue-50 dark:from-blue-950 dark:via-gray-900 dark:to-blue-900 min-h-screen overflow-auto">
+        <div className="text-center py-12">
+          <div className="max-w-md mx-auto">
+            <div className="bg-red-50 dark:bg-red-900/30 rounded-lg p-8 border border-red-200 dark:border-red-700">
+              <div className="w-16 h-16 mx-auto mb-4 bg-red-100 dark:bg-red-800 rounded-full flex items-center justify-center">
+                <svg className="w-8 h-8 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold text-red-900 dark:text-red-100 mb-2">
+                Acceso Denegado
+              </h3>
+              <p className="text-red-700 dark:text-red-300 mb-4">
+                No tienes permisos para acceder a esta sección. Contacta con tu administrador si necesitas acceso.
+              </p>
+              <button
+                onClick={() => window.location.reload()}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Recargar Página
+              </button>
+            </div>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   // Verificar si existe el documento de Gestión Inmuebles cuando se selecciona gestión de inmuebles
   useEffect(() => {

@@ -1,8 +1,8 @@
-
 import React, { useState } from 'react';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { useAuth } from '../hooks/useAuth';
 import { usePreferences } from '../hooks/usePreferences';
+import { useUserPermissions } from '../hooks/useUserPermissions';
 import LoginScreen from '../components/LoginScreen';
 import VerificationScreen from '../components/VerificationScreen';
 import { Header } from '../components/Header';
@@ -12,6 +12,7 @@ import MainContent from '../components/MainContent';
 const Index = () => {
   const { user, isAuthenticated, isLoading, isVerifying, loginWithMicrosoft, logout } = useAuth();
   const { preferences, setLanguage, setTheme } = usePreferences();
+  const { refreshPermissions } = useUserPermissions();
   const [activeSection, setActiveSection] = useState('inicio');
   const [userState, setUserState] = useState(user);
   const [permissionsUpdateKey, setPermissionsUpdateKey] = useState(0);
@@ -27,6 +28,7 @@ const Index = () => {
 
   const handlePermissionsUpdate = () => {
     setPermissionsUpdateKey(prev => prev + 1);
+    refreshPermissions(); // Actualizar permisos cuando sea necesario
   };
 
   // Show loading screen while checking authentication
