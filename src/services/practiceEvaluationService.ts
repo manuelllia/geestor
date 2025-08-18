@@ -14,12 +14,16 @@ import { db } from '../lib/firebase';
 
 export interface PracticeEvaluation {
   id: string;
-  student: string;
-  tutor: string;
+  studentName: string;
+  studentLastName: string;
+  institute: string;
+  tutorName: string;
+  tutorLastName: string;
   workCenter: string;
   formation: string;
-  finalEvaluation: number;
-  date: string;
+  finalEvaluation: string;
+  evaluationDate: string;
+  performanceRating: number;
   createdAt: any;
 }
 
@@ -33,6 +37,7 @@ export interface PracticeEvaluationLink {
   createdAt: any;
   expiresAt: any;
   completed: boolean;
+  response?: any;
 }
 
 export interface PracticeEvaluationResponse {
@@ -40,11 +45,48 @@ export interface PracticeEvaluationResponse {
   tutor: string;
   workCenter: string;
   formation: string;
-  finalEvaluation: number;
+  finalEvaluation: string;
+  performanceRating: number;
   comments?: string;
+  studentName: string;
+  studentLastName: string;
+  tutorName: string;
+  tutorLastName: string;
+  institute: string;
+  evaluationDate: string;
+  evaluatorName: string;
+  observations?: string;
 }
 
 // Generar enlace de evaluación
+export const createPracticeEvaluationLink = async (): Promise<string> => {
+  try {
+    const token = generateUniqueToken();
+    const expirationDate = new Date();
+    expirationDate.setDate(expirationDate.getDate() + 30); // Expira en 30 días
+
+    const linkData = {
+      token,
+      student: '',
+      tutor: '',
+      workCenter: '',
+      formation: '',
+      createdAt: serverTimestamp(),
+      expiresAt: expirationDate,
+      completed: false
+    };
+
+    const docRef = await addDoc(collection(db, 'practiceEvaluationLinks'), linkData);
+    
+    // Retornar la URL completa del enlace
+    const baseUrl = window.location.origin;
+    return `${baseUrl}/evaluacion-practica/${token}`;
+  } catch (error) {
+    console.error('Error generating practice evaluation link:', error);
+    throw new Error('No se pudo generar el enlace de evaluación');
+  }
+};
+
 export const generatePracticeEvaluationLink = async (data: {
   student: string;
   tutor: string;
@@ -113,7 +155,8 @@ export const getPracticeEvaluationByToken = async (token: string): Promise<Pract
       formation: data.formation,
       createdAt: data.createdAt,
       expiresAt: data.expiresAt,
-      completed: data.completed
+      completed: data.completed,
+      response: data.response
     };
   } catch (error) {
     console.error('Error getting practice evaluation by token:', error);
@@ -141,7 +184,8 @@ export const getPracticeEvaluationById = async (id: string): Promise<PracticeEva
       formation: data.formation,
       createdAt: data.createdAt,
       expiresAt: data.expiresAt,
-      completed: data.completed
+      completed: data.completed,
+      response: data.response
     };
   } catch (error) {
     console.error('Error getting practice evaluation by ID:', error);
@@ -164,13 +208,19 @@ export const savePracticeEvaluationResponse = async (
 
     // Guardar la evaluación completada
     const evaluationData = {
-      student: response.student,
-      tutor: response.tutor,
+      studentName: response.studentName,
+      studentLastName: response.studentLastName,
+      institute: response.institute || '',
+      tutorName: response.tutorName,
+      tutorLastName: response.tutorLastName,
       workCenter: response.workCenter,
       formation: response.formation,
       finalEvaluation: response.finalEvaluation,
+      performanceRating: response.performanceRating,
+      evaluationDate: response.evaluationDate,
       comments: response.comments || '',
-      date: new Date().toISOString(),
+      observations: response.observations || '',
+      evaluatorName: response.evaluatorName,
       createdAt: serverTimestamp(),
       linkId: evaluationLink.id
     };
@@ -181,7 +231,8 @@ export const savePracticeEvaluationResponse = async (
     const linkRef = doc(db, 'practiceEvaluationLinks', evaluationLink.id);
     await updateDoc(linkRef, {
       completed: true,
-      completedAt: serverTimestamp()
+      completedAt: serverTimestamp(),
+      response: response
     });
 
   } catch (error) {
@@ -200,18 +251,22 @@ export const getPracticeEvaluations = async (): Promise<PracticeEvaluation[]> =>
       const data = doc.data();
       evaluations.push({
         id: doc.id,
-        student: data.student,
-        tutor: data.tutor,
+        studentName: data.studentName,
+        studentLastName: data.studentLastName,
+        institute: data.institute,
+        tutorName: data.tutorName,
+        tutorLastName: data.tutorLastName,
         workCenter: data.workCenter,
         formation: data.formation,
         finalEvaluation: data.finalEvaluation,
-        date: data.date,
+        evaluationDate: data.evaluationDate,
+        performanceRating: data.performanceRating,
         createdAt: data.createdAt
       });
     });
 
     return evaluations.sort((a, b) => 
-      new Date(b.date).getTime() - new Date(a.date).getTime()
+      new Date(b.evaluationDate).getTime() - new Date(a.evaluationDate).getTime()
     );
   } catch (error) {
     console.error('Error getting practice evaluations:', error);
