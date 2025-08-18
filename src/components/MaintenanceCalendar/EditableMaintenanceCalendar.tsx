@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { Calendar, ChevronLeft, ChevronRight, Plus, Edit, Trash2, Clock, Users } from 'lucide-react';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, addMonths, subMonths, parseISO, isValid, addDays, startOfYear, endOfYear } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, addMonths, subMonths, parseISO, isValid, addDays, startOfYear, endOfYear, addWeeks } from 'date-fns';
 import { es } from 'date-fns/locale';
 import MaintenanceEventModal from './MaintenanceEventModal';
 
@@ -47,34 +47,69 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [draggedEvent, setDraggedEvent] = useState<MaintenanceEvent | null>(null);
 
-  // Función para parsear frecuencia y obtener días entre mantenimientos
-  const parseFrequency = (frecuencia: string): number => {
+  // Función mejorada para parsear frecuencia y obtener días exactos entre mantenimientos
+  const parseFrequencyToDays = (frecuencia: string): number => {
     const freq = frecuencia.toLowerCase().trim();
     
-    if (freq.includes('diario') || freq.includes('daily')) return 1;
-    if (freq.includes('semanal') || freq.includes('weekly')) return 7;
-    if (freq.includes('quincenal') || freq.includes('biweekly')) return 15;
-    if (freq.includes('mensual') || freq.includes('monthly')) return 30;
-    if (freq.includes('bimensual') || freq.includes('bimonthly')) return 60;
-    if (freq.includes('trimestral') || freq.includes('quarterly')) return 90;
-    if (freq.includes('cuatrimestral')) return 120;
-    if (freq.includes('semestral') || freq.includes('biannual')) return 180;
-    if (freq.includes('anual') || freq.includes('yearly') || freq.includes('annual')) return 365;
+    console.log(`🔍 Analizando frecuencia: "${frecuencia}"`);
     
-    // Buscar números en la frecuencia (ej: "cada 3 meses", "90 días")
+    // Patrones específicos
+    if (freq.includes('diario') || freq.includes('daily') || freq === 'diaria') return 1;
+    if (freq.includes('semanal') || freq.includes('weekly') || freq === 'semanal') return 7;
+    if (freq.includes('quincenal') || freq.includes('biweekly') || freq === 'quincenal') return 15;
+    if (freq.includes('mensual') || freq.includes('monthly') || freq === 'mensual') return 30;
+    if (freq.includes('bimensual') || freq.includes('bimonthly') || freq === 'bimensual') return 60;
+    if (freq.includes('trimestral') || freq.includes('quarterly') || freq === 'trimestral') return 90;
+    if (freq.includes('cuatrimestral') || freq === 'cuatrimestral') return 120;
+    if (freq.includes('semestral') || freq.includes('biannual') || freq === 'semestral') return 180;
+    if (freq.includes('anual') || freq.includes('yearly') || freq.includes('annual') || freq === 'anual') return 365;
+    
+    // Buscar patrones numéricos específicos
+    const patterns = [
+      { regex: /cada\s+(\d+)\s+mes/i, multiplier: 30 },
+      { regex: /(\d+)\s+mes/i, multiplier: 30 },
+      { regex: /cada\s+(\d+)\s+meses/i, multiplier: 30 },
+      { regex: /(\d+)\s+meses/i, multiplier: 30 },
+      { regex: /cada\s+(\d+)\s+día/i, multiplier: 1 },
+      { regex: /(\d+)\s+día/i, multiplier: 1 },
+      { regex: /cada\s+(\d+)\s+días/i, multiplier: 1 },
+      { regex: /(\d+)\s+días/i, multiplier: 1 },
+      { regex: /cada\s+(\d+)\s+semana/i, multiplier: 7 },
+      { regex: /(\d+)\s+semana/i, multiplier: 7 },
+      { regex: /cada\s+(\d+)\s+semanas/i, multiplier: 7 },
+      { regex: /(\d+)\s+semanas/i, multiplier: 7 },
+      { regex: /(\d+)\s*h/i, multiplier: 1/24 }, // horas a días
+    ];
+    
+    for (const pattern of patterns) {
+      const match = freq.match(pattern.regex);
+      if (match) {
+        const num = parseInt(match[1]);
+        const result = num * pattern.multiplier;
+        console.log(`✅ Patrón encontrado: ${match[0]} = ${result} días`);
+        return Math.max(1, Math.round(result)); // Mínimo 1 día
+      }
+    }
+    
+    // Buscar solo números
     const numberMatch = freq.match(/(\d+)/);
     if (numberMatch) {
       const num = parseInt(numberMatch[1]);
-      if (freq.includes('mes') || freq.includes('month')) return num * 30;
-      if (freq.includes('día') || freq.includes('day')) return num;
-      if (freq.includes('semana') || freq.includes('week')) return num * 7;
-      return num; // Por defecto asumir días
+      // Si hay contexto de tiempo, aplicar lógica
+      if (freq.includes('h') || freq.includes('hora')) {
+        return Math.max(1, Math.round(num / 24)); // Convertir horas a días
+      }
+      // Si es un número sin contexto, asumir días por defecto
+      const result = num > 365 ? 365 : num; // Máximo un año
+      console.log(`⚠️ Número sin contexto: ${num} -> ${result} días`);
+      return result;
     }
     
+    console.log(`❌ No se pudo parsear frecuencia: "${frecuencia}" - usando 90 días por defecto`);
     return 90; // Por defecto trimestral
   };
 
-  // Función para parsear tiempo de mantenimiento
+  // Función para parsear tiempo de mantenimiento (sin cambios)
   const parseMaintenanceTime = (tiempo?: string): number => {
     if (!tiempo) return 2; // Por defecto 2 horas
     
@@ -91,7 +126,7 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
     return 2;
   };
 
-  // Función para obtener prioridad basada en el tipo de mantenimiento
+  // Función para obtener prioridad basada en el tipo de mantenimiento (sin cambios)
   const getPriorityFromType = (tipoMantenimiento: string): 'baja' | 'media' | 'alta' | 'critica' => {
     const tipo = tipoMantenimiento.toLowerCase();
     
@@ -101,61 +136,82 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
     return 'baja';
   };
 
-  // Generar eventos para todo el año
+  // Función mejorada para generar eventos respetando frecuencias exactas
   useEffect(() => {
-    const generateYearlyEvents = () => {
-      const yearStart = startOfYear(new Date());
-      const yearEnd = endOfYear(new Date());
+    const generatePreciseMaintenanceCalendar = () => {
+      const today = new Date();
+      const nextYear = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate());
       const allEvents: MaintenanceEvent[] = [];
       
+      console.log(`📅 Generando calendario desde ${format(today, 'dd/MM/yyyy')} hasta ${format(nextYear, 'dd/MM/yyyy')}`);
+      
       denominaciones.forEach((denominacion, denomIndex) => {
-        const diasEntreMant = parseFrequency(denominacion.frecuencia);
+        const diasEntreMant = parseFrequencyToDays(denominacion.frecuencia);
         const tiempoHoras = parseMaintenanceTime(denominacion.tiempo);
         const prioridad = getPriorityFromType(denominacion.tipoMantenimiento);
         
-        // Calcular cuántos mantenimientos hay en el año para esta denominación
-        const mantenimientosPorAno = Math.floor(365 / diasEntreMant);
+        console.log(`🔧 ${denominacion.denominacion}:`);
+        console.log(`   - Frecuencia: ${denominacion.frecuencia} (${diasEntreMant} días)`);
+        console.log(`   - Tipo: ${denominacion.tipoMantenimiento}`);
+        console.log(`   - Tiempo: ${tiempoHoras}h`);
         
-        console.log(`📋 ${denominacion.denominacion}: ${mantenimientosPorAno} mantenimientos/año, cada ${diasEntreMant} días`);
+        // Calcular fechas de mantenimiento desde hoy hasta el año que viene
+        const fechasMantenimiento: Date[] = [];
+        let fechaActual = new Date(today);
+        let contador = 0;
         
-        // Generar múltiples eventos a lo largo del año
-        for (let mantIndex = 0; mantIndex < mantenimientosPorAno; mantIndex++) {
-          // Distribuir eventos de manera uniforme a lo largo del año
-          const dayOffset = (mantIndex * diasEntreMant) + Math.floor(Math.random() * 7); // Pequeña variación aleatoria
-          const fechaEvento = addDays(yearStart, dayOffset);
+        // Generar fechas respetando la frecuencia exacta
+        while (fechaActual <= nextYear && contador < 50) { // Límite de seguridad
+          fechasMantenimiento.push(new Date(fechaActual));
           
-          // Solo crear eventos que estén dentro del año
-          if (fechaEvento <= yearEnd) {
-            const event: MaintenanceEvent = {
-              id: `event-${denomIndex}-${mantIndex}-${Date.now()}`,
-              denominacion: denominacion.denominacion,
-              codigo: denominacion.codigo,
-              tipoMantenimiento: denominacion.tipoMantenimiento,
-              fecha: fechaEvento,
-              tiempo: tiempoHoras,
-              cantidad: denominacion.cantidad,
-              equipos: Array.from({ length: denominacion.cantidad }, (_, i) => 
-                `${denominacion.denominacion} #${i + 1}`
-              ),
-              estado: fechaEvento < new Date() ? 'completado' : 'programado',
-              prioridad,
-              notas: `Mantenimiento ${mantIndex + 1}/${mantenimientosPorAno} del año - Frecuencia: ${denominacion.frecuencia}`
-            };
-            
-            allEvents.push(event);
-          }
+          // Sumar los días exactos según la frecuencia
+          fechaActual = addDays(fechaActual, diasEntreMant);
+          contador++;
         }
+        
+        console.log(`   - Fechas generadas: ${fechasMantenimiento.length}`);
+        console.log(`   - Primera fecha: ${format(fechasMantenimiento[0], 'dd/MM/yyyy')}`);
+        console.log(`   - Última fecha: ${format(fechasMantenimiento[fechasMantenimiento.length - 1], 'dd/MM/yyyy')}`);
+        
+        // Crear eventos para cada fecha calculada
+        fechasMantenimiento.forEach((fecha, mantIndex) => {
+          const event: MaintenanceEvent = {
+            id: `event-${denomIndex}-${mantIndex}-${Date.now()}-${Math.random()}`,
+            denominacion: denominacion.denominacion,
+            codigo: denominacion.codigo,
+            tipoMantenimiento: denominacion.tipoMantenimiento,
+            fecha: fecha,
+            tiempo: tiempoHoras,
+            cantidad: denominacion.cantidad,
+            equipos: Array.from({ length: denominacion.cantidad }, (_, i) => 
+              `${denominacion.denominacion} #${i + 1}`
+            ),
+            estado: fecha < today ? 'completado' : 'programado',
+            prioridad,
+            notas: `Mantenimiento ${mantIndex + 1} - Frecuencia: cada ${diasEntreMant} días (${denominacion.frecuencia})`
+          };
+          
+          allEvents.push(event);
+        });
       });
       
       // Ordenar eventos por fecha
       allEvents.sort((a, b) => a.fecha.getTime() - b.fecha.getTime());
       
-      console.log(`✅ Generados ${allEvents.length} eventos para todo el año`);
+      console.log(`✅ Calendario generado: ${allEvents.length} eventos totales`);
+      console.log(`📊 Resumen por denominación:`);
+      
+      // Log resumen
+      denominaciones.forEach(denom => {
+        const eventosEstaDenom = allEvents.filter(e => e.denominacion === denom.denominacion);
+        console.log(`   ${denom.denominacion}: ${eventosEstaDenom.length} eventos`);
+      });
+      
       return allEvents;
     };
 
     if (denominaciones.length > 0 && events.length === 0) {
-      setEvents(generateYearlyEvents());
+      setEvents(generatePreciseMaintenanceCalendar());
     }
   }, [denominaciones, events.length]);
 
@@ -174,12 +230,10 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
     return dayEvents.reduce((total, event) => total + (event.tiempo * event.cantidad), 0);
   };
 
-  // Calcular horas totales del año
   const getTotalHoursForYear = () => {
     return events.reduce((total, event) => total + (event.tiempo * event.cantidad), 0);
   };
 
-  // Calcular horas totales del mes actual
   const getTotalHoursForCurrentMonth = () => {
     const monthEvents = events.filter(event => 
       event.fecha.getFullYear() === currentDate.getFullYear() &&
@@ -220,14 +274,12 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
 
   const handleSaveEvent = (eventData: Partial<MaintenanceEvent>) => {
     if (selectedEvent) {
-      // Editar evento existente
       setEvents(prev => prev.map(event => 
         event.id === selectedEvent.id 
           ? { ...event, ...eventData }
           : event
       ));
     } else {
-      // Crear nuevo evento
       const newEvent: MaintenanceEvent = {
         id: `event-${Date.now()}`,
         denominacion: eventData.denominacion || 'Nuevo Mantenimiento',
@@ -310,7 +362,6 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
           </div>
         </CardHeader>
         <CardContent>
-          {/* Navegación del calendario */}
           <div className="flex items-center justify-between mb-6">
             <Button
               variant="outline"
@@ -329,16 +380,13 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
             </Button>
           </div>
 
-          {/* Grid del calendario */}
           <div className="grid grid-cols-7 gap-2">
-            {/* Headers de días */}
             {['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'].map(day => (
               <div key={day} className="p-2 text-center font-semibold text-gray-600 dark:text-gray-300">
                 {day}
               </div>
             ))}
 
-            {/* Días del calendario */}
             {monthDays.map(day => {
               const dayEvents = getEventsForDay(day);
               const totalHours = getTotalHoursForDay(day);
@@ -412,7 +460,6 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
         </CardContent>
       </Card>
 
-      {/* Modal para editar/crear eventos */}
       <MaintenanceEventModal
         isOpen={isModalOpen}
         onClose={() => {
