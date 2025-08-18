@@ -1,6 +1,11 @@
-
 import { useState } from 'react';
-import { getDocument } from 'pdfjs-dist';
+// Importamos pdfjs-dist como un alias para acceder a GlobalWorkerOptions
+import * as pdfjs from 'pdfjs-dist';
+
+// Configuración del worker de PDF.js
+// Es crucial para que pdfjs-dist funcione correctamente en el navegador.
+// Puedes apuntar a una ruta local si lo empaquetas, o usar un CDN como unpkg.
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
 
 interface ReportData {
   presupuestoGeneral: string;
@@ -141,13 +146,16 @@ export const useCostAnalysis = () => {
   const extractTextFromPDF = async (file: File): Promise<string> => {
     try {
       const arrayBuffer = await file.arrayBuffer();
-      const pdf = await getDocument({ data: arrayBuffer }).promise;
+      // Usamos pdfjs directamente después de configurar el worker
+      const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
       let fullText = '';
 
       for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
         const page = await pdf.getPage(pageNum);
         const textContent = await page.getTextContent();
         const pageText = textContent.items
+          // Asegúrate de que item tenga la propiedad str. pdfjs-dist < 3.x usaba 'str', >= 3.x puede usar 'text' o 'chars'
+          // Adaptamos a 'str' que es la que tenías y suele ser común.
           .map((item: any) => item.str)
           .join(' ');
         fullText += pageText + '\n';
@@ -156,11 +164,13 @@ export const useCostAnalysis = () => {
       return fullText;
     } catch (error) {
       console.error('Error extracting text from PDF:', error);
-      throw new Error('Error al extraer texto del PDF');
+      throw new Error('Error al extraer texto del PDF. Asegúrate de que el archivo es un PDF válido.');
     }
   };
 
   const createAnalysisPrompt = (pcapText: string, pptText: string): string => {
+    // Tu prompt es largo, así que lo mantengo como lo tenías.
+    // La clave es que el modelo de IA interprete bien las instrucciones.
     return `Actúa como un prestigioso matemático y un experto consultor especializado en licitaciones públicas de electromedicina en España. Tu tarea es analizar el texto extraído de un Pliego de Cláusulas Administrativas Particulares (PCAP) y un Pliego de Prescripciones Técnicas (PPT).
 
 **Instrucción de Idioma (CRÍTICA):** Los documentos de entrada (PCAP y PPT) pueden estar escritos en español, catalán, gallego, euskera (vasco), valenciano o inglés. Independientemente del idioma de origen, TU RESPUESTA Y TODOS LOS DATOS EXTRAÍDOS en el JSON final DEBEN ESTAR OBLIGATORIAMENTE EN ESPAÑOL. Realiza la traducción necesaria para todos los campos.
@@ -245,8 +255,11 @@ ${pptText}
   };
 
   const callGeminiAPI = async (prompt: string): Promise<ReportData> => {
+    // ¡OJO! Tu clave API es visible en este código.
+    // Para entornos de producción, ¡NUNCA expongas tu clave API directamente en el código del frontend!
+    // Usa un backend seguro para manejar las llamadas a la API de Gemini.
     const GEMINI_API_KEY = 'AIzaSyANIWvIMRvCW7f0meHRk4SobRz4s0pnxtg';
-    const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=';
+    const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent'; // Quité '?key=' aquí ya que se añade en el fetch
 
     console.log('🤖 Llamando a Gemini API...');
 
@@ -266,6 +279,7 @@ ${pptText}
           topK: 40,
           topP: 0.95,
           maxOutputTokens: 8192,
+          // Estas dos propiedades son la clave para que Gemini devuelva directamente JSON
           responseMimeType: "application/json",
           responseSchema: responseSchema
         }
@@ -278,33 +292,34 @@ ${pptText}
       throw new Error(`Error de Gemini API: ${response.status} - ${errorText}`);
     }
 
+    // Aquí está la CORRECCIÓN CLAVE:
+    // Si responseMimeType y responseSchema están configurados, Gemini ya devuelve el JSON parseado
+    // dentro de data.candidates[0].content.
     const data = await response.json();
-    console.log('✅ Respuesta de Gemini recibida:', data);
-    
-    if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
-      throw new Error('Respuesta inválida de Gemini API');
+    console.log('✅ Respuesta RAW de Gemini recibida:', JSON.stringify(data, null, 2)); // Para ver la estructura completa de la respuesta
+
+    if (!data.candidates || data.candidates.length === 0 || !data.candidates[0].content) {
+      throw new Error('Respuesta inválida de Gemini API: No se encontró contenido esperado en los candidatos.');
     }
 
-    const responseText = data.candidates[0].content.parts[0].text;
-    console.log('📝 Texto de respuesta:', responseText);
+    // Accede directamente al objeto JSON que Gemini ha generado según tu schema.
+    // Ya es un objeto, no una cadena que necesites parsear.
+    const parsedResult: ReportData = data.candidates[0].content as ReportData; 
+    console.log('✅ JSON de Gemini recibido y listo:', parsedResult);
     
-    let parsedResult: ReportData;
-    try {
-      parsedResult = JSON.parse(responseText);
-      console.log('✅ JSON parseado correctamente:', parsedResult);
-    } catch (parseError) {
-      console.error('❌ Error al parsear JSON:', parseError);
-      throw new Error('Error al parsear la respuesta de la IA');
-    }
-
-    // Post-procesamiento: parsear formulaEconomica si existe y no está vacía
+    // Post-procesamiento: parsear formulaEconomica si existe y no está vacía.
+    // Esto es útil si esperas que `formulaEconomica` sea una cadena JSON (como indica tu prompt),
+    // y quieres asegurarte de que es un JSON válido o "normalizarlo".
+    // Si Gemini ya la ha devuelto como una cadena JSON válida, este paso la parseará a un objeto
+    // y luego la volverá a serializar a la misma cadena. Es redundante pero inofensivo si es correcto.
+    // Si Gemini por alguna razón devuelve un objeto directamente, este paso la convertiría a string.
     if (parsedResult.formulaEconomica && parsedResult.formulaEconomica !== '{}') {
       try {
         const formulaObject = JSON.parse(parsedResult.formulaEconomica);
-        console.log('✅ Fórmula económica parseada:', formulaObject);
-        parsedResult.formulaEconomica = JSON.stringify(formulaObject);
+        console.log('✅ Fórmula económica parseada (internamente):', formulaObject);
+        parsedResult.formulaEconomica = JSON.stringify(formulaObject); // Vuelve a guardarla como string
       } catch (formulaError) {
-        console.warn('⚠️ Error al parsear formulaEconomica, manteniendo como string:', formulaError);
+        console.warn('⚠️ Error al parsear formulaEconomica (posiblemente ya es un string o no es JSON válido), manteniendo valor original:', formulaError);
       }
     }
 
@@ -326,16 +341,26 @@ ${pptText}
       // Extraer texto de ambos PDFs
       console.log('📝 Extrayendo texto del PCAP...');
       const pcapText = await extractTextFromPDF(pcapFile);
-      console.log('✅ PCAP procesado, caracteres:', pcapText.length);
+      // Puedes añadir un log para ver la longitud del texto extraído.
+      // Si pcapText.length es 0, el problema está en la extracción del PDF.
+      console.log(`✅ PCAP procesado, ${pcapText.length} caracteres.`);
+      if (pcapText.length < 500) { // Un umbral bajo, ajusta según necesidad
+        console.warn('⚠️ Texto del PCAP extraído es muy corto. ¿Es el PDF un documento escaneado sin OCR o está vacío?');
+      }
+
 
       console.log('📝 Extrayendo texto del PPT...');
       const pptText = await extractTextFromPDF(pptFile);
-      console.log('✅ PPT procesado, caracteres:', pptText.length);
+      console.log(`✅ PPT procesado, ${pptText.length} caracteres.`);
+      if (pptText.length < 500) {
+        console.warn('⚠️ Texto del PPT extraído es muy corto. ¿Es el PDF un documento escaneado sin OCR o está vacío?');
+      }
 
       // Crear prompt
       console.log('🔧 Creando prompt para análisis...');
       const prompt = createAnalysisPrompt(pcapText, pptText);
       console.log('✅ Prompt creado, longitud:', prompt.length);
+      // console.log('✅ Contenido del prompt (primeros 500 chars):', prompt.substring(0, 500)); // Para depuración
 
       // Llamar a Gemini API
       console.log('🤖 Enviando a Gemini API...');
@@ -345,8 +370,8 @@ ${pptText}
       setAnalysisResult(result);
     } catch (err) {
       console.error('❌ Error en análisis de costes:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Error desconocido';
-      setError(`Error en el análisis: ${errorMessage}`);
+      const errorMessage = err instanceof Error ? err.message : 'Error desconocido al procesar.';
+      setError(`Error en el análisis: ${errorMessage}. Consulta la consola para más detalles.`);
     } finally {
       setIsLoading(false);
     }
