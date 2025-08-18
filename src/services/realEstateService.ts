@@ -1,3 +1,4 @@
+
 import { collection, doc, getDoc, setDoc, addDoc, getDocs, Timestamp } from "firebase/firestore";
 import { db } from "../lib/firebase";
 
@@ -26,6 +27,8 @@ export interface ProvinceActivityData {
   [province: string]: {
     count: number;
     percentage: number;
+    activeProperties: number;
+    inactiveProperties: number;
   };
 }
 
@@ -133,14 +136,75 @@ export const getPropertyCounts = async (): Promise<PropertyCounts> => {
   }
 };
 
+// Función auxiliar para normalizar nombres de provincias
+const normalizeProvinceName = (province: string): string => {
+  if (!province || typeof province !== 'string') return 'Sin especificar';
+  
+  // Convertir a mayúsculas y limpiar espacios
+  let normalized = province.trim().toUpperCase();
+  
+  // Mapeo de variaciones comunes a nombres estándar
+  const provinceMap: { [key: string]: string } = {
+    'MADRID': 'Madrid',
+    'BARCELONA': 'Barcelona',
+    'VALENCIA': 'Valencia',
+    'SEVILLA': 'Sevilla',
+    'MALAGA': 'Málaga',
+    'MÁLAGA': 'Málaga',
+    'BILBAO': 'Vizcaya',
+    'VIZCAYA': 'Vizcaya',
+    'BIZKAIA': 'Vizcaya',
+    'GUIPUZCOA': 'Guipúzcoa',
+    'GIPUZKOA': 'Guipúzcoa',
+    'ALAVA': 'Álava',
+    'ARABA': 'Álava',
+    'LA CORUÑA': 'A Coruña',
+    'A CORUÑA': 'A Coruña',
+    'CORUÑA': 'A Coruña',
+    'PONTEVEDRA': 'Pontevedra',
+    'LUGO': 'Lugo',
+    'OURENSE': 'Ourense',
+    'ORENSE': 'Ourense',
+    'ASTURIAS': 'Asturias',
+    'CANTABRIA': 'Cantabria'
+  };
+  
+  // Si existe un mapeo específico, usarlo
+  if (provinceMap[normalized]) {
+    return provinceMap[normalized];
+  }
+  
+  // Si contiene múltiples provincias separadas por espacios, tomar solo la primera
+  const words = normalized.split(/\s+/);
+  if (words.length > 1) {
+    // Buscar si alguna palabra es una provincia conocida
+    for (const word of words) {
+      if (provinceMap[word]) {
+        return provinceMap[word];
+      }
+    }
+    // Si no encuentra coincidencia, tomar la primera palabra y capitalizarla
+    return words[0].charAt(0) + words[0].slice(1).toLowerCase();
+  }
+  
+  // Capitalizar la primera letra
+  return normalized.charAt(0) + normalized.slice(1).toLowerCase();
+};
+
 export const getAnnualCostData = async (): Promise<AnnualCostData> => {
   try {
+    // Obtener datos de pisos activos
     const activePisosRef = collection(db, "Gestión de Talento", "Gestión Inmuebles", "PISOS ACTIVOS");
     const activePisosSnapshot = await getDocs(activePisosRef);
+    
+    // Obtener datos de pisos de baja
+    const bajaPisosRef = collection(db, "Gestión de Talento", "Gestión Inmuebles", "BAJA PISOS");
+    const bajaPisosSnapshot = await getDocs(bajaPisosRef);
     
     let totalCost = 0;
     const byProvince: { [province: string]: number } = {};
 
+    // Procesar pisos activos
     activePisosSnapshot.forEach((doc) => {
       const data = doc.data();
       
@@ -167,7 +231,44 @@ export const getAnnualCostData = async (): Promise<AnnualCostData> => {
         
         for (const field of provinceFields) {
           if (data[field] && String(data[field]).trim() !== '') {
-            province = String(data[field]).trim();
+            province = normalizeProvinceName(String(data[field]));
+            break;
+          }
+        }
+
+        if (!byProvince[province]) {
+          byProvince[province] = 0;
+        }
+        byProvince[province] += annualCost;
+      }
+    });
+
+    // Procesar pisos de baja
+    bajaPisosSnapshot.forEach((doc) => {
+      const data = doc.data();
+      
+      const costFields = ['COSTE ANUAL', 'Coste Anual', 'coste_anual', 'COSTE_ANUAL', 'coste anual'];
+      let annualCost = 0;
+      
+      for (const field of costFields) {
+        if (data[field] !== undefined && data[field] !== null && data[field] !== '') {
+          const cost = parseFloat(String(data[field]).replace(/[^\d.-]/g, ''));
+          if (!isNaN(cost)) {
+            annualCost = cost;
+            break;
+          }
+        }
+      }
+
+      if (annualCost > 0) {
+        totalCost += annualCost;
+        
+        const provinceFields = ['PROVINCIA', 'Provincia', 'provincia', 'PROV'];
+        let province = 'Sin especificar';
+        
+        for (const field of provinceFields) {
+          if (data[field] && String(data[field]).trim() !== '') {
+            province = normalizeProvinceName(String(data[field]));
             break;
           }
         }
@@ -190,39 +291,68 @@ export const getAnnualCostData = async (): Promise<AnnualCostData> => {
 
 export const getProvinceActivityData = async (): Promise<ProvinceActivityData> => {
   try {
+    // Obtener pisos activos
     const activePisosRef = collection(db, "Gestión de Talento", "Gestión Inmuebles", "PISOS ACTIVOS");
     const activePisosSnapshot = await getDocs(activePisosRef);
     
-    const provinceCount: { [province: string]: number } = {};
+    // Obtener pisos de baja
+    const bajaPisosRef = collection(db, "Gestión de Talento", "Gestión Inmuebles", "BAJA PISOS");
+    const bajaPisosSnapshot = await getDocs(bajaPisosRef);
+    
+    const provinceCount: { [province: string]: { active: number; inactive: number } } = {};
     let totalProperties = 0;
 
+    // Procesar pisos activos
     activePisosSnapshot.forEach((doc) => {
       const data = doc.data();
       
-      // Buscar el campo de provincia únicamente
       const provinceFields = ['PROVINCIA', 'Provincia', 'provincia', 'PROV'];
       let province = 'Sin especificar';
       
       for (const field of provinceFields) {
         if (data[field] && String(data[field]).trim() !== '') {
-          province = String(data[field]).trim();
+          province = normalizeProvinceName(String(data[field]));
           break;
         }
       }
 
       if (!provinceCount[province]) {
-        provinceCount[province] = 0;
+        provinceCount[province] = { active: 0, inactive: 0 };
       }
-      provinceCount[province]++;
+      provinceCount[province].active++;
       totalProperties++;
     });
 
-    // Calcular porcentajes
+    // Procesar pisos de baja
+    bajaPisosSnapshot.forEach((doc) => {
+      const data = doc.data();
+      
+      const provinceFields = ['PROVINCIA', 'Provincia', 'provincia', 'PROV'];
+      let province = 'Sin especificar';
+      
+      for (const field of provinceFields) {
+        if (data[field] && String(data[field]).trim() !== '') {
+          province = normalizeProvinceName(String(data[field]));
+          break;
+        }
+      }
+
+      if (!provinceCount[province]) {
+        provinceCount[province] = { active: 0, inactive: 0 };
+      }
+      provinceCount[province].inactive++;
+      totalProperties++;
+    });
+
+    // Calcular datos finales
     const activityData: ProvinceActivityData = {};
     Object.keys(provinceCount).forEach(province => {
+      const total = provinceCount[province].active + provinceCount[province].inactive;
       activityData[province] = {
-        count: provinceCount[province],
-        percentage: totalProperties > 0 ? (provinceCount[province] / totalProperties) * 100 : 0
+        count: total,
+        percentage: totalProperties > 0 ? (total / totalProperties) * 100 : 0,
+        activeProperties: provinceCount[province].active,
+        inactiveProperties: provinceCount[province].inactive
       };
     });
 
