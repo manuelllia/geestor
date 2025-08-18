@@ -24,7 +24,8 @@ import {
   MessageSquare,
   ChevronDown,
   ChevronRight,
-  Building2
+  Building2,
+  ClipboardCheck
 } from 'lucide-react';
 import { useTranslation } from '../hooks/useTranslation';
 import { useUserPermissions } from '../hooks/useUserPermissions';
@@ -146,15 +147,9 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
           icon: Building2,
         },
         {
-          id: 'practicas',
-          label: 'Prácticas',
-          icon: Briefcase,
-          hasSubmenu: true,
-          submenuItems: [
-            { id: 'practicas-generales', label: 'Prácticas Generales' },
-            { id: 'practicas-especializadas', label: 'Prácticas Especializadas' },
-            { id: 'convenios', label: 'Convenios de Prácticas' }
-          ]
+          id: 'valoracion-practicas',
+          label: 'Valoración Prácticas',
+          icon: ClipboardCheck,
         },
         {
           id: 'entrevista-salida',

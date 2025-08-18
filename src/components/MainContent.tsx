@@ -1,315 +1,197 @@
+import React from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Building2, Users, Calendar, FileText, BarChart2, CheckSquare, UserCheck, MessageSquare, ClipboardCheck } from 'lucide-react';
 
-import React, { useState, useEffect } from 'react';
-import { useTranslation } from '../hooks/useTranslation';
-import { useUserPermissions } from '../hooks/useUserPermissions';
-import { Language } from '../utils/translations';
-import ChangeSheetsListView from './ChangeSheets/ChangeSheetsListView';
-import ChangeSheetDetailView from './ChangeSheets/ChangeSheetDetailView';
-import ContractRequestsListView from './ContractRequests/ContractRequestsListView';
-import EmployeeAgreementsListView from './EmployeeAgreements/EmployeeAgreementsListView';
-import EmployeeAgreementDetailView from './EmployeeAgreements/EmployeeAgreementDetailView';
-import EmployeeAgreementCreateForm from './EmployeeAgreements/EmployeeAgreementCreateForm';
-import ExitInterviewsListView from './ExitInterviews/ExitInterviewsListView';
-import RealEstateListView from './RealEstate/RealEstateListView';
-import RealEstateDetailView from './RealEstate/RealEstateDetailView';
-import RealEstateUploadView from './RealEstate/RealEstateUploadView';
-import RealEstateDashboard from './RealEstate/RealEstateDashboard';
-import BidAnalyzerView from './BidAnalyzer/BidAnalyzerView';
+// Component imports
+import CostAnalysisView from './CostAnalysis/CostAnalysisView';
 import MaintenanceCalendarView from './MaintenanceCalendar/MaintenanceCalendarView';
-import { checkRealEstateDocument } from '../services/realEstateService';
+import ContractRequestsListView from './ContractRequests/ContractRequestsListView';
+import ChangeSheetsListView from './ChangeSheets/ChangeSheetsListView';
+import EmployeeAgreementsListView from './EmployeeAgreements/EmployeeAgreementsListView';
+import RealEstateDashboard from './RealEstate/RealEstateDashboard';
+import ExitInterviewsListView from './ExitInterviews/ExitInterviewsListView';
+import PracticeEvaluationsListView from './PracticeEvaluations/PracticeEvaluationsListView';
 
 interface MainContentProps {
   activeSection: string;
-  language: Language;
 }
 
-const MainContent: React.FC<MainContentProps> = ({ activeSection, language }) => {
-  // ALL HOOKS MUST BE CALLED AT THE TOP - NO CONDITIONAL HOOKS
-  const { t } = useTranslation(language);
-  const { permissions, isLoading: permissionsLoading } = useUserPermissions();
-  const [currentView, setCurrentView] = useState<'dashboard' | 'list' | 'detail' | 'upload' | 'create'>('dashboard');
-  const [selectedId, setSelectedId] = useState<string>('');
-  const [realEstateDocumentExists, setRealEstateDocumentExists] = useState<boolean | null>(null);
-
-  // Verificar si existe el documento de Gestión Inmuebles cuando se selecciona gestión de inmuebles
-  useEffect(() => {
-    if (activeSection === 'gestion-inmuebles') {
-      const checkDocument = async () => {
-        try {
-          const exists = await checkRealEstateDocument();
-          setRealEstateDocumentExists(exists);
-          if (!exists) {
-            setCurrentView('upload');
-          } else {
-            setCurrentView('dashboard');
-          }
-        } catch (error) {
-          console.error('Error checking real estate document:', error);
-          setRealEstateDocumentExists(false);
-          setCurrentView('upload');
-        }
-      };
-      checkDocument();
-    } else {
-      setRealEstateDocumentExists(null);
-      setCurrentView('dashboard');
-    }
-  }, [activeSection]);
-
-  // Verificar permisos para la sección activa
-  const hasPermissionForSection = (section: string): boolean => {
-    if (!permissions) return true; // Si no hay permisos cargados, permitir acceso por defecto
-
-    switch (section) {
-      case 'analisis-coste':
-        return permissions.Per_Ope;
-      
-      case 'calendario-mantenimiento':
-      case 'comprobadores':
-        return permissions.Per_GT;
-      
-      case 'solicitudes-contratacion':
-      case 'hojas-cambio':
-      case 'acuerdo-empleado':
-      case 'gestion-inmuebles':
-      case 'practicas':
-      case 'practicas-generales':
-      case 'practicas-especializadas':
-      case 'convenios':
-      case 'entrevista-salida':
-        return permissions.Per_GDT;
-      
-      case 'inicio':
-      default:
-        return true; // Inicio siempre es accesible
-    }
-  };
-
-  const handleViewDetails = (id: string) => {
-    setSelectedId(id);
-    setCurrentView('detail');
-  };
-
-  const handleBackToDashboard = () => {
-    setCurrentView('dashboard');
-    setSelectedId('');
-  };
-
-  const handleBackToList = () => {
-    setCurrentView('list');
-    setSelectedId('');
-  };
-
-  const handleShowUpload = () => {
-    setCurrentView('upload');
-  };
-
-  const handleViewTables = () => {
-    setCurrentView('list');
-  };
-
-  const handleCreateNew = () => {
-    setCurrentView('create');
-  };
-
+export default function MainContent({ activeSection }: MainContentProps) {
   const renderContent = () => {
     switch (activeSection) {
       case 'inicio':
-        return (
-          <div className="text-center">
-            <div className="max-w-2xl mx-auto">
-              <div className="bg-gradient-to-r from-blue-500 to-blue-700 text-white rounded-lg p-8 mb-8">
-                <h1 className="text-3xl font-bold mb-4">{t('welcomeMessage')}</h1>
-                <p className="text-blue-100 text-lg">{t('welcomeSubtitle')}</p>
-              </div>
-              <div className="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-6 border border-blue-200 dark:border-blue-700">
-                <p className="text-gray-700 dark:text-gray-300">{t('selectSection')}</p>
-              </div>
-            </div>
-          </div>
-        );
-
+        return <DashboardContent />;
       case 'analisis-coste':
-        return <BidAnalyzerView language={language} />;
-
+        return <CostAnalysisView />;
       case 'calendario-mantenimiento':
-        return <MaintenanceCalendarView language={language} />;
-
-      case 'hojas-cambio':
-        if (currentView === 'detail') {
-          return (
-            <ChangeSheetDetailView
-              language={language}
-              sheetId={selectedId}
-              onBack={handleBackToDashboard}
-            />
-          );
-        }
-        return (
-          <ChangeSheetsListView
-            language={language}
-            onViewDetails={handleViewDetails}
-            onCreateNew={() => console.log('Crear nueva hoja de cambio')}
-          />
-        );
-
+        return <MaintenanceCalendarView />;
+      case 'comprobadores':
+        return <ComingSoonContent title="Comprobadores" icon={CheckSquare} />;
       case 'solicitudes-contratacion':
-        return (
-          <ContractRequestsListView
-            language={language}
-          />
-        );
-
+        return <ContractRequestsListView />;
+      case 'hojas-cambio':
+        return <ChangeSheetsListView />;
       case 'acuerdo-empleado':
-        if (currentView === 'create') {
-          return (
-            <EmployeeAgreementCreateForm
-              language={language}
-              onBack={handleBackToList}
-              onSave={() => {
-                handleBackToList();
-              }}
-            />
-          );
-        }
-        if (currentView === 'detail') {
-          return (
-            <EmployeeAgreementDetailView
-              language={language}
-              agreementId={selectedId}
-              onBack={handleBackToList}
-            />
-          );
-        }
-        return (
-          <EmployeeAgreementsListView
-            language={language}
-            onViewDetails={handleViewDetails}
-            onCreateNew={handleCreateNew}
-          />
-        );
-
-      case 'entrevista-salida':
-        return <ExitInterviewsListView language={language} />;
-
+        return <EmployeeAgreementsListView />;
       case 'gestion-inmuebles':
-        if (realEstateDocumentExists === null) {
-          return (
-            <div className="flex items-center justify-center h-64">
-              <div className="w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
-            </div>
-          );
-        }
-
-        if (!realEstateDocumentExists || currentView === 'upload') {
-          return (
-            <RealEstateUploadView 
-              language={language}
-              onUploadComplete={handleBackToDashboard}
-              onCancel={handleBackToDashboard}
-            />
-          );
-        }
-
-        if (currentView === 'dashboard') {
-          return (
-            <RealEstateDashboard 
-              language={language} 
-              onImportData={handleShowUpload}
-              onViewTables={handleViewTables}
-            />
-          );
-        }
-
-        if (currentView === 'list') {
-          return (
-            <RealEstateListView
-              language={language}
-            />
-          );
-        }
-
-        if (currentView === 'detail') {
-          return (
-            <RealEstateDetailView
-              language={language}
-              propertyId={selectedId}
-              onBack={handleBackToDashboard}
-            />
-          );
-        }
-
-        return (
-          <RealEstateListView
-            language={language}
-          />
-        );
-
+        return <RealEstateDashboard />;
+      case 'valoracion-practicas':
+        return <PracticeEvaluationsListView />;
+      case 'entrevista-salida':
+        return <ExitInterviewsListView />;
       default:
-        return (
-          <div className="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-8 border border-blue-200 dark:border-blue-700">
-            <h2 className="text-2xl font-semibold text-blue-900 dark:text-blue-100 mb-4">
-              {t('mainContent')}
-            </h2>
-            <div className="bg-white dark:bg-blue-800/50 rounded-lg p-6 shadow-sm border border-blue-100 dark:border-blue-700">
-              <p className="text-gray-600 dark:text-gray-300">
-                {t('noContentSelected')} - {activeSection}
-              </p>
-            </div>
-          </div>
-        );
+        return <DashboardContent />;
     }
   };
 
-  // NOW ALL CONDITIONAL LOGIC HAPPENS AFTER ALL HOOKS ARE CALLED
-  
-  // Mostrar loading mientras se cargan los permisos
-  if (permissionsLoading) {
-    return (
-      <main className="flex-1 p-6 bg-gradient-to-br from-blue-25 via-white to-blue-50 dark:from-blue-950 dark:via-gray-900 dark:to-blue-900 min-h-screen overflow-auto">
-        <div className="flex items-center justify-center h-64">
-          <div className="w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
-        </div>
-      </main>
-    );
-  }
+  return (
+    <div className="flex-1 p-6 bg-gray-50 dark:bg-gray-900 overflow-auto">
+      {renderContent()}
+    </div>
+  );
+}
 
-  // Verificar si el usuario tiene permisos para la sección actual
-  if (!hasPermissionForSection(activeSection)) {
-    return (
-      <main className="flex-1 p-6 bg-gradient-to-br from-blue-25 via-white to-blue-50 dark:from-blue-950 dark:via-gray-900 dark:to-blue-900 min-h-screen overflow-auto">
-        <div className="text-center py-12">
-          <div className="max-w-md mx-auto">
-            <div className="bg-red-50 dark:bg-red-900/30 rounded-lg p-8 border border-red-200 dark:border-red-700">
-              <div className="w-16 h-16 mx-auto mb-4 bg-red-100 dark:bg-red-800 rounded-full flex items-center justify-center">
-                <svg className="w-8 h-8 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-semibold text-red-900 dark:text-red-100 mb-2">
-                Acceso Denegado
-              </h3>
-              <p className="text-red-700 dark:text-red-300 mb-4">
-                No tienes permisos para acceder a esta sección. Contacta con tu administrador si necesitas acceso.
-              </p>
-              <button
-                onClick={() => window.location.reload()}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-              >
-                Recargar Página
-              </button>
-            </div>
-          </div>
-        </div>
-      </main>
-    );
-  }
+function DashboardContent() {
+  const modules = [
+    {
+      title: 'Análisis de Coste',
+      description: 'Analiza costos y calcula puntajes económicos para licitaciones',
+      icon: BarChart2,
+      status: 'active',
+      category: 'Operaciones'
+    },
+    {
+      title: 'Calendario de Mantenimiento',
+      description: 'Gestión del calendario de mantenimiento preventivo y correctivo',
+      icon: Calendar,
+      status: 'active',
+      category: 'Gestión Técnica'
+    },
+    {
+      title: 'Solicitudes de Contratación',
+      description: 'Gestión de solicitudes de contratación de personal',
+      icon: Users,
+      status: 'active',
+      category: 'Gestión de Talento'
+    },
+    {
+      title: 'Hojas de Cambio',
+      description: 'Gestión de cambios organizacionales y de personal',
+      icon: FileText,
+      status: 'active',
+      category: 'Gestión de Talento'
+    },
+    {
+      title: 'Acuerdo con Empleados',
+      description: 'Gestión de acuerdos y compromisos con empleados',
+      icon: UserCheck,
+      status: 'active',
+      category: 'Gestión de Talento'
+    },
+    {
+      title: 'Gestión de Inmuebles',
+      description: 'Administración y seguimiento de propiedades inmobiliarias',
+      icon: Building2,
+      status: 'active',
+      category: 'Gestión de Talento'
+    },
+    {
+      title: 'Valoración de Prácticas',
+      description: 'Evaluación del desempeño de estudiantes en prácticas',
+      icon: ClipboardCheck,
+      status: 'active',
+      category: 'Gestión de Talento'
+    },
+    {
+      title: 'Entrevista de Salida',
+      description: 'Gestión de entrevistas de salida de empleados',
+      icon: MessageSquare,
+      status: 'active',
+      category: 'Gestión de Talento'
+    },
+    {
+      title: 'Comprobadores',
+      description: 'Gestión de dispositivos de comprobación y calibración',
+      icon: CheckSquare,
+      status: 'coming-soon',
+      category: 'Gestión Técnica'
+    }
+  ];
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'active':
+        return <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Activo</Badge>;
+      case 'coming-soon':
+        return <Badge variant="outline" className="border-blue-200 text-blue-600 dark:border-blue-800 dark:text-blue-400">Próximamente</Badge>;
+      default:
+        return null;
+    }
+  };
+
+  const groupedModules = modules.reduce((acc, module) => {
+    if (!acc[module.category]) {
+      acc[module.category] = [];
+    }
+    acc[module.category].push(module);
+    return acc;
+  }, {} as Record<string, typeof modules>);
 
   return (
-    <main className="flex-1 p-6 bg-gradient-to-br from-blue-25 via-white to-blue-50 dark:from-blue-950 dark:via-gray-900 dark:to-blue-900 min-h-screen overflow-auto">
-      {renderContent()}
-    </main>
-  );
-};
+    <div className="space-y-8">
+      <div className="text-center mb-8">
+        <h1 className="text-4xl font-bold text-blue-600 dark:text-blue-300 mb-4">
+          GEESTOR
+        </h1>
+        <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+          Sistema integral de gestión empresarial para el Grupo Empresarial Electromédico
+        </p>
+      </div>
 
-export default MainContent;
+      {Object.entries(groupedModules).map(([category, categoryModules]) => (
+        <div key={category} className="space-y-4">
+          <h2 className="text-2xl font-semibold text-blue-600 dark:text-blue-300 border-b border-blue-200 dark:border-blue-800 pb-2">
+            {category}
+          </h2>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {categoryModules.map((module, index) => (
+              <Card key={index} className="hover:shadow-lg transition-shadow duration-200 border-blue-100 dark:border-blue-900">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <module.icon className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+                    {getStatusBadge(module.status)}
+                  </div>
+                  <CardTitle className="text-lg text-blue-600 dark:text-blue-300">
+                    {module.title}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <CardDescription className="text-gray-600 dark:text-gray-400">
+                    {module.description}
+                  </CardDescription>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ComingSoonContent({ title, icon: Icon }: { title: string; icon: React.ComponentType<any> }) {
+  return (
+    <div className="flex items-center justify-center min-h-[400px]">
+      <Card className="w-full max-w-md text-center">
+        <CardHeader>
+          <Icon className="w-16 h-16 mx-auto text-blue-600 dark:text-blue-400 mb-4" />
+          <CardTitle className="text-blue-600 dark:text-blue-300">{title}</CardTitle>
+          <CardDescription>
+            Esta funcionalidad estará disponible próximamente
+          </CardDescription>
+        </CardHeader>
+      </Card>
+    </div>
+  );
+}
