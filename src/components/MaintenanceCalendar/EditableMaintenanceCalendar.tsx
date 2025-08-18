@@ -38,6 +38,11 @@ interface EditableMaintenanceCalendarProps {
   onBack: () => void;
 }
 
+// Constantes para recursos realistas
+const MAX_DAILY_HOURS = 8; // Máximo 8 horas de trabajo por día
+const MAX_TECHNICIANS = 3; // Máximo 3 técnicos disponibles
+const MAX_DAILY_CAPACITY = MAX_DAILY_HOURS * MAX_TECHNICIANS; // 24 horas máximo por día
+
 const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = ({
   denominaciones,
   onBack
@@ -139,6 +144,46 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
     return 'baja';
   };
 
+  // Función para calcular la capacidad disponible en una fecha
+  const getAvailableCapacity = (date: Date, existingEvents: MaintenanceEvent[]): number => {
+    const dayEvents = existingEvents.filter(event => 
+      format(event.fecha, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd')
+    );
+    
+    const usedHours = dayEvents.reduce((total, event) => {
+      // Dividir entre equipos si hay múltiples (trabajo en paralelo)
+      const parallelHours = Math.ceil((event.tiempo * event.cantidad) / MAX_TECHNICIANS);
+      return total + parallelHours;
+    }, 0);
+    
+    return Math.max(0, MAX_DAILY_CAPACITY - usedHours);
+  };
+
+  // Función mejorada para encontrar la mejor fecha disponible
+  const findBestAvailableDate = (startDate: Date, existingEvents: MaintenanceEvent[], requiredHours: number): Date => {
+    let candidateDate = new Date(startDate);
+    let attempts = 0;
+    const maxAttempts = 60; // Buscar hasta 60 días
+    
+    while (attempts < maxAttempts) {
+      // Evitar fines de semana para mantenimientos programados
+      const dayOfWeek = candidateDate.getDay();
+      if (dayOfWeek !== 0 && dayOfWeek !== 6) { // No domingo ni sábado
+        const availableCapacity = getAvailableCapacity(candidateDate, existingEvents);
+        
+        if (availableCapacity >= requiredHours) {
+          return new Date(candidateDate);
+        }
+      }
+      
+      candidateDate = addDays(candidateDate, 1);
+      attempts++;
+    }
+    
+    // Si no encuentra fecha disponible, devolver la fecha original (se sobrecargará)
+    return new Date(startDate);
+  };
+
   // Función mejorada para generar eventos distribuidos equilibradamente
   useEffect(() => {
     const generateDistributedMaintenanceCalendar = () => {
@@ -146,7 +191,8 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
       const nextYear = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate());
       const allEvents: MaintenanceEvent[] = [];
       
-      console.log(`📅 Generando calendario distribuido desde ${format(today, 'dd/MM/yyyy')} hasta ${format(nextYear, 'dd/MM/yyyy')}`);
+      console.log(`📅 Generando calendario REALISTA desde ${format(today, 'dd/MM/yyyy')} hasta ${format(nextYear, 'dd/MM/yyyy')}`);
+      console.log(`⚙️ Configuración: ${MAX_TECHNICIANS} técnicos, ${MAX_DAILY_HOURS}h/día, capacidad máxima: ${MAX_DAILY_CAPACITY}h/día`);
       
       // Crear array de denominaciones con sus datos de frecuencia
       const denominacionesConFrecuencia = denominaciones.map((denominacion, index) => {
@@ -158,29 +204,36 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
           diasEntreMant,
           tiempoHoras,
           prioridad: getPriorityFromType(denominacion.tipoMantenimiento),
-          offset: index * 7 // Offset inicial para distribuir
+          offset: index * 3 // Offset menor para mejor distribución
         };
       });
 
-      // Generar eventos para cada denominación con distribución mejorada
+      // Generar eventos para cada denominación con distribución realista
       denominacionesConFrecuencia.forEach((denominacion, denomIndex) => {
         console.log(`🔧 ${denominacion.denominacion}:`);
         console.log(`   - Frecuencia: ${denominacion.frecuencia} (${denominacion.diasEntreMant} días)`);
+        console.log(`   - Tiempo por unidad: ${denominacion.tiempoHoras}h`);
+        console.log(`   - Cantidad: ${denominacion.cantidad} equipos`);
         
-        // Calcular fecha de inicio con offset para evitar que todos empiecen el mismo día
-        const startDate = addDays(today, denominacion.offset % 30); 
+        // Calcular fecha de inicio con offset para distribuir mejor
+        const startDate = addDays(today, denominacion.offset % 21); // Distribuir en 3 semanas
         
-        // Generar fechas distribuidas
+        // Generar fechas distribuidas con capacidad realista
         const fechasMantenimiento: Date[] = [];
         let fechaActual = new Date(startDate);
         let contador = 0;
         
-        while (fechaActual <= nextYear && contador < 50) {
-          fechasMantenimiento.push(new Date(fechaActual));
+        while (fechaActual <= nextYear && contador < 20) { // Máximo 20 mantenimientos por denominación
+          // Calcular horas requeridas para este mantenimiento
+          const horasRequeridas = Math.ceil((denominacion.tiempoHoras * denominacion.cantidad) / MAX_TECHNICIANS);
           
-          // Agregar variación aleatoria pequeña para evitar patrones rígidos
-          const variacion = Math.floor(Math.random() * 6) - 3; // -3 a +3 días
-          fechaActual = addDays(fechaActual, denominacion.diasEntreMant + variacion);
+          // Encontrar la mejor fecha disponible
+          const fechaOptima = findBestAvailableDate(fechaActual, allEvents, horasRequeridas);
+          fechasMantenimiento.push(new Date(fechaOptima));
+          
+          // Avanzar a la siguiente fecha programada con variación
+          const variacion = Math.floor(Math.random() * 14) - 7; // -7 a +7 días de variación
+          fechaActual = addDays(fechaOptima, Math.max(7, denominacion.diasEntreMant + variacion)); // Mínimo 7 días entre mantenimientos
           contador++;
         }
         
@@ -188,30 +241,52 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
         
         // Crear eventos para cada fecha
         fechasMantenimiento.forEach((fecha, mantIndex) => {
-          const event: MaintenanceEvent = {
-            id: `event-${denomIndex}-${mantIndex}-${Date.now()}-${Math.random()}`,
-            denominacion: denominacion.denominacion,
-            codigo: denominacion.codigo,
-            tipoMantenimiento: denominacion.tipoMantenimiento,
-            fecha: fecha,
-            tiempo: denominacion.tiempoHoras,
-            cantidad: denominacion.cantidad,
-            equipos: Array.from({ length: denominacion.cantidad }, (_, i) => 
-              `${denominacion.denominacion} #${i + 1}`
-            ),
-            estado: fecha < today ? 'completado' : 'programado',
-            prioridad: denominacion.prioridad,
-            notas: `Mantenimiento ${mantIndex + 1} - Frecuencia: cada ${denominacion.diasEntreMant} días (${denominacion.frecuencia})`
-          };
+          // Dividir equipos en grupos manejables si es necesario
+          const equiposPorGrupo = Math.min(denominacion.cantidad, MAX_TECHNICIANS);
+          const numeroGrupos = Math.ceil(denominacion.cantidad / equiposPorGrupo);
           
-          allEvents.push(event);
+          for (let grupo = 0; grupo < numeroGrupos; grupo++) {
+            const equiposEnGrupo = grupo === numeroGrupos - 1 ? 
+              denominacion.cantidad - (grupo * equiposPorGrupo) : equiposPorGrupo;
+            
+            const fechaGrupo = grupo === 0 ? fecha : addDays(fecha, grupo);
+            
+            const event: MaintenanceEvent = {
+              id: `event-${denomIndex}-${mantIndex}-${grupo}-${Date.now()}-${Math.random()}`,
+              denominacion: denominacion.denominacion,
+              codigo: denominacion.codigo,
+              tipoMantenimiento: denominacion.tipoMantenimiento,
+              fecha: fechaGrupo,
+              tiempo: denominacion.tiempoHoras,
+              cantidad: equiposEnGrupo,
+              equipos: Array.from({ length: equiposEnGrupo }, (_, i) => 
+                `${denominacion.denominacion} #${(grupo * equiposPorGrupo) + i + 1}`
+              ),
+              estado: fechaGrupo < today ? 'completado' : 'programado',
+              prioridad: denominacion.prioridad,
+              notas: `Mantenimiento ${mantIndex + 1}${numeroGrupos > 1 ? ` - Grupo ${grupo + 1}/${numeroGrupos}` : ''} - Frecuencia: cada ${denominacion.diasEntreMant} días (${denominacion.frecuencia})`
+            };
+            
+            allEvents.push(event);
+          }
         });
       });
       
       // Ordenar eventos por fecha
       allEvents.sort((a, b) => a.fecha.getTime() - b.fecha.getTime());
       
-      console.log(`✅ Calendario distribuido generado: ${allEvents.length} eventos totales`);
+      console.log(`✅ Calendario REALISTA generado: ${allEvents.length} eventos totales`);
+      console.log(`📊 Resumen de capacidad:`);
+      
+      // Verificar capacidad por días de muestra
+      const sampleDates = [addDays(today, 30), addDays(today, 60), addDays(today, 90)];
+      sampleDates.forEach(date => {
+        const dayEvents = allEvents.filter(event => 
+          format(event.fecha, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd')
+        );
+        const totalHours = dayEvents.reduce((total, event) => total + (event.tiempo * event.cantidad), 0);
+        console.log(`   - ${format(date, 'dd/MM/yyyy')}: ${totalHours}h (${dayEvents.length} eventos)`);
+      });
       
       return allEvents;
     };
@@ -264,6 +339,24 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
       case 'en-progreso': return 'bg-blue-100 text-blue-800 border-blue-200';
       case 'pendiente': return 'bg-red-100 text-red-800 border-red-200';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
+  const getDayCapacityStatus = (day: Date) => {
+    const totalHours = getTotalHoursForDay(day);
+    if (totalHours === 0) return 'empty';
+    if (totalHours <= MAX_DAILY_CAPACITY * 0.7) return 'normal';
+    if (totalHours <= MAX_DAILY_CAPACITY) return 'busy';
+    return 'overloaded';
+  };
+
+  const getDayCapacityColor = (status: string) => {
+    switch (status) {
+      case 'empty': return '';
+      case 'normal': return 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700';
+      case 'busy': return 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-700';
+      case 'overloaded': return 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-700';
+      default: return '';
     }
   };
 
@@ -350,6 +443,24 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
             <p className="text-sm text-gray-600 dark:text-gray-300 mt-2">
               Arrastra eventos para cambiar fechas • Haz clic para editar • Usa + para agregar nuevos
             </p>
+            <div className="flex items-center gap-4 mt-2 text-xs">
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 bg-green-200 border border-green-300 rounded"></div>
+                <span>Normal (≤{Math.round(MAX_DAILY_CAPACITY * 0.7)}h)</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 bg-yellow-200 border border-yellow-300 rounded"></div>
+                <span>Ocupado (≤{MAX_DAILY_CAPACITY}h)</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 bg-red-200 border border-red-300 rounded"></div>
+                <span>Sobrecargado (>{MAX_DAILY_CAPACITY}h)</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Users className="h-3 w-3" />
+                <span>{MAX_TECHNICIANS} técnicos • {MAX_DAILY_HOURS}h/día</span>
+              </div>
+            </div>
           </div>
           <div className="flex items-center gap-4">
             <div className="text-right">
@@ -409,13 +520,14 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
             {monthDays.map(day => {
               const dayEvents = getEventsForDay(day);
               const totalHours = getTotalHoursForDay(day);
+              const capacityStatus = getDayCapacityStatus(day);
               const isToday = format(day, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
 
               return (
                 <div
                   key={day.toISOString()}
-                  className={`min-h-32 p-2 border border-gray-200 dark:border-gray-700 rounded-lg relative
-                    ${isToday ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-300 dark:border-blue-600' : 'bg-white dark:bg-gray-800'}
+                  className={`min-h-32 p-2 border rounded-lg relative group
+                    ${isToday ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-300 dark:border-blue-600' : getDayCapacityColor(capacityStatus) || 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'}
                     ${!isSameMonth(day, currentDate) ? 'opacity-50' : ''}
                     hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors
                   `}
@@ -439,8 +551,12 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
                   {totalHours > 0 && (
                     <div className="flex items-center gap-1 mb-2">
                       <Clock className="h-3 w-3 text-gray-500" />
-                      <span className="text-xs text-gray-600 dark:text-gray-400">
-                        {totalHours}h
+                      <span className={`text-xs ${
+                        capacityStatus === 'overloaded' ? 'text-red-600 font-semibold' :
+                        capacityStatus === 'busy' ? 'text-yellow-600 font-medium' :
+                        'text-gray-600 dark:text-gray-400'
+                      }`}>
+                        {totalHours}h{totalHours > MAX_DAILY_CAPACITY ? ` (>${MAX_DAILY_CAPACITY}h)` : ''}
                       </span>
                     </div>
                   )}
