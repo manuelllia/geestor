@@ -235,8 +235,8 @@ export default function PracticeEvaluationForm() {
                         </SelectTrigger>
                         <SelectContent>
                           {workCenters.map((center) => (
-                            <SelectItem key={center.id} value={center.name}>
-                              {center.name}
+                            <SelectItem key={center.id} value={center.displayText}>
+                              {center.displayText}
                             </SelectItem>
                           ))}
                         </SelectContent>

@@ -1,5 +1,5 @@
 
-import { collection, addDoc, getDocs, Timestamp, query, orderBy } from "firebase/firestore";
+import { collection, addDoc, getDocs, doc, getDoc, updateDoc, Timestamp, query, orderBy } from "firebase/firestore";
 import { db } from "../lib/firebase";
 
 export interface PracticeEvaluationData {
@@ -64,6 +64,7 @@ export interface PracticeEvaluationData {
 export interface PracticeEvaluationRecord extends PracticeEvaluationData {
   id: string;
   createdAt: Date;
+  response?: any;
 }
 
 export const savePracticeEvaluation = async (data: PracticeEvaluationData): Promise<string> => {
@@ -85,6 +86,47 @@ export const savePracticeEvaluation = async (data: PracticeEvaluationData): Prom
     return docRef.id;
   } catch (error) {
     console.error('Error al guardar la valoración de prácticas:', error);
+    throw error;
+  }
+};
+
+export const savePracticeEvaluationResponse = async (id: string, responseData: any): Promise<void> => {
+  try {
+    console.log('Guardando respuesta de valoración de prácticas:', id, responseData);
+    
+    const evaluationDocRef = doc(db, "Gestión de Talento", "valoracion-practicas", "Valoración Prácticas", id);
+    
+    await updateDoc(evaluationDocRef, {
+      response: responseData,
+      respondedAt: Timestamp.now(),
+      updatedAt: Timestamp.now()
+    });
+    
+    console.log('Respuesta de valoración de prácticas guardada');
+  } catch (error) {
+    console.error('Error al guardar la respuesta de valoración de prácticas:', error);
+    throw error;
+  }
+};
+
+export const getPracticeEvaluationById = async (id: string): Promise<PracticeEvaluationRecord | null> => {
+  try {
+    const evaluationDocRef = doc(db, "Gestión de Talento", "valoracion-practicas", "Valoración Prácticas", id);
+    const docSnap = await getDoc(evaluationDocRef);
+    
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      return {
+        id: docSnap.id,
+        ...data,
+        evaluationDate: data.evaluationDate?.toDate() || new Date(),
+        createdAt: data.createdAt?.toDate() || new Date(),
+      } as PracticeEvaluationRecord;
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Error al obtener valoración de prácticas por ID:', error);
     throw error;
   }
 };
