@@ -1,7 +1,8 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, MapPin } from 'lucide-react';
-import { Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart as BarChartIcon, MapPin } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { getPropertyCounts, getAnnualCostData, getProvinceActivityData, ProvinceActivityData } from '../../services/realEstateService';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Language } from '../../utils/translations';
@@ -45,7 +46,7 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({ language, onI
 
   const costChartData = Object.entries(costData.byProvince).map(([provincia, coste]) => ({
     provincia,
-    coste: Math.round(coste)
+    coste: Math.round(Number(coste))
   }));
 
   return (
@@ -125,7 +126,7 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({ language, onI
         <Card className="border-blue-200 dark:border-blue-800">
           <CardHeader>
             <CardTitle className="text-blue-900 dark:text-blue-100 flex items-center gap-2">
-              <BarChart className="w-5 h-5" />
+              <BarChartIcon className="w-5 h-5" />
               Coste Anual por Provincia
             </CardTitle>
           </CardHeader>
