@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { User, Settings, Menu } from 'lucide-react';
+import { User, Settings, Menu, LogOut, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Language, Theme } from '../utils/translations';
 import { useTranslation } from '../hooks/useTranslation';
@@ -37,6 +37,10 @@ export function Header({
     setIsSettingsOpen(true);
   };
 
+  const handleLogout = () => {
+    onLogout();
+  };
+
   return (
     <>
       <header className="bg-white dark:bg-gray-900 border-b border-blue-200 dark:border-blue-800 px-2 sm:px-4 py-2 sm:py-3 flex items-center justify-between h-14 sm:h-16">
@@ -44,6 +48,14 @@ export function Header({
           <SidebarTrigger className="h-6 w-6 sm:h-8 sm:w-8">
             <Menu className="h-3 w-3 sm:h-4 sm:w-4" />
           </SidebarTrigger>
+          
+          {/* Mostrar indicador de admin si es administrador */}
+          {user.isAdmin && (
+            <div className="flex items-center bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-200 px-2 py-1 rounded-md text-xs font-semibold">
+              <Shield className="h-3 w-3 mr-1" />
+              {t('admin')}
+            </div>
+          )}
         </div>
         
         <div className="flex items-center space-x-1 sm:space-x-2">
@@ -71,6 +83,16 @@ export function Header({
           >
             <Settings className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
             <span className="hidden xs:inline">{t('settings')}</span>
+          </Button>
+
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={handleLogout}
+            className="text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
+          >
+            <LogOut className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+            <span className="hidden xs:inline">{t('logout')}</span>
           </Button>
         </div>
       </header>
