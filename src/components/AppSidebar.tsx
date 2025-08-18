@@ -140,7 +140,12 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
   // Get all items for collapsed view
   const allItems = [
     { id: 'inicio', label: 'Inicio', icon: Home },
-    ...menuGroups.flatMap(group => group.items)
+    ...menuGroups.flatMap(group => group.items.flatMap(item => {
+      if (item.hasSubmenu && item.submenuItems) {
+        return [item, ...item.submenuItems.map(subItem => ({ ...subItem, icon: item.icon }))];
+      }
+      return [item];
+    }))
   ];
 
   return (
@@ -177,7 +182,7 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
                     <SidebarMenuButton
                       isActive={activeSection === item.id}
                       onClick={() => handleSectionChange(item.id)}
-                      className="!justify-center !items-center hover:bg-blue-50 dark:hover:bg-blue-900/20 data-[active=true]:bg-blue-100 dark:data-[active=true]:bg-blue-800 p-2 w-full"
+                      className="hover:bg-blue-50 dark:hover:bg-blue-900/20 data-[active=true]:bg-blue-100 dark:data-[active=true]:bg-blue-800 p-2 w-full flex items-center justify-center"
                       tooltip={item.label}
                     >
                       <item.icon className="w-5 h-5" />
