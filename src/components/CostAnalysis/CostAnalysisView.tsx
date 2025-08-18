@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
@@ -23,6 +22,8 @@ const CostAnalysisView: React.FC<CostAnalysisViewProps> = ({ language }) => {
   const { t } = useTranslation(language);
   const [currentView, setCurrentView] = useState<ViewType>('upload');
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [pcapFile, setPcapFile] = useState<File | null>(null);
+  const [pptFile, setPptFile] = useState<File | null>(null);
   const [isChatbotOpen, setIsChatbotOpen] = useState(false);
   
   const { 
@@ -34,18 +35,42 @@ const CostAnalysisView: React.FC<CostAnalysisViewProps> = ({ language }) => {
 
   const handleFileUpload = (file: File) => {
     setUploadedFiles(prev => [...prev, file]);
+    
+    // Assign files based on name patterns or order
+    if (!pcapFile && (file.name.toLowerCase().includes('pcap') || file.name.toLowerCase().includes('administrativ'))) {
+      setPcapFile(file);
+    } else if (!pptFile && (file.name.toLowerCase().includes('ppt') || file.name.toLowerCase().includes('tecnic'))) {
+      setPptFile(file);
+    } else if (!pcapFile) {
+      setPcapFile(file);
+    } else if (!pptFile) {
+      setPptFile(file);
+    }
+    
     console.log('File uploaded for cost analysis:', file.name);
   };
 
   const handleFileRemove = (index: number) => {
+    const fileToRemove = uploadedFiles[index];
     setUploadedFiles(prev => prev.filter((_, i) => i !== index));
+    
+    // Update specific file states
+    if (pcapFile === fileToRemove) {
+      setPcapFile(null);
+    }
+    if (pptFile === fileToRemove) {
+      setPptFile(null);
+    }
   };
 
   const handleAnalyzeCosts = async () => {
-    if (uploadedFiles.length === 0) return;
+    if (!pcapFile || !pptFile) {
+      console.error('Both PCAP and PPT files are required');
+      return;
+    }
     
     try {
-      await analyzeCosts(uploadedFiles);
+      await analyzeCosts(pcapFile, pptFile);
       setCurrentView('analysis');
     } catch (error) {
       console.error('Error analyzing costs:', error);
@@ -104,55 +129,63 @@ const CostAnalysisView: React.FC<CostAnalysisViewProps> = ({ language }) => {
               </p>
             </div>
 
-            <Card className="mb-6">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Upload className="h-5 w-5" />
-                  Subir Documentos de Licitación
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <FileUploadBox
-                    title="Documentos de Licitación"
-                    description="Sube archivos PDF con los documentos de la licitación (PCAP, PPT, anexos, etc.)"
-                    file={null}
-                    onFileUpload={handleFileUpload}
-                    onFileRemove={() => {}}
-                    accept=".pdf"
-                    isLoading={isLoading}
-                    multiple
-                  />
-
-                  {uploadedFiles.length > 0 && (
-                    <div className="space-y-2">
-                      <h4 className="font-medium">Archivos subidos:</h4>
-                      {uploadedFiles.map((file, index) => (
-                        <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                          <div className="flex items-center gap-2">
-                            <FileText className="h-4 w-4 text-blue-600" />
-                            <span className="text-sm font-medium">{file.name}</span>
-                            <Badge variant="secondary" className="text-xs">
-                              {(file.size / 1024 / 1024).toFixed(2)} MB
-                            </Badge>
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleFileRemove(index)}
-                            className="text-red-600 hover:text-red-700"
-                          >
-                            Eliminar
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <FileUploadBox
+                title="PCAP - Pliego Administrativo"
+                description="Sube el archivo PDF del Pliego de Cláusulas Administrativas Particulares"
+                file={pcapFile}
+                onFileUpload={handleFileUpload}
+                onFileRemove={() => setPcapFile(null)}
+                accept=".pdf"
+                isLoading={isLoading}
+              />
+              
+              <FileUploadBox
+                title="PPT - Pliego Técnico"
+                description="Sube el archivo PDF del Pliego de Prescripciones Técnicas"
+                file={pptFile}
+                onFileUpload={handleFileUpload}
+                onFileRemove={() => setPptFile(null)}
+                accept=".pdf"
+                isLoading={isLoading}
+              />
+            </div>
 
             {uploadedFiles.length > 0 && (
+              <Card className="mb-6">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="h-5 w-5" />
+                    Archivos Subidos
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {uploadedFiles.map((file, index) => (
+                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <FileText className="h-4 w-4 text-blue-600" />
+                          <span className="text-sm font-medium">{file.name}</span>
+                          <Badge variant="secondary" className="text-xs">
+                            {(file.size / 1024 / 1024).toFixed(2)} MB
+                          </Badge>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleFileRemove(index)}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          Eliminar
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {pcapFile && pptFile && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -166,7 +199,7 @@ const CostAnalysisView: React.FC<CostAnalysisViewProps> = ({ language }) => {
                       ✅ Documentos listos para análisis
                     </p>
                     <p className="text-blue-600 dark:text-blue-300 text-sm mb-4">
-                      {uploadedFiles.length} archivo(s) cargado(s). El análisis de costes se realizará automáticamente.
+                      Ambos archivos (PCAP y PPT) están cargados. El análisis de costes se realizará automáticamente.
                     </p>
                     <Button
                       onClick={handleAnalyzeCosts}
@@ -205,13 +238,13 @@ const CostAnalysisView: React.FC<CostAnalysisViewProps> = ({ language }) => {
         );
 
       case 'analysis':
-        return <CostAnalysisReport analysisData={analysisResult} />;
+        return <CostAnalysisReport data={analysisResult} />;
 
       case 'score':
-        return <ScoreAnalysisView analysisData={analysisResult} />;
+        return <ScoreAnalysisView data={analysisResult} />;
 
       case 'breakdown':
-        return <CostBreakdownView analysisData={analysisResult} />;
+        return <CostBreakdownView data={analysisResult} />;
 
       default:
         return null;
