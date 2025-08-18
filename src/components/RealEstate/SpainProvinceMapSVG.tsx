@@ -72,10 +72,9 @@ const SpainProvinceMapSVG: React.FC<SpainProvinceMapSVGProps> = ({ provinceActiv
         {/* Fondo oceánico */}
         <rect width="1000" height="700" fill="url(#oceanGradient)" />
 
-        {/* Mapa de España basado en el diseño proporcionado */}
-        
         {/* Galicia */}
         <g id="galicia" filter="url(#shadow)">
+          {/* A Coruña */}
           <path
             d="M80 150 L180 140 L190 180 L170 220 L120 230 L70 200 Z"
             fill={getProvinceColor('A Coruña')}
@@ -90,6 +89,7 @@ const SpainProvinceMapSVG: React.FC<SpainProvinceMapSVGProps> = ({ provinceActiv
             {provinceActivity['A Coruña']?.count || 0}
           </text>
           
+          {/* Lugo */}
           <path
             d="M190 180 L250 175 L260 205 L230 225 L170 220 Z"
             fill={getProvinceColor('Lugo')}
@@ -104,6 +104,7 @@ const SpainProvinceMapSVG: React.FC<SpainProvinceMapSVGProps> = ({ provinceActiv
             {provinceActivity['Lugo']?.count || 0}
           </text>
           
+          {/* Pontevedra */}
           <path
             d="M120 230 L170 220 L230 225 L220 270 L130 280 Z"
             fill={getProvinceColor('Pontevedra')}
@@ -118,6 +119,7 @@ const SpainProvinceMapSVG: React.FC<SpainProvinceMapSVGProps> = ({ provinceActiv
             {provinceActivity['Pontevedra']?.count || 0}
           </text>
           
+          {/* Ourense */}
           <path
             d="M220 270 L230 225 L260 205 L290 220 L280 265 Z"
             fill={getProvinceColor('Ourense')}
@@ -133,112 +135,139 @@ const SpainProvinceMapSVG: React.FC<SpainProvinceMapSVGProps> = ({ provinceActiv
           </text>
         </g>
 
-        {/* Resto de provincias con diseño mejorado */}
-        
         {/* Asturias */}
         <path
-          d="M190 180 L350 170 L360 200 L260 205 Z"
+          d="M260 205 L400 195 L410 220 L370 235 L260 205 Z"
           fill={getProvinceColor('Asturias')}
           stroke={getStrokeColor('Asturias')}
           strokeWidth="2"
           filter="url(#shadow)"
           className="hover:opacity-80 transition-all duration-200 cursor-pointer"
         />
-        <text x="275" y="185" textAnchor="middle" className="text-xs font-semibold" fill={getTextColor('Asturias')}>
+        <text x="335" y="212" textAnchor="middle" className="text-xs font-semibold" fill={getTextColor('Asturias')}>
           Asturias: {provinceActivity['Asturias']?.count || 0}
         </text>
 
         {/* Cantabria */}
         <path
-          d="M350 170 L420 165 L425 195 L360 200 Z"
+          d="M400 195 L480 190 L485 215 L410 220 Z"
           fill={getProvinceColor('Cantabria')}
           stroke={getStrokeColor('Cantabria')}
           strokeWidth="2"
           filter="url(#shadow)"
           className="hover:opacity-80 transition-all duration-200 cursor-pointer"
         />
-        <text x="390" y="182" textAnchor="middle" className="text-xs font-semibold" fill={getTextColor('Cantabria')}>
+        <text x="442" y="205" textAnchor="middle" className="text-xs font-semibold" fill={getTextColor('Cantabria')}>
           Cantabria: {provinceActivity['Cantabria']?.count || 0}
         </text>
 
         {/* País Vasco */}
         <g id="pais-vasco" filter="url(#shadow)">
+          {/* Vizcaya */}
           <path
-            d="M420 165 L470 160 L475 185 L425 195 Z"
+            d="M480 190 L520 185 L525 210 L485 215 Z"
             fill={getProvinceColor('Vizcaya')}
             stroke={getStrokeColor('Vizcaya')}
             strokeWidth="2"
             className="hover:opacity-80 transition-all duration-200 cursor-pointer"
           />
-          <text x="447" y="175" textAnchor="middle" className="text-xs font-semibold" fill={getTextColor('Vizcaya')}>
+          <text x="502" y="200" textAnchor="middle" className="text-xs font-semibold" fill={getTextColor('Vizcaya')}>
             Vizcaya: {provinceActivity['Vizcaya']?.count || 0}
           </text>
           
+          {/* Guipúzcoa */}
           <path
-            d="M470 160 L520 158 L525 183 L475 185 Z"
+            d="M520 185 L560 183 L565 208 L525 210 Z"
             fill={getProvinceColor('Guipúzcoa')}
             stroke={getStrokeColor('Guipúzcoa')}
             strokeWidth="2"
             className="hover:opacity-80 transition-all duration-200 cursor-pointer"
           />
-          <text x="497" y="170" textAnchor="middle" className="text-xs font-semibold" fill={getTextColor('Guipúzcoa')}>
+          <text x="542" y="195" textAnchor="middle" className="text-xs font-semibold" fill={getTextColor('Guipúzcoa')}>
             Guipúzcoa: {provinceActivity['Guipúzcoa']?.count || 0}
           </text>
           
+          {/* Álava */}
           <path
-            d="M425 195 L475 185 L525 183 L530 213 L460 215 Z"
+            d="M485 215 L525 210 L565 208 L570 238 L520 240 Z"
             fill={getProvinceColor('Álava')}
             stroke={getStrokeColor('Álava')}
             strokeWidth="2"
             className="hover:opacity-80 transition-all duration-200 cursor-pointer"
           />
-          <text x="477" y="200" textAnchor="middle" className="text-xs font-semibold" fill={getTextColor('Álava')}>
+          <text x="527" y="225" textAnchor="middle" className="text-xs font-semibold" fill={getTextColor('Álava')}>
             Álava: {provinceActivity['Álava']?.count || 0}
           </text>
         </g>
 
         {/* Madrid */}
         <path
-          d="M400 400 L520 395 L525 445 L410 450 L380 430 Z"
+          d="M450 380 L550 375 L555 425 L460 430 L430 410 Z"
           fill={getProvinceColor('Madrid')}
           stroke={getStrokeColor('Madrid')}
           strokeWidth="3"
           filter="url(#shadow)"
           className="hover:opacity-80 transition-all duration-200 cursor-pointer"
         />
-        <text x="450" y="420" textAnchor="middle" className="text-sm font-bold" fill={getTextColor('Madrid')}>
+        <text x="500" y="400" textAnchor="middle" className="text-sm font-bold" fill={getTextColor('Madrid')}>
           Madrid
         </text>
-        <text x="450" y="435" textAnchor="middle" className="text-sm font-bold" fill={getTextColor('Madrid')}>
+        <text x="500" y="415" textAnchor="middle" className="text-sm font-bold" fill={getTextColor('Madrid')}>
           {provinceActivity['Madrid']?.count || 0}
         </text>
 
         {/* Andalucía */}
         <g id="andalucia" filter="url(#shadow)">
+          {/* Sevilla */}
           <path
-            d="M350 580 L420 575 L650 570 L655 620 L360 625 Z"
+            d="M250 520 L350 515 L550 510 L555 560 L260 565 Z"
             fill={getProvinceColor('Sevilla')}
             stroke={getStrokeColor('Sevilla')}
             strokeWidth="2"
             className="hover:opacity-80 transition-all duration-200 cursor-pointer"
           />
-          <text x="500" y="595" textAnchor="middle" className="text-xs font-semibold" fill={getTextColor('Sevilla')}>
+          <text x="402" y="535" textAnchor="middle" className="text-xs font-semibold" fill={getTextColor('Sevilla')}>
             Sevilla: {provinceActivity['Sevilla']?.count || 0}
           </text>
           
+          {/* Málaga */}
           <path
-            d="M360 625 L655 620 L660 670 L365 675 Z"
+            d="M260 565 L555 560 L560 610 L265 615 Z"
             fill={getProvinceColor('Málaga')}
             stroke={getStrokeColor('Málaga')}
             strokeWidth="2"
             className="hover:opacity-80 transition-all duration-200 cursor-pointer"
           />
-          <text x="510" y="650" textAnchor="middle" className="text-xs font-semibold" fill={getTextColor('Málaga')}>
+          <text x="412" y="590" textAnchor="middle" className="text-xs font-semibold" fill={getTextColor('Málaga')}>
             Málaga: {provinceActivity['Málaga']?.count || 0}
           </text>
         </g>
         
-        {/* Agregar más provincias siguiendo el mismo patrón... */}
+        {/* Valencia */}
+        <path
+          d="M600 350 L680 345 L685 395 L605 400 Z"
+          fill={getProvinceColor('Valencia')}
+          stroke={getStrokeColor('Valencia')}
+          strokeWidth="2"
+          filter="url(#shadow)"
+          className="hover:opacity-80 transition-all duration-200 cursor-pointer"
+        />
+        <text x="642" y="375" textAnchor="middle" className="text-xs font-semibold" fill={getTextColor('Valencia')}>
+          Valencia: {provinceActivity['Valencia']?.count || 0}
+        </text>
+
+        {/* Barcelona */}
+        <path
+          d="M650 280 L720 275 L725 315 L655 320 Z"
+          fill={getProvinceColor('Barcelona')}
+          stroke={getStrokeColor('Barcelona')}
+          strokeWidth="2"
+          filter="url(#shadow)"
+          className="hover:opacity-80 transition-all duration-200 cursor-pointer"
+        />
+        <text x="687" y="297" textAnchor="middle" className="text-xs font-semibold" fill={getTextColor('Barcelona')}>
+          Barcelona: {provinceActivity['Barcelona']?.count || 0}
+        </text>
       </svg>
       
       {/* Leyenda mejorada estilo Power BI */}
@@ -265,7 +294,7 @@ const SpainProvinceMapSVG: React.FC<SpainProvinceMapSVGProps> = ({ provinceActiv
           </div>
           <div className="flex items-center gap-3 text-xs">
             <div className="w-4 h-4 bg-blue-800 rounded border"></div>
-            <span className="text-gray-600 dark:text-gray-300">Muy Alta (>80%)</span>
+            <span className="text-gray-600 dark:text-gray-300">Muy Alta ({'>'}80%)</span>
           </div>
         </div>
       </div>
