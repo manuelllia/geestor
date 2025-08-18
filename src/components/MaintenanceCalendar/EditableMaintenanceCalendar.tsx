@@ -454,7 +454,7 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
               </div>
               <div className="flex items-center gap-1">
                 <div className="w-3 h-3 bg-red-200 border border-red-300 rounded"></div>
-                <span>Sobrecargado (>{MAX_DAILY_CAPACITY}h)</span>
+                <span>Sobrecargado ({`>${MAX_DAILY_CAPACITY}h`})</span>
               </div>
               <div className="flex items-center gap-1">
                 <Users className="h-3 w-3" />
@@ -556,7 +556,7 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
                         capacityStatus === 'busy' ? 'text-yellow-600 font-medium' :
                         'text-gray-600 dark:text-gray-400'
                       }`}>
-                        {totalHours}h{totalHours > MAX_DAILY_CAPACITY ? ` (>${MAX_DAILY_CAPACITY}h)` : ''}
+                        {totalHours}h{totalHours > MAX_DAILY_CAPACITY ? ` (${`>${MAX_DAILY_CAPACITY}h`})` : ''}
                       </span>
                     </div>
                   )}
