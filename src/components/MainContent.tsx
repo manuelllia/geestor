@@ -7,7 +7,7 @@ import LoginScreen from './LoginScreen';
 import VerificationScreen from './VerificationScreen';
 import BidAnalyzerView from './BidAnalyzer/BidAnalyzerView';
 import CostAnalysisView from './CostAnalysis/CostAnalysisView';
-import { MaintenanceCalendar } from './MaintenanceCalendar/MaintenanceCalendarView';
+import MaintenanceCalendarView from './MaintenanceCalendar/MaintenanceCalendarView';
 
 export default function MainContent() {
   const { user, isAuthenticated, isLoading: authLoading, loginWithMicrosoft } = useAuth();
@@ -34,7 +34,7 @@ export default function MainContent() {
         <Route path="/" element={<BidAnalyzerView language={preferences.language} />} />
         <Route path="/bid-analyzer" element={<BidAnalyzerView language={preferences.language} />} />
         <Route path="/analisis-coste" element={<CostAnalysisView language={preferences.language} />} />
-        <Route path="/calendario-mantenimiento" element={<MaintenanceCalendar language={preferences.language} />} />
+        <Route path="/calendario-mantenimiento" element={<MaintenanceCalendarView language={preferences.language} />} />
       </Routes>
     </main>
   );
