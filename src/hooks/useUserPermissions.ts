@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, onSnapshot } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 
@@ -20,7 +20,8 @@ export const useUserPermissions = () => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         setCurrentUserUid(user.uid);
-        await fetchUserPermissions(user.uid);
+        // Configurar listener en tiempo real para los permisos del usuario
+        setupPermissionsListener(user.uid);
       } else {
         // Si no hay usuario autenticado, usamos permisos por defecto
         setPermissions({
@@ -36,49 +37,67 @@ export const useUserPermissions = () => {
     return () => unsubscribe();
   }, []);
 
-  const fetchUserPermissions = async (uid: string) => {
+  const setupPermissionsListener = (uid: string) => {
     try {
       setIsLoading(true);
       setError(null);
 
       // Ruta: Usuarios/Información/{uid}/{uid}
       const userPermissionsDocRef = doc(db, 'Usuarios', 'Información', uid, uid);
-      const userPermissionsDoc = await getDoc(userPermissionsDocRef);
+      
+      // Configurar listener en tiempo real
+      const unsubscribe = onSnapshot(
+        userPermissionsDocRef,
+        (doc) => {
+          if (doc.exists()) {
+            const data = doc.data();
+            setPermissions({
+              Per_Ope: data.Per_Ope ?? true,
+              Per_GT: data.Per_GT ?? true,
+              Per_GDT: data.Per_GDT ?? true
+            });
+            console.log('Permisos actualizados en tiempo real:', data);
+          } else {
+            console.log('No se encontraron permisos específicos, usando valores por defecto');
+            // Si no existen permisos específicos, usar valores por defecto
+            setPermissions({
+              Per_Ope: true,
+              Per_GT: true,
+              Per_GDT: true
+            });
+          }
+          setIsLoading(false);
+        },
+        (err) => {
+          console.error('Error al escuchar cambios en permisos de usuario:', err);
+          setError('Error al cargar permisos de usuario');
+          // En caso de error, usar permisos por defecto
+          setPermissions({
+            Per_Ope: true,
+            Per_GT: true,
+            Per_GDT: true
+          });
+          setIsLoading(false);
+        }
+      );
 
-      if (userPermissionsDoc.exists()) {
-        const data = userPermissionsDoc.data();
-        setPermissions({
-          Per_Ope: data.Per_Ope ?? true,
-          Per_GT: data.Per_GT ?? true,
-          Per_GDT: data.Per_GDT ?? true
-        });
-        console.log('Permisos de usuario obtenidos:', data);
-      } else {
-        console.log('No se encontraron permisos específicos, usando valores por defecto');
-        // Si no existen permisos específicos, usar valores por defecto
-        setPermissions({
-          Per_Ope: true,
-          Per_GT: true,
-          Per_GDT: true
-        });
-      }
+      // Cleanup function para desconectar el listener
+      return unsubscribe;
     } catch (err) {
-      console.error('Error al obtener permisos de usuario:', err);
-      setError('Error al cargar permisos de usuario');
-      // En caso de error, usar permisos por defecto
+      console.error('Error al configurar listener de permisos:', err);
+      setError('Error al configurar seguimiento de permisos');
       setPermissions({
         Per_Ope: true,
         Per_GT: true,
         Per_GDT: true
       });
-    } finally {
       setIsLoading(false);
     }
   };
 
   const refreshPermissions = async () => {
     if (currentUserUid) {
-      await fetchUserPermissions(currentUserUid);
+      setupPermissionsListener(currentUserUid);
     }
   };
 
