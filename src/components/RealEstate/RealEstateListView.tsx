@@ -38,7 +38,8 @@ const RealEstateListView: React.FC<RealEstateListViewProps> = ({ language }) => 
       return (
         <RealEstateDetailView 
           language={language}
-          onClose={handleBackToDashboard}
+          propertyId="sample-id"
+          onBack={handleBackToDashboard}
         />
       );
     case 'tables':
