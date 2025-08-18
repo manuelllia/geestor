@@ -4,6 +4,7 @@ export interface User {
   email: string;
   name: string;
   profilePicture?: string;
+  isAdmin?: boolean;
 }
 
 export interface AuthState {
