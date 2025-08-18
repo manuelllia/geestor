@@ -1,12 +1,94 @@
+
 import React, { useState, useEffect } from 'react';
 import { useCostAnalysis } from '../../hooks/useCostAnalysis';
-import FileUploadBox from '../BidAnalyzer/FileUploadBox';
 import { CostAnalysisReport } from './CostAnalysisReport';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { FileText, Upload, BarChart3, Calculator } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Language } from '../../utils/translations';
+
+// Simple file upload component
+const SimpleFileUpload = ({ onFileUpload }: { onFileUpload: (file: File) => Promise<void> }) => {
+  const [isDragOver, setIsDragOver] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setIsUploading(true);
+      try {
+        await onFileUpload(file);
+      } finally {
+        setIsUploading(false);
+      }
+    }
+  };
+
+  const handleDrop = async (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setIsDragOver(false);
+    
+    const file = event.dataTransfer.files[0];
+    if (file) {
+      setIsUploading(true);
+      try {
+        await onFileUpload(file);
+      } finally {
+        setIsUploading(false);
+      }
+    }
+  };
+
+  const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragOver(false);
+  };
+
+  return (
+    <div
+      className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+        isDragOver 
+          ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
+          : 'border-gray-300 dark:border-gray-600'
+      } ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}
+      onDrop={handleDrop}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+    >
+      <div className="flex flex-col items-center gap-4">
+        <FileText className="w-12 h-12 text-gray-400" />
+        <div>
+          <p className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+            {isUploading ? 'Procesando archivo...' : 'Arrastra tu archivo aquí'}
+          </p>
+          <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+            O haz clic para seleccionar
+          </p>
+          <input
+            type="file"
+            accept=".pdf,.xlsx,.xls,.csv"
+            onChange={handleFileChange}
+            className="hidden"
+            id="file-upload"
+            disabled={isUploading}
+          />
+          <label
+            htmlFor="file-upload"
+            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer transition-colors"
+          >
+            <Upload className="w-4 h-4 mr-2" />
+            Seleccionar archivo
+          </label>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 interface CostAnalysisViewProps {
   language: Language;
@@ -91,7 +173,7 @@ export default function CostAnalysisView({ language }: CostAnalysisViewProps) {
                   </p>
                 </CardHeader>
                 <CardContent className="p-4 sm:p-6">
-                  <FileUploadBox onFileUpload={handleFileUpload} />
+                  <SimpleFileUpload onFileUpload={handleFileUpload} />
                 </CardContent>
               </Card>
 

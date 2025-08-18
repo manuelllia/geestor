@@ -80,10 +80,7 @@ const Index = () => {
             onPermissionsUpdate={handlePermissionsUpdate}
           />
           
-          <MainContent
-            activeSection={activeSection}
-            language={preferences.language}
-          />
+          <MainContent />
         </div>
       </div>
     </SidebarProvider>

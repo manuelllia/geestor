@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
@@ -6,12 +7,10 @@ import LoginScreen from './LoginScreen';
 import VerificationScreen from './VerificationScreen';
 import BidAnalyzerView from './BidAnalyzer/BidAnalyzerView';
 import CostAnalysisView from './CostAnalysis/CostAnalysisView';
-import CalendarView from './Calendar/CalendarView';
-import RealEstateView from './RealEstate/RealEstateView';
-import { MaintenanceCalendar } from './Maintenance/MaintenanceCalendar';
+import { MaintenanceCalendar } from './MaintenanceCalendar/MaintenanceCalendarView';
 
 export default function MainContent() {
-  const { user, userData, isLoading: authLoading } = useAuth();
+  const { user, isAuthenticated, isLoading: authLoading, loginWithMicrosoft } = useAuth();
   const { preferences } = usePreferences();
 
   if (authLoading) {
@@ -25,12 +24,8 @@ export default function MainContent() {
     );
   }
 
-  if (!user) {
-    return <LoginScreen />;
-  }
-
-  if (!userData?.isVerified) {
-    return <VerificationScreen user={user} />;
+  if (!isAuthenticated || !user) {
+    return <LoginScreen onLogin={loginWithMicrosoft} isLoading={authLoading} language={preferences.language} />;
   }
 
   return (
@@ -38,10 +33,8 @@ export default function MainContent() {
       <Routes>
         <Route path="/" element={<BidAnalyzerView language={preferences.language} />} />
         <Route path="/bid-analyzer" element={<BidAnalyzerView language={preferences.language} />} />
-        <Route path="/cost-analysis" element={<CostAnalysisView language={preferences.language} />} />
-        <Route path="/maintenance" element={<MaintenanceCalendar language={preferences.language} />} />
-        <Route path="/calendar" element={<CalendarView language={preferences.language} />} />
-        <Route path="/real-estate" element={<RealEstateView language={preferences.language} />} />
+        <Route path="/analisis-coste" element={<CostAnalysisView language={preferences.language} />} />
+        <Route path="/calendario-mantenimiento" element={<MaintenanceCalendar language={preferences.language} />} />
       </Routes>
     </main>
   );
