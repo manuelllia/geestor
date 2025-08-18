@@ -92,6 +92,7 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
         {
           id: 'analisis-coste',
           label: 'Análisis de Coste',
+          shortLabel: 'Análisis',
           icon: BarChart2,
         },
       ]
@@ -99,16 +100,19 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
     {
       id: 'gestion-tecnica',
       label: 'GESTIÓN TÉCNICA',
+      shortLabel: 'GT',
       visible: permissions?.Per_GT ?? true,
       items: [
         {
           id: 'calendario-mantenimiento',
-          label: 'Calendario de Mantenimiento',
+          label: 'Calendario de Mant...',
+          shortLabel: 'Calendario',
           icon: Calendar,
         },
         {
           id: 'comprobadores',
           label: 'Comprobadores',
+          shortLabel: 'Comprob.',
           icon: CheckSquare,
         },
       ]
@@ -116,36 +120,43 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
     {
       id: 'gestion-talento',
       label: 'GESTIÓN DE TALENTO',
+      shortLabel: 'GDT',
       visible: permissions?.Per_GDT ?? true,
       items: [
         {
           id: 'solicitudes-contratacion',
-          label: 'Solicitudes de Contratación',
+          label: 'Solicitudes de Cont...',
+          shortLabel: 'Solicitudes',
           icon: Users,
         },
         {
           id: 'hojas-cambio',
           label: 'Hojas de Cambio',
+          shortLabel: 'H. Cambio',
           icon: FileText,
         },
         {
           id: 'acuerdo-empleado',
-          label: 'Acuerdo con Empleado',
+          label: 'Acuerdo con Emple...',
+          shortLabel: 'Acuerdos',
           icon: UserCheck,
         },
         {
           id: 'gestion-inmuebles',
           label: 'Gestión de Inmuebles',
+          shortLabel: 'Inmuebles',
           icon: Building2,
         },
         {
           id: 'valoracion-practicas',
-          label: 'Valoración de Prácticas',
+          label: 'Valoración Prácticas',
+          shortLabel: 'V. Prácticas',
           icon: ClipboardCheck,
         },
         {
           id: 'entrevista-salida',
           label: 'Entrevista de Salida',
+          shortLabel: 'E. Salida',
           icon: MessageSquare,
         },
       ]
@@ -154,7 +165,7 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
 
   // Get all visible items for collapsed view
   const allItems = [
-    { id: 'inicio', label: 'Inicio', icon: Home },
+    { id: 'inicio', label: 'Inicio', shortLabel: 'Inicio', icon: Home },
     ...menuGroups.flatMap(group => group.items)
   ];
 
@@ -216,14 +227,14 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
                       className="w-full justify-start hover:bg-blue-50 dark:hover:bg-blue-900/20 data-[active=true]:bg-blue-100 dark:data-[active=true]:bg-blue-800 mb-1 sm:mb-2 text-sm sm:text-base p-2 sm:p-3"
                     >
                       <Home className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                      <span className="ml-2">Inicio</span>
+                      <span className="ml-2 truncate">Inicio</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
 
-            {/* Grupos desplegables - mantener nombres completos */}
+            {/* Grupos desplegables - solo mostrar los permitidos */}
             {menuGroups.map((group) => (
               <SidebarGroup key={group.id} className="mb-1 sm:mb-2">
                 <Collapsible 
@@ -232,10 +243,11 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
                 >
                   <CollapsibleTrigger asChild>
                     <SidebarGroupLabel className="group/label hover:bg-blue-50 dark:hover:bg-blue-900/20 cursor-pointer text-blue-600 dark:text-blue-300 font-semibold text-xs sm:text-sm uppercase tracking-wide p-1.5 sm:p-2 rounded-md flex items-center justify-between">
-                      <span className="text-left leading-tight">
-                        {group.label}
+                      <span className="truncate pr-1">
+                        <span className="hidden sm:inline">{group.label}</span>
+                        <span className="sm:hidden">{group.shortLabel || group.label}</span>
                       </span>
-                      <span className="flex-shrink-0 ml-1">
+                      <span className="flex-shrink-0">
                         {openGroup === group.id ? (
                           <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 transition-transform" />
                         ) : (
@@ -256,8 +268,9 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
                               className="w-full justify-start hover:bg-blue-50 dark:hover:bg-blue-900/20 data-[active=true]:bg-blue-100 dark:data-[active=true]:bg-blue-800 text-gray-700 dark:text-gray-300 py-1.5 sm:py-2 text-xs sm:text-sm"
                             >
                               <item.icon className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                              <span className="ml-2 text-left leading-tight">
-                                {item.label}
+                              <span className="ml-2 truncate">
+                                <span className="hidden sm:inline">{item.label}</span>
+                                <span className="sm:hidden">{item.shortLabel || item.label}</span>
                               </span>
                             </SidebarMenuButton>
                           </SidebarMenuItem>
