@@ -44,6 +44,12 @@ interface MenuItem {
   children?: MenuItem[];
 }
 
+interface AppSidebarProps {
+  language: 'es' | 'en';
+  activeSection: string;
+  onSectionChange: (section: string) => void;
+}
+
 const menuItems: MenuItem[] = [
   {
     title: 'Inicio',
@@ -121,7 +127,7 @@ const menuItems: MenuItem[] = [
   },
 ];
 
-const AppSidebar = () => {
+const AppSidebar: React.FC<AppSidebarProps> = ({ language, activeSection, onSectionChange }) => {
   const location = useLocation();
   const [expandedGroups, setExpandedGroups] = useState<string[]>(['Gestión Técnica', 'Operaciones']);
 
