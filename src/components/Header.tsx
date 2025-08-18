@@ -39,14 +39,14 @@ export function Header({
 
   return (
     <>
-      <header className="bg-white dark:bg-gray-900 border-b border-blue-200 dark:border-blue-800 px-4 py-3 flex items-center justify-between h-16">
-        <div className="flex items-center space-x-4">
-          <SidebarTrigger className="h-8 w-8">
-            <Menu className="h-4 w-4" />
+      <header className="bg-white dark:bg-gray-900 border-b border-blue-200 dark:border-blue-800 px-2 sm:px-4 py-2 sm:py-3 flex items-center justify-between h-14 sm:h-16">
+        <div className="flex items-center space-x-2 sm:space-x-4">
+          <SidebarTrigger className="h-6 w-6 sm:h-8 sm:w-8">
+            <Menu className="h-3 w-3 sm:h-4 sm:w-4" />
           </SidebarTrigger>
         </div>
         
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-1 sm:space-x-2">
           <UserProfileModal
             user={user}
             language={language}
@@ -56,10 +56,10 @@ export function Header({
             <Button 
               variant="ghost" 
               size="sm"
-              className="text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+              className="text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
             >
-              <User className="h-4 w-4 mr-2" />
-              {t('profile')}
+              <User className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+              <span className="hidden xs:inline">{t('profile')}</span>
             </Button>
           </UserProfileModal>
           
@@ -67,10 +67,10 @@ export function Header({
             variant="ghost" 
             size="sm"
             onClick={handleSettingsClick}
-            className="text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+            className="text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
           >
-            <Settings className="h-4 w-4 mr-2" />
-            {t('settings')}
+            <Settings className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+            <span className="hidden xs:inline">{t('settings')}</span>
           </Button>
         </div>
       </header>

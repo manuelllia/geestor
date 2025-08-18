@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -60,7 +61,7 @@ export default function MainContent({ activeSection, language }: MainContentProp
   };
 
   return (
-    <div className="flex-1 p-6 bg-gray-50 dark:bg-gray-900 overflow-auto">
+    <div className="flex-1 p-3 sm:p-4 lg:p-6 bg-gray-50 dark:bg-gray-900 overflow-auto">
       {renderContent()}
     </div>
   );
@@ -136,9 +137,9 @@ function DashboardContent() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'active':
-        return <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Activo</Badge>;
+        return <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 text-xs">Activo</Badge>;
       case 'coming-soon':
-        return <Badge variant="outline" className="border-blue-200 text-blue-600 dark:border-blue-800 dark:text-blue-400">Próximamente</Badge>;
+        return <Badge variant="outline" className="border-blue-200 text-blue-600 dark:border-blue-800 dark:text-blue-400 text-xs">Próximamente</Badge>;
       default:
         return null;
     }
@@ -153,35 +154,35 @@ function DashboardContent() {
   }, {} as Record<string, typeof modules>);
 
   return (
-    <div className="space-y-8">
-      <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold text-blue-600 dark:text-blue-300 mb-4">
+    <div className="space-y-6 sm:space-y-8">
+      <div className="text-center mb-6 sm:mb-8 px-4">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-blue-600 dark:text-blue-300 mb-2 sm:mb-4">
           GEESTOR
         </h1>
-        <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+        <p className="text-base sm:text-lg lg:text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
           Sistema integral de gestión empresarial para el Grupo Empresarial Electromédico
         </p>
       </div>
 
       {Object.entries(groupedModules).map(([category, categoryModules]) => (
-        <div key={category} className="space-y-4">
-          <h2 className="text-2xl font-semibold text-blue-600 dark:text-blue-300 border-b border-blue-200 dark:border-blue-800 pb-2">
+        <div key={category} className="space-y-3 sm:space-y-4">
+          <h2 className="text-xl sm:text-2xl font-semibold text-blue-600 dark:text-blue-300 border-b border-blue-200 dark:border-blue-800 pb-2 px-2">
             {category}
           </h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {categoryModules.map((module, index) => (
               <Card key={index} className="hover:shadow-lg transition-shadow duration-200 border-blue-100 dark:border-blue-900">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <module.icon className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+                <CardHeader className="pb-2 sm:pb-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <module.icon className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-1" />
                     {getStatusBadge(module.status)}
                   </div>
-                  <CardTitle className="text-lg text-blue-600 dark:text-blue-300">
+                  <CardTitle className="text-base sm:text-lg text-blue-600 dark:text-blue-300 leading-tight">
                     {module.title}
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <CardDescription className="text-gray-600 dark:text-gray-400">
+                <CardContent className="pt-0">
+                  <CardDescription className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
                     {module.description}
                   </CardDescription>
                 </CardContent>
@@ -196,12 +197,12 @@ function DashboardContent() {
 
 function ComingSoonContent({ title, icon: Icon }: { title: string; icon: React.ComponentType<any> }) {
   return (
-    <div className="flex items-center justify-center min-h-[400px]">
+    <div className="flex items-center justify-center min-h-[300px] sm:min-h-[400px] p-4">
       <Card className="w-full max-w-md text-center">
-        <CardHeader>
-          <Icon className="w-16 h-16 mx-auto text-blue-600 dark:text-blue-400 mb-4" />
-          <CardTitle className="text-blue-600 dark:text-blue-300">{title}</CardTitle>
-          <CardDescription>
+        <CardHeader className="pb-4">
+          <Icon className="w-12 h-12 sm:w-16 sm:h-16 mx-auto text-blue-600 dark:text-blue-400 mb-3 sm:mb-4" />
+          <CardTitle className="text-blue-600 dark:text-blue-300 text-lg sm:text-xl">{title}</CardTitle>
+          <CardDescription className="text-sm sm:text-base">
             Esta funcionalidad estará disponible próximamente
           </CardDescription>
         </CardHeader>
