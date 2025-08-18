@@ -23,6 +23,22 @@ interface MainContentProps {
 const MainContent: React.FC<MainContentProps> = ({ activeSection, language }) => {
   const { t } = useTranslation(language);
 
+  const handleViewDetails = (id: string) => {
+    console.log('Ver detalles:', id);
+  };
+
+  const handleCreateNew = () => {
+    console.log('Crear nuevo');
+  };
+
+  const handleImportData = () => {
+    console.log('Importar datos');
+  };
+
+  const handleViewTables = () => {
+    console.log('Ver tablas');
+  };
+
   const renderMainDashboard = () => (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8">
       <div className="flex items-center space-x-3">
@@ -141,19 +157,37 @@ const MainContent: React.FC<MainContentProps> = ({ activeSection, language }) =>
         return <ContractRequestsListView language={language} />;
         
       case 'hojas-cambio':
-        return <ChangeSheetsListView language={language} />;
+        return (
+          <ChangeSheetsListView 
+            language={language}
+            onViewDetails={handleViewDetails}
+            onCreateNew={handleCreateNew}
+          />
+        );
         
       case 'acuerdo-empleado':
-        return <EmployeeAgreementsListView language={language} />;
+        return (
+          <EmployeeAgreementsListView 
+            language={language}
+            onViewDetails={handleViewDetails}
+            onCreateNew={handleCreateNew}
+          />
+        );
         
       case 'valoracion-practicas':
-        return <PracticeEvaluationsListView language={language} />;
+        return <PracticeEvaluationsListView />;
         
       case 'entrevista-salida':
-        return <ExitInterviewsListView language={language} />;
+        return <ExitInterviewsListView />;
         
       case 'gestion-inmuebles':
-        return <RealEstateDashboard language={language} />;
+        return (
+          <RealEstateDashboard 
+            language={language}
+            onImportData={handleImportData}
+            onViewTables={handleViewTables}
+          />
+        );
         
       case 'comprobadores':
         return (
