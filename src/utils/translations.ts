@@ -1,4 +1,6 @@
+
 export type Language = "es" | "en";
+export type Theme = "light" | "dark";
 
 export const languages = [
   {
@@ -97,7 +99,42 @@ type TranslationKeys =
   | "activeProperties"
   | "inactiveProperties"
   | "totalProperties"
-  | "totalRooms";
+  | "totalRooms"
+  | "back"
+  | "exportPDF"
+  | "changeSheetDetails"
+  | "changeSheetsManagement"
+  | "createNew"
+  | "hojasCambio"
+  | "employeeName"
+  | "originCenter"
+  | "startDate"
+  | "status"
+  | "duplicateRecord"
+  | "downloadPDF"
+  | "employeeAgreementDetails"
+  | "loginSubtitle"
+  | "loginButton"
+  | "welcomeMessage"
+  | "welcomeSubtitle"
+  | "selectSection"
+  | "mainContent"
+  | "noContentSelected"
+  | "realEstateDetails"
+  | "spanish"
+  | "english"
+  | "theme"
+  | "userProfile"
+  | "personalInformation"
+  | "changePhoto"
+  | "departmentPermissions"
+  | "departmentPermissionsDesc"
+  | "operaciones"
+  | "gestionTecnica"
+  | "gestionTalento"
+  | "actionPermissions"
+  | "actionPermissionsDesc"
+  | "verifyingAccount";
 
 type Translations = {
   [key in Language]: {
@@ -193,6 +230,41 @@ export const translations: Translations = {
     inactiveProperties: "Propiedades Inactivas",
     totalProperties: "Total Propiedades",
     totalRooms: "Total Habitaciones",
+    back: "Volver",
+    exportPDF: "Exportar PDF",
+    changeSheetDetails: "Detalles de Hoja de Cambio",
+    changeSheetsManagement: "Gestión de Hojas de Cambio",
+    createNew: "Crear Nuevo",
+    hojasCambio: "Hojas de Cambio",
+    employeeName: "Nombre del Empleado",
+    originCenter: "Centro de Origen",
+    startDate: "Fecha de Inicio",
+    status: "Estado",
+    duplicateRecord: "Duplicar Registro",
+    downloadPDF: "Descargar PDF",
+    employeeAgreementDetails: "Detalles del Acuerdo de Empleado",
+    loginSubtitle: "Accede a tu cuenta para continuar",
+    loginButton: "Iniciar Sesión",
+    welcomeMessage: "Bienvenido a GEEstor",
+    welcomeSubtitle: "Sistema de gestión empresarial integral",
+    selectSection: "Selecciona una sección del menú lateral para comenzar",
+    mainContent: "Contenido Principal",
+    noContentSelected: "No se ha seleccionado contenido",
+    realEstateDetails: "Detalles del Inmueble",
+    spanish: "Español",
+    english: "Inglés",
+    theme: "Tema",
+    userProfile: "Perfil de Usuario",
+    personalInformation: "Información Personal",
+    changePhoto: "Cambiar Foto",
+    departmentPermissions: "Permisos de Departamento",
+    departmentPermissionsDesc: "Controla el acceso a cada departamento",
+    operaciones: "Operaciones",
+    gestionTecnica: "Gestión Técnica",
+    gestionTalento: "Gestión de Talento",
+    actionPermissions: "Permisos de Acciones",
+    actionPermissionsDesc: "Controla las acciones que puede realizar",
+    verifyingAccount: "Verificando cuenta"
   },
   en: {
     error: "Error",
@@ -281,5 +353,40 @@ export const translations: Translations = {
     inactiveProperties: "Inactive Properties",
     totalProperties: "Total Properties",
     totalRooms: "Total Rooms",
+    back: "Back",
+    exportPDF: "Export PDF",
+    changeSheetDetails: "Change Sheet Details",
+    changeSheetsManagement: "Change Sheets Management",
+    createNew: "Create New",
+    hojasCambio: "Change Sheets",
+    employeeName: "Employee Name",
+    originCenter: "Origin Center",
+    startDate: "Start Date",
+    status: "Status",
+    duplicateRecord: "Duplicate Record",
+    downloadPDF: "Download PDF",
+    employeeAgreementDetails: "Employee Agreement Details",
+    loginSubtitle: "Access your account to continue",
+    loginButton: "Login",
+    welcomeMessage: "Welcome to GEEstor",
+    welcomeSubtitle: "Comprehensive business management system",
+    selectSection: "Select a section from the side menu to get started",
+    mainContent: "Main Content",
+    noContentSelected: "No content selected",
+    realEstateDetails: "Real Estate Details",
+    spanish: "Spanish",
+    english: "English",
+    theme: "Theme",
+    userProfile: "User Profile",
+    personalInformation: "Personal Information",
+    changePhoto: "Change Photo",
+    departmentPermissions: "Department Permissions",
+    departmentPermissionsDesc: "Control access to each department",
+    operaciones: "Operations",
+    gestionTecnica: "Technical Management",
+    gestionTalento: "Talent Management",
+    actionPermissions: "Action Permissions",
+    actionPermissionsDesc: "Control the actions that can be performed",
+    verifyingAccount: "Verifying account"
   },
 };
