@@ -1,3 +1,4 @@
+
 export type Language = 'es' | 'en';
 export type Theme = 'light' | 'dark';
 
@@ -34,7 +35,6 @@ export const translations = {
     departmentPermissionsDesc: 'Configura el acceso a los diferentes departamentos',
     operaciones: 'Operaciones',
     gestionTecnica: 'Gestión Técnica',
-    gestionTalento: 'Gestión de Talento',
     actionPermissions: 'Permisos de Acciones',
     actionPermissionsDesc: 'Configura las acciones permitidas para el usuario',
     create: 'Crear',
@@ -293,7 +293,6 @@ export const translations = {
     departmentPermissionsDesc: 'Configure access to different departments',
     operaciones: 'Operations',
     gestionTecnica: 'Technical Management',
-    talentManagement: 'Talent Management',
     actionPermissions: 'Action Permissions',
     actionPermissionsDesc: 'Configure allowed actions for the user',
     create: 'Create',

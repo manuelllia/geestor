@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Language } from '../utils/translations';
 import { useTranslation } from '../hooks/useTranslation';
@@ -178,7 +177,7 @@ const MainContent: React.FC<MainContentProps> = ({ activeSection, language }) =>
         return <PracticeEvaluationsListView />;
         
       case 'entrevista-salida':
-        return <ExitInterviewsListView />;
+        return <ExitInterviewsListView language={language} />;
         
       case 'gestion-inmuebles':
         return (
