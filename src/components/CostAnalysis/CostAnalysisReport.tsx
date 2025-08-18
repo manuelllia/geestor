@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
@@ -6,8 +5,8 @@ import { Button } from '../ui/button';
 import { BarChart3, TrendingUp, TrendingDown, DollarSign, Award, Download, Eye } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Language } from '../../utils/translations';
-import { CostBreakdownView } from './CostBreakdownView';
-import { ScoreAnalysisView } from './ScoreAnalysisView';
+import CostBreakdownView from './CostBreakdownView';
+import ScoreAnalysisView from './ScoreAnalysisView';
 
 interface CostAnalysisReportProps {
   analysis: any;
@@ -71,11 +70,11 @@ export function CostAnalysisReport({ analysis, language }: CostAnalysisReportPro
   };
 
   if (currentView === 'breakdown') {
-    return <CostBreakdownView analysis={mockData} language={language} onBack={() => setCurrentView('overview')} />;
+    return <CostBreakdownView data={mockData} language={language} onBack={() => setCurrentView('overview')} />;
   }
 
   if (currentView === 'scores') {
-    return <ScoreAnalysisView analysis={mockData} language={language} onBack={() => setCurrentView('overview')} />;
+    return <ScoreAnalysisView data={mockData} language={language} onBack={() => setCurrentView('overview')} />;
   }
 
   return (

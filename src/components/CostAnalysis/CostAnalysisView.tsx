@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
 import { useCostAnalysis } from '../../hooks/useCostAnalysis';
-import { FileUploadBox } from '../BidAnalyzer/FileUploadBox';
+import FileUploadBox from '../BidAnalyzer/FileUploadBox';
 import { CostAnalysisReport } from './CostAnalysisReport';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
@@ -13,13 +12,15 @@ interface CostAnalysisViewProps {
   language: Language;
 }
 
-export function CostAnalysisView({ language }: CostAnalysisViewProps) {
+export default function CostAnalysisView({ language }: CostAnalysisViewProps) {
   const { t } = useTranslation(language);
-  const { uploadFile, analysis, isLoading, error } = useCostAnalysis();
+  const { analyzeCosts, analysisResult, isLoading, error } = useCostAnalysis();
   const [currentView, setCurrentView] = useState<'upload' | 'analysis'>('upload');
 
   const handleFileUpload = async (file: File) => {
-    await uploadFile(file);
+    // Para este componente, necesitaríamos dos archivos (PCAP y PPT)
+    // Por ahora, usamos el mismo archivo para ambos
+    await analyzeCosts(file, file);
     if (!error) {
       setCurrentView('analysis');
     }
@@ -58,7 +59,7 @@ export function CostAnalysisView({ language }: CostAnalysisViewProps) {
             <Button
               variant={currentView === 'analysis' ? 'default' : 'outline'}
               onClick={() => setCurrentView('analysis')}
-              disabled={!analysis}
+              disabled={!analysisResult}
               className="w-full sm:w-auto text-xs sm:text-sm"
               size="sm"
             >
@@ -154,7 +155,7 @@ export function CostAnalysisView({ language }: CostAnalysisViewProps) {
           </div>
         ) : (
           <div className="h-full overflow-auto">
-            <CostAnalysisReport analysis={analysis} language={language} />
+            <CostAnalysisReport analysis={analysisResult} language={language} />
           </div>
         )}
       </div>
