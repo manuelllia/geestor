@@ -25,7 +25,8 @@ import {
   ChevronDown,
   ChevronRight,
   Building2,
-  ClipboardCheck
+  ClipboardCheck,
+  Calculator
 } from 'lucide-react';
 import { useTranslation } from '../hooks/useTranslation';
 import { useUserPermissions } from '../hooks/useUserPermissions';
@@ -93,7 +94,7 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
           id: 'analisis-coste',
           label: 'Análisis de Coste',
           shortLabel: 'Análisis',
-          icon: BarChart2,
+          icon: Calculator,
         },
       ]
     },
