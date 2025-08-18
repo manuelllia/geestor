@@ -1,13 +1,12 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { Badge } from '../ui/badge';
-import { Plus, Upload, Download, AlertCircle, Loader2, RefreshCw, FileDown } from 'lucide-react';
+import { Plus, Upload, Download, AlertCircle, Loader2, RefreshCw, FileDown, Edit, Trash2 } from 'lucide-react';
 import { Language } from '../../utils/translations';
 import { useTranslation } from '../../hooks/useTranslation';
-import { getContractRequests, ContractRequestData } from '../../services/contractRequestsService';
+import { getContractRequests, ContractRequestData, deleteContractRequest } from '../../services/contractRequestsService';
 import ContractRequestCreateForm from './ContractRequestCreateForm';
 import ImportContractRequestsModal from './ImportContractRequestsModal';
 
@@ -22,6 +21,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
   const [error, setError] = useState<string | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
+  const [editingRequest, setEditingRequest] = useState<ContractRequestData | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 30;
 
@@ -41,6 +41,24 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
       setError('Error al cargar las solicitudes de contrato');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleEdit = (request: ContractRequestData) => {
+    setEditingRequest(request);
+    setShowCreateForm(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (window.confirm('¿Estás seguro de que deseas eliminar esta solicitud de contratación?')) {
+      try {
+        await deleteContractRequest(id);
+        await loadRequests(); // Recargar la lista
+        console.log('Solicitud eliminada correctamente');
+      } catch (error) {
+        console.error('Error deleting request:', error);
+        alert('Error al eliminar la solicitud');
+      }
     }
   };
 
@@ -80,9 +98,11 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
     return (
       <ContractRequestCreateForm
         language={language}
+        editingRequest={editingRequest}
         onBack={() => {
           setShowCreateForm(false);
-          loadRequests(); // Recargar datos después de crear
+          setEditingRequest(null);
+          loadRequests();
         }}
         onSave={loadRequests}
       />
@@ -109,7 +129,10 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
           </Button>
           
           <Button
-            onClick={() => setShowCreateForm(true)}
+            onClick={() => {
+              setEditingRequest(null);
+              setShowCreateForm(true);
+            }}
             className="bg-blue-600 hover:bg-blue-700 text-white"
           >
             <Plus className="w-4 h-4 mr-2" />
@@ -185,7 +208,10 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
               </p>
               <div className="flex justify-center space-x-2">
                 <Button
-                  onClick={() => setShowCreateForm(true)}
+                  onClick={() => {
+                    setEditingRequest(null);
+                    setShowCreateForm(true);
+                  }}
                   className="bg-blue-600 hover:bg-blue-700 text-white"
                 >
                   <Plus className="w-4 h-4 mr-2" />
@@ -215,10 +241,9 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
                       <TableHead>Departamento</TableHead>
                       <TableHead>Tipo de Solicitud</TableHead>
                       <TableHead>Fecha de Solicitud</TableHead>
-                      <TableHead>Fecha de Inicio Esperada</TableHead>
                       <TableHead>Salario</TableHead>
                       <TableHead>Estado</TableHead>
-                      <TableHead>Observaciones</TableHead>
+                      <TableHead className="text-center">Acciones</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -235,20 +260,32 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
                             : '-'
                           }
                         </TableCell>
-                        <TableCell>
-                          {request.expectedStartDate 
-                            ? formatDate(request.expectedStartDate) 
-                            : '-'
-                          }
-                        </TableCell>
                         <TableCell>{request.salary}</TableCell>
                         <TableCell>
                           <Badge className={getStatusColor(request.status)}>
                             {request.status}
                           </Badge>
                         </TableCell>
-                        <TableCell className="max-w-xs truncate">
-                          {request.observations || '-'}
+                        <TableCell>
+                          <div className="flex justify-center space-x-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEdit(request)}
+                              title="Editar solicitud"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDelete(request.id!)}
+                              title="Eliminar solicitud"
+                              className="text-red-600 hover:text-red-800 hover:bg-red-50"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -321,7 +358,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
         open={showImportModal}
         onClose={() => {
           setShowImportModal(false);
-          loadRequests(); // Recargar datos después de importar
+          loadRequests();
         }}
         language={language}
       />

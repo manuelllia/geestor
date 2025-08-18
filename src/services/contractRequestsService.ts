@@ -1,5 +1,5 @@
 
-import { collection, addDoc, getDocs, doc, setDoc } from 'firebase/firestore';
+import { collection, addDoc, getDocs, doc, setDoc, deleteDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 
 export interface ContractRequestData {
@@ -12,10 +12,38 @@ export interface ContractRequestData {
   requestDate: Date;
   expectedStartDate?: Date;
   salary: string;
-  experience: string; // Agregada la propiedad experience
+  experience: string;
   qualifications: string[];
   status: string;
   observations: string;
+  // Nuevos campos para mapear desde la importación
+  entryId?: string;
+  selectedCandidate?: string;
+  contractType?: string;
+  incorporationDate?: Date;
+  company?: string;
+  specificPosition?: string;
+  professionalCategory?: string;
+  specificCategory?: string;
+  city?: string;
+  province?: string;
+  autonomousCommunity?: string;
+  workCenter?: string;
+  specificCenter?: string;
+  directResponsible?: string;
+  companyFloor?: string;
+  language?: string;
+  languageLevel?: string;
+  language2?: string;
+  languageLevel2?: string;
+  electromedicalExperience?: string;
+  installationExperience?: string;
+  hiringReason?: string;
+  commitmentsObservations?: string;
+  createdByUserId?: string;
+  pdfSolicitation?: string;
+  newCompany?: string;
+  approved?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -47,6 +75,7 @@ export const getContractRequests = async (): Promise<ContractRequestData[]> => {
         ...data,
         requestDate: data.requestDate?.toDate() || new Date(),
         expectedStartDate: data.expectedStartDate?.toDate() || undefined,
+        incorporationDate: data.incorporationDate?.toDate() || undefined,
         createdAt: data.createdAt?.toDate() || new Date(),
         updatedAt: data.updatedAt?.toDate() || new Date(),
       } as ContractRequestData);
@@ -59,7 +88,6 @@ export const getContractRequests = async (): Promise<ContractRequestData[]> => {
   }
 };
 
-// Función para guardar una solicitud de contrato individual
 export const saveContractRequest = async (request: ContractRequestData): Promise<void> => {
   try {
     const requestData = {
@@ -76,32 +104,83 @@ export const saveContractRequest = async (request: ContractRequestData): Promise
   }
 };
 
-export const importContractRequests = async (requests: ContractRequestInput[]): Promise<{ success: number; errors: string[] }> => {
+export const updateContractRequest = async (id: string, request: Partial<ContractRequestData>): Promise<void> => {
+  try {
+    const requestData = {
+      ...request,
+      updatedAt: new Date(),
+    };
+    
+    await updateDoc(doc(db, COLLECTION_PATH, id), requestData);
+    console.log('Contract request updated successfully');
+  } catch (error) {
+    console.error('Error updating contract request:', error);
+    throw error;
+  }
+};
+
+export const deleteContractRequest = async (id: string): Promise<void> => {
+  try {
+    await deleteDoc(doc(db, COLLECTION_PATH, id));
+    console.log('Contract request deleted successfully');
+  } catch (error) {
+    console.error('Error deleting contract request:', error);
+    throw error;
+  }
+};
+
+export const importContractRequests = async (requests: any[]): Promise<{ success: number; errors: string[] }> => {
   const results = { success: 0, errors: [] as string[] };
   
   for (let i = 0; i < requests.length; i++) {
     try {
       const request = requests[i];
       
-      // Validar campos requeridos
-      if (!request.applicantName || !request.applicantLastName || !request.position) {
-        results.errors.push(`Fila ${i + 2}: Faltan campos requeridos (nombre, apellidos o puesto)`);
-        continue;
-      }
-      
+      // Mapeo mejorado de campos desde la importación
       const requestData: ContractRequestData = {
-        applicantName: request.applicantName,
-        applicantLastName: request.applicantLastName,
-        position: request.position,
-        department: request.department,
-        requestType: request.requestType,
-        requestDate: request.requestDate,
-        expectedStartDate: request.expectedStartDate,
-        salary: request.salary,
-        experience: '', // Valor por defecto para experience
-        qualifications: [], // Valor por defecto para qualifications
-        status: request.status,
-        observations: request.observations,
+        // Campos básicos
+        applicantName: request['Candidato Seleccionado']?.split(' ')[0] || '',
+        applicantLastName: request['Candidato Seleccionado']?.split(' ').slice(1).join(' ') || '',
+        position: request['Puesto de Trabajo'] || request['Especificar Puesto de Trabajo'] || '',
+        department: request['Centro de Trabajo'] || request['Especificar Centro'] || '',
+        requestType: request['Tipo de Contrato'] || '',
+        requestDate: request['Fecha entrada'] ? new Date(request['Fecha entrada']) : new Date(),
+        expectedStartDate: request['Fecha de Incorporación'] ? new Date(request['Fecha de Incorporación']) : undefined,
+        salary: request['Salario']?.toString() || '',
+        experience: request['Experiencia Previa en Electromedicina'] || request['Experiencia Previa en Instalaciones'] || '',
+        qualifications: [],
+        status: request['Approved? (Admin-only)'] ? 'Aprobado' : 'Pendiente',
+        observations: request['Observaciones'] || '',
+        
+        // Campos adicionales mapeados
+        entryId: request['ID Entrada']?.toString() || '',
+        selectedCandidate: request['Candidato Seleccionado'] || '',
+        contractType: request['Tipo de Contrato'] || '',
+        incorporationDate: request['Fecha de Incorporación'] ? new Date(request['Fecha de Incorporación']) : undefined,
+        company: request['Empresa'] || '',
+        specificPosition: request['Especificar Puesto de Trabajo'] || '',
+        professionalCategory: request['Categoría Profesional'] || '',
+        specificCategory: request['Especificar Categoría Profesional'] || '',
+        city: request['Población'] || '',
+        province: request['Provincia'] || '',
+        autonomousCommunity: request['Comunidad Autónoma'] || '',
+        workCenter: request['Centro de Trabajo'] || '',
+        specificCenter: request['Especificar Centro'] || '',
+        directResponsible: request['Responsable Directo'] || '',
+        companyFloor: request['Piso de Empresa'] || '',
+        language: request['Idioma'] || '',
+        languageLevel: request['Nivel'] || '',
+        language2: request['Idioma 2'] || '',
+        languageLevel2: request['Nivel 2'] || '',
+        electromedicalExperience: request['Experiencia Previa en Electromedicina'] || '',
+        installationExperience: request['Experiencia Previa en Instalaciones'] || '',
+        hiringReason: request['Motivo de la Contratación'] || '',
+        commitmentsObservations: request['Observaciones y/o Compromisos'] || '',
+        createdByUserId: request['Creada por (ID de usuario)'] || '',
+        pdfSolicitation: request['PDF: Solicitud de Contratación'] || '',
+        newCompany: request['NUEVA EMPRESA'] || '',
+        approved: request['Approved? (Admin-only)'] === 'TRUE' || request['Approved? (Admin-only)'] === true,
+        
         createdAt: new Date(),
         updatedAt: new Date(),
       };

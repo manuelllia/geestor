@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -9,16 +8,18 @@ import { Textarea } from '../ui/textarea';
 import { ArrowLeft, Save, Loader2 } from 'lucide-react';
 import { Language } from '../../utils/translations';
 import { useTranslation } from '../../hooks/useTranslation';
-import { saveContractRequest, ContractRequestData } from '../../services/contractRequestsService';
+import { saveContractRequest, updateContractRequest, ContractRequestData } from '../../services/contractRequestsService';
 
 interface ContractRequestCreateFormProps {
   language: Language;
+  editingRequest?: ContractRequestData | null;
   onBack: () => void;
   onSave: () => void;
 }
 
 const ContractRequestCreateForm: React.FC<ContractRequestCreateFormProps> = ({
   language,
+  editingRequest,
   onBack,
   onSave
 }) => {
@@ -33,11 +34,18 @@ const ContractRequestCreateForm: React.FC<ContractRequestCreateFormProps> = ({
     requestDate: new Date(),
     expectedStartDate: undefined,
     salary: '',
-    experience: '', // Agregado correctamente
+    experience: '',
     qualifications: [],
     status: 'Pendiente',
     observations: ''
   });
+
+  // Cargar datos si estamos editando
+  useEffect(() => {
+    if (editingRequest) {
+      setFormData(editingRequest);
+    }
+  }, [editingRequest]);
 
   const handleInputChange = (field: keyof ContractRequestData, value: any) => {
     setFormData(prev => ({
@@ -56,12 +64,22 @@ const ContractRequestCreateForm: React.FC<ContractRequestCreateFormProps> = ({
 
     try {
       setLoading(true);
-      await saveContractRequest(formData as ContractRequestData);
+      
+      if (editingRequest && editingRequest.id) {
+        // Actualizar registro existente
+        await updateContractRequest(editingRequest.id, formData);
+        console.log('Solicitud actualizada correctamente');
+      } else {
+        // Crear nuevo registro
+        await saveContractRequest(formData as ContractRequestData);
+        console.log('Nueva solicitud creada correctamente');
+      }
+      
       onSave();
       onBack();
     } catch (error) {
       console.error('Error saving contract request:', error);
-      alert('Error al guardar la solicitud de contrato');
+      alert(editingRequest ? 'Error al actualizar la solicitud' : 'Error al guardar la solicitud');
     } finally {
       setLoading(false);
     }
@@ -80,7 +98,7 @@ const ContractRequestCreateForm: React.FC<ContractRequestCreateFormProps> = ({
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <CardTitle className="text-2xl font-bold text-blue-900 dark:text-blue-100">
-              Nueva Solicitud de Contratación
+              {editingRequest ? 'Editar Solicitud de Contratación' : 'Nueva Solicitud de Contratación'}
             </CardTitle>
           </div>
         </CardHeader>
@@ -268,12 +286,12 @@ const ContractRequestCreateForm: React.FC<ContractRequestCreateFormProps> = ({
                 {loading ? (
                   <div className="flex items-center space-x-2">
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    <span>Guardando...</span>
+                    <span>{editingRequest ? 'Actualizando...' : 'Guardando...'}</span>
                   </div>
                 ) : (
                   <div className="flex items-center space-x-2">
                     <Save className="h-4 w-4" />
-                    <span>Guardar Solicitud</span>
+                    <span>{editingRequest ? 'Actualizar Solicitud' : 'Guardar Solicitud'}</span>
                   </div>
                 )}
               </Button>
