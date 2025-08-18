@@ -101,8 +101,8 @@ const GeenioChatbot: React.FC<GeenioChatbotProps> = ({ context, isOpen = false, 
 
   return (
     <div className="fixed bottom-4 right-4 z-50 w-80 sm:w-96">
-      <Card className="h-96 sm:h-[500px] flex flex-col rounded-2xl shadow-2xl border-2 border-blue-200 dark:border-blue-700 bg-white dark:bg-gray-900">
-        <CardHeader className="pb-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-t-2xl flex flex-row items-center justify-between">
+      <Card className="h-96 sm:h-[500px] flex flex-col rounded-2xl shadow-2xl border-2 border-blue-200 dark:border-blue-700 bg-white dark:bg-gray-900 overflow-hidden">
+        <CardHeader className="pb-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-t-2xl flex flex-row items-center justify-between flex-shrink-0">
           <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
             <div className="w-6 h-6 sm:w-8 sm:h-8 bg-white/20 rounded-full flex items-center justify-center">
               <Bot className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -114,14 +114,14 @@ const GeenioChatbot: React.FC<GeenioChatbotProps> = ({ context, isOpen = false, 
             variant="ghost"
             size="sm"
             onClick={onToggle}
-            className="text-white hover:bg-white/20 rounded-full w-8 h-8 p-0"
+            className="text-white hover:bg-white/20 rounded-full w-8 h-8 p-0 flex-shrink-0"
           >
             <X className="w-4 h-4" />
           </Button>
         </CardHeader>
         
-        <CardContent className="flex-1 flex flex-col p-0 bg-gradient-to-b from-blue-50/30 to-white dark:from-blue-900/20 dark:to-gray-900">
-          <ScrollArea className="flex-1 p-3 sm:p-4">
+        <CardContent className="flex-1 flex flex-col p-0 bg-gradient-to-b from-blue-50/30 to-white dark:from-blue-900/20 dark:to-gray-900 min-h-0">
+          <ScrollArea className="flex-1 p-3 sm:p-4 min-h-0">
             <div className="space-y-3 sm:space-y-4">
               {messages.map((message) => (
                 <div
@@ -176,7 +176,7 @@ const GeenioChatbot: React.FC<GeenioChatbotProps> = ({ context, isOpen = false, 
             </div>
           </ScrollArea>
           
-          <div className="p-3 sm:p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-b-2xl">
+          <div className="p-3 sm:p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-b-2xl flex-shrink-0">
             <div className="flex gap-2">
               <Input
                 value={inputText}
@@ -190,7 +190,7 @@ const GeenioChatbot: React.FC<GeenioChatbotProps> = ({ context, isOpen = false, 
                 onClick={sendMessage}
                 disabled={!inputText.trim() || isLoading}
                 size="sm"
-                className="bg-blue-500 hover:bg-blue-600 text-white rounded-xl px-3 sm:px-4 shadow-md"
+                className="bg-blue-500 hover:bg-blue-600 text-white rounded-xl px-3 sm:px-4 shadow-md flex-shrink-0"
               >
                 {isLoading ? (
                   <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" />
