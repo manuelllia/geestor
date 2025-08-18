@@ -45,19 +45,11 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
   const { permissions, isLoading } = useUserPermissions();
   const isMobile = useIsMobile();
   const [openGroup, setOpenGroup] = useState<string | null>(null);
-  const [openSubmenus, setOpenSubmenus] = useState<{ [key: string]: boolean }>({});
   
   const isCollapsed = state === 'collapsed';
 
   const handleGroupToggle = (groupId: string) => {
     setOpenGroup(openGroup === groupId ? null : groupId);
-  };
-
-  const handleSubmenuToggle = (submenuId: string) => {
-    setOpenSubmenus(prev => ({
-      ...prev,
-      [submenuId]: !prev[submenuId]
-    }));
   };
 
   const handleSectionChange = (section: string) => {
@@ -163,12 +155,7 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
   // Get all visible items for collapsed view
   const allItems = [
     { id: 'inicio', label: 'Inicio', icon: Home },
-    ...menuGroups.flatMap(group => group.items.flatMap(item => {
-      if (item.hasSubmenu && item.submenuItems) {
-        return [item, ...item.submenuItems.map(subItem => ({ ...subItem, icon: item.icon }))];
-      }
-      return [item];
-    }))
+    ...menuGroups.flatMap(group => group.items)
   ];
 
   return (
@@ -261,52 +248,14 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
                       <SidebarMenu className="ml-2">
                         {group.items.map((item) => (
                           <SidebarMenuItem key={item.id}>
-                            {item.hasSubmenu ? (
-                              <div>
-                                <SidebarMenuButton
-                                  isActive={activeSection === item.id}
-                                  onClick={() => {
-                                    handleSubmenuToggle(item.id);
-                                    handleSectionChange(item.id);
-                                  }}
-                                  className="w-full justify-start hover:bg-blue-50 dark:hover:bg-blue-900/20 data-[active=true]:bg-blue-100 dark:data-[active=true]:bg-blue-800 text-gray-700 dark:text-gray-300 py-2"
-                                >
-                                  <item.icon className="w-4 h-4" />
-                                  <span>{item.label}</span>
-                                  <span>
-                                    {openSubmenus[item.id] ? (
-                                      <ChevronDown className="w-3 h-3 ml-auto" />
-                                    ) : (
-                                      <ChevronRight className="w-3 h-3 ml-auto" />
-                                    )}
-                                  </span>
-                                </SidebarMenuButton>
-                                
-                                {openSubmenus[item.id] && item.submenuItems && (
-                                  <div className="ml-6 mt-1 space-y-1">
-                                    {item.submenuItems.map((subItem) => (
-                                      <SidebarMenuButton
-                                        key={subItem.id}
-                                        isActive={activeSection === subItem.id}
-                                        onClick={() => handleSectionChange(subItem.id)}
-                                        className="w-full justify-start hover:bg-blue-50 dark:hover:bg-blue-900/20 data-[active=true]:bg-blue-100 dark:data-[active=true]:bg-blue-800 text-gray-600 dark:text-gray-400 py-1 text-sm"
-                                      >
-                                        <span>{subItem.label}</span>
-                                      </SidebarMenuButton>
-                                    ))}
-                                  </div>
-                                )}
-                              </div>
-                            ) : (
-                              <SidebarMenuButton
-                                isActive={activeSection === item.id}
-                                onClick={() => handleSectionChange(item.id)}
-                                className="w-full justify-start hover:bg-blue-50 dark:hover:bg-blue-900/20 data-[active=true]:bg-blue-100 dark:data-[active=true]:bg-blue-800 text-gray-700 dark:text-gray-300 py-2"
-                              >
-                                <item.icon className="w-4 h-4" />
-                                <span>{item.label}</span>
-                              </SidebarMenuButton>
-                            )}
+                            <SidebarMenuButton
+                              isActive={activeSection === item.id}
+                              onClick={() => handleSectionChange(item.id)}
+                              className="w-full justify-start hover:bg-blue-50 dark:hover:bg-blue-900/20 data-[active=true]:bg-blue-100 dark:data-[active=true]:bg-blue-800 text-gray-700 dark:text-gray-300 py-2"
+                            >
+                              <item.icon className="w-4 h-4" />
+                              <span>{item.label}</span>
+                            </SidebarMenuButton>
                           </SidebarMenuItem>
                         ))}
                       </SidebarMenu>

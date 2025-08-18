@@ -2,6 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Building2, Users, Calendar, FileText, BarChart2, CheckSquare, UserCheck, MessageSquare, ClipboardCheck } from 'lucide-react';
+import { Language } from '../utils/translations';
 
 // Component imports
 import CostAnalysisView from './CostAnalysis/CostAnalysisView';
@@ -15,31 +16,44 @@ import PracticeEvaluationsListView from './PracticeEvaluations/PracticeEvaluatio
 
 interface MainContentProps {
   activeSection: string;
+  language: Language;
 }
 
-export default function MainContent({ activeSection }: MainContentProps) {
+export default function MainContent({ activeSection, language }: MainContentProps) {
   const renderContent = () => {
     switch (activeSection) {
       case 'inicio':
         return <DashboardContent />;
       case 'analisis-coste':
-        return <CostAnalysisView />;
+        return <CostAnalysisView language={language} />;
       case 'calendario-mantenimiento':
-        return <MaintenanceCalendarView />;
+        return <MaintenanceCalendarView language={language} />;
       case 'comprobadores':
         return <ComingSoonContent title="Comprobadores" icon={CheckSquare} />;
       case 'solicitudes-contratacion':
-        return <ContractRequestsListView />;
+        return <ContractRequestsListView language={language} />;
       case 'hojas-cambio':
-        return <ChangeSheetsListView />;
+        return <ChangeSheetsListView 
+          language={language} 
+          onViewDetails={() => {}} 
+          onCreateNew={() => {}} 
+        />;
       case 'acuerdo-empleado':
-        return <EmployeeAgreementsListView />;
+        return <EmployeeAgreementsListView 
+          language={language} 
+          onViewDetails={() => {}} 
+          onCreateNew={() => {}} 
+        />;
       case 'gestion-inmuebles':
-        return <RealEstateDashboard />;
+        return <RealEstateDashboard 
+          language={language} 
+          onImportData={() => {}} 
+          onViewTables={() => {}} 
+        />;
       case 'valoracion-practicas':
-        return <PracticeEvaluationsListView />;
+        return <PracticeEvaluationsListView language={language} />;
       case 'entrevista-salida':
-        return <ExitInterviewsListView />;
+        return <ExitInterviewsListView language={language} />;
       default:
         return <DashboardContent />;
     }
