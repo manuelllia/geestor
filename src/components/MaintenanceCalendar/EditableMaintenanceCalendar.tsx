@@ -2,11 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
-import { Calendar, ChevronLeft, ChevronRight, Plus, Edit, Trash2, Clock, Users, Check } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, Plus, Edit, Trash2, Clock, Users } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, addMonths, subMonths, parseISO, isValid, addDays, startOfYear, endOfYear, addWeeks } from 'date-fns';
 import { es } from 'date-fns/locale';
 import MaintenanceEventModal from './MaintenanceEventModal';
-import AcceptCalendarModal from './AcceptCalendarModal';
 
 interface MaintenanceEvent {
   id: string;
@@ -47,7 +46,6 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [draggedEvent, setDraggedEvent] = useState<MaintenanceEvent | null>(null);
-  const [isAcceptModalOpen, setIsAcceptModalOpen] = useState(false);
 
   // Función mejorada para parsear frecuencia y obtener días exactos entre mantenimientos
   const parseFrequencyToDays = (frecuencia: string): number => {
@@ -140,64 +138,40 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
 
   // Función mejorada para generar eventos respetando frecuencias exactas
   useEffect(() => {
-    const generateDistributedMaintenanceCalendar = () => {
+    const generatePreciseMaintenanceCalendar = () => {
       const today = new Date();
       const nextYear = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate());
       const allEvents: MaintenanceEvent[] = [];
       
-      console.log(`📅 Generando calendario DISTRIBUIDO desde ${format(today, 'dd/MM/yyyy')} hasta ${format(nextYear, 'dd/MM/yyyy')}`);
-      
-      // Crear un mapa de cargas mensuales para distribución equitativa
-      const monthlyLoad: { [key: string]: number } = {};
+      console.log(`📅 Generando calendario desde ${format(today, 'dd/MM/yyyy')} hasta ${format(nextYear, 'dd/MM/yyyy')}`);
       
       denominaciones.forEach((denominacion, denomIndex) => {
         const diasEntreMant = parseFrequencyToDays(denominacion.frecuencia);
         const tiempoHoras = parseMaintenanceTime(denominacion.tiempo);
         const prioridad = getPriorityFromType(denominacion.tipoMantenimiento);
         
-        console.log(`🔧 Distribuyendo: ${denominacion.denominacion}`);
+        console.log(`🔧 ${denominacion.denominacion}:`);
         console.log(`   - Frecuencia: ${denominacion.frecuencia} (${diasEntreMant} días)`);
+        console.log(`   - Tipo: ${denominacion.tipoMantenimiento}`);
+        console.log(`   - Tiempo: ${tiempoHoras}h`);
         
-        // Calcular cuántos mantenimientos necesitamos en el año
-        const diasTotales = Math.floor((nextYear.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-        const numeroMantenimientos = Math.max(1, Math.floor(diasTotales / diasEntreMant));
-        
-        console.log(`   - Mantenimientos necesarios: ${numeroMantenimientos}`);
-        
-        // Distribuir los mantenimientos de manera más equitativa
+        // Calcular fechas de mantenimiento desde hoy hasta el año que viene
         const fechasMantenimiento: Date[] = [];
+        let fechaActual = new Date(today);
+        let contador = 0;
         
-        // Calcular offset inicial aleatorio para evitar que todos empiecen el mismo día
-        const offsetInicial = Math.floor(Math.random() * Math.min(diasEntreMant, 30));
-        let fechaActual = addDays(today, offsetInicial);
-        
-        for (let i = 0; i < numeroMantenimientos && fechaActual <= nextYear; i++) {
-          // Buscar el mes con menor carga para este mantenimiento
-          const mesActual = format(fechaActual, 'yyyy-MM');
-          const cargaActual = monthlyLoad[mesActual] || 0;
-          
-          // Si la carga del mes es muy alta, intentar mover a un mes adyacente
-          if (cargaActual > 200) { // umbral de horas por mes
-            const mesSiguiente = format(addDays(fechaActual, 15), 'yyyy-MM');
-            const cargaSiguiente = monthlyLoad[mesSiguiente] || 0;
-            
-            if (cargaSiguiente < cargaActual) {
-              fechaActual = addDays(fechaActual, 15);
-            }
-          }
-          
+        // Generar fechas respetando la frecuencia exacta
+        while (fechaActual <= nextYear && contador < 50) { // Límite de seguridad
           fechasMantenimiento.push(new Date(fechaActual));
           
-          // Actualizar carga mensual
-          const mesParaActualizar = format(fechaActual, 'yyyy-MM');
-          monthlyLoad[mesParaActualizar] = (monthlyLoad[mesParaActualizar] || 0) + (tiempoHoras * denominacion.cantidad);
-          
-          // Calcular siguiente fecha con un poco de variación aleatoria (±20% del periodo)
-          const variacion = Math.floor(diasEntreMant * 0.2 * (Math.random() - 0.5));
-          fechaActual = addDays(fechaActual, diasEntreMant + variacion);
+          // Sumar los días exactos según la frecuencia
+          fechaActual = addDays(fechaActual, diasEntreMant);
+          contador++;
         }
         
-        console.log(`   - Fechas distribuidas: ${fechasMantenimiento.length}`);
+        console.log(`   - Fechas generadas: ${fechasMantenimiento.length}`);
+        console.log(`   - Primera fecha: ${format(fechasMantenimiento[0], 'dd/MM/yyyy')}`);
+        console.log(`   - Última fecha: ${format(fechasMantenimiento[fechasMantenimiento.length - 1], 'dd/MM/yyyy')}`);
         
         // Crear eventos para cada fecha calculada
         fechasMantenimiento.forEach((fecha, mantIndex) => {
@@ -214,7 +188,7 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
             ),
             estado: fecha < today ? 'completado' : 'programado',
             prioridad,
-            notas: `Mantenimiento ${mantIndex + 1} - Distribuido equitativamente (${denominacion.frecuencia})`
+            notas: `Mantenimiento ${mantIndex + 1} - Frecuencia: cada ${diasEntreMant} días (${denominacion.frecuencia})`
           };
           
           allEvents.push(event);
@@ -224,14 +198,20 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
       // Ordenar eventos por fecha
       allEvents.sort((a, b) => a.fecha.getTime() - b.fecha.getTime());
       
-      console.log(`✅ Calendario DISTRIBUIDO generado: ${allEvents.length} eventos totales`);
-      console.log('📊 Distribución de carga mensual:', monthlyLoad);
+      console.log(`✅ Calendario generado: ${allEvents.length} eventos totales`);
+      console.log(`📊 Resumen por denominación:`);
+      
+      // Log resumen
+      denominaciones.forEach(denom => {
+        const eventosEstaDenom = allEvents.filter(e => e.denominacion === denom.denominacion);
+        console.log(`   ${denom.denominacion}: ${eventosEstaDenom.length} eventos`);
+      });
       
       return allEvents;
     };
 
     if (denominaciones.length > 0 && events.length === 0) {
-      setEvents(generateDistributedMaintenanceCalendar());
+      setEvents(generatePreciseMaintenanceCalendar());
     }
   }, [denominaciones, events.length]);
 
@@ -346,21 +326,6 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
     }
   };
 
-  const handleAcceptCalendar = () => {
-    setIsAcceptModalOpen(true);
-  };
-
-  const handleSaveCalendar = (hospitalName: string) => {
-    console.log('📋 Calendario aceptado para:', hospitalName);
-    console.log('📊 Total eventos:', events.length);
-    console.log('⏰ Total horas anuales:', getTotalHoursForYear());
-    
-    // TODO: Implementar guardado en base de datos
-    alert(`Calendario aceptado para: ${hospitalName}\nTotal eventos: ${events.length}\nTotal horas anuales: ${getTotalHoursForYear()}h`);
-    
-    setIsAcceptModalOpen(false);
-  };
-
   return (
     <div className="space-y-6">
       <Card>
@@ -368,10 +333,10 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
           <div>
             <CardTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5" />
-              📅 Calendario de Mantenimiento Anual (Distribuido)
+              📅 Calendario de Mantenimiento Anual
             </CardTitle>
             <p className="text-sm text-gray-600 dark:text-gray-300 mt-2">
-              Mantenimientos distribuidos equitativamente • Arrastra para cambiar fechas • Haz clic para editar
+              Arrastra eventos para cambiar fechas • Haz clic para editar • Usa + para agregar nuevos
             </p>
           </div>
           <div className="flex items-center gap-4">
@@ -391,13 +356,6 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
                 Total año
               </div>
             </div>
-            <Button 
-              onClick={handleAcceptCalendar}
-              className="bg-green-600 hover:bg-green-700 text-white"
-            >
-              <Check className="h-4 w-4 mr-2" />
-              Aceptar Calendario
-            </Button>
             <Button onClick={onBack} variant="outline">
               Volver al Análisis
             </Button>
@@ -513,14 +471,6 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
         denominaciones={denominaciones}
         onSave={handleSaveEvent}
         onDelete={selectedEvent ? () => handleDeleteEvent(selectedEvent.id) : undefined}
-      />
-
-      <AcceptCalendarModal
-        isOpen={isAcceptModalOpen}
-        onClose={() => setIsAcceptModalOpen(false)}
-        onSave={handleSaveCalendar}
-        totalEvents={events.length}
-        totalHours={getTotalHoursForYear()}
       />
     </div>
   );
