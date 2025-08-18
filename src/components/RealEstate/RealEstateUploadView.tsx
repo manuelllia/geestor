@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Language } from '../../utils/translations';
@@ -14,9 +13,15 @@ import { checkRealEstateDocument, createRealEstateDocument, insertPropertyData, 
 
 interface RealEstateUploadViewProps {
   language: Language;
+  onUploadComplete?: () => void;
+  onCancel?: () => void;
 }
 
-const RealEstateUploadView: React.FC<RealEstateUploadViewProps> = ({ language }) => {
+const RealEstateUploadView: React.FC<RealEstateUploadViewProps> = ({ 
+  language, 
+  onUploadComplete,
+  onCancel 
+}) => {
   const { t } = useTranslation(language);
   const [isDragging, setIsDragging] = useState(false);
   const [file, setFile] = useState<File | null>(null);
@@ -146,6 +151,11 @@ const RealEstateUploadView: React.FC<RealEstateUploadViewProps> = ({ language })
 
       setStatus('success');
       setStatusMessage(`Archivo procesado exitosamente. ${selectedSheets.length} hoja(s) importada(s).`);
+      
+      // Llamar callback si existe
+      if (onUploadComplete) {
+        setTimeout(onUploadComplete, 2000);
+      }
     } catch (error) {
       console.error('Error al procesar archivo:', error);
       setStatus('error');
@@ -182,6 +192,11 @@ const RealEstateUploadView: React.FC<RealEstateUploadViewProps> = ({ language })
         <h1 className="text-2xl font-bold text-blue-900 dark:text-blue-100">
           Gestión de Inmuebles
         </h1>
+        {onCancel && (
+          <Button variant="outline" onClick={onCancel}>
+            Volver
+          </Button>
+        )}
       </div>
 
       <Card>

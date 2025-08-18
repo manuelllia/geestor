@@ -170,7 +170,13 @@ const MainContent: React.FC<MainContentProps> = ({ activeSection, language }) =>
         }
 
         if (!realEstateDocumentExists || currentView === 'upload') {
-          return <RealEstateUploadView language={language} />;
+          return (
+            <RealEstateUploadView 
+              language={language}
+              onUploadComplete={handleBackToDashboard}
+              onCancel={handleBackToDashboard}
+            />
+          );
         }
 
         if (currentView === 'dashboard') {
@@ -187,9 +193,6 @@ const MainContent: React.FC<MainContentProps> = ({ activeSection, language }) =>
           return (
             <RealEstateListView
               language={language}
-              onViewDetails={handleViewDetails}
-              onCreateNew={() => console.log('Crear nuevo registro')}
-              onBack={handleBackToDashboard}
             />
           );
         }
@@ -207,9 +210,6 @@ const MainContent: React.FC<MainContentProps> = ({ activeSection, language }) =>
         return (
           <RealEstateListView
             language={language}
-            onViewDetails={handleViewDetails}
-            onCreateNew={() => console.log('Crear nuevo inmueble')}
-            onBack={handleBackToDashboard}
           />
         );
 

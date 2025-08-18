@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,6 +14,13 @@ import { toast } from 'sonner';
 
 interface RealEstateTableManagerProps {
   onBack: () => void;
+}
+
+interface FieldDefinition {
+  key: string;
+  label: string;
+  type: string;
+  options?: string[];
 }
 
 const RealEstateTableManager: React.FC<RealEstateTableManagerProps> = ({ onBack }) => {
@@ -77,7 +83,7 @@ const RealEstateTableManager: React.FC<RealEstateTableManagerProps> = ({ onBack 
     );
   };
 
-  const getFieldsForSheet = (sheetName: string): { key: string; label: string; type: string }[] => {
+  const getFieldsForSheet = (sheetName: string): FieldDefinition[] => {
     switch (sheetName) {
       case 'PISOS ACTIVOS':
         return [
@@ -171,7 +177,7 @@ const RealEstateTableManager: React.FC<RealEstateTableManagerProps> = ({ onBack 
     }
   };
 
-  const renderFormField = (field: { key: string; label: string; type: string; options?: string[] }) => {
+  const renderFormField = (field: FieldDefinition) => {
     switch (field.type) {
       case 'select':
         return (
