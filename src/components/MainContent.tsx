@@ -174,7 +174,7 @@ const MainContent: React.FC<MainContentProps> = ({ activeSection, language }) =>
         );
         
       case 'valoracion-practicas':
-        return <PracticeEvaluationsListView />;
+        return <PracticeEvaluationsListView language={language} />;
         
       case 'entrevista-salida':
         return <ExitInterviewsListView language={language} />;

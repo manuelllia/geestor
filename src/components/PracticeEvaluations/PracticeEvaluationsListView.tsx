@@ -10,11 +10,14 @@ import { getPracticeEvaluations, createPracticeEvaluationLink } from '../../serv
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { useLanguageContext } from '../../contexts/LanguageContext';
 import { useTranslation } from '../../hooks/useTranslation';
+import { Language } from '../../utils/translations';
 
-export default function PracticeEvaluationsListView() {
-  const { language } = useLanguageContext();
+interface PracticeEvaluationsListViewProps {
+  language: Language;
+}
+
+export default function PracticeEvaluationsListView({ language }: PracticeEvaluationsListViewProps) {
   const { t } = useTranslation(language);
   
   const { data: evaluations = [], isLoading, refetch } = useQuery({
