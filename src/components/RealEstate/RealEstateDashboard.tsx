@@ -55,7 +55,7 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({ language, onI
   ];
 
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormatResult('es-ES', {
+    return new Intl.NumberFormat('es-ES', {
       style: 'currency',
       currency: 'EUR',
       minimumFractionDigits: 0,

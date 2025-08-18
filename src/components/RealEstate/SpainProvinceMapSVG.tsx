@@ -61,7 +61,7 @@ const SpainProvinceMapSVG: React.FC<SpainProvinceMapSVGProps> = ({ provinceActiv
         {/* Definir gradientes y filtros */}
         <defs>
           <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-            <dropShadow dx="2" dy="2" stdDeviation="2" floodColor="#00000020"/>
+            <feDropShadow dx="2" dy="2" stdDeviation="2" floodColor="#00000020"/>
           </filter>
           <linearGradient id="oceanGradient" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="#7dd3fc" stopOpacity="0.3"/>
