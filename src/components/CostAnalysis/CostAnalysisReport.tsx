@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
@@ -262,7 +261,7 @@ export default function CostAnalysisReport({ analysis, language }: CostAnalysisR
             <TabsContent value="breakdown" className="h-full m-0">
               <ScrollArea className="h-full">
                 <div className="p-3 sm:p-4 lg:p-6">
-                  <CostBreakdownView analysis={analysis} language={language} />
+                  <CostBreakdownView data={analysis} language={language} onBack={() => setActiveTab('overview')} />
                 </div>
               </ScrollArea>
             </TabsContent>
@@ -270,7 +269,7 @@ export default function CostAnalysisReport({ analysis, language }: CostAnalysisR
             <TabsContent value="scores" className="h-full m-0">
               <ScrollArea className="h-full">
                 <div className="p-3 sm:p-4 lg:p-6">
-                  <ScoreAnalysisView analysis={analysis} language={language} />
+                  <ScoreAnalysisView data={analysis} language={language} onBack={() => setActiveTab('overview')} />
                 </div>
               </ScrollArea>
             </TabsContent>

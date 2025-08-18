@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
 import { useCostAnalysis } from '../../hooks/useCostAnalysis';
-import { CostAnalysisReport } from './CostAnalysisReport';
+import CostAnalysisReport from './CostAnalysisReport';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { FileText, Upload, BarChart3, Calculator } from 'lucide-react';
