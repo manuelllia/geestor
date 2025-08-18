@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { useAuth } from '../hooks/useAuth';
@@ -7,7 +6,7 @@ import { useUserPermissions } from '../hooks/useUserPermissions';
 import LoginScreen from '../components/LoginScreen';
 import VerificationScreen from '../components/VerificationScreen';
 import { Header } from '../components/Header';
-import { AppSidebar } from '../components/AppSidebar';
+import AppSidebar from '../components/AppSidebar';
 import MainContent from '../components/MainContent';
 
 const Index = () => {
