@@ -101,8 +101,9 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({ language, onI
         </div>
       </div>
 
-      {/* KPI Cards con iconos - 5 columnas en pantallas grandes */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 sm:gap-6 mb-8">
+      {/* KPI Cards con iconos - 2 filas de 3 columnas */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8">
+        {/* Primera fila */}
         <Card className="border-0 shadow-lg bg-gradient-to-r from-blue-500 to-blue-600 text-white">
           <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
@@ -166,6 +167,7 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({ language, onI
           </CardContent>
         </Card>
 
+        {/* Segunda fila */} 
         <Card className="border-0 shadow-lg bg-gradient-to-r from-orange-500 to-orange-600 text-white">
           <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
@@ -194,7 +196,7 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({ language, onI
                 <p className="text-purple-100 text-xs sm:text-sm font-medium mb-1 truncate">
                   Coste Anual Total
                 </p>
-                <div className="text-lg sm:text-xl lg:text-2xl xl:text-3xl font-bold leading-tight">
+                <div className="text-base sm:text-lg lg:text-xl xl:text-2xl font-bold leading-tight break-words">
                   €{formatCurrencyCompact(costData.totalCost)}
                 </div>
                 <p className="text-purple-200 text-xs mt-1 truncate">
@@ -202,7 +204,29 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({ language, onI
                 </p>
               </div>
               <div className="bg-white/20 p-2 sm:p-3 rounded-full ml-2 flex-shrink-0">
-                <DollarSign className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 text-white" />
+                <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-white" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Tercer KPI para completar la fila - Promedio por propiedad */}
+        <Card className="border-0 shadow-lg bg-gradient-to-r from-teal-500 to-teal-600 text-white">
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex items-center justify-between">
+              <div className="min-w-0 flex-1">
+                <p className="text-teal-100 text-xs sm:text-sm font-medium mb-1 truncate">
+                  Coste Promedio
+                </p>
+                <div className="text-base sm:text-lg lg:text-xl xl:text-2xl font-bold leading-tight break-words">
+                  €{propertyCounts.total > 0 ? formatCurrencyCompact(costData.totalCost / propertyCounts.total) : '0'}
+                </div>
+                <p className="text-teal-200 text-xs mt-1 truncate">
+                  Por propiedad
+                </p>
+              </div>
+              <div className="bg-white/20 p-2 sm:p-3 rounded-full ml-2 flex-shrink-0">
+                <Activity className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-white" />
               </div>
             </div>
           </CardContent>

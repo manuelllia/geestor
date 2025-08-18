@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { MapPin } from 'lucide-react';
 import { ProvinceActivityData } from '../../services/realEstateService';
 
@@ -10,6 +10,19 @@ interface TopProvincesChartProps {
   provinceActivity: ProvinceActivityData;
   hasData: boolean;
 }
+
+const COLORS = [
+  '#3B82F6', // blue-500
+  '#EF4444', // red-500
+  '#10B981', // emerald-500
+  '#F59E0B', // amber-500
+  '#8B5CF6', // violet-500
+  '#EC4899', // pink-500
+  '#6B7280', // gray-500
+  '#F97316', // orange-500
+  '#06B6D4', // cyan-500
+  '#84CC16'  // lime-500
+];
 
 const TopProvincesChart: React.FC<TopProvincesChartProps> = ({ provinceActivity, hasData }) => {
   const [topCount, setTopCount] = useState<3 | 5 | 10>(5);
@@ -20,7 +33,7 @@ const TopProvincesChart: React.FC<TopProvincesChartProps> = ({ provinceActivity,
         <CardHeader className="border-b border-gray-100 dark:border-gray-700">
           <CardTitle className="text-gray-900 dark:text-white flex items-center gap-2">
             <MapPin className="w-5 h-5 text-orange-600" />
-            Top Provincias por Propiedades
+            Distribución de Propiedades por Provincia
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6">
@@ -32,7 +45,7 @@ const TopProvincesChart: React.FC<TopProvincesChartProps> = ({ provinceActivity,
                   Datos no disponibles
                 </h3>
                 <p className="text-gray-500 dark:text-gray-400">
-                  Importa datos para visualizar el ranking de provincias
+                  Importa datos para visualizar la distribución por provincias
                 </p>
               </div>
             </div>
@@ -47,14 +60,28 @@ const TopProvincesChart: React.FC<TopProvincesChartProps> = ({ provinceActivity,
     .sort(([, a], [, b]) => b.count - a.count)
     .slice(0, topCount)
     .map(([province, data], index) => ({
-      provincia: province,
-      total: data.count,
+      name: province,
+      value: data.count,
       activas: data.activeProperties,
       inactivas: data.inactiveProperties,
-      ranking: index + 1
+      color: COLORS[index % COLORS.length]
     }));
 
-  const maxValue = Math.max(...sortedProvinces.map(p => p.total));
+  // Calcular "Otras" si hay más provincias
+  const totalShown = sortedProvinces.reduce((sum, p) => sum + p.value, 0);
+  const totalAll = Object.values(provinceActivity).reduce((sum, p) => sum + p.count, 0);
+  const othersCount = totalAll - totalShown;
+
+  const chartData = [...sortedProvinces];
+  if (othersCount > 0) {
+    chartData.push({
+      name: 'Otras',
+      value: othersCount,
+      activas: 0,
+      inactivas: 0,
+      color: '#9CA3AF' // gray-400
+    });
+  }
 
   return (
     <Card className="border-0 shadow-lg bg-white dark:bg-gray-800">
@@ -86,35 +113,25 @@ const TopProvincesChart: React.FC<TopProvincesChartProps> = ({ provinceActivity,
       <CardContent className="p-6">
         <div className="h-[400px]">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart 
-              data={sortedProvinces} 
-              margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
-              layout="horizontal"
-            >
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis 
-                type="number"
-                fontSize={12}
-                stroke="#666"
-                tickFormatter={(value) => value.toString()}
-              />
-              <YAxis 
-                type="category"
-                dataKey="provincia"
-                fontSize={12}
-                stroke="#666"
-                width={100}
-              />
+            <PieChart>
+              <Pie
+                data={chartData}
+                cx="50%"
+                cy="50%"
+                innerRadius={60}
+                outerRadius={140}
+                paddingAngle={2}
+                dataKey="value"
+              >
+                {chartData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Pie>
               <Tooltip 
-                formatter={(value: number, name: string) => {
-                  const labels: { [key: string]: string } = {
-                    'total': 'Total',
-                    'activas': 'Activas',
-                    'inactivas': 'Inactivas'
-                  };
-                  return [value.toLocaleString(), labels[name] || name];
-                }}
-                labelFormatter={(label) => `${label}`}
+                formatter={(value: number, name: string) => [
+                  `${value.toLocaleString()} propiedades`, 
+                  name
+                ]}
                 contentStyle={{ 
                   backgroundColor: 'white', 
                   border: '1px solid #e5e7eb',
@@ -122,20 +139,16 @@ const TopProvincesChart: React.FC<TopProvincesChartProps> = ({ provinceActivity,
                   boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                 }}
               />
-              <Bar 
-                dataKey="total" 
-                fill="url(#orangeGradient)" 
-                radius={[0, 4, 4, 0]}
-                stroke="#EA580C"
-                strokeWidth={1}
+              <Legend 
+                verticalAlign="bottom" 
+                height={36}
+                formatter={(value, entry) => (
+                  <span className="text-sm text-gray-600 dark:text-gray-300">
+                    {value}: {entry.payload?.value?.toLocaleString()}
+                  </span>
+                )}
               />
-              <defs>
-                <linearGradient id="orangeGradient" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stopColor="#FB923C" stopOpacity={0.8}/>
-                  <stop offset="100%" stopColor="#EA580C" stopOpacity={0.9}/>
-                </linearGradient>
-              </defs>
-            </BarChart>
+            </PieChart>
           </ResponsiveContainer>
         </div>
         
@@ -146,10 +159,10 @@ const TopProvincesChart: React.FC<TopProvincesChartProps> = ({ provinceActivity,
               Provincia Líder
             </div>
             <div className="text-lg font-bold text-orange-900 dark:text-orange-100">
-              {sortedProvinces[0]?.provincia || 'N/A'}
+              {sortedProvinces[0]?.name || 'N/A'}
             </div>
             <div className="text-sm text-orange-600 dark:text-orange-400">
-              {sortedProvinces[0]?.total || 0} propiedades
+              {sortedProvinces[0]?.value || 0} propiedades
             </div>
           </div>
           
@@ -158,7 +171,7 @@ const TopProvincesChart: React.FC<TopProvincesChartProps> = ({ provinceActivity,
               Total Top {topCount}
             </div>
             <div className="text-lg font-bold text-blue-900 dark:text-blue-100">
-              {sortedProvinces.reduce((sum, p) => sum + p.total, 0)}
+              {totalShown.toLocaleString()}
             </div>
             <div className="text-sm text-blue-600 dark:text-blue-400">
               propiedades
@@ -170,10 +183,7 @@ const TopProvincesChart: React.FC<TopProvincesChartProps> = ({ provinceActivity,
               Porcentaje del Total
             </div>
             <div className="text-lg font-bold text-green-900 dark:text-green-100">
-              {Object.keys(provinceActivity).length > 0 
-                ? Math.round((sortedProvinces.reduce((sum, p) => sum + p.total, 0) / 
-                   Object.values(provinceActivity).reduce((sum, p) => sum + p.count, 0)) * 100)
-                : 0}%
+              {totalAll > 0 ? Math.round((totalShown / totalAll) * 100) : 0}%
             </div>
             <div className="text-sm text-green-600 dark:text-green-400">
               concentración
