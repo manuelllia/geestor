@@ -20,7 +20,7 @@ export const useAuth = () => {
         const isAdmin = firebaseUser.uid === ADMIN_UID;
         
         const user: User = {
-          id: firebaseUser.uuid || firebaseUser.uid,
+          id: firebaseUser.uid, // Usar uid en lugar de uuid
           email: firebaseUser.email || '',
           name: firebaseUser.displayName || 'Usuario',
           profilePicture: firebaseUser.photoURL || undefined,

@@ -14,6 +14,39 @@ export const translations = {
     admin: 'ADMIN',
     logout: 'Cerrar Sesión',
     
+    // Login y autenticación
+    welcome: 'Bienvenido',
+    loginSubtitle: 'Accede a tu cuenta para continuar',
+    loginButton: 'Continuar con Microsoft',
+    verifyingAccount: 'Verificando cuenta',
+    
+    // Idiomas
+    spanish: 'Español',
+    english: 'English',
+    light: 'Claro',
+    dark: 'Oscuro',
+    
+    // Perfil de usuario
+    userProfile: 'Perfil de Usuario',
+    personalInformation: 'Información Personal',
+    changePhoto: 'Cambiar Foto',
+    name: 'Nombre',
+    departmentPermissions: 'Permisos de Departamentos',
+    departmentPermissionsDesc: 'Configura el acceso a los diferentes departamentos',
+    operaciones: 'Operaciones',
+    gestionTecnica: 'Gestión Técnica',
+    gestionTalento: 'Gestión de Talento',
+    actionPermissions: 'Permisos de Acciones',
+    actionPermissionsDesc: 'Configura las acciones permitidas para el usuario',
+    create: 'Crear',
+    saveChanges: 'Guardar Cambios',
+    
+    // Propiedades inmobiliarias
+    realEstateDashboard: 'Dashboard Inmobiliario',
+    activeProperties: 'Propiedades Activas',
+    inactiveProperties: 'Propiedades Inactivas',
+    totalProperties: 'Total de Propiedades',
+    
     // Análisis de costes
     costAnalysis: 'Análisis de Costes',
     costAnalysisDescription: 'Realiza análisis completos de costes y puntuación de licitaciones',
@@ -239,6 +272,39 @@ export const translations = {
     profile: 'Profile',
     admin: 'ADMIN',
     logout: 'Logout',
+    
+    // Login and authentication
+    welcome: 'Welcome',
+    loginSubtitle: 'Sign in to your account to continue',
+    loginButton: 'Continue with Microsoft',
+    verifyingAccount: 'Verifying account',
+    
+    // Languages
+    spanish: 'Español',
+    english: 'English',
+    light: 'Light',
+    dark: 'Dark',
+    
+    // User profile
+    userProfile: 'User Profile',
+    personalInformation: 'Personal Information',
+    changePhoto: 'Change Photo',
+    name: 'Name',
+    departmentPermissions: 'Department Permissions',
+    departmentPermissionsDesc: 'Configure access to different departments',
+    operaciones: 'Operations',
+    gestionTecnica: 'Technical Management',
+    gestionTalento: 'Talent Management',
+    actionPermissions: 'Action Permissions',
+    actionPermissionsDesc: 'Configure allowed actions for the user',
+    create: 'Create',
+    saveChanges: 'Save Changes',
+    
+    // Real estate properties
+    realEstateDashboard: 'Real Estate Dashboard',
+    activeProperties: 'Active Properties',
+    inactiveProperties: 'Inactive Properties',
+    totalProperties: 'Total Properties',
     
     // Cost analysis
     costAnalysis: 'Cost Analysis',
