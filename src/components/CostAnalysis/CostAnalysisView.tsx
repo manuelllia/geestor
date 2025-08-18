@@ -1,199 +1,201 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useCostAnalysis } from '../../hooks/useCostAnalysis';
+import { FileUploadBox } from '../BidAnalyzer/FileUploadBox';
+import { CostAnalysisReport } from './CostAnalysisReport';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
+import { FileText, Upload, BarChart3, Calculator } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Language } from '../../utils/translations';
-import FileUploadBox from '../BidAnalyzer/FileUploadBox';
-import { useCostAnalysis } from '../../hooks/useCostAnalysis';
-import CostAnalysisReport from './CostAnalysisReport';
-import CostBreakdownView from './CostBreakdownView';
-import ScoreAnalysisView from './ScoreAnalysisView';
 
 interface CostAnalysisViewProps {
   language: Language;
 }
 
-const CostAnalysisView: React.FC<CostAnalysisViewProps> = ({ language }) => {
+export function CostAnalysisView({ language }: CostAnalysisViewProps) {
   const { t } = useTranslation(language);
-  const [pcapFile, setPcapFile] = useState<File | null>(null);
-  const [pptFile, setPptFile] = useState<File | null>(null);
-  const [activeTab, setActiveTab] = useState('upload');
-  
-  const { analyzeCosts, analysisResult, isLoading, error } = useCostAnalysis();
+  const { uploadFile, analysis, isLoading, error } = useCostAnalysis();
+  const [currentView, setCurrentView] = useState<'upload' | 'analysis'>('upload');
 
-  const handlePcapUpload = (file: File) => {
-    setPcapFile(file);
-    console.log('PCAP file uploaded:', file.name);
-  };
-
-  const handlePptUpload = (file: File) => {
-    setPptFile(file);
-    console.log('PPT file uploaded:', file.name);
-  };
-
-  const handleAnalyzeCosts = async () => {
-    if (!pcapFile || !pptFile) return;
-    
-    try {
-      await analyzeCosts(pcapFile, pptFile);
-      setActiveTab('report');
-    } catch (error) {
-      console.error('Error analyzing costs:', error);
+  const handleFileUpload = async (file: File) => {
+    await uploadFile(file);
+    if (!error) {
+      setCurrentView('analysis');
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
-      <div className="container mx-auto px-4 py-6 space-y-6">
-        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl p-6 md:p-8 shadow-lg">
-          <h1 className="text-2xl md:text-4xl font-bold mb-2 md:mb-4">Análisis de Costes</h1>
-          <p className="text-indigo-100 text-sm md:text-lg">
-            Analiza los documentos de licitación para obtener un desglose detallado de costes
-          </p>
-        </div>
-
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-1 md:gap-2 h-auto p-1">
-            <TabsTrigger 
-              value="upload" 
-              className="text-xs md:text-sm px-2 md:px-4 py-2 md:py-3"
-            >
-              📁 Subir Archivos
-            </TabsTrigger>
-            <TabsTrigger 
-              value="report" 
-              disabled={!analysisResult}
-              className="text-xs md:text-sm px-2 md:px-4 py-2 md:py-3"
-            >
-              📊 Informe
-            </TabsTrigger>
-            <TabsTrigger 
-              value="costs" 
-              disabled={!analysisResult}
-              className="text-xs md:text-sm px-2 md:px-4 py-2 md:py-3"
-            >
-              💰 Costes
-            </TabsTrigger>
-            <TabsTrigger 
-              value="scores" 
-              disabled={!analysisResult}
-              className="text-xs md:text-sm px-2 md:px-4 py-2 md:py-3"
-            >
-              🎯 Puntuación
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="upload" className="space-y-6 mt-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-              <Card className="shadow-lg border-0 bg-white dark:bg-gray-800">
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-lg md:text-xl font-semibold text-blue-900 dark:text-blue-100 flex items-center gap-2">
-                    📄 Archivo PCAP
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <FileUploadBox
-                    title="Pliego de Cláusulas Administrativas Particulares"
-                    description="Sube el archivo PCAP en formato PDF"
-                    file={pcapFile}
-                    onFileUpload={handlePcapUpload}
-                    onFileRemove={() => setPcapFile(null)}
-                    accept=".pdf"
-                    isLoading={isLoading}
-                  />
-                </CardContent>
-              </Card>
-
-              <Card className="shadow-lg border-0 bg-white dark:bg-gray-800">
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-lg md:text-xl font-semibold text-blue-900 dark:text-blue-100 flex items-center gap-2">
-                    📊 Archivo PPT
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <FileUploadBox
-                    title="Pliego de Prescripciones Técnicas"
-                    description="Sube el archivo PPT en formato PDF"
-                    file={pptFile}
-                    onFileUpload={handlePptUpload}
-                    onFileRemove={() => setPptFile(null)}
-                    accept=".pdf"
-                    isLoading={isLoading}
-                  />
-                </CardContent>
-              </Card>
+    <div className="w-full h-full flex flex-col bg-gradient-to-br from-blue-50 to-white dark:from-gray-900 dark:to-gray-800">
+      {/* Header responsive */}
+      <div className="flex-shrink-0 p-3 sm:p-4 lg:p-6 border-b border-blue-200 dark:border-blue-800">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="flex-shrink-0 p-1.5 sm:p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
+              <BarChart3 className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 dark:text-blue-400" />
             </div>
+            <div>
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">
+                Análisis de Coste
+              </h1>
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 mt-1">
+                Analiza y compara costes de ofertas
+              </p>
+            </div>
+          </div>
+          
+          {/* Navigation buttons - stack on mobile */}
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+            <Button
+              variant={currentView === 'upload' ? 'default' : 'outline'}
+              onClick={() => setCurrentView('upload')}
+              className="w-full sm:w-auto text-xs sm:text-sm"
+              size="sm"
+            >
+              <Upload className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+              Subir Archivo
+            </Button>
+            <Button
+              variant={currentView === 'analysis' ? 'default' : 'outline'}
+              onClick={() => setCurrentView('analysis')}
+              disabled={!analysis}
+              className="w-full sm:w-auto text-xs sm:text-sm"
+              size="sm"
+            >
+              <Calculator className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+              Ver Análisis
+            </Button>
+          </div>
+        </div>
+      </div>
 
-            {pcapFile && pptFile && (
-              <Card className="shadow-lg border-0 bg-white dark:bg-gray-800">
-                <CardHeader>
-                  <CardTitle className="text-lg md:text-xl font-semibold text-blue-900 dark:text-blue-100">
-                    📈 Análisis de Costes
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="bg-green-50 dark:bg-green-900/30 rounded-lg p-4 md:p-6 border border-green-200 dark:border-green-700">
-                    <p className="text-green-800 dark:text-green-200 font-medium mb-4 text-sm md:text-base">
-                      ✅ Archivos listos para análisis
-                    </p>
-                    <p className="text-green-600 dark:text-green-300 text-xs md:text-sm mb-4">
-                      Los archivos PCAP y PPT han sido cargados correctamente. El análisis se realizará con IA avanzada.
-                    </p>
-                    <Button
-                      onClick={handleAnalyzeCosts}
-                      disabled={isLoading}
-                      className="w-full bg-indigo-600 hover:bg-indigo-700 text-sm md:text-base py-2 md:py-3"
-                    >
-                      {isLoading ? (
-                        <div className="flex items-center gap-2">
-                          <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                          Analizando Costes...
-                        </div>
-                      ) : (
-                        'Iniciar Análisis de Costes'
-                      )}
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {error && (
-              <Card className="shadow-lg border-0 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700">
-                <CardContent className="p-4 md:p-6">
-                  <div className="flex items-start gap-3">
-                    <div className="text-red-500 text-lg">❌</div>
-                    <div>
-                      <h3 className="font-semibold text-red-800 dark:text-red-200 text-sm md:text-base">
-                        Error en el Análisis
-                      </h3>
-                      <p className="text-red-600 dark:text-red-300 text-xs md:text-sm mt-1">
-                        {error}
-                      </p>
+      {/* Main content area - responsive */}
+      <div className="flex-1 overflow-hidden">
+        {currentView === 'upload' ? (
+          <div className="h-full p-3 sm:p-4 lg:p-6 overflow-auto">
+            <div className="max-w-4xl mx-auto">
+              {/* Upload section */}
+              <Card className="border-2 border-dashed border-blue-200 dark:border-blue-800 bg-white/50 dark:bg-gray-800/50">
+                <CardHeader className="text-center p-4 sm:p-6">
+                  <div className="flex justify-center mb-3 sm:mb-4">
+                    <div className="p-3 sm:p-4 bg-blue-100 dark:bg-blue-900 rounded-full">
+                      <FileText className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600 dark:text-blue-400" />
                     </div>
                   </div>
+                  <CardTitle className="text-lg sm:text-xl lg:text-2xl text-gray-900 dark:text-white mb-2">
+                    Sube tu archivo de costes
+                  </CardTitle>
+                  <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 max-w-md mx-auto">
+                    Acepta archivos Excel (.xlsx, .xls) y CSV con datos de ofertas y costes
+                  </p>
+                </CardHeader>
+                <CardContent className="p-4 sm:p-6">
+                  <FileUploadBox onFileUpload={handleFileUpload} />
                 </CardContent>
               </Card>
-            )}
-          </TabsContent>
 
-          <TabsContent value="report" className="mt-6">
-            {analysisResult && <CostAnalysisReport data={analysisResult} />}
-          </TabsContent>
+              {/* Instructions - responsive grid */}
+              <div className="mt-4 sm:mt-6 lg:mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
+                <Card className="bg-white dark:bg-gray-800 border border-blue-200 dark:border-blue-700">
+                  <CardContent className="p-3 sm:p-4 lg:p-6">
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0 w-6 h-6 sm:w-8 sm:h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                        <span className="text-xs sm:text-sm font-bold text-blue-600 dark:text-blue-400">1</span>
+                      </div>
+                      <div className="min-w-0">
+                        <h3 className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white mb-1 sm:mb-2">
+                          Prepara tu archivo
+                        </h3>
+                        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                          Asegúrate de que incluya columnas como: Proveedor, Precio, Descripción, Cantidad
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
 
-          <TabsContent value="costs" className="mt-6">
-            {analysisResult && <CostBreakdownView data={analysisResult} />}
-          </TabsContent>
+                <Card className="bg-white dark:bg-gray-800 border border-blue-200 dark:border-blue-700">
+                  <CardContent className="p-3 sm:p-4 lg:p-6">
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0 w-6 h-6 sm:w-8 sm:h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                        <span className="text-xs sm:text-sm font-bold text-blue-600 dark:text-blue-400">2</span>
+                      </div>
+                      <div className="min-w-0">
+                        <h3 className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white mb-1 sm:mb-2">
+                          Sube el archivo
+                        </h3>
+                        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                          Arrastra y suelta o haz clic para seleccionar tu archivo de datos
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
 
-          <TabsContent value="scores" className="mt-6">
-            {analysisResult && <ScoreAnalysisView data={analysisResult} />}
-          </TabsContent>
-        </Tabs>
+                <Card className="bg-white dark:bg-gray-800 border border-blue-200 dark:border-blue-700 md:col-span-2 lg:col-span-1">
+                  <CardContent className="p-3 sm:p-4 lg:p-6">
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0 w-6 h-6 sm:w-8 sm:h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                        <span className="text-xs sm:text-sm font-bold text-blue-600 dark:text-blue-400">3</span>
+                      </div>
+                      <div className="min-w-0">
+                        <h3 className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white mb-1 sm:mb-2">
+                          Revisa el análisis
+                        </h3>
+                        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                          Obtén comparativas detalladas y recomendaciones automáticas
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="h-full overflow-auto">
+            <CostAnalysisReport analysis={analysis} language={language} />
+          </div>
+        )}
       </div>
+
+      {/* Loading state */}
+      {isLoading && (
+        <div className="absolute inset-0 bg-white/80 dark:bg-gray-900/80 flex items-center justify-center z-50">
+          <div className="flex flex-col items-center gap-3 sm:gap-4 p-4 sm:p-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
+            <div className="animate-spin rounded-full h-8 w-8 sm:h-12 sm:w-12 border-b-2 border-blue-600"></div>
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 text-center">
+              Analizando archivo...
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Error state */}
+      {error && (
+        <div className="absolute inset-0 bg-white/80 dark:bg-gray-900/80 flex items-center justify-center z-50">
+          <div className="max-w-sm mx-auto p-4 sm:p-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-red-200">
+            <div className="text-center">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                <FileText className="w-6 h-6 sm:w-8 sm:h-8 text-red-600 dark:text-red-400" />
+              </div>
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                Error al procesar archivo
+              </h3>
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 mb-3 sm:mb-4">
+                {error}
+              </p>
+              <Button 
+                onClick={() => setCurrentView('upload')} 
+                size="sm"
+                className="w-full sm:w-auto text-xs sm:text-sm"
+              >
+                Intentar de nuevo
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
-};
-
-export default CostAnalysisView;
+}
