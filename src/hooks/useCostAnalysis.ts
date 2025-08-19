@@ -1,6 +1,8 @@
-
 import { useState } from 'react';
-import { getDocument } from 'pdfjs-dist';
+import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist';
+
+// Configure PDF.js worker
+GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.worker.min.js`;
 
 interface ReportData {
   presupuestoGeneral: string;
