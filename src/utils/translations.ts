@@ -1,392 +1,265 @@
+export type Language = 'es' | 'en';
 
-export type Language = "es" | "en";
-export type Theme = "light" | "dark";
-
-export const languages = [
-  {
-    key: "es",
-    label: "Español",
-  },
-  {
-    key: "en",
-    label: "English",
-  },
-];
-
-type TranslationKeys =
-  | "error"
-  | "language"
-  | "loading"
-  | "success"
-  | "selectLanguage"
-  | "selectTheme"
-  | "emailPlaceholder"
-  | "passwordPlaceholder"
-  | "detailViewPlaceholder"
-  | "comingSoon"
-  | "submit"
-  | "login"
-  | "logout"
-  | "register"
-  | "email"
-  | "password"
-  | "firstName"
-  | "lastName"
-  | "termsAndConditions"
-  | "iAgree"
-  | "alreadyHaveAnAccount"
-  | "forgotPassword"
-  | "resetPassword"
-  | "rememberMe"
-  | "orContinueWith"
-  | "google"
-  | "facebook"
-  | "github"
-  | "profile"
-  | "settings"
-  | "dashboard"
-  | "users"
-  | "roles"
-  | "permissions"
-  | "editProfile"
-  | "changePassword"
-  | "saveChanges"
-  | "currentPassword"
-  | "newPassword"
-  | "confirmNewPassword"
-  | "cancel"
-  | "deleteAccount"
-  | "deleteAccountConfirmation"
-  | "close"
-  | "search"
-  | "noResultsFound"
-  | "name"
-  | "description"
-  | "createdAt"
-  | "updatedAt"
-  | "actions"
-  | "edit"
-  | "delete"
-  | "view"
-  | "create"
-  | "import"
-  | "export"
-  | "id"
-  | "general"
-  | "security"
-  | "appearance"
-  | "system"
-  | "light"
-  | "dark"
-  | "auto"
-  | "confirmPassword"
-  | "goBack"
-  | "home"
-  | "unauthorized"
-  | "pageNotFound"
-  | "somethingWentWrong"
-  | "maintenance"
-  | "builtBy"
-  | "version"
-  | "documentation"
-  | "examplePage"
-  | "welcome"
-  | "exampleCard"
-  | "exampleTitle"
-  | "exampleDescription"
-  | "exampleButton"
-  | "realEstateDashboard"
-  | "activeProperties"
-  | "inactiveProperties"
-  | "totalProperties"
-  | "totalRooms"
-  | "back"
-  | "exportPDF"
-  | "changeSheetDetails"
-  | "changeSheetsManagement"
-  | "createNew"
-  | "hojasCambio"
-  | "employeeName"
-  | "originCenter"
-  | "startDate"
-  | "status"
-  | "duplicateRecord"
-  | "downloadPDF"
-  | "employeeAgreementDetails"
-  | "loginSubtitle"
-  | "loginButton"
-  | "welcomeMessage"
-  | "welcomeSubtitle"
-  | "selectSection"
-  | "mainContent"
-  | "noContentSelected"
-  | "realEstateDetails"
-  | "spanish"
-  | "english"
-  | "theme"
-  | "userProfile"
-  | "personalInformation"
-  | "changePhoto"
-  | "departmentPermissions"
-  | "departmentPermissionsDesc"
-  | "operaciones"
-  | "gestionTecnica"
-  | "gestionTalento"
-  | "actionPermissions"
-  | "actionPermissionsDesc"
-  | "verifyingAccount";
-
-type Translations = {
-  [key in Language]: {
-    [key in TranslationKeys]: string;
-  };
-};
-
-export const translations: Translations = {
+export const translations = {
   es: {
-    error: "Error",
-    language: "Idioma",
-    loading: "Cargando...",
-    success: "Éxito",
-    selectLanguage: "Seleccionar idioma",
-    selectTheme: "Seleccionar tema",
-    emailPlaceholder: "correo@ejemplo.com",
-    passwordPlaceholder: "Contraseña",
-    detailViewPlaceholder: "Vista detallada",
-    comingSoon: "Próximamente",
-    submit: "Enviar",
-    login: "Iniciar sesión",
-    logout: "Cerrar sesión",
-    register: "Registrarse",
-    email: "Correo electrónico",
-    password: "Contraseña",
-    firstName: "Nombre",
-    lastName: "Apellido",
-    termsAndConditions: "Términos y condiciones",
-    iAgree: "Estoy de acuerdo",
-    alreadyHaveAnAccount: "¿Ya tienes una cuenta?",
-    forgotPassword: "¿Olvidaste tu contraseña?",
-    resetPassword: "Restablecer contraseña",
-    rememberMe: "Recuérdame",
-    orContinueWith: "O continúa con",
-    google: "Google",
-    facebook: "Facebook",
-    github: "GitHub",
-    profile: "Perfil",
-    settings: "Configuración",
-    dashboard: "Panel de control",
-    users: "Usuarios",
-    roles: "Roles",
-    permissions: "Permisos",
-    editProfile: "Editar perfil",
-    changePassword: "Cambiar contraseña",
-    saveChanges: "Guardar cambios",
-    currentPassword: "Contraseña actual",
-    newPassword: "Nueva contraseña",
-    confirmNewPassword: "Confirmar nueva contraseña",
-    cancel: "Cancelar",
-    deleteAccount: "Eliminar cuenta",
-    deleteAccountConfirmation: "¿Estás seguro de que quieres eliminar tu cuenta?",
-    close: "Cerrar",
-    search: "Buscar",
-    noResultsFound: "No se encontraron resultados",
-    name: "Nombre",
-    description: "Descripción",
-    createdAt: "Creado el",
-    updatedAt: "Actualizado el",
-    actions: "Acciones",
-    edit: "Editar",
-    delete: "Eliminar",
-    view: "Ver",
-    create: "Crear",
-    import: "Importar",
-    export: "Exportar",
-    id: "ID",
-    general: "General",
-    security: "Seguridad",
-    appearance: "Apariencia",
-    system: "Sistema",
-    light: "Claro",
-    dark: "Oscuro",
-    auto: "Automático",
-    confirmPassword: "Confirmar contraseña",
-    goBack: "Volver",
-    home: "Inicio",
-    unauthorized: "No autorizado",
-    pageNotFound: "Página no encontrada",
-    somethingWentWrong: "Algo salió mal",
-    maintenance: "Mantenimiento",
-    builtBy: "Construido por",
-    version: "Versión",
-    documentation: "Documentación",
-    examplePage: "Página de ejemplo",
-    welcome: "Bienvenido",
-    exampleCard: "Tarjeta de ejemplo",
-    exampleTitle: "Título de ejemplo",
-    exampleDescription: "Descripción de ejemplo",
-    exampleButton: "Botón de ejemplo",
-    realEstateDashboard: "Dashboard Inmobiliario",
-    activeProperties: "Propiedades Activas",
-    inactiveProperties: "Propiedades Inactivas",
-    totalProperties: "Total Propiedades",
-    totalRooms: "Total Habitaciones",
-    back: "Volver",
-    exportPDF: "Exportar PDF",
-    changeSheetDetails: "Detalles de Hoja de Cambio",
-    changeSheetsManagement: "Gestión de Hojas de Cambio",
-    createNew: "Crear Nuevo",
-    hojasCambio: "Hojas de Cambio",
-    employeeName: "Nombre del Empleado",
-    originCenter: "Centro de Origen",
-    startDate: "Fecha de Inicio",
-    status: "Estado",
-    duplicateRecord: "Duplicar Registro",
-    downloadPDF: "Descargar PDF",
-    employeeAgreementDetails: "Detalles del Acuerdo de Empleado",
-    loginSubtitle: "Accede a tu cuenta para continuar",
-    loginButton: "Iniciar Sesión",
-    welcomeMessage: "Bienvenido a GEEstor",
-    welcomeSubtitle: "Sistema de gestión empresarial integral",
-    selectSection: "Selecciona una sección del menú lateral para comenzar",
-    mainContent: "Contenido Principal",
-    noContentSelected: "No se ha seleccionado contenido",
-    realEstateDetails: "Detalles del Inmueble",
-    spanish: "Español",
-    english: "Inglés",
-    theme: "Tema",
-    userProfile: "Perfil de Usuario",
-    personalInformation: "Información Personal",
-    changePhoto: "Cambiar Foto",
-    departmentPermissions: "Permisos de Departamento",
-    departmentPermissionsDesc: "Controla el acceso a cada departamento",
-    operaciones: "Operaciones",
-    gestionTecnica: "Gestión Técnica",
-    gestionTalento: "Gestión de Talento",
-    actionPermissions: "Permisos de Acciones",
-    actionPermissionsDesc: "Controla las acciones que puede realizar",
-    verifyingAccount: "Verificando cuenta"
+    home: 'Inicio',
+    talentManagement: 'Gestión del Talento',
+    realEstateManagement: 'Gestión de Inmuebles',
+    userProfile: 'Perfil de Usuario',
+    logout: 'Cerrar Sesión',
+    changePhoto: 'Cambiar Foto',
+    personalInformation: 'Información Personal',
+    name: 'Nombre',
+    email: 'Correo Electrónico',
+    departmentPermissions: 'Permisos de Departamento',
+    departmentPermissionsDesc: 'Selecciona a qué departamentos puede acceder este usuario.',
+    actionPermissions: 'Permisos de Acción',
+    actionPermissionsDesc: 'Selecciona qué acciones puede realizar este usuario.',
+    operaciones: 'Operaciones',
+    gestionTecnica: 'Gestión Técnica',
+    gestionTalento: 'Gestión del Talento',
+    create: 'Crear',
+    edit: 'Editar',
+    delete: 'Eliminar',
+    saveChanges: 'Guardar Cambios',
+    employeeAgreementsManagement: 'Gestión de Acuerdos con Empleados',
+    employeeAgreements: 'Acuerdos con Empleados',
+    employeeName: 'Nombre del Empleado',
+    employeeLastName: 'Apellido del Empleado',
+    position: 'Puesto',
+    department: 'Departamento',
+    startDate: 'Fecha de Inicio',
+    endDate: 'Fecha de Fin',
+    salary: 'Salario',
+    actions: 'Acciones',
+    createNew: 'Crear Nuevo',
+    export: 'Exportar',
+    import: 'Importar',
+    back: 'Volver',
+    exportPDF: 'Exportar a PDF',
+    detailViewPlaceholder: 'Vista detallada en construcción...',
+    comingSoon: 'Próximamente',
+    employeeAgreementDetails: 'Detalles del Acuerdo con Empleado',
+    agreementType: 'Tipo de Acuerdo',
+    benefits: 'Beneficios',
+    conditions: 'Condiciones',
+    observations: 'Observaciones',
+    duplicateRecord: 'Duplicar Registro',
+    downloadPDF: 'Descargar PDF',
+    changeSheetsManagement: 'Gestión de Hojas de Cambio',
+    hojasCambio: 'Hojas de Cambio',
+    originCenter: 'Centro de Origen',
+    newPosition: 'Nuevo Puesto',
+    status: 'Estado',
+    changeSheetDetails: 'Detalles de la Hoja de Cambio',
+    changeType: 'Tipo de Cambio',
+    needs: 'Necesidades',
+    currentCompany: 'Empresa Actual',
+    companyChange: 'Cambio de Empresa',
+    practiceEvaluationsManagement: 'Gestión de Valoración de Prácticas',
+    valoracionesPracticas: 'Valoraciones de Prácticas',
+    tutorName: 'Nombre del Tutor',
+    tutorLastName: 'Apellido del Tutor',
+    studentName: 'Nombre del Estudiante',
+    studentLastName: 'Apellido del Estudiante',
+    institute: 'Instituto',
+    formation: 'Formación',
+    practices: 'Prácticas',
+    evaluationDate: 'Fecha de Evaluación',
+    finalEvaluation: 'Evaluación Final',
+    practiceEvaluationDetails: 'Detalles de la Valoración de Prácticas',
+    workCenter: 'Centro de Trabajo',
+    exitInterviewsManagement: 'Gestión de Entrevistas de Salida',
+    entrevistasSalida: 'Entrevistas de Salida',
+    supervisorName: 'Nombre del Supervisor',
+    supervisorLastName: 'Apellido del Supervisor',
+    exitType: 'Tipo de Salida',
+    exitDate: 'Fecha de Salida',
+    joiningReasons: 'Razones para unirse',
+    mainExitReason: 'Razón principal de salida',
+    comments: 'Comentarios',
+    exitInterviewDetails: 'Detalles de la Entrevista de Salida',
+    integration: 'Integración',
+    internalCommunication: 'Comunicación Interna',
+    compensation: 'Compensación',
+    training: 'Formación',
+    workSchedule: 'Horario de Trabajo',
+    mentoring: 'Mentoring',
+    workPerformed: 'Trabajo Realizado',
+    workEnvironment: 'Ambiente de Trabajo',
+    corporateCulture: 'Cultura Corporativa',
+    supervisorRelation: 'Relación con el Supervisor',
+    globalAssessment: 'Valoración Global',
+    contractRequestsManagement: 'Gestión de Solicitudes de Contratación',
+    solicitudesContratacion: 'Solicitudes de Contratación',
+    applicantName: 'Nombre del Solicitante',
+    applicantLastName: 'Apellido del Solicitante',
+    requestType: 'Tipo de Solicitud',
+    requestDate: 'Fecha de Solicitud',
+    expectedStartDate: 'Fecha de Inicio Esperada',
+    qualifications: 'Cualificaciones',
+    observationsAndCommitments: 'Observaciones y Compromisos',
+    contractRequestDetails: 'Detalles de la Solicitud de Contratación',
+    realEstateManagementView: 'Gestión de Inmuebles',
+    activeProperties: 'Pisos Activos',
+    inactiveProperties: 'Pisos Inactivos',
+    totalProperties: 'Total de Pisos',
+    annualCost: 'Coste Anual',
+    provinceActivity: 'Actividad por Provincia',
+    uploadExcelFile: 'Subir Archivo Excel',
+    selectSheets: 'Seleccionar Hojas',
+    upload: 'Subir',
+    availableSheets: 'Hojas Disponibles',
+    sheetName: 'Nombre de la Hoja',
+    selected: 'Seleccionado',
+    totalRooms: 'Total Habitaciones',
+    loading: 'Cargando',
+    recordNotFound: 'Registro no encontrado',
+    employeeInformation: 'Información del Empleado',
+    currentSupervisor: 'Supervisor Actual',
+    newPositionInfo: 'Información del Nuevo Puesto',
+    changeDetails: 'Detalles del Cambio',
+    agreementDetails: 'Detalles del Acuerdo',
+    benefitsAndConditions: 'Beneficios y Condiciones',
+    generatedOn: 'Generado el',
+    documentGenerated: 'Documento generado por',
+    permanent: 'Permanente',
+    temporary: 'Temporal',
+    yes: 'Sí',
+    no: 'No',
+    benefits: 'Beneficios',
+    conditions: 'Condiciones',
+    agreementType: 'Tipo de Acuerdo'
   },
   en: {
-    error: "Error",
-    language: "Language",
-    loading: "Loading...",
-    success: "Success",
-    selectLanguage: "Select language",
-    selectTheme: "Select theme",
-    emailPlaceholder: "email@example.com",
-    passwordPlaceholder: "Password",
-    detailViewPlaceholder: "Detail view",
-    comingSoon: "Coming soon",
-    submit: "Submit",
-    login: "Login",
-    logout: "Logout",
-    register: "Register",
-    email: "Email",
-    password: "Password",
-    firstName: "First Name",
-    lastName: "Last Name",
-    termsAndConditions: "Terms and conditions",
-    iAgree: "I agree",
-    alreadyHaveAnAccount: "Already have an account?",
-    forgotPassword: "Forgot your password?",
-    resetPassword: "Reset password",
-    rememberMe: "Remember me",
-    orContinueWith: "Or continue with",
-    google: "Google",
-    facebook: "Facebook",
-    github: "GitHub",
-    profile: "Profile",
-    settings: "Settings",
-    dashboard: "Dashboard",
-    users: "Users",
-    roles: "Roles",
-    permissions: "Permissions",
-    editProfile: "Edit profile",
-    changePassword: "Change password",
-    saveChanges: "Save changes",
-    currentPassword: "Current password",
-    newPassword: "New password",
-    confirmNewPassword: "Confirm new password",
-    cancel: "Cancel",
-    deleteAccount: "Delete account",
-    deleteAccountConfirmation: "Are you sure you want to delete your account?",
-    close: "Close",
-    search: "Search",
-    noResultsFound: "No results found",
-    name: "Name",
-    description: "Description",
-    createdAt: "Created at",
-    updatedAt: "Updated at",
-    actions: "Actions",
-    edit: "Edit",
-    delete: "Delete",
-    view: "View",
-    create: "Create",
-    import: "Import",
-    export: "Export",
-    id: "ID",
-    general: "General",
-    security: "Security",
-    appearance: "Appearance",
-    system: "System",
-    light: "Light",
-    dark: "Dark",
-    auto: "Auto",
-    confirmPassword: "Confirm password",
-    goBack: "Go back",
-    home: "Home",
-    unauthorized: "Unauthorized",
-    pageNotFound: "Page not found",
-    somethingWentWrong: "Something went wrong",
-    maintenance: "Maintenance",
-    builtBy: "Built by",
-    version: "Version",
-    documentation: "Documentation",
-    examplePage: "Example page",
-    welcome: "Welcome",
-    exampleCard: "Example card",
-    exampleTitle: "Example title",
-    exampleDescription: "Example description",
-    exampleButton: "Example button",
-    realEstateDashboard: "Real Estate Dashboard",
-    activeProperties: "Active Properties",
-    inactiveProperties: "Inactive Properties",
-    totalProperties: "Total Properties",
-    totalRooms: "Total Rooms",
-    back: "Back",
-    exportPDF: "Export PDF",
-    changeSheetDetails: "Change Sheet Details",
-    changeSheetsManagement: "Change Sheets Management",
-    createNew: "Create New",
-    hojasCambio: "Change Sheets",
-    employeeName: "Employee Name",
-    originCenter: "Origin Center",
-    startDate: "Start Date",
-    status: "Status",
-    duplicateRecord: "Duplicate Record",
-    downloadPDF: "Download PDF",
-    employeeAgreementDetails: "Employee Agreement Details",
-    loginSubtitle: "Access your account to continue",
-    loginButton: "Login",
-    welcomeMessage: "Welcome to GEEstor",
-    welcomeSubtitle: "Comprehensive business management system",
-    selectSection: "Select a section from the side menu to get started",
-    mainContent: "Main Content",
-    noContentSelected: "No content selected",
-    realEstateDetails: "Real Estate Details",
-    spanish: "Spanish",
-    english: "English",
-    theme: "Theme",
-    userProfile: "User Profile",
-    personalInformation: "Personal Information",
-    changePhoto: "Change Photo",
-    departmentPermissions: "Department Permissions",
-    departmentPermissionsDesc: "Control access to each department",
-    operaciones: "Operations",
-    gestionTecnica: "Technical Management",
-    gestionTalento: "Talent Management",
-    actionPermissions: "Action Permissions",
-    actionPermissionsDesc: "Control the actions that can be performed",
-    verifyingAccount: "Verifying account"
-  },
+    home: 'Home',
+    talentManagement: 'Talent Management',
+    realEstateManagement: 'Real Estate Management',
+    userProfile: 'User Profile',
+    logout: 'Logout',
+    changePhoto: 'Change Photo',
+    personalInformation: 'Personal Information',
+    name: 'Name',
+    email: 'Email',
+    departmentPermissions: 'Department Permissions',
+    departmentPermissionsDesc: 'Select which departments this user can access.',
+    actionPermissions: 'Action Permissions',
+    actionPermissionsDesc: 'Select which actions this user can perform.',
+    operaciones: 'Operations',
+    gestionTecnica: 'Technical Management',
+    gestionTalento: 'Talent Management',
+    create: 'Create',
+    edit: 'Edit',
+    delete: 'Delete',
+    saveChanges: 'Save Changes',
+    employeeAgreementsManagement: 'Employee Agreements Management',
+    employeeAgreements: 'Employee Agreements',
+    employeeName: 'Employee Name',
+    employeeLastName: 'Employee Last Name',
+    position: 'Position',
+    department: 'Department',
+    startDate: 'Start Date',
+    endDate: 'End Date',
+    salary: 'Salary',
+    actions: 'Actions',
+    createNew: 'Create New',
+    export: 'Export',
+    import: 'Import',
+    back: 'Back',
+    exportPDF: 'Export to PDF',
+    detailViewPlaceholder: 'Detail view under construction...',
+    comingSoon: 'Coming Soon',
+    employeeAgreementDetails: 'Employee Agreement Details',
+    agreementType: 'Agreement Type',
+    benefits: 'Benefits',
+    conditions: 'Conditions',
+    observations: 'Observations',
+    duplicateRecord: 'Duplicate Record',
+    downloadPDF: 'Download PDF',
+    changeSheetsManagement: 'Change Sheets Management',
+    hojasCambio: 'Change Sheets',
+    originCenter: 'Origin Center',
+    newPosition: 'New Position',
+    status: 'Status',
+    changeSheetDetails: 'Change Sheet Details',
+    changeType: 'Change Type',
+    needs: 'Needs',
+    currentCompany: 'Current Company',
+    companyChange: 'Company Change',
+   practiceEvaluationsManagement: 'Practice Evaluations Management',
+    valoracionesPracticas: 'Practice Evaluations',
+    tutorName: 'Tutor Name',
+    tutorLastName: 'Tutor Last Name',
+    studentName: 'Student Name',
+    studentLastName: 'Student Last Name',
+    institute: 'Institute',
+    formation: 'Formation',
+    practices: 'Practices',
+    evaluationDate: 'Evaluation Date',
+    finalEvaluation: 'Final Evaluation',
+    practiceEvaluationDetails: 'Practice Evaluation Details',
+    workCenter: 'Work Center',
+    exitInterviewsManagement: 'Exit Interviews Management',
+    entrevistasSalida: 'Exit Interviews',
+    supervisorName: 'Supervisor Name',
+    supervisorLastName: 'Supervisor Last Name',
+    exitType: 'Exit Type',
+    exitDate: 'Exit Date',
+    joiningReasons: 'Joining Reasons',
+    mainExitReason: 'Main Exit Reason',
+    comments: 'Comments',
+    exitInterviewDetails: 'Exit Interview Details',
+    integration: 'Integration',
+    internalCommunication: 'Internal Communication',
+    compensation: 'Compensation',
+    training: 'Training',
+    workSchedule: 'Work Schedule',
+    mentoring: 'Mentoring',
+    workPerformed: 'Work Performed',
+    workEnvironment: 'Work Environment',
+    corporateCulture: 'Corporate Culture',
+    supervisorRelation: 'Supervisor Relation',
+    globalAssessment: 'Global Assessment',
+    contractRequestsManagement: 'Contract Requests Management',
+    solicitudesContratacion: 'Contract Requests',
+    applicantName: 'Applicant Name',
+    applicantLastName: 'Applicant Last Name',
+    requestType: 'Request Type',
+    requestDate: 'Request Date',
+    expectedStartDate: 'Expected Start Date',
+    qualifications: 'Qualifications',
+    observationsAndCommitments: 'Observations and Commitments',
+    contractRequestDetails: 'Contract Request Details',
+    realEstateManagementView: 'Real Estate Management',
+    activeProperties: 'Active Properties',
+    inactiveProperties: 'Inactive Properties',
+    totalProperties: 'Total Properties',
+    annualCost: 'Annual Cost',
+    provinceActivity: 'Activity by Province',
+    uploadExcelFile: 'Upload Excel File',
+    selectSheets: 'Select Sheets',
+    upload: 'Upload',
+    availableSheets: 'Available Sheets',
+    sheetName: 'Sheet Name',
+    selected: 'Selected',
+    totalRooms: 'Total Rooms',
+    loading: 'Loading',
+    recordNotFound: 'Record not found',
+    employeeInformation: 'Employee Information',
+    currentSupervisor: 'Current Supervisor',
+    newPositionInfo: 'New Position Information',
+    changeDetails: 'Change Details',
+    agreementDetails: 'Agreement Details',
+    benefitsAndConditions: 'Benefits and Conditions',
+    generatedOn: 'Generated on',
+    documentGenerated: 'Document generated by',
+    permanent: 'Permanent',
+    temporary: 'Temporary',
+    yes: 'Yes',
+    no: 'No',
+    benefits: 'Benefits',
+    conditions: 'Conditions',
+    agreementType: 'Agreement Type'
+  }
 };
+

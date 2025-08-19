@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,6 +9,7 @@ import { Language } from '../../utils/translations';
 import ChangeSheetCreateForm from './ChangeSheetCreateForm';
 import ImportChangeSheetsModal from './ImportChangeSheetsModal';
 import { getChangeSheets, ChangeSheetRecord } from '../../services/changeSheetsService';
+import { useUserPermissions } from '../../hooks/useUserPermissions';
 
 interface ChangeSheetsListViewProps {
   language: Language;
@@ -23,6 +23,7 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({
   onCreateNew
 }) => {
   const { t } = useTranslation(language);
+  const { permissions, isLoading: permissionsLoading } = useUserPermissions();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -30,6 +31,11 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const itemsPerPage = 30;
+
+  const canCreate = permissions?.Per_Create ?? true;
+  const canDelete = permissions?.Per_Delete ?? true;
+  const canView = permissions?.Per_View ?? true;
+  const canModify = permissions?.Per_Modificate ?? true;
 
   const loadChangeSheets = async () => {
     setIsLoading(true);
@@ -119,13 +125,15 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({
             Actualizar
           </Button>
           
-          <Button
-            onClick={() => setShowCreateForm(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            {t('createNew')}
-          </Button>
+          {canCreate && (
+            <Button
+              onClick={() => setShowCreateForm(true)}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              {t('createNew')}
+            </Button>
+          )}
           
           <Button
             variant="outline"
@@ -246,22 +254,26 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({
                         </TableCell>
                         <TableCell>
                           <div className="flex justify-center space-x-1">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => onViewDetails(sheet.id)}
-                              title={t('view')}
-                            >
-                              <Eye className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDuplicate(sheet.id)}
-                              title={t('duplicateRecord')}
-                            >
-                              <Copy className="w-4 h-4" />
-                            </Button>
+                            {canView && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => onViewDetails(sheet.id)}
+                                title={t('view')}
+                              >
+                                <Eye className="w-4 h-4" />
+                              </Button>
+                            )}
+                            {canModify && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDuplicate(sheet.id)}
+                                title={t('duplicateRecord')}
+                              >
+                                <Copy className="w-4 h-4" />
+                              </Button>
+                            )}
                             <Button
                               variant="ghost"
                               size="sm"

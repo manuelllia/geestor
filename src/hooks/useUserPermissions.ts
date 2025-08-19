@@ -5,9 +5,15 @@ import { auth, db } from '../lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 
 interface UserPermissions {
+  // Permisos existentes de departamentos
   Per_Ope: boolean;
   Per_GT: boolean;
   Per_GDT: boolean;
+  // Nuevos permisos de acciones
+  Per_Create: boolean;
+  Per_Delete: boolean;
+  Per_View: boolean;
+  Per_Modificate: boolean;
 }
 
 export const useUserPermissions = () => {
@@ -20,14 +26,17 @@ export const useUserPermissions = () => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         setCurrentUserUid(user.uid);
-        // Configurar listener en tiempo real para los permisos del usuario
         setupPermissionsListener(user.uid);
       } else {
         // Si no hay usuario autenticado, usamos permisos por defecto
         setPermissions({
           Per_Ope: true,
           Per_GT: true,
-          Per_GDT: true
+          Per_GDT: true,
+          Per_Create: true,
+          Per_Delete: true,
+          Per_View: true,
+          Per_Modificate: true
         });
         setCurrentUserUid(null);
         setIsLoading(false);
@@ -52,9 +61,15 @@ export const useUserPermissions = () => {
           if (doc.exists()) {
             const data = doc.data();
             setPermissions({
+              // Permisos existentes de departamentos
               Per_Ope: data.Per_Ope ?? true,
               Per_GT: data.Per_GT ?? true,
-              Per_GDT: data.Per_GDT ?? true
+              Per_GDT: data.Per_GDT ?? true,
+              // Nuevos permisos de acciones
+              Per_Create: data.Per_Create ?? true,
+              Per_Delete: data.Per_Delete ?? true,
+              Per_View: data.Per_View ?? true,
+              Per_Modificate: data.Per_Modificate ?? true
             });
             console.log('Permisos actualizados en tiempo real:', data);
           } else {
@@ -63,7 +78,11 @@ export const useUserPermissions = () => {
             setPermissions({
               Per_Ope: true,
               Per_GT: true,
-              Per_GDT: true
+              Per_GDT: true,
+              Per_Create: true,
+              Per_Delete: true,
+              Per_View: true,
+              Per_Modificate: true
             });
           }
           setIsLoading(false);
@@ -75,7 +94,11 @@ export const useUserPermissions = () => {
           setPermissions({
             Per_Ope: true,
             Per_GT: true,
-            Per_GDT: true
+            Per_GDT: true,
+            Per_Create: true,
+            Per_Delete: true,
+            Per_View: true,
+            Per_Modificate: true
           });
           setIsLoading(false);
         }
@@ -89,7 +112,11 @@ export const useUserPermissions = () => {
       setPermissions({
         Per_Ope: true,
         Per_GT: true,
-        Per_GDT: true
+        Per_GDT: true,
+        Per_Create: true,
+        Per_Delete: true,
+        Per_View: true,
+        Per_Modificate: true
       });
       setIsLoading(false);
     }
