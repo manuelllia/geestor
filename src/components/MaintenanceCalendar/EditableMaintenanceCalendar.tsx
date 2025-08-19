@@ -86,7 +86,7 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
     for (const pattern of patterns) {
       const match = freq.match(pattern.regex);
       if (match) {
-        const num = parseInt(match[1]);
+        const num = parseInt(match[1], 10);
         const result = num * pattern.multiplier;
         console.log(`✅ Patrón encontrado: ${match[0]} = ${result} días`);
         return Math.max(1, Math.round(result)); // Mínimo 1 día
@@ -96,7 +96,7 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
     // Buscar solo números
     const numberMatch = freq.match(/(\d+)/);
     if (numberMatch) {
-      const num = parseInt(numberMatch[1]);
+      const num = parseInt(numberMatch[1], 10);
       // Si hay contexto de tiempo, aplicar lógica
       if (freq.includes('h') || freq.includes('hora')) {
         return Math.max(1, Math.round(num / 24)); // Convertir horas a días
