@@ -1,5 +1,6 @@
-
+// src/hooks/useWorkCenters.ts
 import { useState, useEffect } from 'react';
+// Asegúrate de importar WorkCenter y getWorkCenters desde el servicio
 import { getWorkCenters, WorkCenter } from '../services/workCentersService';
 
 export const useWorkCenters = () => {
@@ -12,11 +13,11 @@ export const useWorkCenters = () => {
       try {
         setIsLoading(true);
         setError(null);
-        const centers = await getWorkCenters();
+        const centers = await getWorkCenters(); // Llama a la función del servicio
         setWorkCenters(centers);
-      } catch (err) {
+      } catch (err: any) { // Captura el error para TS
         console.error('Error al cargar centros de trabajo:', err);
-        setError('Error al cargar los centros de trabajo');
+        setError(err.message || 'Error desconocido al cargar los centros de trabajo'); // Usa el mensaje del error lanzado por el servicio
       } finally {
         setIsLoading(false);
       }
@@ -29,14 +30,15 @@ export const useWorkCenters = () => {
     workCenters,
     isLoading,
     error,
+    // La función refetch es buena, la mantenemos
     refetch: () => {
       setIsLoading(true);
       setError(null);
       getWorkCenters()
         .then(setWorkCenters)
-        .catch((err) => {
+        .catch((err: any) => { // Captura el error para TS
           console.error('Error al recargar centros de trabajo:', err);
-          setError('Error al cargar los centros de trabajo');
+          setError(err.message || 'Error desconocido al recargar los centros de trabajo');
         })
         .finally(() => setIsLoading(false));
     }
