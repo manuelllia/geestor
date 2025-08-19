@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react'; // Eliminaremos useEffect si ya no lo usas para cargar datos
-import { useParams, useNavigate } from 'react-router-dom'; // Eliminaremos useParams
+import React, { useState } from 'react'; // Eliminamos useEffect
+import { useNavigate } from 'react-router-dom'; // Eliminamos useParams
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,14 +9,15 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { Loader2, CheckCircle, AlertCircle } from 'lucide-react'; // Eliminaremos AlertCircle
+import { Loader2, CheckCircle } from 'lucide-react'; // Eliminamos AlertCircle
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useWorkCenters } from '../hooks/useWorkCenters';
-// Solo importamos savePracticeEvaluationResponse, ya no getPracticeEvaluationById
-import { savePracticeEvaluationResponse } from '../services/practiceEvaluationService';
+// CAMBIO CLAVE: Importar solo savePracticeEvaluation
+import { savePracticeEvaluation } from '../services/practiceEvaluationService';
 
+// Esquema Zod ajustado para coincidir exactamente con la interfaz del servicio
 const practiceEvaluationSchema = z.object({
   tutorName: z.string().min(1, 'El nombre del tutor es obligatorio'),
   tutorLastName: z.string().min(1, 'Los apellidos del tutor son obligatorios'),
@@ -24,105 +25,124 @@ const practiceEvaluationSchema = z.object({
   studentName: z.string().min(1, 'El nombre del alumno es obligatorio'),
   studentLastName: z.string().min(1, 'Los apellidos del alumno son obligatorios'),
   formation: z.string().min(1, 'La formación es obligatoria'),
-  institution: z.string().min(1, 'El instituto/universidad es obligatorio'),
+  institution: z.string().min(1, 'El instituto/universidad es obligatorio'), // AHORA COINCIDE: institution
   practices: z.string().min(1, 'Las prácticas son obligatorias'),
   
-  // Competencias (1-10)
-  meticulousness: z.number().min(1).max(10),
-  teamwork: z.number().min(1).max(10),
-  adaptability: z.number().min(1).max(10),
-  stressTolerance: z.number().min(1).max(10),
-  verbalCommunication: z.number().min(1).max(10),
-  commitment: z.number().min(1).max(10),
-  initiative: z.number().min(1).max(10),
-  charisma: z.number().min(1).max(10),
-  learningCapability: z.number().min(1).max(10),
-  writtenCommunication: z.number().min(1).max(10),
-  problemSolving: z.number().min(1).max(10),
-  taskCommitment: z.number().min(1).max(10),
+  // Competencias (1-10) - COINCIDE CON EL SERVICIO Y JSX
+  competencies: z.object({
+    meticulousness: z.number().min(1).max(10, 'La valoración debe ser entre 1 y 10'),
+    teamwork: z.number().min(1).max(10, 'La valoración debe ser entre 1 y 10'),
+    adaptability: z.number().min(1).max(10, 'La valoración debe ser entre 1 y 10'),
+    stressTolerance: z.number().min(1).max(10, 'La valoración debe ser entre 1 y 10'),
+    verbalCommunication: z.number().min(1).max(10, 'La valoración debe ser entre 1 y 10'),
+    commitment: z.number().min(1).max(10, 'La valoración debe ser entre 1 y 10'),
+    initiative: z.number().min(1).max(10, 'La valoración debe ser entre 1 y 10'),
+    charisma: z.number().min(1).max(10, 'La valoración debe ser entre 1 y 10'), // COINCIDE: charisma
+    learningCapacity: z.number().min(1).max(10, 'La valoración debe ser entre 1 y 10'), // COINCIDE: learningCapacity
+    writtenCommunication: z.number().min(1).max(10, 'La valoración debe ser entre 1 y 10'),
+    problemSolving: z.number().min(1).max(10, 'La valoración debe ser entre 1 y 10'),
+    taskCommitment: z.number().min(1).max(10, 'La valoración debe ser entre 1 y 10'),
+  }),
   
-  // Aptitudes Organizativas (1-10)
-  organized: z.number().min(1).max(10),
-  newChallenges: z.number().min(1).max(10),
-  adaptationToSystems: z.number().min(1).max(10),
-  efficiency: z.number().min(1).max(10),
-  punctuality: z.number().min(1).max(10),
+  // Aptitudes Organizativas (1-10) - COINCIDE CON EL SERVICIO Y JSX
+  organizationalSkills: z.object({
+    organized: z.number().min(1).max(10, 'La valoración debe ser entre 1 y 10'),
+    newChallenges: z.number().min(1).max(10, 'La valoración debe ser entre 1 y 10'),
+    systemAdaptation: z.number().min(1).max(10, 'La valoración debe ser entre 1 y 10'), // COINCIDE: systemAdaptation
+    efficiency: z.number().min(1).max(10, 'La valoración debe ser entre 1 y 10'),
+    punctuality: z.number().min(1).max(10, 'La valoración debe ser entre 1 y 10'),
+  }),
   
-  // Aptitudes Técnicas (1-10)
-  serviceImprovements: z.number().min(1).max(10),
-  diagnosticSkills: z.number().min(1).max(10),
-  innovativeSolutions: z.number().min(1).max(10),
-  sharingKnowledge: z.number().min(1).max(10),
-  toolsUsage: z.number().min(1).max(10),
+  // Aptitudes Técnicas (1-10) - COINCIDE CON EL SERVICIO Y JSX
+  technicalSkills: z.object({
+    serviceImprovements: z.number().min(1).max(10, 'La valoración debe ser entre 1 y 10'),
+    diagnosticSkills: z.number().min(1).max(10, 'La valoración debe ser entre 1 y 10'),
+    innovativeSolutions: z.number().min(1).max(10, 'La valoración debe ser entre 1 y 10'),
+    sharesSolutions: z.number().min(1).max(10, 'La valoración debe ser entre 1 y 10'), // COINCIDE: sharesSolutions
+    toolUsage: z.number().min(1).max(10, 'La valoración debe ser entre 1 y 10'), // COINCIDE: toolUsage
+  }),
   
   // Otros datos
   travelAvailability: z.array(z.string()).optional(),
-  relocationWillingness: z.enum(['Si', 'No']),
+  residenceChange: z.enum(['Si', 'No'], { required_error: 'La disponibilidad de cambio de residencia es obligatoria' }), // COINCIDE: residenceChange
   englishLevel: z.string().min(1, 'El nivel de inglés es obligatorio'),
-  performanceRating: z.number().min(1).max(10),
+  performanceRating: z.number().min(1).max(10, 'La valoración debe ser entre 1 y 10'),
   performanceJustification: z.string().min(1, 'La justificación es obligatoria'),
-  finalEvaluation: z.enum(['Apto', 'No Apto']),
+  finalEvaluation: z.enum(['Apto', 'No Apto'], { required_error: 'La valoración final es obligatoria' }),
+  futureInterest: z.string().optional(), // Asegúrate de que este campo existe en tu interfaz del servicio si es necesario
   practicalTraining: z.string().optional(),
   observations: z.string().optional(),
   evaluatorName: z.string().min(1, 'El nombre del evaluador es obligatorio'),
-  evaluationDate: z.string().min(1, 'La fecha es obligatoria'),
+  evaluationDate: z.string().min(1, 'La fecha es obligatoria'), // Zod para input type="date" suele ser string
 });
 
-type PracticeEvaluationFormType = z.infer<typeof practiceEvaluationSchema>; // Renombrado para evitar conflicto con el nombre de la función
+type PracticeEvaluationFormType = z.infer<typeof practiceEvaluationSchema>;
 
 export default function PracticeEvaluationForm() {
-  // ELIMINADO: const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false); // isLoading ahora solo para el envío
+  const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  // ELIMINADO: const [evaluationData, setEvaluationData] = useState<any>(null);
-  const { workCenters, isLoading: isLoadingWorkCenters } = useWorkCenters(); // Considera si useWorkCenters es asíncrono
+  const { workCenters, isLoading: isLoadingWorkCenters } = useWorkCenters();
 
   const {
     control,
     handleSubmit,
     formState: { errors },
-    // ELIMINADO: setValue, watch (si no se usan para otra cosa)
-  } = useForm<PracticeEvaluationFormType>({ // Usamos el tipo renombrado
+  } = useForm<PracticeEvaluationFormType>({
     resolver: zodResolver(practiceEvaluationSchema),
     defaultValues: {
       travelAvailability: [],
-      relocationWillingness: 'No',
+      residenceChange: 'No', // COINCIDE: residenceChange
       englishLevel: '',
       finalEvaluation: 'Apto',
+      futureInterest: '',
+      practicalTraining: '',
+      observations: '',
       evaluationDate: new Date().toISOString().split('T')[0],
-      // Asegúrate de que todos los campos con puntuación (1-10) tienen un default numérico
-      meticulousness: 5, teamwork: 5, adaptability: 5, stressTolerance: 5, verbalCommunication: 5,
-      commitment: 5, initiative: 5, charisma: 5, learningCapability: 5, writtenCommunication: 5,
-      problemSolving: 5, taskCommitment: 5, organized: 5, newChallenges: 5, adaptationToSystems: 5,
-      efficiency: 5, punctuality: 5, serviceImprovements: 5, diagnosticSkills: 5, innovativeSolutions: 5,
-      sharingKnowledge: 5, toolsUsage: 5, performanceRating: 5 // Si no tienen un default, Zod lanzará un error para `number`
+      
+      // Defaults para competencias anidadas
+      competencies: {
+        meticulousness: 5, teamwork: 5, adaptability: 5, stressTolerance: 5, verbalCommunication: 5,
+        commitment: 5, initiative: 5, charisma: 5, learningCapacity: 5, writtenCommunication: 5,
+        problemSolving: 5, taskCommitment: 5,
+      },
+      // Defaults para aptitudes organizativas anidadas
+      organizationalSkills: {
+        organized: 5, newChallenges: 5, systemAdaptation: 5, efficiency: 5, punctuality: 5,
+      },
+      // Defaults para aptitudes técnicas anidadas
+      technicalSkills: {
+        serviceImprovements: 5, diagnosticSkills: 5, innovativeSolutions: 5, sharesSolutions: 5,
+        toolUsage: 5,
+      },
+      performanceRating: 5,
+      evaluatorName: '', // Asegúrate de que tiene un valor por defecto si es obligatorio
     }
   });
 
-  // ELIMINADO: useEffect para cargar datos, ya no es necesario
-  // useEffect(() => { ... loadEvaluationData(); ... }, [id]);
-
-  const onSubmit = async (data: PracticeEvaluationFormType) => { // Usamos el tipo renombrado
-    // ELIMINADO: if (!id) return; // Ya no hay ID en la URL para validar
-    
+  const onSubmit = async (data: PracticeEvaluationFormType) => {
     setIsLoading(true);
     try {
-      // CAMBIO CLAVE: Llamada a la función de servicio sin el ID
-      await savePracticeEvaluationResponse(data); 
+      // Convertir la fecha de string a Date antes de enviar al servicio
+      const dataToSend = {
+        ...data,
+        evaluationDate: new Date(data.evaluationDate),
+      };
+      
+      // CAMBIO CLAVE: Llamada a la función savePracticeEvaluation
+      const newEvaluationId = await savePracticeEvaluation(dataToSend); 
+      console.log('Nueva evaluación creada con ID:', newEvaluationId);
       setIsSubmitted(true);
       toast.success('Valoración de prácticas enviada correctamente');
     } catch (error) {
-      console.error('Error saving evaluation:', error);
-      toast.error('Error al enviar la valoración de prácticas');
+      console.error('Error al enviar la valoración de prácticas:', error);
+      toast.error('Error al enviar la valoración de prácticas. Inténtalo de nuevo.');
     } finally {
       setIsLoading(false);
     }
   };
 
   // --- Renderizado Condicional ---
-
-  // 1. Si ya se envió el formulario
   if (isSubmitted) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
@@ -135,7 +155,6 @@ export default function PracticeEvaluationForm() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {/* Opcional: Puedes redirigir a una página de inicio o dejar que el usuario cierre */}
             <Button onClick={() => navigate('/')} className="w-full">
               Cerrar
             </Button>
@@ -145,10 +164,6 @@ export default function PracticeEvaluationForm() {
     );
   }
 
-  // ELIMINADO: El bloque `if (!id)` ya no es necesario, el formulario siempre estará disponible.
-  // if (!id) { ... }
-
-  // Opcional: Si `useWorkCenters` es asíncrono y quieres un spinner mientras carga los centros de trabajo
   if (isLoadingWorkCenters) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
@@ -158,13 +173,11 @@ export default function PracticeEvaluationForm() {
     );
   }
 
-  // 3. Si no está enviado y no hay errores de "enlace no válido", muestra el formulario
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
       <div className="max-w-4xl mx-auto">
         <Card>
           <CardHeader>
-            {/* Título actualizado para reflejar que es una "nueva" evaluación */}
             <CardTitle className="text-2xl text-blue-600 dark:text-blue-300">
               Nueva Valoración de Prácticas
             </CardTitle>
@@ -227,7 +240,7 @@ export default function PracticeEvaluationForm() {
                           <SelectValue placeholder="Seleccione un centro de trabajo" />
                         </SelectTrigger>
                         <SelectContent>
-                          {workCenters.map((center: any) => ( // Ajusta el tipo de `center` si es necesario
+                          {workCenters.map((center: any) => (
                             <SelectItem key={center.id} value={center.displayText}>
                               {center.displayText}
                             </SelectItem>
@@ -304,7 +317,7 @@ export default function PracticeEvaluationForm() {
                   <div>
                     <Label htmlFor="institution">Instituto/Universidad *</Label>
                     <Controller
-                      name="institution"
+                      name="institution" 
                       control={control}
                       render={({ field }) => (
                         <Input
@@ -356,27 +369,30 @@ export default function PracticeEvaluationForm() {
                     { name: 'commitment', label: 'Compromiso' },
                     { name: 'initiative', label: 'Iniciativa' },
                     { name: 'charisma', label: 'Carisma / Liderazgo' },
-                    { name: 'learningCapability', label: 'Capacidad de Aprendizaje' },
+                    { name: 'learningCapacity', label: 'Capacidad de Aprendizaje' },
                     { name: 'writtenCommunication', label: 'Comunicación Escrita' },
                     { name: 'problemSolving', label: 'Persona Resolutiva' },
                     { name: 'taskCommitment', label: 'Compromiso con las Tareas' },
-                  ].map((field) => (
-                    <div key={field.name}>
-                      <Label htmlFor={field.name}>{field.label}</Label>
+                  ].map((fieldItem) => (
+                    <div key={fieldItem.name}>
+                      <Label htmlFor={`competencies.${fieldItem.name}`}>{fieldItem.label}</Label>
                       <Controller
-                        name={field.name as keyof PracticeEvaluationFormType}
+                        name={`competencies.${fieldItem.name}` as `competencies.${keyof PracticeEvaluationFormType['competencies']}`}
                         control={control}
-                        render={({ field: controllerField }) => (
+                        render={({ field }) => (
                           <Input
                             type="number"
                             min="1"
                             max="10"
-                            {...controllerField}
-                            onChange={(e) => controllerField.onChange(parseInt(e.target.value) || 1)}
-                            className={errors[field.name as keyof PracticeEvaluationFormType] ? 'border-red-500' : ''}
+                            {...field}
+                            onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
+                            className={errors.competencies?.[fieldItem.name as keyof PracticeEvaluationFormType['competencies']] ? 'border-red-500' : ''}
                           />
                         )}
                       />
+                       {errors.competencies?.[fieldItem.name as keyof PracticeEvaluationFormType['competencies']] && (
+                         <p className="text-red-500 text-sm mt-1">{(errors.competencies[fieldItem.name as keyof PracticeEvaluationFormType['competencies']] as any).message}</p>
+                       )}
                     </div>
                   ))}
                 </div>
@@ -395,26 +411,29 @@ export default function PracticeEvaluationForm() {
                   {[
                     { name: 'organized', label: 'Organizado, Metódico, Ordenado' },
                     { name: 'newChallenges', label: 'Asume nuevos retos' },
-                    { name: 'adaptationToSystems', label: 'Adaptación a nuevos sistemas de trabajo' },
+                    { name: 'systemAdaptation', label: 'Adaptación a nuevos sistemas de trabajo' },
                     { name: 'efficiency', label: 'Eficiencia' },
                     { name: 'punctuality', label: 'Puntualidad' },
-                  ].map((field) => (
-                    <div key={field.name}>
-                      <Label htmlFor={field.name}>{field.label}</Label>
+                  ].map((fieldItem) => (
+                    <div key={fieldItem.name}>
+                      <Label htmlFor={`organizationalSkills.${fieldItem.name}`}>{fieldItem.label}</Label>
                       <Controller
-                        name={field.name as keyof PracticeEvaluationFormType}
+                        name={`organizationalSkills.${fieldItem.name}` as `organizationalSkills.${keyof PracticeEvaluationFormType['organizationalSkills']}`}
                         control={control}
-                        render={({ field: controllerField }) => (
+                        render={({ field }) => (
                           <Input
                             type="number"
                             min="1"
                             max="10"
-                            {...controllerField}
-                            onChange={(e) => controllerField.onChange(parseInt(e.target.value) || 1)}
-                            className={errors[field.name as keyof PracticeEvaluationFormType] ? 'border-red-500' : ''}
+                            {...field}
+                            onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
+                            className={errors.organizationalSkills?.[fieldItem.name as keyof PracticeEvaluationFormType['organizationalSkills']] ? 'border-red-500' : ''}
                           />
                         )}
                       />
+                       {errors.organizationalSkills?.[fieldItem.name as keyof PracticeEvaluationFormType['organizationalSkills']] && (
+                         <p className="text-red-500 text-sm mt-1">{(errors.organizationalSkills[fieldItem.name as keyof PracticeEvaluationFormType['organizationalSkills']] as any).message}</p>
+                       )}
                     </div>
                   ))}
                 </div>
@@ -434,25 +453,28 @@ export default function PracticeEvaluationForm() {
                     { name: 'serviceImprovements', label: 'Propone mejoras en servicio de electromedicina' },
                     { name: 'diagnosticSkills', label: 'Habilidad en diagnóstico y detección de averías' },
                     { name: 'innovativeSolutions', label: 'Aporta soluciones innovadoras' },
-                    { name: 'sharingKnowledge', label: 'Comparte soluciones y problemas' },
-                    { name: 'toolsUsage', label: 'Uso correcto de herramientas informáticas (MantHosp, etc.)' },
-                  ].map((field) => (
-                    <div key={field.name}>
-                      <Label htmlFor={field.name}>{field.label}</Label>
+                    { name: 'sharesSolutions', label: 'Comparte soluciones y problemas' },
+                    { name: 'toolUsage', label: 'Uso correcto de herramientas informáticas (MantHosp, etc.)' },
+                  ].map((fieldItem) => (
+                    <div key={fieldItem.name}>
+                      <Label htmlFor={`technicalSkills.${fieldItem.name}`}>{fieldItem.label}</Label>
                       <Controller
-                        name={field.name as keyof PracticeEvaluationFormType}
+                        name={`technicalSkills.${fieldItem.name}` as `technicalSkills.${keyof PracticeEvaluationFormType['technicalSkills']}`}
                         control={control}
-                        render={({ field: controllerField }) => (
+                        render={({ field }) => (
                           <Input
                             type="number"
                             min="1"
                             max="10"
-                            {...controllerField}
-                            onChange={(e) => controllerField.onChange(parseInt(e.target.value) || 1)}
-                            className={errors[field.name as keyof PracticeEvaluationFormType] ? 'border-red-500' : ''}
+                            {...field}
+                            onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
+                            className={errors.technicalSkills?.[fieldItem.name as keyof PracticeEvaluationFormType['technicalSkills']] ? 'border-red-500' : ''}
                           />
                         )}
                       />
+                      {errors.technicalSkills?.[fieldItem.name as keyof PracticeEvaluationFormType['technicalSkills']] && (
+                         <p className="text-red-500 text-sm mt-1">{(errors.technicalSkills[fieldItem.name as keyof PracticeEvaluationFormType['technicalSkills']] as any).message}</p>
+                       )}
                     </div>
                   ))}
                 </div>
@@ -511,7 +533,7 @@ export default function PracticeEvaluationForm() {
                 <div>
                   <Label>Disponibilidad para cambio de residencia</Label>
                   <Controller
-                    name="relocationWillingness"
+                    name="residenceChange" 
                     control={control}
                     render={({ field }) => (
                       <RadioGroup
@@ -520,16 +542,19 @@ export default function PracticeEvaluationForm() {
                         className="flex space-x-4 mt-2"
                       >
                         <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="Si" id="relocation-si" />
-                          <Label htmlFor="relocation-si">Sí</Label>
+                          <RadioGroupItem value="Si" id="residence-si" />
+                          <Label htmlFor="residence-si">Sí</Label>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="No" id="relocation-no" />
-                          <Label htmlFor="relocation-no">No</Label>
+                          <RadioGroupItem value="No" id="residence-no" />
+                          <Label htmlFor="residence-no">No</Label>
                         </div>
                       </RadioGroup>
                     )}
                   />
+                   {errors.residenceChange && (
+                    <p className="text-red-500 text-sm mt-1">{errors.residenceChange.message}</p>
+                  )}
                 </div>
 
                 <div>
@@ -628,6 +653,17 @@ export default function PracticeEvaluationForm() {
                   {errors.finalEvaluation && (
                     <p className="text-red-500 text-sm mt-1">{errors.finalEvaluation.message}</p>
                   )}
+                </div>
+
+                <div>
+                  <Label htmlFor="futureInterest">Interés Futuro (Opcional, si no es "Apto")</Label>
+                  <Controller
+                    name="futureInterest"
+                    control={control}
+                    render={({ field }) => (
+                      <Textarea {...field} rows={4} placeholder="Describe el interés futuro o por qué no es apto" />
+                    )}
+                  />
                 </div>
 
                 <div>

@@ -1,7 +1,7 @@
 import { collection, addDoc, getDocs, doc, getDoc, updateDoc, Timestamp, query, orderBy } from "firebase/firestore";
 import { db } from "../lib/firebase";
 
-// INTERFAZ AJUSTADA para coincidir con el zodSchema y tu JSX
+// INTERFAZ AJUSTADA PARA COINCIDIR CON ZOD SCHEMA Y JSX
 export interface PracticeEvaluationData {
   // Datos básicos
   tutorName: string;
@@ -10,7 +10,7 @@ export interface PracticeEvaluationData {
   studentName: string;
   studentLastName: string;
   formation: string;
-  institution: string; // Coincide con el schema y JSX
+  institution: string; // AJUSTADO: era 'institute'
   practices: string;
   
   // Competencias (1-10)
@@ -22,8 +22,8 @@ export interface PracticeEvaluationData {
     verbalCommunication: number;
     commitment: number;
     initiative: number;
-    charisma: number; // Coincide con el schema y JSX (antes leadership)
-    learningCapacity: number; // Coincide con el schema y JSX (antes learningCapability, o learningCapacity en tu servicio original)
+    charisma: number; // AJUSTADO: era 'leadership'
+    learningCapacity: number; // AJUSTADO: era 'learningCapability'
     writtenCommunication: number;
     problemSolving: number;
     taskCommitment: number;
@@ -33,7 +33,7 @@ export interface PracticeEvaluationData {
   organizationalSkills: {
     organized: number;
     newChallenges: number;
-    systemAdaptation: number; // Coincide con el schema y JSX
+    systemAdaptation: number; // AJUSTADO: era 'adaptationToSystems'
     efficiency: number;
     punctuality: number;
   };
@@ -43,32 +43,30 @@ export interface PracticeEvaluationData {
     serviceImprovements: number;
     diagnosticSkills: number;
     innovativeSolutions: number;
-    sharesSolutions: number; // Coincide con el schema y JSX (antes sharingKnowledge)
-    toolUsage: number; // Coincide con el schema y JSX (antes toolsUsage)
+    sharesSolutions: number; // AJUSTADO: era 'sharingKnowledge'
+    toolUsage: number; // AJUSTADO: era 'toolsUsage'
   };
   
   // Otros datos de interés
-  travelAvailability?: string[]; // Marcado como opcional en Zod
-  residenceChange: "Si" | "No"; // Coincide con el schema y JSX (antes residenceChange)
+  travelAvailability?: string[]; // Opcional
+  residenceChange: "Si" | "No"; // AJUSTADO: era 'residenceChange' pero tipo string. Ahora enum.
   englishLevel: string;
   performanceRating: number; // 1-10
   performanceJustification: string;
-  finalEvaluation: "Apto" | "No Apto"; // Coincide con el schema
-  futureInterest?: string; // Marcado como opcional, añadido porque estaba en tu interfaz pero no en el schema inicial
-  practicalTraining?: string; // Marcado como opcional en Zod
-  observations?: string; // Marcado como opcional en Zod
+  finalEvaluation: "Apto" | "No Apto"; // Enum
+  futureInterest?: string; // Opcional (siempre asegúrate que esté en tu schema si es necesario)
+  practicalTraining?: string; // Opcional
+  observations?: string; // Opcional
   evaluatorName: string;
-  evaluationDate: Date; // Usaremos Date en el frontend y convertiremos a Timestamp
+  evaluationDate: Date; // Espera un objeto Date, que convertirás de string en el formulario
 }
 
-// Esta interfaz es para cuando RECUPERAS los datos del Firestore, ya que tendrán un ID y createdAt
+// Esta interfaz es para cuando RECUPERAS los datos de Firestore
 export interface PracticeEvaluationRecord extends PracticeEvaluationData {
   id: string;
   createdAt: Date;
-  updatedAt: Date; // Añadido para reflejar lo que se guarda
+  updatedAt: Date;
   response?: any; // Esto sugiere que puedes tener una respuesta guardada aparte.
-                  // Si una evaluación solo tiene `response` después de ser creada y luego editada,
-                  // el formulario de creación no lo necesita.
 }
 
 /**
@@ -80,11 +78,9 @@ export const savePracticeEvaluation = async (data: PracticeEvaluationData): Prom
   try {
     console.log('Guardando nueva valoración de prácticas:', data);
     
-    // Ruta a la colección donde se guardarán las valoraciones (puede ser diferente si organizas tus datos de otra manera)
-    // Asegúrate de que esta ruta sea la correcta en tu Firestore
-    const evaluationCollectionRef = collection(db, "Gestión de Talento", "valoracion-practicas", "Valoración Prácticas");
+    const evaluationRef = collection(db, "Gestión de Talento", "valoracion-practicas", "Valoración Prácticas");
     
-    // Prepara los datos para Firestore, convirtiendo Date a Timestamp
+    // Aquí data.evaluationDate ya debería ser un objeto Date
     const docData = {
       ...data,
       evaluationDate: Timestamp.fromDate(data.evaluationDate),
@@ -92,7 +88,7 @@ export const savePracticeEvaluation = async (data: PracticeEvaluationData): Prom
       updatedAt: Timestamp.now()
     };
     
-    const docRef = await addDoc(evaluationCollectionRef, docData);
+    const docRef = await addDoc(evaluationRef, docData);
     
     console.log('Nueva valoración de prácticas guardada con ID:', docRef.id);
     return docRef.id;
@@ -103,21 +99,17 @@ export const savePracticeEvaluation = async (data: PracticeEvaluationData): Prom
 };
 
 // =========================================================================
-// LAS SIGUIENTES FUNCIONES YA NO SON NECESARIAS PARA EL FLUJO DE "CREAR NUEVA"
-// DE TU PracticeEvaluationForm, PERO PUEDEN SER NECESARIAS PARA OTRAS PARTES
-// DE TU APLICACIÓN (EJ. UN PANEL DE ADMINISTRACIÓN).
-// SI NO SE USAN EN NINGÚN OTRO LADO, PUEDES ELIMINARLAS.
+// LAS SIGUIENTES FUNCIONES NO SON UTILIZADAS POR EL `PracticeEvaluationForm`
+// EN SU MODO DE "CREAR NUEVA EVALUACIÓN".
+// MANTÉNLAS SI OTRAS PARTES DE TU APLICACIÓN LAS REQUIEREN (EJ. UN DASHBOARD).
 // =========================================================================
 
-/**
- * (Opcional) Guarda una respuesta o actualiza una valoración de prácticas existente.
- * Esto sería si un formulario EXISTENTE fuera rellenado por el alumno/tutor
- * DESPUÉS de haber sido creado inicialmente.
- */
 /*
+// Originalmente para guardar una respuesta a una evaluación existente.
+// Tu nuevo formulario no lo necesita.
 export const savePracticeEvaluationResponse = async (id: string, responseData: any): Promise<void> => {
   try {
-    console.log('Actualizando respuesta de valoración de prácticas (ID:', id, ') con:', responseData);
+    console.log('Guardando respuesta de valoración de prácticas:', id, responseData);
     
     const evaluationDocRef = doc(db, "Gestión de Talento", "valoracion-practicas", "Valoración Prácticas", id);
     
@@ -127,19 +119,17 @@ export const savePracticeEvaluationResponse = async (id: string, responseData: a
       updatedAt: Timestamp.now()
     });
     
-    console.log('Respuesta de valoración de prácticas actualizada');
+    console.log('Respuesta de valoración de prácticas guardada');
   } catch (error) {
-    console.error('Error al actualizar la respuesta de valoración de prácticas:', error);
+    console.error('Error al guardar la respuesta de valoración de prácticas:', error);
     throw error;
   }
 };
 */
 
-/**
- * (Opcional) Obtiene una valoración de prácticas por su ID.
- * Útil si tuvieras una ruta para editar o ver una valoración específica.
- */
 /*
+// Originalmente para obtener una evaluación existente por ID.
+// Tu nuevo formulario no lo necesita.
 export const getPracticeEvaluationById = async (id: string): Promise<PracticeEvaluationRecord | null> => {
   try {
     const evaluationDocRef = doc(db, "Gestión de Talento", "valoracion-practicas", "Valoración Prácticas", id);
@@ -152,7 +142,7 @@ export const getPracticeEvaluationById = async (id: string): Promise<PracticeEva
         ...data,
         evaluationDate: data.evaluationDate?.toDate() || new Date(),
         createdAt: data.createdAt?.toDate() || new Date(),
-        updatedAt: data.updatedAt?.toDate() || new Date(), // Asegúrate de convertir updatedAt también
+        updatedAt: data.updatedAt?.toDate() || new Date(),
       } as PracticeEvaluationRecord;
     }
     
@@ -164,10 +154,7 @@ export const getPracticeEvaluationById = async (id: string): Promise<PracticeEva
 };
 */
 
-/**
- * (Mantener) Obtiene todas las valoraciones de prácticas.
- * Probablemente utilizado para un panel de administración.
- */
+// Mantenemos esta función si la usas para listar todas las evaluaciones en otro lugar
 export const getPracticeEvaluations = async (): Promise<PracticeEvaluationRecord[]> => {
   try {
     const evaluationRef = collection(db, "Gestión de Talento", "valoracion-practicas", "Valoración Prácticas");
@@ -182,7 +169,7 @@ export const getPracticeEvaluations = async (): Promise<PracticeEvaluationRecord
         ...data,
         evaluationDate: data.evaluationDate?.toDate() || new Date(),
         createdAt: data.createdAt?.toDate() || new Date(),
-        updatedAt: data.updatedAt?.toDate() || new Date(), // Asegúrate de convertir updatedAt también
+        updatedAt: data.updatedAt?.toDate() || new Date(),
       } as PracticeEvaluationRecord);
     });
     
@@ -193,16 +180,13 @@ export const getPracticeEvaluations = async (): Promise<PracticeEvaluationRecord
   }
 };
 
-/**
- * (Mantener) Genera un token, probablemente para el ExitInterviewForm
- * o si decides volver a tener enlaces únicos para este formulario en el futuro.
- */
+// Mantenemos esta función si la usas para generar tokens en otro lugar (ej. para ExitInterviewForm)
 export const generatePracticeEvaluationToken = (): string => {
   return Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
 };
 
-// Si usas useWorkCenters en PracticeEvaluationForm, asegúrate de que también está definido
-// en tu servicio o en un archivo de hooks aparte. Lo he añadido aquí por completitud.
+// Asegúrate de que este hook esté en `src/hooks/useWorkCenters.ts` o donde sea que lo tengas
+// Si está en el mismo archivo de servicio, no hay problema.
 export const useWorkCenters = () => {
   const workCenters = [
     { id: 'madridNorte', displayText: 'Centro Madrid Norte' },
@@ -214,5 +198,5 @@ export const useWorkCenters = () => {
     { id: 'zaragoza', displayText: 'Centro Zaragoza' },
     { id: 'sedeCentral', displayText: 'Sede Central Madrid' },
   ];
-  return { workCenters, isLoading: false }; // isLoading es false si los datos son estáticos
+  return { workCenters, isLoading: false };
 };
