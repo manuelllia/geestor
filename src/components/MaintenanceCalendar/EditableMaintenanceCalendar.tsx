@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
@@ -48,6 +49,16 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [draggedEvent, setDraggedEvent] = useState<MaintenanceEvent | null>(null);
   const [isHospitalModalOpen, setIsHospitalModalOpen] = useState(false);
+
+  // Configuración de restricciones operativas
+  const OPERATIONAL_CONSTRAINTS = {
+    maxHoursPerDay: 8, // Horas máximas de trabajo efectivo por día
+    maxTechnicians: 3, // Número máximo de técnicos disponibles
+    maxEventsPerDay: 5, // Máximo número de eventos por día para evitar sobrecarga
+    workingDaysPerWeek: 5, // Días laborables (lun-vie)
+    minTimeBetweenEvents: 1, // Horas mínimas entre eventos el mismo día
+    emergencyBuffer: 2, // Horas reservadas para emergencias por día
+  };
 
   // Función mejorada para parsear frecuencia y obtener días exactos entre mantenimientos
   const parseFrequencyToDays = (frecuencia: string): number => {
@@ -144,122 +155,197 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
     return 'baja';
   };
 
-  // Nueva función optimizada para generar calendario equitativo
-  const generateOptimizedMaintenanceCalendar = (): MaintenanceEvent[] => {
+  // Función para verificar si un día es laborable (lun-vie)
+  const isWorkingDay = (date: Date): boolean => {
+    const day = date.getDay();
+    return day >= 1 && day <= 5; // 1=Lunes, 5=Viernes
+  };
+
+  // Función para calcular la carga de trabajo de un día específico
+  const calculateDayWorkload = (date: Date, allEvents: MaintenanceEvent[]) => {
+    const dayEvents = allEvents.filter(event => 
+      format(event.fecha, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd')
+    );
+    
+    const totalHours = dayEvents.reduce((sum, event) => sum + (event.tiempo * event.cantidad), 0);
+    const totalEvents = dayEvents.length;
+    const availableHours = OPERATIONAL_CONSTRAINTS.maxHoursPerDay - OPERATIONAL_CONSTRAINTS.emergencyBuffer;
+    
+    return {
+      events: totalEvents,
+      hours: totalHours,
+      utilization: totalHours / availableHours,
+      isOverloaded: totalEvents > OPERATIONAL_CONSTRAINTS.maxEventsPerDay || totalHours > availableHours
+    };
+  };
+
+  // Función para encontrar el mejor día disponible en un rango
+  const findBestAvailableDay = (startDate: Date, endDate: Date, allEvents: MaintenanceEvent[], duration: number): Date => {
+    const days = eachDayOfInterval({ start: startDate, end: endDate })
+      .filter(isWorkingDay); // Solo días laborables
+    
+    let bestDay = days[0];
+    let lowestLoad = Infinity;
+    
+    for (const day of days) {
+      const workload = calculateDayWorkload(day, allEvents);
+      
+      // Verificar si este día puede acomodar el nuevo evento
+      const newTotalHours = workload.hours + duration;
+      const newTotalEvents = workload.events + 1;
+      
+      if (newTotalEvents <= OPERATIONAL_CONSTRAINTS.maxEventsPerDay && 
+          newTotalHours <= (OPERATIONAL_CONSTRAINTS.maxHoursPerDay - OPERATIONAL_CONSTRAINTS.emergencyBuffer)) {
+        
+        // Preferir días con menor carga actual
+        if (workload.utilization < lowestLoad) {
+          lowestLoad = workload.utilization;
+          bestDay = day;
+        }
+      }
+    }
+    
+    return bestDay;
+  };
+
+  // Nueva función súper optimizada para generar calendario realista
+  const generateRealisticMaintenanceCalendar = (): MaintenanceEvent[] => {
     const today = new Date();
     const nextYear = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate());
-    const totalDays = differenceInDays(nextYear, today);
     
-    console.log(`🏥 Generando calendario optimizado desde ${format(today, 'dd/MM/yyyy')} hasta ${format(nextYear, 'dd/MM/yyyy')}`);
-    console.log(`📅 Total de días: ${totalDays}`);
+    console.log('🏥 Generando calendario REALISTA y OPTIMIZADO');
+    console.log(`📅 Período: ${format(today, 'dd/MM/yyyy')} - ${format(nextYear, 'dd/MM/yyyy')}`);
+    console.log('🔧 Restricciones operativas:', OPERATIONAL_CONSTRAINTS);
     
-    // Calcular total de horas anuales requeridas por denominación
-    const horasAnualesPorDenominacion = denominaciones.map(denom => {
+    // Preparar datos de denominaciones con cálculos
+    const denominacionesProcessed = denominaciones.map(denom => {
       const diasEntreMant = parseFrequencyToDays(denom.frecuencia);
       const tiempoHoras = parseMaintenanceTime(denom.tiempo);
-      const vecesAlAno = Math.floor(365 / diasEntreMant);
-      const horasAnuales = vecesAlAno * tiempoHoras * denom.cantidad;
+      const prioridad = getPriorityFromType(denom.tipoMantenimiento);
+      
+      // Calcular eventos necesarios en el año de forma más conservadora
+      const diasTotales = differenceInDays(nextYear, today);
+      const diasLaborables = Math.floor(diasTotales * (OPERATIONAL_CONSTRAINTS.workingDaysPerWeek / 7));
+      const eventosIdeal = Math.floor(diasLaborables / diasEntreMant);
+      
+      // Limitar eventos según capacidad operativa real
+      const horasAnualesNecesarias = eventosIdeal * tiempoHoras * denom.cantidad;
+      const horasAnualesDisponibles = diasLaborables * (OPERATIONAL_CONSTRAINTS.maxHoursPerDay - OPERATIONAL_CONSTRAINTS.emergencyBuffer);
+      
+      const factorAjuste = Math.min(1, horasAnualesDisponibles / (horasAnualesNecesarias || 1));
+      const eventosReales = Math.max(1, Math.floor(eventosIdeal * factorAjuste));
       
       return {
         ...denom,
         diasEntreMant,
         tiempoHoras,
-        vecesAlAno,
-        horasAnuales
+        prioridad,
+        eventosReales,
+        eventosIdeal,
+        horasAnualesNecesarias
       };
     });
     
-    const totalHorasAnuales = horasAnualesPorDenominacion.reduce((sum, d) => sum + d.horasAnuales, 0);
-    const horasPorMes = totalHorasAnuales / 12;
+    console.log('📊 Análisis de capacidad:');
+    denominacionesProcessed.forEach(d => {
+      console.log(`   ${d.denominacion}: ${d.eventosIdeal} ideales → ${d.eventosReales} reales`);
+    });
     
-    console.log(`⚡ Total horas anuales: ${totalHorasAnuales.toFixed(1)}h`);
-    console.log(`📊 Horas objetivo por mes: ${horasPorMes.toFixed(1)}h`);
+    // Ordenar por prioridad para asignar primero los más críticos
+    const sortedDenominaciones = [...denominacionesProcessed].sort((a, b) => {
+      const prioridadOrder = { 'critica': 4, 'alta': 3, 'media': 2, 'baja': 1 };
+      return prioridadOrder[b.prioridad] - prioridadOrder[a.prioridad];
+    });
     
-    // Distribución equitativa por meses
     const allEvents: MaintenanceEvent[] = [];
-    const horasPorMesAcumuladas = Array(12).fill(0);
     
-    horasAnualesPorDenominacion.forEach((denominacion, denomIndex) => {
-      console.log(`🔧 Procesando: ${denominacion.denominacion}`);
-      console.log(`   - Frecuencia: cada ${denominacion.diasEntreMant} días`);
-      console.log(`   - ${denominacion.vecesAlAno} mantenimientos/año`);
-      console.log(`   - ${denominacion.horasAnuales.toFixed(1)}h anuales`);
+    // Generar eventos con distribución inteligente
+    sortedDenominaciones.forEach((denominacion, denomIndex) => {
+      console.log(`🔧 Programando: ${denominacion.denominacion} (${denominacion.prioridad})`);
       
-      // Calcular fechas ideales distribuidas uniformemente
-      const intervaloDias = totalDays / denominacion.vecesAlAno;
-      
-      for (let i = 0; i < denominacion.vecesAlAno; i++) {
-        // Fecha base calculada
-        const diasDesdeInicio = Math.floor(i * intervaloDias);
-        let fechaBase = addDays(today, diasDesdeInicio);
+      for (let i = 0; i < denominacion.eventosReales; i++) {
+        // Calcular fecha objetivo distribuyendo uniformemente
+        const intervaloIdeal = differenceInDays(nextYear, today) / denominacion.eventosReales;
+        const diasOffset = Math.floor(i * intervaloIdeal);
+        let fechaObjetivo = addDays(today, diasOffset);
         
-        // Ajustar fecha para equilibrar horas mensuales
-        const mesBase = fechaBase.getMonth();
-        const horasEsteMes = horasPorMesAcumuladas[mesBase];
+        // Añadir variación aleatoria para evitar clusters (+/- 7 días)
+        const variacion = Math.floor(Math.random() * 15) - 7;
+        fechaObjetivo = addDays(fechaObjetivo, variacion);
         
-        // Si este mes ya tiene muchas horas, intentar mover a un mes con menos carga
-        if (horasEsteMes > horasPorMes * 1.2) {
-          // Buscar el mes con menos horas en un rango de ±15 días
-          let mejorFecha = fechaBase;
-          let menorHoras = horasEsteMes;
-          
-          for (let offset = -15; offset <= 15; offset += 5) {
-            const fechaAlternativa = addDays(fechaBase, offset);
-            if (fechaAlternativa >= today && fechaAlternativa <= nextYear) {
-              const mesAlternativo = fechaAlternativa.getMonth();
-              if (horasPorMesAcumuladas[mesAlternativo] < menorHoras) {
-                mejorFecha = fechaAlternativa;
-                menorHoras = horasPorMesAcumuladas[mesAlternativo];
-              }
-            }
-          }
-          fechaBase = mejorFecha;
-        }
+        // Asegurar que está dentro del rango y es día laborable
+        if (fechaObjetivo < today) fechaObjetivo = today;
+        if (fechaObjetivo > nextYear) fechaObjetivo = nextYear;
         
-        // Evitar fines de semana para mantenimientos preventivos
-        const diaSemana = fechaBase.getDay();
-        if (diaSemana === 0) { // Domingo
-          fechaBase = addDays(fechaBase, 1);
-        } else if (diaSemana === 6) { // Sábado
-          fechaBase = addDays(fechaBase, 2);
-        }
-        
-        const mesDefinitivo = fechaBase.getMonth();
-        horasPorMesAcumuladas[mesDefinitivo] += denominacion.tiempoHoras * denominacion.cantidad;
+        // Buscar el mejor día disponible en una ventana de ±14 días
+        const windowStart = addDays(fechaObjetivo, -14);
+        const windowEnd = addDays(fechaObjetivo, 14);
+        const mejorFecha = findBestAvailableDay(
+          windowStart < today ? today : windowStart, 
+          windowEnd > nextYear ? nextYear : windowEnd, 
+          allEvents, 
+          denominacion.tiempoHoras * denominacion.cantidad
+        );
         
         const event: MaintenanceEvent = {
-          id: `event-optimized-${denomIndex}-${i}-${Date.now()}-${Math.random()}`,
+          id: `event-realistic-${denomIndex}-${i}-${Date.now()}-${Math.random()}`,
           denominacion: denominacion.denominacion,
           codigo: denominacion.codigo,
           tipoMantenimiento: denominacion.tipoMantenimiento,
-          fecha: fechaBase,
+          fecha: mejorFecha,
           tiempo: denominacion.tiempoHoras,
           cantidad: denominacion.cantidad,
-          equipos: Array.from({ length: denominacion.cantidad }, (_, i) => 
-            `${denominacion.denominacion} #${i + 1}`
+          equipos: Array.from({ length: denominacion.cantidad }, (_, j) => 
+            `${denominacion.denominacion} #${j + 1}`
           ),
-          estado: fechaBase < today ? 'completado' : 'programado',
-          prioridad: getPriorityFromType(denominacion.tipoMantenimiento),
-          notas: `Mantenimiento ${i + 1}/${denominacion.vecesAlAno} - Distribuido equitativamente`
+          estado: mejorFecha < today ? 'completado' : 'programado',
+          prioridad: denominacion.prioridad,
+          notas: `Mant. ${i + 1}/${denominacion.eventosReales} • Optimizado por capacidad operativa`
         };
         
         allEvents.push(event);
       }
     });
     
-    // Ordenar eventos por fecha
+    // Ordenar por fecha
     allEvents.sort((a, b) => a.fecha.getTime() - b.fecha.getTime());
     
-    // Log de distribución final
-    console.log(`✅ Calendario optimizado generado: ${allEvents.length} eventos`);
-    console.log(`📊 Distribución de horas por mes:`);
-    horasPorMesAcumuladas.forEach((horas, mes) => {
-      const nombreMes = format(new Date(2024, mes, 1), 'MMMM', { locale: es });
-      const porcentajeDiferencia = ((horas - horasPorMes) / horasPorMes * 100).toFixed(1);
-      console.log(`   ${nombreMes}: ${horas.toFixed(1)}h (${porcentajeDiferencia > 0 ? '+' : ''}${porcentajeDiferencia}%)`);
+    // Análisis final
+    console.log('✅ Calendario realista generado:', allEvents.length, 'eventos');
+    console.log('📈 Distribución mensual:');
+    
+    const distribucionMensual: { [key: string]: { eventos: number, horas: number } } = {};
+    allEvents.forEach(event => {
+      const mes = format(event.fecha, 'yyyy-MM');
+      if (!distribucionMensual[mes]) {
+        distribucionMensual[mes] = { eventos: 0, horas: 0 };
+      }
+      distribucionMensual[mes].eventos++;
+      distribucionMensual[mes].horas += event.tiempo * event.cantidad;
+    });
+    
+    Object.entries(distribucionMensual).forEach(([mes, data]) => {
+      const fecha = new Date(mes + '-01');
+      const nombreMes = format(fecha, 'MMMM yyyy', { locale: es });
+      console.log(`   ${nombreMes}: ${data.eventos} eventos, ${data.horas.toFixed(1)}h`);
     });
     
     return allEvents;
+  };
+
+  // Función para obtener el color del día según la carga de trabajo
+  const getDayWorkloadColor = (day: Date): string => {
+    const workload = calculateDayWorkload(day, events);
+    
+    if (workload.utilization === 0) {
+      return 'bg-white dark:bg-gray-800'; // Sin actividad
+    } else if (workload.utilization <= 0.4) {
+      return 'bg-green-50 dark:bg-green-900/10 border-green-200 dark:border-green-800'; // Poco ocupado
+    } else if (workload.utilization <= 0.8) {
+      return 'bg-yellow-50 dark:bg-yellow-900/10 border-yellow-200 dark:border-yellow-800'; // Con tareas
+    } else {
+      return 'bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-800'; // Hasta arriba
+    }
   };
 
   // Función para confirmar y guardar el calendario
@@ -277,80 +363,8 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
   };
 
   useEffect(() => {
-    const generatePreciseMaintenanceCalendar = () => {
-      const today = new Date();
-      const nextYear = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate());
-      const allEvents: MaintenanceEvent[] = [];
-      
-      console.log(`📅 Generando calendario desde ${format(today, 'dd/MM/yyyy')} hasta ${format(nextYear, 'dd/MM/yyyy')}`);
-      
-      denominaciones.forEach((denominacion, denomIndex) => {
-        const diasEntreMant = parseFrequencyToDays(denominacion.frecuencia);
-        const tiempoHoras = parseMaintenanceTime(denominacion.tiempo);
-        const prioridad = getPriorityFromType(denominacion.tipoMantenimiento);
-        
-        console.log(`🔧 ${denominacion.denominacion}:`);
-        console.log(`   - Frecuencia: ${denominacion.frecuencia} (${diasEntreMant} días)`);
-        console.log(`   - Tipo: ${denominacion.tipoMantenimiento}`);
-        console.log(`   - Tiempo: ${tiempoHoras}h`);
-        
-        // Calcular fechas de mantenimiento desde hoy hasta el año que viene
-        const fechasMantenimiento: Date[] = [];
-        let fechaActual = new Date(today);
-        let contador = 0;
-        
-        // Generar fechas respetando la frecuencia exacta
-        while (fechaActual <= nextYear && contador < 50) { // Límite de seguridad
-          fechasMantenimiento.push(new Date(fechaActual));
-          
-          // Sumar los días exactos según la frecuencia
-          fechaActual = addDays(fechaActual, diasEntreMant);
-          contador++;
-        }
-        
-        console.log(`   - Fechas generadas: ${fechasMantenimiento.length}`);
-        console.log(`   - Primera fecha: ${format(fechasMantenimiento[0], 'dd/MM/yyyy')}`);
-        console.log(`   - Última fecha: ${format(fechasMantenimiento[fechasMantenimiento.length - 1], 'dd/MM/yyyy')}`);
-        
-        // Crear eventos para cada fecha calculada
-        fechasMantenimiento.forEach((fecha, mantIndex) => {
-          const event: MaintenanceEvent = {
-            id: `event-${denomIndex}-${mantIndex}-${Date.now()}-${Math.random()}`,
-            denominacion: denominacion.denominacion,
-            codigo: denominacion.codigo,
-            tipoMantenimiento: denominacion.tipoMantenimiento,
-            fecha: fecha,
-            tiempo: tiempoHoras,
-            cantidad: denominacion.cantidad,
-            equipos: Array.from({ length: denominacion.cantidad }, (_, i) => 
-              `${denominacion.denominacion} #${i + 1}`
-            ),
-            estado: fecha < today ? 'completado' : 'programado',
-            prioridad,
-            notas: `Mantenimiento ${mantIndex + 1} - Frecuencia: cada ${diasEntreMant} días (${denominacion.frecuencia})`
-          };
-          
-          allEvents.push(event);
-        });
-      });
-      
-      // Ordenar eventos por fecha
-      allEvents.sort((a, b) => a.fecha.getTime() - b.fecha.getTime());
-      
-      console.log(`✅ Calendario generado: ${allEvents.length} eventos totales`);
-      console.log(`📊 Resumen por denominación:`);
-      
-      // Log resumen
-      denominaciones.forEach(denom => {
-        const eventosEstaDenom = allEvents.filter(e => e.denominacion === denom.denominacion);
-        console.log(`   ${denom.denominacion}: ${eventosEstaDenom.length} eventos`);
-      });
-      
-      return allEvents;
-    };
-
     if (denominaciones.length > 0 && events.length === 0) {
-      setEvents(generateOptimizedMaintenanceCalendar());
+      setEvents(generateRealisticMaintenanceCalendar());
     }
   }, [denominaciones, events.length]);
 
@@ -472,10 +486,10 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
           <div>
             <CardTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5" />
-              📅 Calendario de Mantenimiento Optimizado
+              📅 Calendario de Mantenimiento INTELIGENTE
             </CardTitle>
             <p className="text-sm text-gray-600 dark:text-gray-300 mt-2">
-              Distribución equitativa de horas • Arrastra eventos para ajustar • Haz clic para editar
+              Optimizado por recursos • Máx {OPERATIONAL_CONSTRAINTS.maxEventsPerDay} eventos/día • {OPERATIONAL_CONSTRAINTS.maxHoursPerDay}h laborables
             </p>
           </div>
           <div className="flex items-center gap-4">
@@ -526,6 +540,22 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
             </Button>
           </div>
 
+          {/* Leyenda de colores */}
+          <div className="flex items-center gap-6 mb-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-green-100 border border-green-200 rounded"></div>
+              <span className="text-sm">Poco ocupado (≤40%)</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-yellow-100 border border-yellow-200 rounded"></div>
+              <span className="text-sm">Con tareas (≤80%)</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-red-100 border border-red-200 rounded"></div>
+              <span className="text-sm">Hasta arriba (>80%)</span>
+            </div>
+          </div>
+
           <div className="grid grid-cols-7 gap-2">
             {['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'].map(day => (
               <div key={day} className="p-2 text-center font-semibold text-gray-600 dark:text-gray-300">
@@ -537,14 +567,17 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
               const dayEvents = getEventsForDay(day);
               const totalHours = getTotalHoursForDay(day);
               const isToday = format(day, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
+              const workload = calculateDayWorkload(day, events);
+              const dayColor = getDayWorkloadColor(day);
 
               return (
                 <div
                   key={day.toISOString()}
-                  className={`min-h-32 p-2 border border-gray-200 dark:border-gray-700 rounded-lg relative
-                    ${isToday ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-300 dark:border-blue-600' : 'bg-white dark:bg-gray-800'}
+                  className={`min-h-32 p-2 border rounded-lg relative transition-colors
+                    ${isToday ? 'ring-2 ring-blue-500 dark:ring-blue-400' : ''}
                     ${!isSameMonth(day, currentDate) ? 'opacity-50' : ''}
-                    hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors
+                    ${dayColor}
+                    hover:shadow-md transition-shadow
                   `}
                   onDragOver={handleDragOver}
                   onDrop={(e) => handleDrop(e, day)}
@@ -564,16 +597,21 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
                   </div>
 
                   {totalHours > 0 && (
-                    <div className="flex items-center gap-1 mb-2">
-                      <Clock className="h-3 w-3 text-gray-500" />
-                      <span className="text-xs text-gray-600 dark:text-gray-400">
-                        {totalHours}h
+                    <div className="flex items-center justify-between gap-1 mb-2">
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-3 w-3 text-gray-500" />
+                        <span className="text-xs text-gray-600 dark:text-gray-400">
+                          {totalHours.toFixed(1)}h
+                        </span>
+                      </div>
+                      <span className="text-xs text-gray-500">
+                        {Math.round(workload.utilization * 100)}%
                       </span>
                     </div>
                   )}
 
                   <div className="space-y-1">
-                    {dayEvents.slice(0, 3).map(event => (
+                    {dayEvents.slice(0, 2).map(event => (
                       <div
                         key={event.id}
                         className="p-1 rounded text-xs cursor-pointer bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 transition-all"
@@ -593,12 +631,19 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
                         </div>
                       </div>
                     ))}
-                    {dayEvents.length > 3 && (
+                    {dayEvents.length > 2 && (
                       <div className="text-xs text-gray-500 text-center">
-                        +{dayEvents.length - 3} más
+                        +{dayEvents.length - 2} más
                       </div>
                     )}
                   </div>
+
+                  {/* Advertencia de sobrecarga */}
+                  {workload.isOverloaded && (
+                    <div className="absolute top-1 right-1">
+                      <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                    </div>
+                  )}
                 </div>
               );
             })}
