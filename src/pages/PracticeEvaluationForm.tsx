@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react'; // Eliminaremos useEffect si ya no lo usas para cargar datos
+import { useParams, useNavigate } from 'react-router-dom'; // Eliminaremos useParams
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,12 +9,13 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { Loader2, CheckCircle, AlertCircle } from 'lucide-react'; // Eliminaremos AlertCircle
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useWorkCenters } from '../hooks/useWorkCenters';
-import { savePracticeEvaluationResponse, getPracticeEvaluationById } from '../services/practiceEvaluationService';
+// Solo importamos savePracticeEvaluationResponse, ya no getPracticeEvaluationById
+import { savePracticeEvaluationResponse } from '../services/practiceEvaluationService';
 
 const practiceEvaluationSchema = z.object({
   tutorName: z.string().min(1, 'El nombre del tutor es obligatorio'),
@@ -67,23 +68,22 @@ const practiceEvaluationSchema = z.object({
   evaluationDate: z.string().min(1, 'La fecha es obligatoria'),
 });
 
-type PracticeEvaluationForm = z.infer<typeof practiceEvaluationSchema>;
+type PracticeEvaluationFormType = z.infer<typeof practiceEvaluationSchema>; // Renombrado para evitar conflicto con el nombre de la función
 
 export default function PracticeEvaluationForm() {
-  const { id } = useParams<{ id: string }>();
+  // ELIMINADO: const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // isLoading ahora solo para el envío
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [evaluationData, setEvaluationData] = useState<any>(null);
-  const { workCenters } = useWorkCenters();
+  // ELIMINADO: const [evaluationData, setEvaluationData] = useState<any>(null);
+  const { workCenters, isLoading: isLoadingWorkCenters } = useWorkCenters(); // Considera si useWorkCenters es asíncrono
 
   const {
     control,
     handleSubmit,
     formState: { errors },
-    setValue,
-    watch
-  } = useForm<PracticeEvaluationForm>({
+    // ELIMINADO: setValue, watch (si no se usan para otra cosa)
+  } = useForm<PracticeEvaluationFormType>({ // Usamos el tipo renombrado
     resolver: zodResolver(practiceEvaluationSchema),
     defaultValues: {
       travelAvailability: [],
@@ -91,35 +91,25 @@ export default function PracticeEvaluationForm() {
       englishLevel: '',
       finalEvaluation: 'Apto',
       evaluationDate: new Date().toISOString().split('T')[0],
+      // Asegúrate de que todos los campos con puntuación (1-10) tienen un default numérico
+      meticulousness: 5, teamwork: 5, adaptability: 5, stressTolerance: 5, verbalCommunication: 5,
+      commitment: 5, initiative: 5, charisma: 5, learningCapability: 5, writtenCommunication: 5,
+      problemSolving: 5, taskCommitment: 5, organized: 5, newChallenges: 5, adaptationToSystems: 5,
+      efficiency: 5, punctuality: 5, serviceImprovements: 5, diagnosticSkills: 5, innovativeSolutions: 5,
+      sharingKnowledge: 5, toolsUsage: 5, performanceRating: 5 // Si no tienen un default, Zod lanzará un error para `number`
     }
   });
 
-  useEffect(() => {
-    const loadEvaluationData = async () => {
-      if (!id) return;
-      
-      try {
-        const data = await getPracticeEvaluationById(id);
-        setEvaluationData(data);
-        
-        if (data?.response) {
-          setIsSubmitted(true);
-        }
-      } catch (error) {
-        console.error('Error loading evaluation data:', error);
-        toast.error('Error al cargar los datos de la evaluación');
-      }
-    };
+  // ELIMINADO: useEffect para cargar datos, ya no es necesario
+  // useEffect(() => { ... loadEvaluationData(); ... }, [id]);
 
-    loadEvaluationData();
-  }, [id]);
-
-  const onSubmit = async (data: PracticeEvaluationForm) => {
-    if (!id) return;
+  const onSubmit = async (data: PracticeEvaluationFormType) => { // Usamos el tipo renombrado
+    // ELIMINADO: if (!id) return; // Ya no hay ID en la URL para validar
     
     setIsLoading(true);
     try {
-      await savePracticeEvaluationResponse(id, data);
+      // CAMBIO CLAVE: Llamada a la función de servicio sin el ID
+      await savePracticeEvaluationResponse(data); 
       setIsSubmitted(true);
       toast.success('Valoración de prácticas enviada correctamente');
     } catch (error) {
@@ -130,6 +120,9 @@ export default function PracticeEvaluationForm() {
     }
   };
 
+  // --- Renderizado Condicional ---
+
+  // 1. Si ya se envió el formulario
   if (isSubmitted) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
@@ -142,6 +135,7 @@ export default function PracticeEvaluationForm() {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {/* Opcional: Puedes redirigir a una página de inicio o dejar que el usuario cierre */}
             <Button onClick={() => navigate('/')} className="w-full">
               Cerrar
             </Button>
@@ -151,32 +145,31 @@ export default function PracticeEvaluationForm() {
     );
   }
 
-  if (!id) {
+  // ELIMINADO: El bloque `if (!id)` ya no es necesario, el formulario siempre estará disponible.
+  // if (!id) { ... }
+
+  // Opcional: Si `useWorkCenters` es asíncrono y quieres un spinner mientras carga los centros de trabajo
+  if (isLoadingWorkCenters) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md text-center">
-          <CardHeader>
-            <AlertCircle className="w-16 h-16 mx-auto text-red-500 mb-4" />
-            <CardTitle className="text-red-600">Enlace no válido</CardTitle>
-            <CardDescription>
-              No se encontró la evaluación solicitada.
-            </CardDescription>
-          </CardHeader>
-        </Card>
+        <Loader2 className="mr-2 h-8 w-8 animate-spin text-blue-500" />
+        <p className="ml-2 text-lg text-blue-700">Cargando centros de trabajo...</p>
       </div>
     );
   }
 
+  // 3. Si no está enviado y no hay errores de "enlace no válido", muestra el formulario
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
       <div className="max-w-4xl mx-auto">
         <Card>
           <CardHeader>
+            {/* Título actualizado para reflejar que es una "nueva" evaluación */}
             <CardTitle className="text-2xl text-blue-600 dark:text-blue-300">
-              Valoración de Prácticas
+              Nueva Valoración de Prácticas
             </CardTitle>
             <CardDescription>
-              Complete todos los campos requeridos para enviar la evaluación
+              Complete todos los campos requeridos para enviar la evaluación de prácticas.
             </CardDescription>
           </CardHeader>
           
@@ -234,7 +227,7 @@ export default function PracticeEvaluationForm() {
                           <SelectValue placeholder="Seleccione un centro de trabajo" />
                         </SelectTrigger>
                         <SelectContent>
-                          {workCenters.map((center) => (
+                          {workCenters.map((center: any) => ( // Ajusta el tipo de `center` si es necesario
                             <SelectItem key={center.id} value={center.displayText}>
                               {center.displayText}
                             </SelectItem>
@@ -371,7 +364,7 @@ export default function PracticeEvaluationForm() {
                     <div key={field.name}>
                       <Label htmlFor={field.name}>{field.label}</Label>
                       <Controller
-                        name={field.name as keyof PracticeEvaluationForm}
+                        name={field.name as keyof PracticeEvaluationFormType}
                         control={control}
                         render={({ field: controllerField }) => (
                           <Input
@@ -380,7 +373,7 @@ export default function PracticeEvaluationForm() {
                             max="10"
                             {...controllerField}
                             onChange={(e) => controllerField.onChange(parseInt(e.target.value) || 1)}
-                            className={errors[field.name as keyof PracticeEvaluationForm] ? 'border-red-500' : ''}
+                            className={errors[field.name as keyof PracticeEvaluationFormType] ? 'border-red-500' : ''}
                           />
                         )}
                       />
@@ -409,7 +402,7 @@ export default function PracticeEvaluationForm() {
                     <div key={field.name}>
                       <Label htmlFor={field.name}>{field.label}</Label>
                       <Controller
-                        name={field.name as keyof PracticeEvaluationForm}
+                        name={field.name as keyof PracticeEvaluationFormType}
                         control={control}
                         render={({ field: controllerField }) => (
                           <Input
@@ -418,7 +411,7 @@ export default function PracticeEvaluationForm() {
                             max="10"
                             {...controllerField}
                             onChange={(e) => controllerField.onChange(parseInt(e.target.value) || 1)}
-                            className={errors[field.name as keyof PracticeEvaluationForm] ? 'border-red-500' : ''}
+                            className={errors[field.name as keyof PracticeEvaluationFormType] ? 'border-red-500' : ''}
                           />
                         )}
                       />
@@ -447,7 +440,7 @@ export default function PracticeEvaluationForm() {
                     <div key={field.name}>
                       <Label htmlFor={field.name}>{field.label}</Label>
                       <Controller
-                        name={field.name as keyof PracticeEvaluationForm}
+                        name={field.name as keyof PracticeEvaluationFormType}
                         control={control}
                         render={({ field: controllerField }) => (
                           <Input
@@ -456,7 +449,7 @@ export default function PracticeEvaluationForm() {
                             max="10"
                             {...controllerField}
                             onChange={(e) => controllerField.onChange(parseInt(e.target.value) || 1)}
-                            className={errors[field.name as keyof PracticeEvaluationForm] ? 'border-red-500' : ''}
+                            className={errors[field.name as keyof PracticeEvaluationFormType] ? 'border-red-500' : ''}
                           />
                         )}
                       />

@@ -1,160 +1,40 @@
+// src/App.tsx
+import React from "react";
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Index from "./pages/Index";
+import ExitInterviewForm from "./pages/ExitInterviewForm";
+import PracticeEvaluationForm from "./pages/PracticeEvaluationForm"; // Tu componente de formulario
+import NotFound from "./pages/NotFound";
 
-import { collection, addDoc, getDocs, doc, getDoc, updateDoc, Timestamp, query, orderBy } from "firebase/firestore";
-import { db } from "../lib/firebase";
+const queryClient = new QueryClient();
 
-export interface PracticeEvaluationData {
-  // Datos básicos
-  tutorName: string;
-  tutorLastName: string;
-  workCenter: string;
-  studentName: string;
-  studentLastName: string;
-  formation: string;
-  institute: string;
-  practices: string;
-  
-  // Competencias (1-10)
-  competencies: {
-    meticulousness: number;
-    teamwork: number;
-    adaptability: number;
-    stressTolerance: number;
-    verbalCommunication: number;
-    commitment: number;
-    initiative: number;
-    leadership: number;
-    learningCapacity: number;
-    writtenCommunication: number;
-    problemSolving: number;
-    taskCommitment: number;
-  };
-  
-  // Aptitudes Organizativas (1-10)
-  organizationalSkills: {
-    organized: number;
-    newChallenges: number;
-    systemAdaptation: number;
-    efficiency: number;
-    punctuality: number;
-  };
-  
-  // Aptitudes Técnicas (1-10)
-  technicalSkills: {
-    serviceImprovements: number;
-    diagnosticSkills: number;
-    innovativeSolutions: number;
-    sharesSolutions: number;
-    toolUsage: number;
-  };
-  
-  // Otros datos de interés
-  travelAvailability: string[]; // ["Nacional", "Internacional"]
-  residenceChange: string; // "Si" | "No"
-  englishLevel: string;
-  performanceRating: number; // 1-10
-  performanceJustification: string;
-  finalEvaluation: string; // "Apto" | "No Apto"
-  futureInterest: string;
-  practicalTraining: string;
-  observations: string;
-  evaluatorName: string;
-  evaluationDate: Date;
-}
-
-export interface PracticeEvaluationRecord extends PracticeEvaluationData {
-  id: string;
-  createdAt: Date;
-  response?: any;
-}
-
-export const savePracticeEvaluation = async (data: PracticeEvaluationData): Promise<string> => {
-  try {
-    console.log('Guardando valoración de prácticas:', data);
-    
-    const evaluationRef = collection(db, "Gestión de Talento", "valoracion-practicas", "Valoración Prácticas");
-    
-    const docData = {
-      ...data,
-      evaluationDate: Timestamp.fromDate(data.evaluationDate),
-      createdAt: Timestamp.now(),
-      updatedAt: Timestamp.now()
-    };
-    
-    const docRef = await addDoc(evaluationRef, docData);
-    
-    console.log('Valoración de prácticas guardada con ID:', docRef.id);
-    return docRef.id;
-  } catch (error) {
-    console.error('Error al guardar la valoración de prácticas:', error);
-    throw error;
-  }
+const App: React.FC = () => {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            {/* Si ExitInterviewForm SÍ necesita un token para identificar la entrevista a rellenar, mantenlo así. */}
+            <Route path="/entrevista-salida/:token" element={<ExitInterviewForm />} />
+            
+            {/* CAMBIO CLAVE AQUÍ: La ruta para la valoración de prácticas ya NO necesita un token */}
+            {/* Ahora será una URL fija para crear una nueva valoración */}
+            <Route path="/crear-valoracion-practicas" element={<PracticeEvaluationForm />} />
+            
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
 };
 
-export const savePracticeEvaluationResponse = async (id: string, responseData: any): Promise<void> => {
-  try {
-    console.log('Guardando respuesta de valoración de prácticas:', id, responseData);
-    
-    const evaluationDocRef = doc(db, "Gestión de Talento", "valoracion-practicas", "Valoración Prácticas", id);
-    
-    await updateDoc(evaluationDocRef, {
-      response: responseData,
-      respondedAt: Timestamp.now(),
-      updatedAt: Timestamp.now()
-    });
-    
-    console.log('Respuesta de valoración de prácticas guardada');
-  } catch (error) {
-    console.error('Error al guardar la respuesta de valoración de prácticas:', error);
-    throw error;
-  }
-};
-
-export const getPracticeEvaluationById = async (id: string): Promise<PracticeEvaluationRecord | null> => {
-  try {
-    const evaluationDocRef = doc(db, "Gestión de Talento", "valoracion-practicas", "Valoración Prácticas", id);
-    const docSnap = await getDoc(evaluationDocRef);
-    
-    if (docSnap.exists()) {
-      const data = docSnap.data();
-      return {
-        id: docSnap.id,
-        ...data,
-        evaluationDate: data.evaluationDate?.toDate() || new Date(),
-        createdAt: data.createdAt?.toDate() || new Date(),
-      } as PracticeEvaluationRecord;
-    }
-    
-    return null;
-  } catch (error) {
-    console.error('Error al obtener valoración de prácticas por ID:', error);
-    throw error;
-  }
-};
-
-export const getPracticeEvaluations = async (): Promise<PracticeEvaluationRecord[]> => {
-  try {
-    const evaluationRef = collection(db, "Gestión de Talento", "valoracion-practicas", "Valoración Prácticas");
-    const q = query(evaluationRef, orderBy("createdAt", "desc"));
-    const querySnapshot = await getDocs(q);
-    
-    const evaluations: PracticeEvaluationRecord[] = [];
-    querySnapshot.forEach((doc) => {
-      const data = doc.data();
-      evaluations.push({
-        id: doc.id,
-        ...data,
-        evaluationDate: data.evaluationDate?.toDate() || new Date(),
-        createdAt: data.createdAt?.toDate() || new Date(),
-      } as PracticeEvaluationRecord);
-    });
-    
-    return evaluations;
-  } catch (error) {
-    console.error('Error al obtener valoraciones de prácticas:', error);
-    throw error;
-  }
-};
-
-export const generatePracticeEvaluationToken = (): string => {
-  return Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
-};
+export default App;
