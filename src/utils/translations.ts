@@ -146,7 +146,8 @@ export const translations = {
     english: 'Inglés',
     theme: 'Tema',
     light: 'Claro',
-    dark: 'Oscuro'
+    dark: 'Oscuro',
+    verifyingAccount: 'Verificando cuenta...'
   },
   en: {
     home: 'Home',
@@ -291,6 +292,7 @@ export const translations = {
     english: 'English',
     theme: 'Theme',
     light: 'Light',
-    dark: 'Dark'
+    dark: 'Dark',
+    verifyingAccount: 'Verifying account...'
   }
 };
