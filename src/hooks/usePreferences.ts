@@ -39,17 +39,10 @@ export const usePreferences = () => {
     localStorage.setItem('geestor-preferences', JSON.stringify(updated));
   };
 
-  const updateLanguage = (language: Language) => updatePreferences({ language });
-  const updateTheme = (theme: Theme) => updatePreferences({ theme });
-
   return {
-    language: preferences.language,
-    theme: preferences.theme,
     preferences,
     updatePreferences,
-    updateLanguage,
-    updateTheme,
-    setLanguage: updateLanguage,
-    setTheme: updateTheme
+    setLanguage: (language: Language) => updatePreferences({ language }),
+    setTheme: (theme: Theme) => updatePreferences({ theme })
   };
 };
