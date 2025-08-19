@@ -13,6 +13,7 @@ export const translations = {
     light: 'claro',
     dark: 'oscuro',
     language: 'idioma',
+    theme: 'tema',
     
     // Navegación principal
     dashboard: 'panel',
@@ -84,6 +85,11 @@ export const translations = {
     verifyingAccount: 'verificando cuenta',
     pleaseWait: 'por favor espera',
     
+    // Login específico
+    welcome: 'bienvenido',
+    loginSubtitle: 'accede a tu cuenta para continuar',
+    loginButton: 'iniciar sesión',
+    
     // Navegación específica
     home: 'inicio',
     costAnalysis: 'análisis de coste',
@@ -103,6 +109,13 @@ export const translations = {
     employeeAgreementDetails: 'detalles de acuerdo de empleado',
     detailViewPlaceholder: 'Vista de detalles en desarrollo',
     comingSoon: 'próximamente',
+    
+    // Real Estate
+    realEstateDashboard: 'panel de inmuebles',
+    realEstateDetails: 'detalles de inmueble',
+    activeProperties: 'propiedades activas',
+    inactiveProperties: 'propiedades inactivas',
+    totalProperties: 'total de propiedades',
     
     // Gestión de usuarios y permisos
     userProfile: 'perfil de usuario',
@@ -236,6 +249,7 @@ export const translations = {
     light: 'light',
     dark: 'dark',
     language: 'language',
+    theme: 'theme',
     
     // Main navigation
     dashboard: 'dashboard',
@@ -307,6 +321,11 @@ export const translations = {
     verifyingAccount: 'verifying account',
     pleaseWait: 'please wait',
     
+    // Login specific
+    welcome: 'welcome',
+    loginSubtitle: 'sign in to your account to continue',
+    loginButton: 'sign in',
+    
     // Specific navigation
     home: 'home',
     costAnalysis: 'cost analysis',
@@ -326,6 +345,13 @@ export const translations = {
     employeeAgreementDetails: 'employee agreement details',
     detailViewPlaceholder: 'Detail view under development',
     comingSoon: 'coming soon',
+    
+    // Real Estate
+    realEstateDashboard: 'real estate dashboard',
+    realEstateDetails: 'real estate details',
+    activeProperties: 'active properties',
+    inactiveProperties: 'inactive properties',
+    totalProperties: 'total properties',
     
     // User management and permissions
     userProfile: 'user profile',
