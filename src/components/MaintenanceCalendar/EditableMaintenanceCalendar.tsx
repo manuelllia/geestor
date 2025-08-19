@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
@@ -116,7 +115,7 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
     return 90; // Por defecto trimestral
   };
 
-  // Función para parsear tiempo de mantenimiento (sin cambios)
+  // Función para parsear tiempo de mantenimiento
   const parseMaintenanceTime = (tiempo?: string): number => {
     if (!tiempo) return 2; // Por defecto 2 horas
     
@@ -125,15 +124,17 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
     
     if (numberMatch) {
       const num = parseFloat(numberMatch[1]);
-      if (tiempoStr.includes('min')) return num / 60; // Convertir minutos a horas
-      if (tiempoStr.includes('hora') || tiempoStr.includes('hour') || tiempoStr.includes('h')) return num;
-      return num; // Por defecto asumir horas
+      if (!isNaN(num)) {
+        if (tiempoStr.includes('min')) return num / 60; // Convertir minutos a horas
+        if (tiempoStr.includes('hora') || tiempoStr.includes('hour') || tiempoStr.includes('h')) return num;
+        return num; // Por defecto asumir horas
+      }
     }
     
     return 2;
   };
 
-  // Función para obtener prioridad basada en el tipo de mantenimiento (sin cambios)
+  // Función para obtener prioridad basada en el tipo de mantenimiento
   const getPriorityFromType = (tipoMantenimiento: string): 'baja' | 'media' | 'alta' | 'critica' => {
     const tipo = tipoMantenimiento.toLowerCase();
     
