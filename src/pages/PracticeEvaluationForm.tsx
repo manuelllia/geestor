@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,14 +9,15 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { Loader2, CheckCircle } from 'lucide-react';
+import { Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useWorkCenters } from '../hooks/useWorkCenters';
-import { savePracticeEvaluation, PracticeEvaluationData } from '../services/practiceEvaluationService';
+// CAMBIO: Asegúrate de que esta importación sea correcta y que WorkCenter venga de tu hook
+import { useWorkCenters, WorkCenter } from '../hooks/useWorkCenters'; 
+import { savePracticeEvaluation } from '../services/practiceEvaluationService';
 
-// Esquema Zod ajustado para coincidir exactamente con la interfaz del servicio
+// Esquema Zod (sin cambios si ya funciona con los nombres de campo actualizados)
 const practiceEvaluationSchema = z.object({
   tutorName: z.string().min(1, 'El nombre del tutor es obligatorio'),
   tutorLastName: z.string().min(1, 'Los apellidos del tutor son obligatorios'),
@@ -28,7 +28,6 @@ const practiceEvaluationSchema = z.object({
   institution: z.string().min(1, 'El instituto/universidad es obligatorio'),
   practices: z.string().min(1, 'Las prácticas son obligatorias'),
   
-  // Competencias (1-10) - COINCIDE CON EL SERVICIO Y JSX
   competencies: z.object({
     meticulousness: z.number().min(1).max(10, 'La valoración debe ser entre 1 y 10'),
     teamwork: z.number().min(1).max(10, 'La valoración debe ser entre 1 y 10'),
@@ -44,7 +43,6 @@ const practiceEvaluationSchema = z.object({
     taskCommitment: z.number().min(1).max(10, 'La valoración debe ser entre 1 y 10'),
   }),
   
-  // Aptitudes Organizativas (1-10) - COINCIDE CON EL SERVICIO Y JSX
   organizationalSkills: z.object({
     organized: z.number().min(1).max(10, 'La valoración debe ser entre 1 y 10'),
     newChallenges: z.number().min(1).max(10, 'La valoración debe ser entre 1 y 10'),
@@ -53,7 +51,6 @@ const practiceEvaluationSchema = z.object({
     punctuality: z.number().min(1).max(10, 'La valoración debe ser entre 1 y 10'),
   }),
   
-  // Aptitudes Técnicas (1-10) - COINCIDE CON EL SERVICIO Y JSX
   technicalSkills: z.object({
     serviceImprovements: z.number().min(1).max(10, 'La valoración debe ser entre 1 y 10'),
     diagnosticSkills: z.number().min(1).max(10, 'La valoración debe ser entre 1 y 10'),
@@ -62,7 +59,6 @@ const practiceEvaluationSchema = z.object({
     toolUsage: z.number().min(1).max(10, 'La valoración debe ser entre 1 y 10'),
   }),
   
-  // Otros datos
   travelAvailability: z.array(z.string()).optional(),
   residenceChange: z.enum(['Si', 'No'], { required_error: 'La disponibilidad de cambio de residencia es obligatoria' }),
   englishLevel: z.string().min(1, 'El nivel de inglés es obligatorio'),
@@ -80,9 +76,10 @@ type PracticeEvaluationFormType = z.infer<typeof practiceEvaluationSchema>;
 
 export default function PracticeEvaluationForm() {
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const { workCenters, isLoading: isLoadingWorkCenters } = useWorkCenters();
+  // CAMBIO: Obtener 'error' del hook useWorkCenters
+  const { workCenters, isLoading: isLoadingWorkCenters, error: workCentersError } = useWorkCenters();
 
   const {
     control,
@@ -91,14 +88,6 @@ export default function PracticeEvaluationForm() {
   } = useForm<PracticeEvaluationFormType>({
     resolver: zodResolver(practiceEvaluationSchema),
     defaultValues: {
-      tutorName: '',
-      tutorLastName: '',
-      workCenter: '',
-      studentName: '',
-      studentLastName: '',
-      formation: '',
-      institution: '',
-      practices: '',
       travelAvailability: [],
       residenceChange: 'No',
       englishLevel: '',
@@ -107,58 +96,32 @@ export default function PracticeEvaluationForm() {
       practicalTraining: '',
       observations: '',
       evaluationDate: new Date().toISOString().split('T')[0],
-      evaluatorName: '',
       
-      // Defaults para competencias anidadas
       competencies: {
         meticulousness: 5, teamwork: 5, adaptability: 5, stressTolerance: 5, verbalCommunication: 5,
         commitment: 5, initiative: 5, charisma: 5, learningCapacity: 5, writtenCommunication: 5,
         problemSolving: 5, taskCommitment: 5,
       },
-      // Defaults para aptitudes organizativas anidadas
       organizationalSkills: {
         organized: 5, newChallenges: 5, systemAdaptation: 5, efficiency: 5, punctuality: 5,
       },
-      // Defaults para aptitudes técnicas anidadas
       technicalSkills: {
         serviceImprovements: 5, diagnosticSkills: 5, innovativeSolutions: 5, sharesSolutions: 5,
         toolUsage: 5,
       },
       performanceRating: 5,
-      performanceJustification: '',
+      evaluatorName: '',
     }
   });
 
   const onSubmit = async (data: PracticeEvaluationFormType) => {
-    setIsLoading(true);
+    setIsLoadingSubmit(true);
     try {
-      // Asegurar que todos los campos requeridos tengan valores válidos
-      const dataToSend: PracticeEvaluationData = {
-        tutorName: data.tutorName,
-        tutorLastName: data.tutorLastName,
-        workCenter: data.workCenter,
-        studentName: data.studentName,
-        studentLastName: data.studentLastName,
-        formation: data.formation,
-        institution: data.institution,
-        practices: data.practices,
-        competencies: data.competencies,
-        organizationalSkills: data.organizationalSkills,
-        technicalSkills: data.technicalSkills,
-        travelAvailability: data.travelAvailability,
-        residenceChange: data.residenceChange,
-        englishLevel: data.englishLevel,
-        performanceRating: data.performanceRating,
-        performanceJustification: data.performanceJustification,
-        finalEvaluation: data.finalEvaluation,
-        futureInterest: data.futureInterest,
-        practicalTraining: data.practicalTraining,
-        observations: data.observations,
-        evaluatorName: data.evaluatorName,
+      const dataToSend = {
+        ...data,
         evaluationDate: new Date(data.evaluationDate),
       };
       
-      // CAMBIO CLAVE: Llamada a la función savePracticeEvaluation
       const newEvaluationId = await savePracticeEvaluation(dataToSend); 
       console.log('Nueva evaluación creada con ID:', newEvaluationId);
       setIsSubmitted(true);
@@ -167,7 +130,7 @@ export default function PracticeEvaluationForm() {
       console.error('Error al enviar la valoración de prácticas:', error);
       toast.error('Error al enviar la valoración de prácticas. Inténtalo de nuevo.');
     } finally {
-      setIsLoading(false);
+      setIsLoadingSubmit(false);
     }
   };
 
@@ -193,6 +156,24 @@ export default function PracticeEvaluationForm() {
     );
   }
 
+  // CAMBIO: Mostrar un mensaje de error si los centros de trabajo no se cargaron
+  if (workCentersError) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md text-center">
+          <CardHeader>
+            <AlertCircle className="w-16 h-16 mx-auto text-red-500 mb-4" />
+            <CardTitle className="text-red-600">Error de Carga</CardTitle>
+            <CardDescription>
+              {workCentersError}
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
+    );
+  }
+
+  // CAMBIO: Mostrar spinner mientras cargan los centros de trabajo
   if (isLoadingWorkCenters) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
@@ -269,7 +250,8 @@ export default function PracticeEvaluationForm() {
                           <SelectValue placeholder="Seleccione un centro de trabajo" />
                         </SelectTrigger>
                         <SelectContent>
-                          {workCenters.map((center: any) => (
+                          {/* CAMBIO: Usar id y displayText de WorkCenter */}
+                          {workCenters.map((center: WorkCenter) => (
                             <SelectItem key={center.id} value={center.displayText}>
                               {center.displayText}
                             </SelectItem>
@@ -766,10 +748,10 @@ export default function PracticeEvaluationForm() {
                 </Button>
                 <Button
                   type="submit"
-                  disabled={isLoading}
+                  disabled={isLoadingSubmit} // Usamos isLoadingSubmit para el botón de enviar
                   className="bg-blue-600 hover:bg-blue-700"
                 >
-                  {isLoading ? (
+                  {isLoadingSubmit ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Enviando...
