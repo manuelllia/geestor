@@ -10,6 +10,7 @@ import { useCostAnalysis } from '../../hooks/useCostAnalysis';
 import CostAnalysisReport from './CostAnalysisReport';
 import CostBreakdownView from './CostBreakdownView';
 import ScoreAnalysisView from './ScoreAnalysisView';
+import GeenioChatbot from '../BidAnalyzer/GeenioChatbot';
 
 interface CostAnalysisViewProps {
   language: Language;
@@ -20,6 +21,7 @@ const CostAnalysisView: React.FC<CostAnalysisViewProps> = ({ language }) => {
   const [pcapFile, setPcapFile] = useState<File | null>(null);
   const [pptFile, setPptFile] = useState<File | null>(null);
   const [activeTab, setActiveTab] = useState('upload');
+  const [isChatbotOpen, setIsChatbotOpen] = useState(false);
   
   const { analyzeCosts, analysisResult, isLoading, error } = useCostAnalysis();
 
@@ -45,7 +47,7 @@ const CostAnalysisView: React.FC<CostAnalysisViewProps> = ({ language }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 relative">
       <div className="container mx-auto px-4 py-6 space-y-6">
         <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl p-6 md:p-8 shadow-lg">
           <h1 className="text-2xl md:text-4xl font-bold mb-2 md:mb-4">Análisis de Costes</h1>
@@ -192,6 +194,13 @@ const CostAnalysisView: React.FC<CostAnalysisViewProps> = ({ language }) => {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Chatbot Genie */}
+      <GeenioChatbot 
+        isOpen={isChatbotOpen} 
+        onToggle={() => setIsChatbotOpen(!isChatbotOpen)}
+        context={analysisResult}
+      />
     </div>
   );
 };

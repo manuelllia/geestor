@@ -1,8 +1,9 @@
+
 import { useState } from 'react';
 import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist';
 
-// Configure PDF.js worker
-GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.worker.min.js`;
+// Configure PDF.js worker with a more reliable CDN
+GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@4.0.379/build/pdf.worker.min.js`;
 
 interface ReportData {
   presupuestoGeneral: string;
@@ -142,11 +143,22 @@ export const useCostAnalysis = () => {
 
   const extractTextFromPDF = async (file: File): Promise<string> => {
     try {
+      console.log('📄 Iniciando extracción de texto del PDF:', file.name);
       const arrayBuffer = await file.arrayBuffer();
-      const pdf = await getDocument({ data: arrayBuffer }).promise;
+      console.log('✅ ArrayBuffer obtenido, tamaño:', arrayBuffer.byteLength);
+      
+      const pdf = await getDocument({ 
+        data: arrayBuffer,
+        useWorkerFetch: false,
+        isEvalSupported: false,
+        useSystemFonts: true
+      }).promise;
+      
+      console.log('✅ PDF cargado, páginas:', pdf.numPages);
       let fullText = '';
 
       for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+        console.log(`📖 Procesando página ${pageNum}/${pdf.numPages}`);
         const page = await pdf.getPage(pageNum);
         const textContent = await page.getTextContent();
         const pageText = textContent.items
@@ -155,10 +167,11 @@ export const useCostAnalysis = () => {
         fullText += pageText + '\n';
       }
 
+      console.log('✅ Extracción completada, caracteres totales:', fullText.length);
       return fullText;
     } catch (error) {
-      console.error('Error extracting text from PDF:', error);
-      throw new Error('Error al extraer texto del PDF');
+      console.error('❌ Error extracting text from PDF:', error);
+      throw new Error(`Error al extraer texto del PDF: ${error instanceof Error ? error.message : 'Error desconocido'}`);
     }
   };
 
@@ -248,7 +261,7 @@ ${pptText}
 
   const callGeminiAPI = async (prompt: string): Promise<ReportData> => {
     const GEMINI_API_KEY = 'AIzaSyANIWvIMRvCW7f0meHRk4SobRz4s0pnxtg';
-    const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=';
+    const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent';
 
     console.log('🤖 Llamando a Gemini API...');
 
@@ -333,6 +346,11 @@ ${pptText}
       console.log('📝 Extrayendo texto del PPT...');
       const pptText = await extractTextFromPDF(pptFile);
       console.log('✅ PPT procesado, caracteres:', pptText.length);
+
+      // Solo procesar si se obtuvieron textos válidos
+      if (!pcapText.trim() && !pptText.trim()) {
+        throw new Error('No se pudo extraer texto de los archivos PDF');
+      }
 
       // Crear prompt
       console.log('🔧 Creando prompt para análisis...');
