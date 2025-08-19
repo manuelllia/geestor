@@ -31,12 +31,19 @@ export const translations = {
     edit: 'editar',
     delete: 'eliminar',
     create: 'crear',
+    createNew: 'crear nuevo',
     update: 'actualizar',
     refresh: 'actualizar',
     search: 'buscar',
     filter: 'filtrar',
     export: 'exportar',
+    exportPDF: 'exportar PDF',
     import: 'importar',
+    back: 'volver',
+    view: 'ver',
+    actions: 'acciones',
+    duplicateRecord: 'duplicar registro',
+    downloadPDF: 'descargar PDF',
     
     // Estados
     active: 'activo',
@@ -48,6 +55,7 @@ export const translations = {
     success: 'éxito',
     warning: 'advertencia',
     info: 'información',
+    status: 'estado',
     
     // Formularios
     name: 'nombre',
@@ -60,16 +68,20 @@ export const translations = {
     country: 'país',
     zipCode: 'código postal',
     date: 'fecha',
+    startDate: 'fecha de inicio',
     time: 'hora',
     description: 'descripción',
     notes: 'notas',
     comments: 'comentarios',
+    employeeName: 'nombre del empleado',
+    originCenter: 'centro de origen',
     
     // Mensajes del sistema
     welcomeBack: 'bienvenido de vuelta',
     loginWith: 'iniciar sesión con',
     microsoft: 'microsoft',
     verifyingCredentials: 'verificando credenciales',
+    verifyingAccount: 'verificando cuenta',
     pleaseWait: 'por favor espera',
     
     // Navegación específica
@@ -83,6 +95,14 @@ export const translations = {
     practiceEvaluations: 'valoración de prácticas',
     exitInterviews: 'entrevista de salida',
     checkers: 'comprobadores',
+    
+    // Gestión específica
+    changeSheetsManagement: 'gestión de hojas de cambio',
+    hojasCambio: 'hojas de cambio',
+    changeSheetDetails: 'detalles de hoja de cambio',
+    employeeAgreementDetails: 'detalles de acuerdo de empleado',
+    detailViewPlaceholder: 'Vista de detalles en desarrollo',
+    comingSoon: 'próximamente',
     
     // Gestión de usuarios y permisos
     userProfile: 'perfil de usuario',
@@ -119,6 +139,9 @@ export const translations = {
     formation: 'formación',
     finalEvaluation: 'evaluación final',
     rating: 'valoración',
+    linkGenerated: 'enlace generado',
+    linkGeneratedDescription: 'el enlace se ha copiado al portapapeles',
+    errorGeneratingLink: 'error al generar enlace',
     
     // Estados específicos
     apt: 'apto',
@@ -176,7 +199,32 @@ export const translations = {
     
     // Gestión Técnica específica
     gestionTecnica: 'gestión técnica',
-    gestionTalento: 'gestión de talento'
+    gestionTalento: 'gestión de talento',
+    
+    // Calendario de mantenimiento
+    maintenanceCalendarGeneration: 'generación de calendario de mantenimiento',
+    generateCalendar: 'generar calendario',
+    calendarGenerated: 'calendario generado',
+    monthlyHours: 'horas mensuales',
+    annualHours: 'horas anuales',
+    
+    // Evaluación de prácticas - formulario
+    practiceEvaluationForm: 'formulario de evaluación de prácticas',
+    studentData: 'datos del estudiante',
+    tutorData: 'datos del tutor',
+    evaluationData: 'datos de evaluación',
+    submitEvaluation: 'enviar evaluación',
+    evaluationSubmitted: 'evaluación enviada',
+    evaluationSubmittedDescription: 'la evaluación ha sido enviada correctamente',
+    errorSubmittingEvaluation: 'error al enviar evaluación',
+    invalidLink: 'enlace no válido',
+    evaluationNotFound: 'no se encontró la evaluación solicitada',
+    
+    // Nuevas traducciones para formularios
+    required: 'requerido',
+    optional: 'opcional',
+    selectOption: 'seleccionar opción',
+    pleaseSelect: 'por favor selecciona'
   },
   en: {
     // Basic navigation
@@ -206,12 +254,19 @@ export const translations = {
     edit: 'edit',
     delete: 'delete',
     create: 'create',
+    createNew: 'create new',
     update: 'update',
     refresh: 'refresh',
     search: 'search',
     filter: 'filter',
     export: 'export',
+    exportPDF: 'export PDF',
     import: 'import',
+    back: 'back',
+    view: 'view',
+    actions: 'actions',
+    duplicateRecord: 'duplicate record',
+    downloadPDF: 'download PDF',
     
     // States
     active: 'active',
@@ -223,6 +278,7 @@ export const translations = {
     success: 'success',
     warning: 'warning',
     info: 'info',
+    status: 'status',
     
     // Forms
     name: 'name',
@@ -235,16 +291,20 @@ export const translations = {
     country: 'country',
     zipCode: 'zip code',
     date: 'date',
+    startDate: 'start date',
     time: 'time',
     description: 'description',
     notes: 'notes',
     comments: 'comments',
+    employeeName: 'employee name',
+    originCenter: 'origin center',
     
     // System messages
     welcomeBack: 'welcome back',
     loginWith: 'login with',
     microsoft: 'microsoft',
     verifyingCredentials: 'verifying credentials',
+    verifyingAccount: 'verifying account',
     pleaseWait: 'please wait',
     
     // Specific navigation
@@ -258,6 +318,14 @@ export const translations = {
     practiceEvaluations: 'practice evaluations',
     exitInterviews: 'exit interviews',
     checkers: 'checkers',
+    
+    // Specific management
+    changeSheetsManagement: 'change sheets management',
+    hojasCambio: 'change sheets',
+    changeSheetDetails: 'change sheet details',
+    employeeAgreementDetails: 'employee agreement details',
+    detailViewPlaceholder: 'Detail view under development',
+    comingSoon: 'coming soon',
     
     // User management and permissions
     userProfile: 'user profile',
@@ -294,6 +362,9 @@ export const translations = {
     formation: 'training',
     finalEvaluation: 'final evaluation',
     rating: 'rating',
+    linkGenerated: 'link generated',
+    linkGeneratedDescription: 'the link has been copied to clipboard',
+    errorGeneratingLink: 'error generating link',
     
     // Specific states
     apt: 'suitable',
@@ -351,6 +422,31 @@ export const translations = {
     
     // Specific Technical Management
     gestionTecnica: 'technical management',
-    gestionTalento: 'talent management'
+    gestionTalento: 'talent management',
+    
+    // Maintenance calendar
+    maintenanceCalendarGeneration: 'maintenance calendar generation',
+    generateCalendar: 'generate calendar',
+    calendarGenerated: 'calendar generated',
+    monthlyHours: 'monthly hours',
+    annualHours: 'annual hours',
+    
+    // Practice evaluation - form
+    practiceEvaluationForm: 'practice evaluation form',
+    studentData: 'student data',
+    tutorData: 'tutor data',
+    evaluationData: 'evaluation data',
+    submitEvaluation: 'submit evaluation',
+    evaluationSubmitted: 'evaluation submitted',
+    evaluationSubmittedDescription: 'the evaluation has been submitted successfully',
+    errorSubmittingEvaluation: 'error submitting evaluation',
+    invalidLink: 'invalid link',
+    evaluationNotFound: 'evaluation not found',
+    
+    // New translations for forms
+    required: 'required',
+    optional: 'optional',
+    selectOption: 'select option',
+    pleaseSelect: 'please select'
   }
 };

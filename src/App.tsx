@@ -64,11 +64,11 @@ function App() {
   }
 
   if (isVerifying) {
-    return <VerificationScreen />;
+    return <VerificationScreen language={language} />;
   }
 
   if (!isAuthenticated || !user) {
-    return <LoginScreen onLogin={loginWithMicrosoft} />;
+    return <LoginScreen onLogin={loginWithMicrosoft} isLoading={isLoading} language={language} />;
   }
 
   return (
