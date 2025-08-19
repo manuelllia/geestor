@@ -24,7 +24,6 @@ export const translations = {
     departmentPermissions: 'Permisos de Departamento',
     operations: 'Operaciones',
     technicalManagement: 'Gestión Técnica',
-    talentManagement: 'Gestión de Talento',
     actionPermissions: 'Permisos de Acciones',
     create: 'Crear',
     modify: 'Modificar',
@@ -56,8 +55,22 @@ export const translations = {
     // Exit Interviews
     exitInterviews: 'Entrevistas de Salida',
     
-    // Change Sheets
+    // Change Sheets - Adding all missing keys
     changeSheets: 'Hojas de Cambio',
+    changeSheetsManagement: 'Gestión de Hojas de Cambio',
+    hojasCambio: 'Hojas de Cambio',
+    employeeName: 'Nombre del Empleado',
+    employeeLastName: 'Apellidos del Empleado',
+    newPosition: 'Nueva Posición',
+    newSupervisorName: 'Nombre del Nuevo Supervisor',
+    newSupervisorLastName: 'Apellidos del Nuevo Supervisor',
+    originCenter: 'Centro de Origen',
+    startDate: 'Fecha de Inicio',
+    status: 'Estado',
+    actions: 'Acciones',
+    createNew: 'Crear Nuevo',
+    duplicateRecord: 'Duplicar Registro',
+    downloadPDF: 'Descargar PDF',
     
     // Contract Requests
     contractRequests: 'Solicitudes de Contrato',
@@ -152,7 +165,6 @@ export const translations = {
     departmentPermissions: 'Department Permissions',
     operations: 'Operations',
     technicalManagement: 'Technical Management',
-    talentManagement: 'Talent Management',
     actionPermissions: 'Action Permissions',
     create: 'Create',
     modify: 'Modify',
@@ -184,8 +196,22 @@ export const translations = {
     // Exit Interviews
     exitInterviews: 'Exit Interviews',
     
-    // Change Sheets
+    // Change Sheets - Adding all missing keys
     changeSheets: 'Change Sheets',
+    changeSheetsManagement: 'Change Sheets Management',
+    hojasCambio: 'Change Sheets',
+    employeeName: 'Employee Name',
+    employeeLastName: 'Employee Last Name',
+    newPosition: 'New Position',
+    newSupervisorName: 'New Supervisor Name',
+    newSupervisorLastName: 'New Supervisor Last Name',
+    originCenter: 'Origin Center',
+    startDate: 'Start Date',
+    status: 'Status',
+    actions: 'Actions',
+    createNew: 'Create New',
+    duplicateRecord: 'Duplicate Record',
+    downloadPDF: 'Download PDF',
     
     // Contract Requests
     contractRequests: 'Contract Requests',
