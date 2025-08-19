@@ -7,10 +7,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-// Eliminamos Select y sus subcomponentes
-// import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { Loader2, CheckCircle, AlertCircle, CheckIcon, CaretSortIcon } from 'lucide-react'; // Añadimos CheckIcon y CaretSortIcon
+import { Loader2, CheckCircle, AlertCircle, Check, ChevronsUpDown } from 'lucide-react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -20,10 +19,9 @@ import { savePracticeEvaluation } from '../services/practiceEvaluationService';
 // Importamos componentes para el ComboBox
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { cn } from '@/lib/utils'; // Necesario para combinar clases de Tailwind (si no lo tienes, puedes agregarlo o usar 'clsx')
+import { cn } from '@/lib/utils';
 
-
-// Esquema Zod (sin cambios si ya funciona con los nombres de campo actualizados)
+// Esquema Zod actualizado para que todos los campos requeridos tengan valores por defecto
 const practiceEvaluationSchema = z.object({
   tutorName: z.string().min(1, 'El nombre del tutor es obligatorio'),
   tutorLastName: z.string().min(1, 'Los apellidos del tutor son obligatorios'),
@@ -85,9 +83,7 @@ export default function PracticeEvaluationForm() {
   const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const { workCenters, isLoading: isLoadingWorkCenters, error: workCentersError } = useWorkCenters();
-  // NUEVO ESTADO: Para controlar la apertura del ComboBox
   const [openWorkCenterCombobox, setOpenWorkCenterCombobox] = useState(false);
-
 
   const {
     control,
@@ -96,6 +92,14 @@ export default function PracticeEvaluationForm() {
   } = useForm<PracticeEvaluationFormType>({
     resolver: zodResolver(practiceEvaluationSchema),
     defaultValues: {
+      tutorName: '',
+      tutorLastName: '',
+      workCenter: '',
+      studentName: '',
+      studentLastName: '',
+      formation: '',
+      institution: '',
+      practices: '',
       travelAvailability: [],
       residenceChange: 'No',
       englishLevel: '',
@@ -104,6 +108,7 @@ export default function PracticeEvaluationForm() {
       practicalTraining: '',
       observations: '',
       evaluationDate: new Date().toISOString().split('T')[0],
+      evaluatorName: '',
       
       competencies: {
         meticulousness: 5, teamwork: 5, adaptability: 5, stressTolerance: 5, verbalCommunication: 5,
@@ -118,15 +123,36 @@ export default function PracticeEvaluationForm() {
         toolUsage: 5,
       },
       performanceRating: 5,
-      evaluatorName: '',
+      performanceJustification: '',
     }
   });
 
   const onSubmit = async (data: PracticeEvaluationFormType) => {
     setIsLoadingSubmit(true);
     try {
+      // Convertimos explícitamente todos los campos requeridos
       const dataToSend = {
-        ...data,
+        tutorName: data.tutorName,
+        tutorLastName: data.tutorLastName,
+        workCenter: data.workCenter,
+        studentName: data.studentName,
+        studentLastName: data.studentLastName,
+        formation: data.formation,
+        institution: data.institution,
+        practices: data.practices,
+        competencies: data.competencies,
+        organizationalSkills: data.organizationalSkills,
+        technicalSkills: data.technicalSkills,
+        travelAvailability: data.travelAvailability || [],
+        residenceChange: data.residenceChange,
+        englishLevel: data.englishLevel,
+        performanceRating: data.performanceRating,
+        performanceJustification: data.performanceJustification,
+        finalEvaluation: data.finalEvaluation,
+        futureInterest: data.futureInterest || '',
+        practicalTraining: data.practicalTraining || '',
+        observations: data.observations || '',
+        evaluatorName: data.evaluatorName,
         evaluationDate: new Date(data.evaluationDate),
       };
       
@@ -142,7 +168,6 @@ export default function PracticeEvaluationForm() {
     }
   };
 
-  // --- Renderizado Condicional ---
   if (isSubmitted) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
@@ -265,7 +290,7 @@ export default function PracticeEvaluationForm() {
                             {field.value
                               ? workCenters.find((center) => center.displayText === field.value)?.displayText
                               : "Seleccione un centro de trabajo..."}
-                            <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
@@ -277,15 +302,14 @@ export default function PracticeEvaluationForm() {
                                 {workCenters.map((center) => (
                                   <CommandItem
                                     key={center.id}
-                                    value={center.displayText} // El valor usado para buscar y comparar
+                                    value={center.displayText}
                                     onSelect={(currentValue) => {
-                                      // Si el valor seleccionado es el mismo que el actual, deselecciónalo
                                       field.onChange(currentValue === field.value ? "" : currentValue);
-                                      setOpenWorkCenterCombobox(false); // Cierra el popover después de la selección
+                                      setOpenWorkCenterCombobox(false);
                                     }}
                                   >
                                     {center.displayText}
-                                    <CheckIcon
+                                    <Check
                                       className={cn(
                                         "ml-auto h-4 w-4",
                                         field.value === center.displayText ? "opacity-100" : "opacity-0"
@@ -306,7 +330,7 @@ export default function PracticeEvaluationForm() {
                 </div>
               </div>
 
-              {/* Resto del formulario (sin cambios) */}
+              {/* Datos del Alumno */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-blue-600 dark:text-blue-300">
                   Datos del Alumno

@@ -1,7 +1,11 @@
+
 // src/hooks/useWorkCenters.ts
 import { useState, useEffect } from 'react';
 // Asegúrate de importar WorkCenter y getWorkCenters desde el servicio
 import { getWorkCenters, WorkCenter } from '../services/workCentersService';
+
+// Exportamos el tipo WorkCenter para que pueda ser usado en otros archivos
+export type { WorkCenter };
 
 export const useWorkCenters = () => {
   const [workCenters, setWorkCenters] = useState<WorkCenter[]>([]);
