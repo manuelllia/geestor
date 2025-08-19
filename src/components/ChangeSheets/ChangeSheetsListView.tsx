@@ -1,15 +1,19 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Eye, Copy, Download, Plus, Upload, FileDown, RefreshCw, AlertCircle } from 'lucide-react';
+import { Eye, Copy, Download, Plus, Upload, FileDown, RefreshCw, AlertCircle, Edit } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Language } from '../../utils/translations';
 import ChangeSheetCreateForm from './ChangeSheetCreateForm';
+import ChangeSheetDetailView from './ChangeSheetDetailView';
 import ImportChangeSheetsModal from './ImportChangeSheetsModal';
-import { getChangeSheets, ChangeSheetRecord } from '../../services/changeSheetsService';
+import { getChangeSheets, ChangeSheetRecord, duplicateChangeSheet, exportChangeSheetsToCSV } from '../../services/changeSheetsService';
 import { useUserPermissions } from '../../hooks/useUserPermissions';
+import jsPDF from 'jspdf';
 
 interface ChangeSheetsListViewProps {
   language: Language;
@@ -26,6 +30,11 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({
   const { permissions, isLoading: permissionsLoading } = useUserPermissions();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
+  const [showDetailView, setShowDetailView] = useState(false);
+  const [selectedSheetId, setSelectedSheetId] = useState<string | null>(null);
+  const [editingSheet, setEditingSheet] = useState<ChangeSheetRecord | null>(null);
+  const [showDuplicateModal, setShowDuplicateModal] = useState(false);
+  const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [changeSheets, setChangeSheets] = useState<ChangeSheetRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -61,16 +70,155 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({
   const endIndex = Math.min(startIndex + itemsPerPage, changeSheets.length);
   const currentData = changeSheets.slice(startIndex, endIndex);
 
+  const handleViewDetails = (id: string) => {
+    setSelectedSheetId(id);
+    setShowDetailView(true);
+  };
+
+  const handleEdit = (sheet: ChangeSheetRecord) => {
+    setEditingSheet(sheet);
+    setShowCreateForm(true);
+  };
+
   const handleDuplicate = (id: string) => {
-    console.log('Duplicar registro:', id);
+    setDuplicatingId(id);
+    setShowDuplicateModal(true);
   };
 
-  const handleDownloadPDF = (id: string) => {
-    console.log('Descargar PDF:', id);
+  const confirmDuplicate = async () => {
+    if (!duplicatingId) return;
+    
+    try {
+      await duplicateChangeSheet(duplicatingId);
+      setShowDuplicateModal(false);
+      setDuplicatingId(null);
+      await loadChangeSheets(); // Recargar la lista
+      console.log('Registro duplicado correctamente');
+    } catch (error) {
+      console.error('Error al duplicar:', error);
+      alert('Error al duplicar el registro');
+    }
   };
 
-  const handleExport = () => {
-    console.log('Exportar datos');
+  const handleDownloadPDF = (sheet: ChangeSheetRecord) => {
+    const pdf = new jsPDF();
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    let yPosition = 20;
+
+    // Título
+    pdf.setFontSize(18);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Hoja de Cambio de Empleado', pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 20;
+
+    // Información del empleado
+    pdf.setFontSize(14);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('INFORMACIÓN DEL EMPLEADO', 20, yPosition);
+    yPosition += 10;
+
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text(`Nombre: ${sheet.employeeName} ${sheet.employeeLastName}`, 20, yPosition);
+    yPosition += 8;
+    pdf.text(`Centro de Origen: ${sheet.originCenter}`, 20, yPosition);
+    yPosition += 8;
+    pdf.text(`Posición Actual: ${sheet.currentPosition}`, 20, yPosition);
+    yPosition += 15;
+
+    // Supervisor actual
+    pdf.setFontSize(14);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('SUPERVISOR ACTUAL', 20, yPosition);
+    yPosition += 10;
+
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text(`Nombre: ${sheet.currentSupervisorName} ${sheet.currentSupervisorLastName}`, 20, yPosition);
+    yPosition += 15;
+
+    // Nueva posición
+    pdf.setFontSize(14);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('NUEVA POSICIÓN', 20, yPosition);
+    yPosition += 10;
+
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text(`Posición: ${sheet.newPosition}`, 20, yPosition);
+    yPosition += 8;
+    pdf.text(`Supervisor: ${sheet.newSupervisorName} ${sheet.newSupervisorLastName}`, 20, yPosition);
+    yPosition += 8;
+    pdf.text(`Fecha de Inicio: ${sheet.startDate ? sheet.startDate.toLocaleDateString() : 'No especificada'}`, 20, yPosition);
+    yPosition += 15;
+
+    // Detalles del cambio
+    pdf.setFontSize(14);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('DETALLES DEL CAMBIO', 20, yPosition);
+    yPosition += 10;
+
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text(`Tipo de Cambio: ${sheet.changeType === 'permanent' ? 'Permanente' : 'Temporal'}`, 20, yPosition);
+    yPosition += 8;
+    pdf.text(`Empresa Actual: ${sheet.currentCompany}`, 20, yPosition);
+    yPosition += 8;
+    pdf.text(`Cambio de Empresa: ${sheet.companyChange === 'yes' ? 'Sí' : 'No'}`, 20, yPosition);
+    yPosition += 8;
+    pdf.text(`Estado: ${sheet.status}`, 20, yPosition);
+    yPosition += 15;
+
+    // Necesidades
+    if (sheet.needs.length > 0) {
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('NECESIDADES', 20, yPosition);
+      yPosition += 10;
+
+      pdf.setFontSize(11);
+      pdf.setFont('helvetica', 'normal');
+      sheet.needs.forEach(need => {
+        pdf.text(`• ${need}`, 20, yPosition);
+        yPosition += 8;
+      });
+      yPosition += 7;
+    }
+
+    // Observaciones
+    if (sheet.observations) {
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('OBSERVACIONES', 20, yPosition);
+      yPosition += 10;
+
+      pdf.setFontSize(11);
+      pdf.setFont('helvetica', 'normal');
+      const splitObservations = pdf.splitTextToSize(sheet.observations, pageWidth - 40);
+      pdf.text(splitObservations, 20, yPosition);
+      yPosition += splitObservations.length * 6;
+    }
+
+    // Información de creación
+    yPosition += 10;
+    pdf.setFontSize(10);
+    pdf.setFont('helvetica', 'italic');
+    pdf.text(`Creado: ${sheet.createdAt.toLocaleDateString()}`, 20, yPosition);
+    yPosition += 6;
+    pdf.text(`Última actualización: ${sheet.updatedAt.toLocaleDateString()}`, 20, yPosition);
+
+    // Descargar
+    pdf.save(`Hoja_Cambio_${sheet.employeeName}_${sheet.employeeLastName}_${sheet.id}.pdf`);
+  };
+
+  const handleExport = async () => {
+    try {
+      await exportChangeSheetsToCSV();
+      console.log('Datos exportados correctamente');
+    } catch (error) {
+      console.error('Error al exportar:', error);
+      alert('Error al exportar los datos');
+    }
   };
 
   const handleRefresh = () => {
@@ -90,16 +238,38 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({
     return date.toLocaleDateString(language === 'es' ? 'es-ES' : 'en-US');
   };
 
+  if (showDetailView && selectedSheetId) {
+    return (
+      <ChangeSheetDetailView
+        language={language}
+        sheetId={selectedSheetId}
+        onBack={() => {
+          setShowDetailView(false);
+          setSelectedSheetId(null);
+          loadChangeSheets(); // Recargar en caso de que se haya eliminado
+        }}
+        onDelete={() => {
+          setShowDetailView(false);
+          setSelectedSheetId(null);
+          loadChangeSheets();
+        }}
+      />
+    );
+  }
+
   if (showCreateForm) {
     return (
       <ChangeSheetCreateForm 
         language={language} 
+        editingSheet={editingSheet}
         onBack={() => {
           setShowCreateForm(false);
-          loadChangeSheets(); // Recargar datos después de crear
+          setEditingSheet(null);
+          loadChangeSheets(); // Recargar datos después de crear/editar
         }}
         onSave={() => {
           setShowCreateForm(false);
+          setEditingSheet(null);
           loadChangeSheets(); // Recargar datos después de guardar
         }}
       />
@@ -127,7 +297,10 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({
           
           {canCreate && (
             <Button
-              onClick={() => setShowCreateForm(true)}
+              onClick={() => {
+                setEditingSheet(null);
+                setShowCreateForm(true);
+              }}
               className="bg-blue-600 hover:bg-blue-700 text-white"
             >
               <Plus className="w-4 h-4 mr-2" />
@@ -258,26 +431,36 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => onViewDetails(sheet.id)}
+                                onClick={() => handleViewDetails(sheet.id)}
                                 title={t('view')}
                               >
                                 <Eye className="w-4 h-4" />
                               </Button>
                             )}
                             {canModify && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleDuplicate(sheet.id)}
-                                title={t('duplicateRecord')}
-                              >
-                                <Copy className="w-4 h-4" />
-                              </Button>
+                              <>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleEdit(sheet)}
+                                  title="Editar registro"
+                                >
+                                  <Edit className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleDuplicate(sheet.id)}
+                                  title={t('duplicateRecord')}
+                                >
+                                  <Copy className="w-4 h-4" />
+                                </Button>
+                              </>
                             )}
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => handleDownloadPDF(sheet.id)}
+                              onClick={() => handleDownloadPDF(sheet)}
                               title={t('downloadPDF')}
                             >
                               <Download className="w-4 h-4" />
@@ -349,6 +532,26 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({
           )}
         </CardContent>
       </Card>
+
+      {/* Modal de confirmación de duplicado */}
+      <Dialog open={showDuplicateModal} onOpenChange={setShowDuplicateModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirmar Duplicación</DialogTitle>
+            <DialogDescription>
+              ¿Estás seguro de que deseas duplicar este registro? Se creará una copia con estado "Pendiente".
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDuplicateModal(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={confirmDuplicate} className="bg-blue-600 hover:bg-blue-700">
+              Duplicar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Modal de importación */}
       <ImportChangeSheetsModal
