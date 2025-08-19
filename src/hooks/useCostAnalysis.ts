@@ -60,8 +60,7 @@ const responseSchema = {
         properties: {
           formulaOriginal: { type: "string" },
           representacionLatex: { type: "string" },
-          descripcionVariables: { type: "string" },
-          condicionesLogicas: { type: "string" }
+          descripcionVariables: { type: "string" }
         },
         required: ["formulaOriginal", "representacionLatex", "descripcionVariables"]
       }
@@ -150,79 +149,46 @@ export const useCostAnalysis = () => {
   };
 
   const createAnalysisPrompt = (): string => {
-    return `Actúa como un prestigioso matemático y un experto consultor especializado en licitaciones públicas de electromedicina en España. Tu tarea es analizar los documentos PDF proporcionados: un Pliego de Cláusulas Administrativas Particulares (PCAP) y un Pliego de Prescripciones Técnicas (PPT).
+    return `Actúa como un experto consultor especializado en licitaciones públicas de electromedicina en España. Tu tarea es analizar los documentos PDF proporcionados: un Pliego de Cláusulas Administrativas Particulares (PCAP) y un Pliego de Prescripciones Técnicas (PPT).
 
-**Instrucción de Idioma (CRÍTICA):** Los documentos de entrada (PCAP y PPT) pueden estar escritos en español, catalán, gallego, euskera (vasco), valenciano o inglés. Independientemente del idioma de origen, TU RESPUESTA Y TODOS LOS DATOS EXTRAÍDOS en el JSON final DEBEN ESTAR OBLIGATORIAMENTE EN ESPAÑOL. Realiza la traducción necesaria para todos los campos.
+**Instrucción de Idioma:** Los documentos pueden estar en español, catalán, gallego, euskera, valenciano o inglés. Tu respuesta DEBE estar SIEMPRE en español.
 
-Extrae únicamente la información verificable presente en los textos proporcionados para rellenar la estructura JSON solicitada. No incluyas explicaciones, introducciones o conclusiones fuera del objeto JSON.
+Extrae únicamente la información verificable presente en los textos para rellenar la estructura JSON solicitada. 
 
 **Análisis de Lotes:**
-1.  **Detecta si es por lotes:** Primero, determina si la licitación está explícitamente dividida en lotes. Establece el campo 'esPorLotes' en 'true' si es así, y en 'false' en caso contrario.
-2.  **Si es por lotes:** Rellena el array 'lotes'. Para cada lote identificado, extrae: 'nombre', 'centroAsociado', 'descripcion', 'presupuesto' (string numérico sin IVA), y 'requisitosClave'.
-3.  **Si NO es por lotes:** El array 'lotes' debe quedar vacío ([]).
+1. Detecta si la licitación está dividida en lotes (esPorLotes: true/false)
+2. Si hay lotes, extrae para cada uno: nombre, centroAsociado, descripcion, presupuesto (sin IVA), requisitosClave
 
----
-**TAREA CRÍTICA 1: ANÁLISIS DE VARIABLES DINÁMICAS (NUEVO)**
-Antes de analizar la fórmula económica principal, tu primera tarea es identificar las variables que se usan en ella.
-1.  **Detecta Variables:** Identifica todas las variables utilizadas en la fórmula de puntuación económica (ej. "Plic", "Pmax", "Oferta_i", "B").
-2.  **Define y Mapea:** Por cada variable detectada, crea un objeto en el array \`variablesDinamicas\`. Este objeto DEBE tener:
-    *   \`nombre\`: El nombre exacto de la variable tal y como aparece en el pliego (ej: "Plic").
-    *   \`descripcion\`: Una descripción clara de lo que representa la variable (ej: "Presupuesto base de licitación sin IVA").
-    *   \`mapeo\`: Un mapeo ESTRICTO a uno de los siguientes conceptos del sistema: "price", "tenderBudget", "maxScore", "lowestPrice", "averagePrice".
-    
-    **Ejemplo de Salida para \`variablesDinamicas\`:**
-    \`\`\`json
-    "variablesDinamicas": [
-      {
-        "nombre": "P",
-        "descripcion": "Precio de la oferta evaluada",
-        "mapeo": "price"
-      },
-      {
-        "nombre": "Plic",
-        "descripcion": "Presupuesto de la licitación",
-        "mapeo": "tenderBudget"
-      }
-    ]
-    \`\`\`
+**Variables Dinámicas:**
+Identifica las variables de la fórmula económica principal y mapéalas a:
+- "price": precio de la oferta
+- "tenderBudget": presupuesto de licitación  
+- "maxScore": puntuación máxima
+- "lowestPrice": precio más bajo
+- "averagePrice": precio promedio
 
-**TAREA CRÍTICA 2: ANÁLISIS Y DESCOMPOSICIÓN DE FÓRMULAS (AST como String JSON)**
-Una vez identificadas las variables, analiza la fórmula económica principal y descomponla en un Árbol de Sintaxis Abstracta (AST) serializado como una cadena JSON.
-*   **Usa las Variables Detectadas:** En los nodos de tipo "variable" del AST, DEBES usar el \`nombre\` de la variable que has definido en \`variablesDinamicas\`. Por ejemplo, si detectaste "Plic", el nodo variable será \`{ "type": "variable", "name": "Plic" }\`.
-*   **Serialización:** El objeto JSON completo del AST debe ser serializado como una única cadena de texto para el campo \`formulaEconomica\`.
+**Fórmula Económica:**
+Si existe fórmula económica, conviértela a AST JSON como string. Si no existe, usar "{}"
 
-**EJEMPLO COMPLETO:**
-Si la fórmula es \`70 * (1 - (P - Pmin) / (Plic - Pmin))\`, y has detectado que 'P' es el precio de la oferta, 'Pmin' el precio más bajo y 'Plic' el presupuesto:
-1.  \`variablesDinamicas\` contendrá las definiciones de 'P', 'Pmin', y 'Plic'.
-2.  El AST usará estos nombres: \`{"type":"binary_operation","operator":"*","left":{...},"right":{"type":"binary_operation", "operator": "-", "left":{...}, "right":{"type":"binary_operation", "operator":"/", "left": {"type":"variable", "name":"P"},...}}}\`
-3.  El campo \`formulaEconomica\` recibirá este AST como una cadena de texto JSON.
+**Fórmulas Detectadas:**
+Para cada fórmula matemática encontrada:
+- formulaOriginal: fórmula exacta del texto
+- representacionLatex: conversión a LaTeX
+- descripcionVariables: explicación de cada variable
 
-Si no hay fórmula económica principal, \`formulaEconomica\` será un string de objeto vacío ('{}') y \`variablesDinamicas\` un array vacío ([]).
+**Análisis de Criterios:**
+- umbralBajaTemeraria: condiciones para ofertas anormalmente bajas
+- criteriosAutomaticos: criterios objetivos con puntuación
+- criteriosSubjetivos: criterios subjetivos con puntuación  
+- otrosCriterios: otros criterios adicionales
 
----
-**TAREA CRÍTICA 3: ANÁLISIS MATEMÁTICO DE TODAS LAS FÓRMULAS**
-Como matemático, tu misión es identificar, interpretar y catalogar **todas** las fórmulas presentes en los documentos, no solo la fórmula de puntuación económica principal. Esto incluye fórmulas para criterios de mejora, fórmulas de penalización, umbrales calculados, etc.
+**Análisis Económico:**
+- presupuestoGeneral: Presupuesto Base de Licitación total sin IVA
+- costesDetalladosRecomendados: desglose de costes recomendado por categorías
 
-Para cada fórmula matemática que encuentres, sin excepción:
-1.  **Ajusta e Interpreta:** Analiza la fórmula para entender su propósito y componentes. Si la fórmula está escrita de manera ambigua o con texto descriptivo, "ajústala" para representarla en una notación matemática estándar y clara.
-2.  **Cataloga en \`formulasDetectadas\`:** Crea un objeto en el array \`formulasDetectadas\` con los siguientes campos:
-    *   \`formulaOriginal\`: La fórmula EXACTA como está en el texto. Si la has ajustado desde una descripción, pon aquí la versión ajustada y estándar.
-    *   \`representacionLatex\`: Su traducción precisa a formato LaTeX. Presta especial atención a raíces, potencias, fracciones y símbolos. **Ej: \`P = 5 * (Ht – 100)/ 100)\` debe ser \`P = 5 \\times \\frac{(Ht - 100)}{100}\`**.
-    *   \`descripcionVariables\`: Una descripción clara y concisa de CADA variable en la fórmula.
-    *   \`condicionesLogicas\`: Explica cualquier condición lógica, tramo o regla asociada. Por ejemplo: "Esta fórmula solo se aplica si la oferta supera las 100 horas de formación."
+Si un dato no se encuentra, usar "No especificado en los documentos" para strings y arrays vacíos para listas.
 
-Tu objetivo es que un usuario pueda entender perfectamente cómo funciona cada cálculo en la licitación. No omitas ninguna fórmula, por trivial que parezca.
----
-
-**Análisis del Resto de Criterios:**
-*   **'umbralBajaTemeraria':** Describe las condiciones para que una oferta sea considerada anormalmente baja o temeraria.
-*   **'criteriosAutomaticos', 'criteriosSubjetivos', 'otrosCriterios':** Listas detalladas de todos los demás criterios con su descripción y puntuación máxima. La suma de todas las puntuaciones debe ser coherente con el total del pliego.
-
-**Análisis Económico y de Costes:**
-*   **Presupuesto General:** Busca el "Presupuesto Base de Licitación" (PBL) o "Valor Estimado del Contrato" (VEC) **TOTAL**. Extrae su valor numérico **sin IVA** como una cadena de texto.
-*   **Recomendaciones de Costes ('costesDetalladosRecomendados'):** Actúa como un director de operaciones. Tu objetivo es generar un desglose de costes **realista, completo y rentable**.
-
-Regla general: Si un dato no se encuentra, usa "No especificado en los documentos" para strings y arrays vacíos para listas. Para los costes recomendados, omite los campos que no puedas estimar.`;
+IMPORTANTE: Mantén las respuestas concisas para evitar truncamiento. Limita formulasDetectadas a máximo 3 fórmulas principales.`;
   };
 
   const callGeminiAPI = async (pcapFile: File, pptFile: File): Promise<ReportData> => {
@@ -267,7 +233,7 @@ Regla general: Si un dato no se encuentra, usa "No especificado en los documento
             temperature: 0.1,
             topK: 40,
             topP: 0.95,
-            maxOutputTokens: 8192,
+            maxOutputTokens: 6144, // Reducido para evitar truncamiento
             responseMimeType: "application/json",
             responseSchema: responseSchema
           }
@@ -292,10 +258,19 @@ Regla general: Si un dato no se encuentra, usa "No especificado en los documento
       
       let parsedResult: ReportData;
       try {
-        parsedResult = JSON.parse(responseText);
+        // Verificar si el JSON está completo antes de parsear
+        if (!responseText.trim().endsWith('}')) {
+          console.warn('⚠️ JSON truncado detectado, intentando reparar...');
+          // Intentar reparar JSON truncado añadiendo llaves de cierre
+          const repairedJson = responseText.trim() + (responseText.includes('"condicionesLogicas') ? '"}]}' : '"}]}');
+          parsedResult = JSON.parse(repairedJson);
+        } else {
+          parsedResult = JSON.parse(responseText);
+        }
         console.log('✅ JSON parseado correctamente:', parsedResult);
       } catch (parseError) {
         console.error('❌ Error al parsear JSON:', parseError);
+        console.error('📝 Texto problemático:', responseText);
         throw new Error('Error al parsear la respuesta de la IA');
       }
 
