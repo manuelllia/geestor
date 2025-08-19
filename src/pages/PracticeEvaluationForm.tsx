@@ -9,19 +9,15 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { Loader2, CheckCircle, AlertCircle, Check, ChevronsUpDown } from 'lucide-react';
+import { Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useWorkCenters, WorkCenter } from '../hooks/useWorkCenters';
+// CAMBIO: Asegúrate de que esta importación sea correcta y que WorkCenter venga de tu hook
+import { useWorkCenters, WorkCenter } from '../hooks/useWorkCenters'; 
 import { savePracticeEvaluation } from '../services/practiceEvaluationService';
 
-// Importamos componentes para el ComboBox
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { cn } from '@/lib/utils';
-
-// Esquema Zod actualizado para que todos los campos requeridos tengan valores por defecto
+// Esquema Zod (sin cambios si ya funciona con los nombres de campo actualizados)
 const practiceEvaluationSchema = z.object({
   tutorName: z.string().min(1, 'El nombre del tutor es obligatorio'),
   tutorLastName: z.string().min(1, 'Los apellidos del tutor son obligatorios'),
@@ -82,8 +78,8 @@ export default function PracticeEvaluationForm() {
   const navigate = useNavigate();
   const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  // CAMBIO: Obtener 'error' del hook useWorkCenters
   const { workCenters, isLoading: isLoadingWorkCenters, error: workCentersError } = useWorkCenters();
-  const [openWorkCenterCombobox, setOpenWorkCenterCombobox] = useState(false);
 
   const {
     control,
@@ -92,14 +88,6 @@ export default function PracticeEvaluationForm() {
   } = useForm<PracticeEvaluationFormType>({
     resolver: zodResolver(practiceEvaluationSchema),
     defaultValues: {
-      tutorName: '',
-      tutorLastName: '',
-      workCenter: '',
-      studentName: '',
-      studentLastName: '',
-      formation: '',
-      institution: '',
-      practices: '',
       travelAvailability: [],
       residenceChange: 'No',
       englishLevel: '',
@@ -108,7 +96,6 @@ export default function PracticeEvaluationForm() {
       practicalTraining: '',
       observations: '',
       evaluationDate: new Date().toISOString().split('T')[0],
-      evaluatorName: '',
       
       competencies: {
         meticulousness: 5, teamwork: 5, adaptability: 5, stressTolerance: 5, verbalCommunication: 5,
@@ -123,36 +110,15 @@ export default function PracticeEvaluationForm() {
         toolUsage: 5,
       },
       performanceRating: 5,
-      performanceJustification: '',
+      evaluatorName: '',
     }
   });
 
   const onSubmit = async (data: PracticeEvaluationFormType) => {
     setIsLoadingSubmit(true);
     try {
-      // Convertimos explícitamente todos los campos requeridos
       const dataToSend = {
-        tutorName: data.tutorName,
-        tutorLastName: data.tutorLastName,
-        workCenter: data.workCenter,
-        studentName: data.studentName,
-        studentLastName: data.studentLastName,
-        formation: data.formation,
-        institution: data.institution,
-        practices: data.practices,
-        competencies: data.competencies,
-        organizationalSkills: data.organizationalSkills,
-        technicalSkills: data.technicalSkills,
-        travelAvailability: data.travelAvailability || [],
-        residenceChange: data.residenceChange,
-        englishLevel: data.englishLevel,
-        performanceRating: data.performanceRating,
-        performanceJustification: data.performanceJustification,
-        finalEvaluation: data.finalEvaluation,
-        futureInterest: data.futureInterest || '',
-        practicalTraining: data.practicalTraining || '',
-        observations: data.observations || '',
-        evaluatorName: data.evaluatorName,
+        ...data,
         evaluationDate: new Date(data.evaluationDate),
       };
       
@@ -168,6 +134,7 @@ export default function PracticeEvaluationForm() {
     }
   };
 
+  // --- Renderizado Condicional ---
   if (isSubmitted) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
@@ -189,6 +156,7 @@ export default function PracticeEvaluationForm() {
     );
   }
 
+  // CAMBIO: Mostrar un mensaje de error si los centros de trabajo no se cargaron
   if (workCentersError) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
@@ -205,6 +173,7 @@ export default function PracticeEvaluationForm() {
     );
   }
 
+  // CAMBIO: Mostrar spinner mientras cargan los centros de trabajo
   if (isLoadingWorkCenters) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
@@ -276,52 +245,19 @@ export default function PracticeEvaluationForm() {
                     name="workCenter"
                     control={control}
                     render={({ field }) => (
-                      <Popover open={openWorkCenterCombobox} onOpenChange={setOpenWorkCenterCombobox}>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            role="combobox"
-                            aria-expanded={openWorkCenterCombobox}
-                            className={cn(
-                              "w-full justify-between",
-                              errors.workCenter && "border-red-500"
-                            )}
-                          >
-                            {field.value
-                              ? workCenters.find((center) => center.displayText === field.value)?.displayText
-                              : "Seleccione un centro de trabajo..."}
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
-                          <Command>
-                            <CommandInput placeholder="Buscar centro de trabajo..." className="h-9" />
-                            <CommandEmpty>No se encontró ningún centro.</CommandEmpty>
-                            <CommandList>
-                              <CommandGroup>
-                                {workCenters.map((center) => (
-                                  <CommandItem
-                                    key={center.id}
-                                    value={center.displayText}
-                                    onSelect={(currentValue) => {
-                                      field.onChange(currentValue === field.value ? "" : currentValue);
-                                      setOpenWorkCenterCombobox(false);
-                                    }}
-                                  >
-                                    {center.displayText}
-                                    <Check
-                                      className={cn(
-                                        "ml-auto h-4 w-4",
-                                        field.value === center.displayText ? "opacity-100" : "opacity-0"
-                                      )}
-                                    />
-                                  </CommandItem>
-                                ))}
-                              </CommandGroup>
-                            </CommandList>
-                          </Command>
-                        </PopoverContent>
-                      </Popover>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <SelectTrigger className={errors.workCenter ? 'border-red-500' : ''}>
+                          <SelectValue placeholder="Seleccione un centro de trabajo" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {/* CAMBIO: Usar id y displayText de WorkCenter */}
+                          {workCenters.map((center: WorkCenter) => (
+                            <SelectItem key={center.id} value={center.displayText}>
+                              {center.displayText}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     )}
                   />
                   {errors.workCenter && (
@@ -812,7 +748,7 @@ export default function PracticeEvaluationForm() {
                 </Button>
                 <Button
                   type="submit"
-                  disabled={isLoadingSubmit}
+                  disabled={isLoadingSubmit} // Usamos isLoadingSubmit para el botón de enviar
                   className="bg-blue-600 hover:bg-blue-700"
                 >
                   {isLoadingSubmit ? (
