@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,7 +15,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useWorkCenters } from '../hooks/useWorkCenters';
-import { savePracticeEvaluation } from '../services/practiceEvaluationService';
+import { savePracticeEvaluation, PracticeEvaluationData } from '../services/practiceEvaluationService';
 
 // Esquema Zod ajustado para coincidir exactamente con la interfaz del servicio
 const practiceEvaluationSchema = z.object({
@@ -131,9 +132,29 @@ export default function PracticeEvaluationForm() {
   const onSubmit = async (data: PracticeEvaluationFormType) => {
     setIsLoading(true);
     try {
-      // Convertir la fecha de string a Date antes de enviar al servicio
-      const dataToSend = {
-        ...data,
+      // Asegurar que todos los campos requeridos tengan valores válidos
+      const dataToSend: PracticeEvaluationData = {
+        tutorName: data.tutorName,
+        tutorLastName: data.tutorLastName,
+        workCenter: data.workCenter,
+        studentName: data.studentName,
+        studentLastName: data.studentLastName,
+        formation: data.formation,
+        institution: data.institution,
+        practices: data.practices,
+        competencies: data.competencies,
+        organizationalSkills: data.organizationalSkills,
+        technicalSkills: data.technicalSkills,
+        travelAvailability: data.travelAvailability,
+        residenceChange: data.residenceChange,
+        englishLevel: data.englishLevel,
+        performanceRating: data.performanceRating,
+        performanceJustification: data.performanceJustification,
+        finalEvaluation: data.finalEvaluation,
+        futureInterest: data.futureInterest,
+        practicalTraining: data.practicalTraining,
+        observations: data.observations,
+        evaluatorName: data.evaluatorName,
         evaluationDate: new Date(data.evaluationDate),
       };
       
