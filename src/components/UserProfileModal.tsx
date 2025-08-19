@@ -1,5 +1,4 @@
-
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,16 +6,62 @@ import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { User, Camera, Shield, Building, Edit, CheckCircle, UserPlus, LogOut } from 'lucide-react';
-import { User as UserType } from '../types/auth';
+import { User, Camera, Shield, Building, Edit, CheckCircle, UserPlus, LogOut, Loader2, AlertCircle, Eye } from 'lucide-react'; // Añadir Eye para 'ver'
 import { useTranslation } from '../hooks/useTranslation';
 import { Language } from '../utils/translations';
 
+// --- INICIO DE CÓDIGO CONSOLIDADO DE authService.ts ---
+
+// Importaciones de Firebase Firestore y Auth
+import { getAuth, onAuthStateChanged, signOut, User as FirebaseAuthUser } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../lib/firebase'; // Asegúrate de que esta ruta sea correcta para tu instancia de db
+
+// Interfaz para el usuario de la aplicación
+export interface AppUser {
+  uid: string;
+  email: string | null;
+  name: string;
+  profilePicture: string | null;
+  // Puedes añadir otros campos que tu aplicación necesite aquí si los obtienes de Firebase Auth o un perfil de usuario
+}
+
+// Interfaz para los permisos tal como los obtendremos de Firestore
+export interface UserFirestorePermissions {
+  Per_Ope?: boolean; // Operaciones
+  Per_view?: boolean; // Ver
+  Per_Modificate?: boolean; // Modificar
+  Per_GT?: boolean; // Gestión Técnica
+  Per_GDT?: boolean; // Gestión de Talento
+  Per_Delete?: boolean; // Eliminar
+  Per_Create?: boolean; // Crear
+}
+
+// Función para obtener los permisos de Firestore para un UID dado
+export const getUserPermissionsFromFirestore = async (uid: string): Promise<UserFirestorePermissions | null> => {
+  try {
+    // Ruta a los permisos: Usuarios (colección) -> Informacion (documento) -> [uid] (subcolección) -> [uid] (documento)
+    const permissionsDocRef = doc(db, "Usuarios", "Informacion", uid, uid);
+    const docSnap = await getDoc(permissionsDocRef);
+
+    if (docSnap.exists()) {
+      return docSnap.data() as UserFirestorePermissions;
+    } else {
+      console.warn(`Documento de permisos no encontrado en Firestore para UID: ${uid}. Verifique la ruta o la existencia del documento.`);
+      return null;
+    }
+  } catch (error) {
+    console.error("Error al obtener permisos de Firestore:", error);
+    throw new Error("No se pudieron cargar los permisos del usuario desde Firestore.");
+  }
+};
+
+// --- FIN DE CÓDIGO CONSOLIDADO DE authService.ts ---
+
 interface UserProfileModalProps {
-  user: UserType;
+  user: AppUser; // CAMBIO: Usar la interfaz AppUser importada
   language: Language;
-  onUserUpdate: (updatedUser: UserType) => void;
-  onPermissionsUpdate?: () => void;
+  onUserUpdate: (updatedUser: AppUser) => void;
   onLogout: () => void;
   children: React.ReactNode;
 }
@@ -25,7 +70,6 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
   user, 
   language, 
   onUserUpdate,
-  onPermissionsUpdate,
   onLogout,
   children 
 }) => {
@@ -37,21 +81,35 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
     email: user.email,
     profilePicture: user.profilePicture
   });
-  const [permissions, setPermissions] = useState(() => {
-    const stored = localStorage.getItem('userPermissions');
-    return stored ? JSON.parse(stored) : {
-      departments: {
-        operaciones: true,
-        gestionTecnica: true,
-        gestionTalento: true
-      },
-      actions: {
-        create: true,
-        edit: true,
-        delete: true
-      }
-    };
-  });
+
+  // Estados para los permisos obtenidos de Firestore
+  const [userPermissions, setUserPermissions] = useState<UserFirestorePermissions | null>(null);
+  const [loadingPermissions, setLoadingPermissions] = useState(false);
+  const [permissionsError, setPermissionsError] = useState<string | null>(null);
+
+  // Efecto para cargar los permisos cuando el modal se abre y el user.uid está disponible
+  useEffect(() => {
+    if (isOpen && user?.uid) {
+      const fetchPermissions = async () => {
+        setLoadingPermissions(true);
+        setPermissionsError(null);
+        try {
+          const fetchedPermissions = await getUserPermissionsFromFirestore(user.uid);
+          setUserPermissions(fetchedPermissions);
+        } catch (err: any) {
+          console.error("Error fetching user permissions:", err);
+          setPermissionsError(err.message || "Error al cargar los permisos del usuario.");
+        } finally {
+          setLoadingPermissions(false);
+        }
+      };
+      fetchPermissions();
+    } else if (!isOpen) {
+      // Opcional: limpiar los permisos al cerrar el modal para que se recarguen la próxima vez
+      setUserPermissions(null);
+      setPermissionsError(null);
+    }
+  }, [isOpen, user?.uid]); // Depende de que el modal esté abierto y el UID del usuario
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -71,33 +129,18 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
       ...formData
     };
     
-    // Guardar en localStorage
-    localStorage.setItem('userData', JSON.stringify(updatedUser));
-    localStorage.setItem('userPermissions', JSON.stringify(permissions));
+    // Aquí solo guardamos la información personal del usuario.
+    // Los permisos NO se guardan desde este modal ya que son de solo lectura.
+    // Opcional: Puedes guardar user.name, user.email, user.profilePicture en localStorage si lo usas para persistencia local
+    // localStorage.setItem('userData', JSON.stringify(updatedUser));
     
     onUserUpdate(updatedUser);
-    
-    // Notificar al componente padre que los permisos han cambiado
-    if (onPermissionsUpdate) {
-      onPermissionsUpdate();
-    }
-    
     setIsOpen(false);
   };
 
   const handleLogout = () => {
     setIsOpen(false);
-    onLogout();
-  };
-
-  const handlePermissionChange = (category: string, key: string, value: boolean) => {
-    setPermissions((prev: any) => ({
-      ...prev,
-      [category]: {
-        ...prev[category],
-        [key]: value
-      }
-    }));
+    onLogout(); // Llama a la función de logout del padre (que debería manejar el logout de Firebase Auth)
   };
 
   return (
@@ -126,9 +169,9 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
               {/* Avatar */}
               <div className="flex items-center gap-4">
                 <Avatar className="w-20 h-20">
-                  <AvatarImage src={formData.profilePicture} />
+                  <AvatarImage src={formData.profilePicture || undefined} /> {/* Asegurarse que es undefined si es null */}
                   <AvatarFallback className="bg-blue-500 text-white text-lg">
-                    {formData.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                    {formData.name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'US'}
                   </AvatarFallback>
                 </Avatar>
                 <div>
@@ -171,7 +214,7 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
                   <Input
                     id="email"
                     type="email"
-                    value={formData.email}
+                    value={formData.email || ''} 
                     onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                     className="border-blue-300 focus:border-blue-500 dark:border-blue-600"
                   />
@@ -180,84 +223,101 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
             </CardContent>
           </Card>
 
-          {/* Permisos de Departamentos */}
-          <Card className="border-blue-200 dark:border-blue-800">
-            <CardHeader>
-              <CardTitle className="text-blue-800 dark:text-blue-200 flex items-center gap-2">
-                <Building className="w-4 h-4" />
-                {t('departmentPermissions')}
-              </CardTitle>
-              <CardDescription className="text-blue-600 dark:text-blue-400">
-                {t('departmentPermissionsDesc')}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-blue-700 dark:text-blue-300">{t('operaciones')}</span>
-                <Switch
-                  checked={permissions.departments.operaciones}
-                  onCheckedChange={(value) => handlePermissionChange('departments', 'operaciones', value)}
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-blue-700 dark:text-blue-300">{t('gestionTecnica')}</span>
-                <Switch
-                  checked={permissions.departments.gestionTecnica}
-                  onCheckedChange={(value) => handlePermissionChange('departments', 'gestionTecnica', value)}
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-blue-700 dark:text-blue-300">{t('gestionTalento')}</span>
-                <Switch
-                  checked={permissions.departments.gestionTalento}
-                  onCheckedChange={(value) => handlePermissionChange('departments', 'gestionTalento', value)}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Permisos de Acciones */}
+          {/* Sección de Permisos */}
           <Card className="border-blue-200 dark:border-blue-800">
             <CardHeader>
               <CardTitle className="text-blue-800 dark:text-blue-200 flex items-center gap-2">
                 <Shield className="w-4 h-4" />
-                {t('actionPermissions')}
+                {t('userPermissions')} {/* Título más general */}
               </CardTitle>
               <CardDescription className="text-blue-600 dark:text-blue-400">
-                {t('actionPermissionsDesc')}
+                {t('permissionsDesc')} {/* Descripción genérica */}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <UserPlus className="w-4 h-4 text-green-600" />
-                  <span className="text-blue-700 dark:text-blue-300">{t('create')}</span>
+              {loadingPermissions ? (
+                <div className="flex items-center justify-center py-4">
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin text-blue-500" />
+                  <span>Cargando permisos...</span>
                 </div>
-                <Switch
-                  checked={permissions.actions.create}
-                  onCheckedChange={(value) => handlePermissionChange('actions', 'create', value)}
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Edit className="w-4 h-4 text-blue-600" />
-                  <span className="text-blue-700 dark:text-blue-300">{t('edit')}</span>
+              ) : permissionsError ? (
+                <div className="text-center py-4 text-red-500">
+                  <AlertCircle className="mx-auto w-8 h-8 mb-2" />
+                  <p>{permissionsError}</p>
                 </div>
-                <Switch
-                  checked={permissions.actions.edit}
-                  onCheckedChange={(value) => handlePermissionChange('actions', 'edit', value)}
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-red-600" />
-                  <span className="text-blue-700 dark:text-blue-300">{t('delete')}</span>
-                </div>
-                <Switch
-                  checked={permissions.actions.delete}
-                  onCheckedChange={(value) => handlePermissionChange('actions', 'delete', value)}
-                />
-              </div>
+              ) : userPermissions ? (
+                <>
+                  {/* Permisos de Departamentos */}
+                  <h4 className="font-semibold text-blue-700 dark:text-blue-300 mt-4">{t('departmentPermissions')}</h4>
+                  <div className="flex items-center justify-between">
+                    <span className="text-blue-700 dark:text-blue-300">{t('operaciones')}</span>
+                    <Switch
+                      checked={userPermissions.Per_Ope ?? false}
+                      disabled={true} // SIEMPRE DESHABILITADO
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-blue-700 dark:text-blue-300">{t('gestionTecnica')}</span>
+                    <Switch
+                      checked={userPermissions.Per_GT ?? false} 
+                      disabled={true} // SIEMPRE DESHABILITADO
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-blue-700 dark:text-blue-300">{t('gestionTalento')}</span>
+                    <Switch
+                      checked={userPermissions.Per_GDT ?? false} 
+                      disabled={true} // SIEMPRE DESHABILITADO
+                    />
+                  </div>
+
+                  {/* Permisos de Acciones */}
+                  <h4 className="font-semibold text-blue-700 dark:text-blue-300 mt-4">{t('actionPermissions')}</h4>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <UserPlus className="w-4 h-4 text-green-600" />
+                      <span className="text-blue-700 dark:text-blue-300">{t('create')}</span>
+                    </div>
+                    <Switch
+                      checked={userPermissions.Per_Create ?? false} 
+                      disabled={true} // SIEMPRE DESHABILITADO
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Edit className="w-4 h-4 text-blue-600" />
+                      <span className="text-blue-700 dark:text-blue-300">{t('modify')}</span>
+                    </div>
+                    <Switch
+                      checked={userPermissions.Per_Modificate ?? false} 
+                      disabled={true} // SIEMPRE DESHABILITADO
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      {/* Aquí usé Trash2 como ejemplo, si quieres un icono de eliminación */}
+                      <Trash2 className="w-4 h-4 text-red-600" /> 
+                      <span className="text-blue-700 dark:text-blue-300">{t('delete')}</span>
+                    </div>
+                    <Switch
+                      checked={userPermissions.Per_Delete ?? false} 
+                      disabled={true} // SIEMPRE DESHABILITADO
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Eye className="w-4 h-4 text-gray-600" /> 
+                      <span className="text-blue-700 dark:text-blue-300">{t('view')}</span>
+                    </div>
+                    <Switch
+                      checked={userPermissions.Per_view ?? false} 
+                      disabled={true} // SIEMPRE DESHABILITADO
+                    />
+                  </div>
+                </>
+              ) : (
+                <p className="text-gray-500 text-center py-4">No se pudieron cargar los permisos o no hay datos para mostrar.</p>
+              )}
             </CardContent>
           </Card>
 
