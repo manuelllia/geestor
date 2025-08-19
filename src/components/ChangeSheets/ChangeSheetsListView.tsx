@@ -1,10 +1,9 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react'; // Importar useMemo
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Eye, Copy, Download, Plus, Upload, FileDown, RefreshCw, AlertCircle, Edit } from 'lucide-react';
+import { Eye, Copy, Download, Plus, Upload, FileDown, RefreshCw, AlertCircle, Edit, ArrowUp, ArrowDown } from 'lucide-react'; // Importar ArrowUp y ArrowDown
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Language } from '../../utils/translations';
@@ -14,6 +13,8 @@ import ImportChangeSheetsModal from './ImportChangeSheetsModal';
 import { getChangeSheets, ChangeSheetRecord, duplicateChangeSheet, exportChangeSheetsToCSV } from '../../services/changeSheetsService';
 import { useUserPermissions } from '../../hooks/useUserPermissions';
 import jsPDF from 'jspdf';
+import { cn } from '@/lib/utils'; // Asegúrate de que tienes esta utilidad (para combinar clases)
+
 
 interface ChangeSheetsListViewProps {
   language: Language;
@@ -41,6 +42,10 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({
   const [error, setError] = useState<string | null>(null);
   const itemsPerPage = 30;
 
+  // NUEVOS ESTADOS DE ORDENACIÓN
+  const [sortColumn, setSortColumn] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc'); // Por defecto ascendente
+
   const canCreate = permissions?.Per_Create ?? true;
   const canDelete = permissions?.Per_Delete ?? true;
   const canView = permissions?.Per_View ?? true;
@@ -65,10 +70,57 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({
     loadChangeSheets();
   }, []);
 
-  const totalPages = Math.ceil(changeSheets.length / itemsPerPage);
+  // LÓGICA DE ORDENACIÓN
+  const handleSort = (column: string) => {
+    if (sortColumn === column) {
+      // Si se hace clic en la misma columna, se cambia la dirección
+      setSortDirection(prevDir => (prevDir === 'asc' ? 'desc' : 'asc'));
+    } else {
+      // Si se hace clic en una nueva columna, se ordena por esa columna en ascendente
+      setSortColumn(column);
+      setSortDirection('asc');
+    }
+    setCurrentPage(1); // Siempre volver a la primera página al ordenar
+  };
+
+  // DATOS ORDENADOS Y MEMORIZADOS
+  const sortedChangeSheets = useMemo(() => {
+    if (!sortColumn) {
+      return changeSheets; // Si no hay columna de ordenación, devuelve los datos sin ordenar
+    }
+
+    const sortedData = [...changeSheets].sort((a, b) => {
+      // Accede a los valores dinámicamente. Asegúrate de que los nombres de columna existen en ChangeSheetRecord.
+      const aValue = (a as any)[sortColumn];
+      const bValue = (b as any)[sortColumn];
+
+      // Manejo de valores nulos o indefinidos para una ordenación consistente
+      if (aValue == null && bValue == null) return 0;
+      if (aValue == null) return sortDirection === 'asc' ? -1 : 1; // Nulos al principio en asc, al final en desc
+      if (bValue == null) return sortDirection === 'asc' ? 1 : -1;
+
+      let comparison = 0;
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        comparison = aValue.localeCompare(bValue); // Comparación de cadenas sensible a la configuración regional
+      } else if (aValue instanceof Date && bValue instanceof Date) {
+        comparison = aValue.getTime() - bValue.getTime(); // Comparación de fechas
+      } else if (typeof aValue === 'number' && typeof bValue === 'number') {
+        comparison = aValue - bValue; // Comparación de números
+      } else {
+        // En caso de tipos mixtos o no manejados, intenta una conversión a string como fallback
+        comparison = String(aValue).localeCompare(String(bValue));
+      }
+
+      return sortDirection === 'asc' ? comparison : -comparison; // Aplica la dirección
+    });
+    return sortedData;
+  }, [changeSheets, sortColumn, sortDirection]); // Re-calcula solo si estos cambian
+
+
+  const totalPages = Math.ceil(sortedChangeSheets.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = Math.min(startIndex + itemsPerPage, changeSheets.length);
-  const currentData = changeSheets.slice(startIndex, endIndex);
+  const endIndex = Math.min(startIndex + itemsPerPage, sortedChangeSheets.length);
+  const currentData = sortedChangeSheets.slice(startIndex, endIndex); // La paginación se aplica AHORA a los datos ordenados
 
   const handleViewDetails = (id: string) => {
     setSelectedSheetId(id);
@@ -223,6 +275,9 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({
 
   const handleRefresh = () => {
     loadChangeSheets();
+    setSortColumn(null); // Resetear ordenación al actualizar
+    setSortDirection('asc');
+    setCurrentPage(1);
   };
 
   const getStatusBadge = (status: string) => {
@@ -401,11 +456,72 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>{t('employeeName')}</TableHead>
-                      <TableHead>{t('originCenter')}</TableHead>
-                      <TableHead>Nuevo Puesto</TableHead>
-                      <TableHead>{t('startDate')}</TableHead>
-                      <TableHead>{t('status')}</TableHead>
+                      {/* Cabeceras ordenables */}
+                      <TableHead 
+                        className="cursor-pointer select-none"
+                        onClick={() => handleSort('employeeName')}
+                      >
+                        <div className="flex items-center">
+                          {t('employeeName')}
+                          {sortColumn === 'employeeName' && (
+                            <span className="ml-1">
+                              {sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+                            </span>
+                          )}
+                        </div>
+                      </TableHead>
+                      <TableHead 
+                        className="cursor-pointer select-none"
+                        onClick={() => handleSort('originCenter')}
+                      >
+                        <div className="flex items-center">
+                          {t('originCenter')}
+                          {sortColumn === 'originCenter' && (
+                            <span className="ml-1">
+                              {sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+                            </span>
+                          )}
+                        </div>
+                      </TableHead>
+                      <TableHead 
+                        className="cursor-pointer select-none"
+                        onClick={() => handleSort('newPosition')}
+                      >
+                        <div className="flex items-center">
+                          Nuevo Puesto
+                          {sortColumn === 'newPosition' && (
+                            <span className="ml-1">
+                              {sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+                            </span>
+                          )}
+                        </div>
+                      </TableHead>
+                      <TableHead 
+                        className="cursor-pointer select-none"
+                        onClick={() => handleSort('startDate')}
+                      >
+                        <div className="flex items-center">
+                          {t('startDate')}
+                          {sortColumn === 'startDate' && (
+                            <span className="ml-1">
+                              {sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+                            </span>
+                          )}
+                        </div>
+                      </TableHead>
+                      <TableHead 
+                        className="cursor-pointer select-none"
+                        onClick={() => handleSort('status')}
+                      >
+                        <div className="flex items-center">
+                          {t('status')}
+                          {sortColumn === 'status' && (
+                            <span className="ml-1">
+                              {sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+                            </span>
+                          )}
+                        </div>
+                      </TableHead>
                       <TableHead className="text-center">{t('actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -477,7 +593,7 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({
               {changeSheets.length > itemsPerPage && (
                 <div className="flex flex-col sm:flex-row justify-between items-center mt-4 gap-4">
                   <div className="text-sm text-gray-600 dark:text-gray-400">
-                    Mostrando {startIndex + 1} a {endIndex} de {changeSheets.length} registros
+                    Mostrando {startIndex + 1} a {endIndex} de {sortedChangeSheets.length} registros
                   </div>
                   
                   <div className="flex items-center space-x-2">
@@ -509,7 +625,10 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({
                             variant={currentPage === pageNumber ? "default" : "outline"}
                             size="sm"
                             onClick={() => setCurrentPage(pageNumber)}
-                            className={currentPage === pageNumber ? "bg-blue-600 text-white" : ""}
+                            className={cn(
+                                currentPage === pageNumber ? "bg-blue-600 text-white" : "",
+                                "dark:bg-gray-700 dark:hover:bg-gray-600" // Añadir estilos de modo oscuro si usas shadcn
+                            )}
                           >
                             {pageNumber}
                           </Button>
