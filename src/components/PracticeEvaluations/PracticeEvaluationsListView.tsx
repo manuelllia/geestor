@@ -1,19 +1,22 @@
-import React, { useState, useMemo } from 'react'; // Importar useMemo
+
+import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-// Importar ArrowUp, ArrowDown de lucide-react
 import { FileUp, Download, RefreshCw, Plus, Calendar, ArrowUp, ArrowDown } from 'lucide-react'; 
-import { getPracticeEvaluations, generatePracticeEvaluationToken, PracticeEvaluationRecord } from '../../services/practiceEvaluationService'; // Importa PracticeEvaluationRecord
+import { getPracticeEvaluations, generatePracticeEvaluationToken, PracticeEvaluationRecord } from '../../services/practiceEvaluationService';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { cn } from '@/lib/utils'; // Asegúrate de que tienes esta utilidad (si no, ver nota al final)
+import { Language } from '../../utils/translations';
 
+interface PracticeEvaluationsListViewProps {
+  language?: Language;
+}
 
-export default function PracticeEvaluationsListView() {
+export default function PracticeEvaluationsListView({ language = 'es' }: PracticeEvaluationsListViewProps) {
   const { data: evaluations = [], isLoading, refetch } = useQuery({
     queryKey: ['practice-evaluations'],
     queryFn: getPracticeEvaluations,
@@ -21,25 +24,22 @@ export default function PracticeEvaluationsListView() {
 
   // NUEVOS ESTADOS DE ORDENACIÓN
   const [sortColumn, setSortColumn] = useState<string | null>(null);
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc'); // Por defecto ascendente
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
   // LÓGICA DE ORDENACIÓN
   const handleSort = (column: string) => {
     if (sortColumn === column) {
-      // Si se hace clic en la misma columna, se cambia la dirección
       setSortDirection(prevDir => (prevDir === 'asc' ? 'desc' : 'asc'));
     } else {
-      // Si se hace clic en una nueva columna, se ordena por esa columna en ascendente
       setSortColumn(column);
       setSortDirection('asc');
     }
-    // No hay paginación explícita aquí, pero si la añades, resetea currentPage a 1.
   };
 
   // DATOS ORDENADOS Y MEMORIZADOS
   const sortedEvaluations = useMemo(() => {
     if (!sortColumn) {
-      return evaluations; // Si no hay columna de ordenación, devuelve los datos sin ordenar
+      return evaluations;
     }
 
     const sortedData = [...evaluations].sort((a, b) => {
@@ -48,11 +48,11 @@ export default function PracticeEvaluationsListView() {
 
       // Determinar los valores a comparar según la columna
       switch (sortColumn) {
-        case 'studentName': // Ordenar por nombre completo del estudiante
+        case 'studentName':
           aValue = `${a.studentName} ${a.studentLastName}`;
           bValue = `${b.studentName} ${b.studentLastName}`;
           break;
-        case 'tutorName': // Ordenar por nombre completo del tutor
+        case 'tutorName':
           aValue = `${a.tutorName} ${a.tutorLastName}`;
           bValue = `${b.tutorName} ${b.tutorLastName}`;
           break;
@@ -63,7 +63,6 @@ export default function PracticeEvaluationsListView() {
           bValue = (b as any)[sortColumn];
           break;
         case 'evaluationDate':
-          // Asegúrate de que evaluationDate sea un objeto Date para comparar
           aValue = a.evaluationDate instanceof Date ? a.evaluationDate.getTime() : new Date(a.evaluationDate).getTime();
           bValue = b.evaluationDate instanceof Date ? b.evaluationDate.getTime() : new Date(b.evaluationDate).getTime();
           break;
@@ -72,38 +71,32 @@ export default function PracticeEvaluationsListView() {
           bValue = (b as any)[sortColumn];
           break;
         default:
-          // Fallback para cualquier otra columna si no se especifica el tipo de comparación
           aValue = (a as any)[sortColumn];
           bValue = (b as any)[sortColumn];
           break;
       }
 
-      // Manejo de valores nulos o indefinidos para una ordenación consistente
+      // Manejo de valores nulos o indefinidos
       if (aValue == null && bValue == null) return 0;
-      if (aValue == null) return sortDirection === 'asc' ? -1 : 1; // Nulos al principio en asc, al final en desc
+      if (aValue == null) return sortDirection === 'asc' ? -1 : 1;
       if (bValue == null) return sortDirection === 'asc' ? 1 : -1;
 
       let comparison = 0;
       if (typeof aValue === 'string' && typeof bValue === 'string') {
-        comparison = aValue.localeCompare(bValue, language === 'es' ? 'es-ES' : 'en-US'); // Comparación de cadenas sensible a la configuración regional
+        comparison = aValue.localeCompare(bValue, language === 'es' ? 'es-ES' : 'en-US');
       } else if (typeof aValue === 'number' && typeof bValue === 'number') {
-        comparison = aValue - bValue; // Comparación de números (ya sean ratings o timestamps de fecha)
+        comparison = aValue - bValue;
       } else {
-        // En caso de tipos mixtos o no manejados, intenta una conversión a string como fallback
         comparison = String(aValue).localeCompare(String(bValue), language === 'es' ? 'es-ES' : 'en-US');
       }
 
-      return sortDirection === 'asc' ? comparison : -comparison; // Aplica la dirección
+      return sortDirection === 'asc' ? comparison : -comparison;
     });
     return sortedData;
-  }, [evaluations, sortColumn, sortDirection, language]); // Dependencias para useMemo
-
+  }, [evaluations, sortColumn, sortDirection, language]);
 
   const handleGenerateLink = () => {
     const token = generatePracticeEvaluationToken();
-    // Asegúrate de que esta URL coincida con la ruta en tu App.tsx si sigue usando un token
-    // Si has cambiado /valoracion-practicas/:token a /crear-valoracion-practicas, este enlace ya no sería válido para el formulario de creación.
-    // Esto es para la generación de enlaces ÚNICOS si volvieras a tener evaluaciones pre-creadas.
     const link = `${window.location.origin}/valoracion-practicas/${token}`; 
     
     navigator.clipboard.writeText(link);
@@ -144,11 +137,6 @@ export default function PracticeEvaluationsListView() {
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-2 mb-6">
-            {/* Si el formulario es para crear nuevas valoraciones y no requiere un token,
-                este botón podría ir a '/crear-valoracion-practicas' o ser eliminado si ya no es relevante.
-                Si es para que un tutor externo rellene una valoración específica pre-existente, entonces sí.
-                Revisa cómo quieres que funcione el flujo de "Generar Enlace".
-            */}
             <Button onClick={handleGenerateLink} className="bg-blue-600 hover:bg-blue-700">
               <Plus className="w-4 h-4 mr-2" />
               Generar Enlace de Valoración
@@ -178,7 +166,6 @@ export default function PracticeEvaluationsListView() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    {/* Cabeceras ordenables */}
                     <TableHead 
                       className="cursor-pointer select-none"
                       onClick={() => handleSort('studentName')}
@@ -258,10 +245,10 @@ export default function PracticeEvaluationsListView() {
                       </div>
                     </TableHead>
                     <TableHead 
-                      className="cursor-pointer select-none text-center" // Centrar la cabecera también
+                      className="cursor-pointer select-none text-center"
                       onClick={() => handleSort('performanceRating')}
                     >
-                      <div className="flex items-center justify-center"> {/* Centrar contenido de cabecera */}
+                      <div className="flex items-center justify-center">
                         Valoración
                         {sortColumn === 'performanceRating' && (
                           <span className="ml-1">
@@ -273,7 +260,6 @@ export default function PracticeEvaluationsListView() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {/* Utiliza los datos ordenados: sortedEvaluations */}
                   {sortedEvaluations.map((evaluation) => (
                     <TableRow key={evaluation.id}>
                       <TableCell>
@@ -297,7 +283,6 @@ export default function PracticeEvaluationsListView() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        {/* Asegúrate de que evaluation.evaluationDate sea un objeto Date para format */}
                         {evaluation.evaluationDate instanceof Date 
                            ? format(evaluation.evaluationDate, 'dd/MM/yyyy', { locale: es })
                            : 'Fecha no válida'}
