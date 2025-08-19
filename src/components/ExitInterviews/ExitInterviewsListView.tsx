@@ -1,25 +1,27 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react'; // Importar useMemo
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { 
   Eye, Copy, Download, Plus, Upload, FileDown, RefreshCw, AlertCircle, 
-  Share, Link, Edit, Trash2 
+  Share, Link, Edit, Trash2, ArrowUp, ArrowDown // Importar ArrowUp y ArrowDown
 } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Language } from '../../utils/translations';
 import { 
   getExitInterviews, 
-  ExitInterviewRecord, 
+  ExitInterviewRecord, // Asegúrate de que esta interfaz esté correctamente definida y exportada
   generateExitInterviewToken,
   duplicateExitInterview,
   deleteExitInterview,
   exportExitInterviewsToCSV
 } from '../../services/exitInterviewService';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast'; // Revisa si tu toast es de 'sonner' o '@/components/ui/use-toast'
 import ExitInterviewDetailView from './ExitInterviewDetailView';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
+import { cn } from '@/lib/utils'; // Asegúrate de que tienes esta utilidad
 
 interface ExitInterviewsListViewProps {
   language: Language;
@@ -35,6 +37,10 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
   const [selectedInterviewId, setSelectedInterviewId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'list' | 'detail'>('list');
   const itemsPerPage = 30;
+
+  // NUEVOS ESTADOS DE ORDENACIÓN
+  const [sortColumn, setSortColumn] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc'); // Por defecto ascendente
 
   const loadExitInterviews = async () => {
     setIsLoading(true);
@@ -55,10 +61,78 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
     loadExitInterviews();
   }, []);
 
-  const totalPages = Math.ceil(exitInterviews.length / itemsPerPage);
+  // LÓGICA DE ORDENACIÓN
+  const handleSort = (column: string) => {
+    if (sortColumn === column) {
+      // Si se hace clic en la misma columna, se cambia la dirección
+      setSortDirection(prevDir => (prevDir === 'asc' ? 'desc' : 'asc'));
+    } else {
+      // Si se hace clic en una nueva columna, se ordena por esa columna en ascendente
+      setSortColumn(column);
+      setSortDirection('asc');
+    }
+    setCurrentPage(1); // Siempre volver a la primera página al ordenar
+  };
+
+  // DATOS ORDENADOS Y MEMORIZADOS
+  const sortedExitInterviews = useMemo(() => {
+    if (!sortColumn) {
+      return exitInterviews; // Si no hay columna de ordenación, devuelve los datos sin ordenar
+    }
+
+    const sortedData = [...exitInterviews].sort((a, b) => {
+      let aValue: any;
+      let bValue: any;
+
+      // Determinar los valores a comparar según la columna
+      switch (sortColumn) {
+        case 'employeeName': // Ordenar por nombre completo del empleado
+          aValue = `${a.employeeName} ${a.employeeLastName}`;
+          bValue = `${b.employeeName} ${b.employeeLastName}`;
+          break;
+        case 'position':
+        case 'workCenter':
+        case 'exitType':
+          aValue = (a as any)[sortColumn];
+          bValue = (b as any)[sortColumn];
+          break;
+        case 'exitDate':
+          // Asegúrate de que exitDate sea un objeto Date para comparar
+          aValue = a.exitDate instanceof Date ? a.exitDate.getTime() : new Date(a.exitDate).getTime();
+          bValue = b.exitDate instanceof Date ? b.exitDate.getTime() : new Date(b.exitDate).getTime();
+          break;
+        default:
+          // Fallback para cualquier otra columna si no se especifica el tipo de comparación
+          aValue = (a as any)[sortColumn];
+          bValue = (b as any)[sortColumn];
+          break;
+      }
+
+      // Manejo de valores nulos o indefinidos para una ordenación consistente
+      if (aValue == null && bValue == null) return 0;
+      if (aValue == null) return sortDirection === 'asc' ? -1 : 1; // Nulos al principio en asc, al final en desc
+      if (bValue == null) return sortDirection === 'asc' ? 1 : -1;
+
+      let comparison = 0;
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        comparison = aValue.localeCompare(bValue, language === 'es' ? 'es-ES' : 'en-US'); // Comparación de cadenas sensible a la configuración regional
+      } else if (typeof aValue === 'number' && typeof bValue === 'number') {
+        comparison = aValue - bValue; // Comparación de números (para fechas convertidas a timestamp, por ejemplo)
+      } else {
+        // En caso de tipos mixtos o no manejados, intenta una conversión a string como fallback
+        comparison = String(aValue).localeCompare(String(bValue), language === 'es' ? 'es-ES' : 'en-US');
+      }
+
+      return sortDirection === 'asc' ? comparison : -comparison; // Aplica la dirección
+    });
+    return sortedData;
+  }, [exitInterviews, sortColumn, sortDirection, language]); // Dependencias para useMemo
+
+  const totalPages = Math.ceil(sortedExitInterviews.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = Math.min(startIndex + itemsPerPage, exitInterviews.length);
-  const currentData = exitInterviews.slice(startIndex, endIndex);
+  const endIndex = Math.min(startIndex + itemsPerPage, sortedExitInterviews.length);
+  // La paginación se aplica AHORA a los datos ordenados
+  const currentData = sortedExitInterviews.slice(startIndex, endIndex); 
 
   const handleViewDetails = (id: string) => {
     setSelectedInterviewId(id);
@@ -68,6 +142,7 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
   const handleBackToList = () => {
     setViewMode('list');
     setSelectedInterviewId(null);
+    loadExitInterviews(); // Recargar en caso de cambios en el detalle
   };
 
   const handleGenerateLink = () => {
@@ -81,9 +156,9 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
       });
     }).catch(() => {
       toast({
-        title: 'Enlace generado',
-        description: link,
-        variant: 'default',
+        title: 'Error al copiar enlace',
+        description: 'El enlace no pudo copiarse. Por favor, cópielo manualmente: ' + link,
+        variant: 'destructive',
       });
     });
   };
@@ -125,7 +200,15 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
   };
 
   const handleDownloadPDF = (id: string) => {
-    handleViewDetails(id);
+    // Si tu ExitInterviewDetailView tiene la lógica de PDF, podrías pasar el ID y activar la descarga allí.
+    // O bien, puedes mover la lógica de generación de PDF directamente aquí, similar a ChangeSheetsListView.
+    // Por ahora, solo simularé el comportamiento de ver detalles o un log.
+    console.log(`Simulando descarga de PDF para entrevista con ID: ${id}`);
+    toast({
+      title: "Función no implementada",
+      description: "La descarga de PDF para esta entrevista aún no está disponible.",
+      variant: "default",
+    });
   };
 
   const handleExport = () => {
@@ -159,11 +242,18 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
   };
 
   const handleImport = () => {
-    console.log('Importar datos');
+    toast({
+      title: "Función no implementada",
+      description: "La importación de datos aún no está disponible.",
+      variant: "default",
+    });
   };
 
   const handleRefresh = () => {
     loadExitInterviews();
+    setSortColumn(null); // Resetear ordenación al actualizar
+    setSortDirection('asc');
+    setCurrentPage(1);
   };
 
   const getExitTypeBadge = (exitType: string) => {
@@ -308,15 +398,77 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Nombre Empleado</TableHead>
-                      <TableHead>Puesto</TableHead>
-                      <TableHead>Centro</TableHead>
-                      <TableHead>Tipo de Baja</TableHead>
-                      <TableHead>Fecha de Baja</TableHead>
+                      {/* Cabeceras ordenables */}
+                      <TableHead 
+                        className="cursor-pointer select-none"
+                        onClick={() => handleSort('employeeName')}
+                      >
+                        <div className="flex items-center">
+                          Nombre Empleado
+                          {sortColumn === 'employeeName' && (
+                            <span className="ml-1">
+                              {sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+                            </span>
+                          )}
+                        </div>
+                      </TableHead>
+                      <TableHead 
+                        className="cursor-pointer select-none"
+                        onClick={() => handleSort('position')}
+                      >
+                        <div className="flex items-center">
+                          Puesto
+                          {sortColumn === 'position' && (
+                            <span className="ml-1">
+                              {sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+                            </span>
+                          )}
+                        </div>
+                      </TableHead>
+                      <TableHead 
+                        className="cursor-pointer select-none"
+                        onClick={() => handleSort('workCenter')}
+                      >
+                        <div className="flex items-center">
+                          Centro
+                          {sortColumn === 'workCenter' && (
+                            <span className="ml-1">
+                              {sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+                            </span>
+                          )}
+                        </div>
+                      </TableHead>
+                      <TableHead 
+                        className="cursor-pointer select-none"
+                        onClick={() => handleSort('exitType')}
+                      >
+                        <div className="flex items-center">
+                          Tipo de Baja
+                          {sortColumn === 'exitType' && (
+                            <span className="ml-1">
+                              {sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+                            </span>
+                          )}
+                        </div>
+                      </TableHead>
+                      <TableHead 
+                        className="cursor-pointer select-none"
+                        onClick={() => handleSort('exitDate')}
+                      >
+                        <div className="flex items-center">
+                          Fecha de Baja
+                          {sortColumn === 'exitDate' && (
+                            <span className="ml-1">
+                              {sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+                            </span>
+                          )}
+                        </div>
+                      </TableHead>
                       <TableHead className="text-center">Acciones</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
+                    {/* Utiliza los datos ordenados: sortedExitInterviews */}
                     {currentData.map((interview) => (
                       <TableRow key={interview.id}>
                         <TableCell className="font-medium">
@@ -330,7 +482,10 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          {formatDate(interview.exitDate)}
+                          {/* Asegúrate de que interview.exitDate sea un objeto Date para format */}
+                          {interview.exitDate instanceof Date 
+                            ? formatDate(interview.exitDate) 
+                            : 'Fecha no válida'}
                         </TableCell>
                         <TableCell>
                           <div className="flex justify-center space-x-1">
@@ -379,7 +534,7 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
               {exitInterviews.length > itemsPerPage && (
                 <div className="flex flex-col sm:flex-row justify-between items-center mt-4 gap-4">
                   <div className="text-sm text-gray-600 dark:text-gray-400">
-                    Mostrando {startIndex + 1} a {endIndex} de {exitInterviews.length} registros
+                    Mostrando {startIndex + 1} a {endIndex} de {sortedExitInterviews.length} registros
                   </div>
                   
                   <div className="flex items-center space-x-2">
@@ -411,7 +566,10 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
                             variant={currentPage === pageNumber ? "default" : "outline"}
                             size="sm"
                             onClick={() => setCurrentPage(pageNumber)}
-                            className={currentPage === pageNumber ? "bg-blue-600 text-white" : ""}
+                            className={cn(
+                                currentPage === pageNumber ? "bg-blue-600 text-white" : "",
+                                "dark:bg-gray-700 dark:hover:bg-gray-600" // Añadir estilos de modo oscuro si usas shadcn
+                            )}
                           >
                             {pageNumber}
                           </Button>
