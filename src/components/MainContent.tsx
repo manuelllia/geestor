@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -40,11 +39,7 @@ export default function MainContent({ activeSection, language }: MainContentProp
           onCreateNew={() => {}} 
         />;
       case 'acuerdo-empleado':
-        return <EmployeeAgreementsListView 
-          language={language} 
-          onViewDetails={() => {}} 
-          onCreateNew={() => {}} 
-        />;
+        return <EmployeeAgreementsListView language={language} />;
       case 'gestion-inmuebles':
         return <RealEstateDashboard 
           language={language} 
