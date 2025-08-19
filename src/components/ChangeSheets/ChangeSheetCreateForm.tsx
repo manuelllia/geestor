@@ -139,7 +139,7 @@ const ChangeSheetCreateForm: React.FC<ChangeSheetCreateFormProps> = ({
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <CardTitle className="text-2xl font-bold text-blue-900 dark:text-blue-100">
-              {editingSheet ? 'Editar Hoja de Cambio' : t('newChangeSheet')}
+              {editingSheet ? 'Editar Hoja de Cambio' : 'Nueva Hoja de Cambio'}
             </CardTitle>
           </div>
         </CardHeader>
@@ -172,22 +172,22 @@ const ChangeSheetCreateForm: React.FC<ChangeSheetCreateFormProps> = ({
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label htmlFor="originCenter">{t('originCenter')}</Label>
+                <Label htmlFor="originCenter">Centro de Origen</Label>
                 <Input
                   id="originCenter"
                   value={formData.originCenter}
                   onChange={(e) => handleInputChange('originCenter', e.target.value)}
-                  placeholder={t('originCenter')}
+                  placeholder="Centro de Origen"
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="currentPosition">{t('currentPosition')}</Label>
+                <Label htmlFor="currentPosition">Posición Actual</Label>
                 <Input
                   id="currentPosition"
                   value={formData.currentPosition}
                   onChange={(e) => handleInputChange('currentPosition', e.target.value)}
-                  placeholder={t('currentPosition')}
+                  placeholder="Posición Actual"
                 />
               </div>
             </div>
@@ -195,22 +195,22 @@ const ChangeSheetCreateForm: React.FC<ChangeSheetCreateFormProps> = ({
             {/* Supervisor Actual */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label htmlFor="currentSupervisorName">{t('currentSupervisorName')}</Label>
+                <Label htmlFor="currentSupervisorName">Nombre Supervisor Actual</Label>
                 <Input
                   id="currentSupervisorName"
                   value={formData.currentSupervisorName}
                   onChange={(e) => handleInputChange('currentSupervisorName', e.target.value)}
-                  placeholder={t('currentSupervisorName')}
+                  placeholder="Nombre Supervisor Actual"
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="currentSupervisorLastName">{t('currentSupervisorLastName')}</Label>
+                <Label htmlFor="currentSupervisorLastName">Apellidos Supervisor Actual</Label>
                 <Input
                   id="currentSupervisorLastName"
                   value={formData.currentSupervisorLastName}
                   onChange={(e) => handleInputChange('currentSupervisorLastName', e.target.value)}
-                  placeholder={t('currentSupervisorLastName')}
+                  placeholder="Apellidos Supervisor Actual"
                 />
               </div>
             </div>
@@ -229,7 +229,7 @@ const ChangeSheetCreateForm: React.FC<ChangeSheetCreateFormProps> = ({
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="startDate">{t('startDate')}</Label>
+                <Label htmlFor="startDate">Fecha de Inicio</Label>
                 <Input
                   id="startDate"
                   type="date"
@@ -264,21 +264,21 @@ const ChangeSheetCreateForm: React.FC<ChangeSheetCreateFormProps> = ({
 
             {/* Tipo de Cambio */}
             <div className="space-y-2">
-              <Label htmlFor="changeType">{t('changeType')}</Label>
+              <Label htmlFor="changeType">Tipo de Cambio</Label>
               <Select value={formData.changeType} onValueChange={(value) => handleInputChange('changeType', value)}>
                 <SelectTrigger>
-                  <SelectValue placeholder={t('selectChangeType')} />
+                  <SelectValue placeholder="Seleccionar tipo de cambio" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="permanent">{t('permanent')}</SelectItem>
-                  <SelectItem value="temporary">{t('temporary')}</SelectItem>
+                  <SelectItem value="permanent">Permanente</SelectItem>
+                  <SelectItem value="temporary">Temporal</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             {/* Necesidades */}
             <div className="space-y-4">
-              <Label>{t('needs')}</Label>
+              <Label>Necesidades de Formación</Label>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {availableNeeds.map((need) => (
                   <div key={need} className="flex items-center space-x-2">
@@ -296,24 +296,24 @@ const ChangeSheetCreateForm: React.FC<ChangeSheetCreateFormProps> = ({
             {/* Información de la Empresa */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label htmlFor="currentCompany">{t('currentCompany')}</Label>
+                <Label htmlFor="currentCompany">Empresa Actual</Label>
                 <Input
                   id="currentCompany"
                   value={formData.currentCompany}
                   onChange={(e) => handleInputChange('currentCompany', e.target.value)}
-                  placeholder={t('currentCompany')}
+                  placeholder="Empresa Actual"
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="companyChange">{t('companyChange')}</Label>
+                <Label htmlFor="companyChange">¿Cambio de Empresa?</Label>
                 <Select value={formData.companyChange} onValueChange={(value) => handleInputChange('companyChange', value)}>
                   <SelectTrigger>
-                    <SelectValue placeholder={t('selectOption')} />
+                    <SelectValue placeholder="Seleccionar opción" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="yes">{t('yes')}</SelectItem>
-                    <SelectItem value="no">{t('no')}</SelectItem>
+                    <SelectItem value="yes">Sí</SelectItem>
+                    <SelectItem value="no">No</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -321,12 +321,12 @@ const ChangeSheetCreateForm: React.FC<ChangeSheetCreateFormProps> = ({
 
             {/* Observaciones */}
             <div className="space-y-2">
-              <Label htmlFor="observations">{t('observations')}</Label>
+              <Label htmlFor="observations">Observaciones</Label>
               <Textarea
                 id="observations"
                 value={formData.observations}
                 onChange={(e) => handleInputChange('observations', e.target.value)}
-                placeholder={t('observations')}
+                placeholder="Observaciones adicionales"
                 rows={4}
               />
             </div>
@@ -339,7 +339,7 @@ const ChangeSheetCreateForm: React.FC<ChangeSheetCreateFormProps> = ({
                 onClick={onBack}
                 disabled={loading}
               >
-                {t('cancel')}
+                Cancelar
               </Button>
               <Button
                 type="submit"
@@ -349,12 +349,12 @@ const ChangeSheetCreateForm: React.FC<ChangeSheetCreateFormProps> = ({
                 {loading ? (
                   <div className="flex items-center space-x-2">
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    <span>{editingSheet ? 'Actualizando...' : t('saving')}</span>
+                    <span>{editingSheet ? 'Actualizando...' : 'Guardando...'}</span>
                   </div>
                 ) : (
                   <div className="flex items-center space-x-2">
                     <Save className="h-4 w-4" />
-                    <span>{editingSheet ? 'Actualizar Hoja de Cambio' : t('saveChangeSheet')}</span>
+                    <span>{editingSheet ? 'Actualizar Hoja de Cambio' : 'Guardar Hoja de Cambio'}</span>
                   </div>
                 )}
               </Button>
