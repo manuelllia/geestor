@@ -7,15 +7,21 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+// Eliminamos Select y sus subcomponentes
+// import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { Loader2, CheckCircle, AlertCircle, CheckIcon, CaretSortIcon } from 'lucide-react'; // Añadimos CheckIcon y CaretSortIcon
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-// CAMBIO: Asegúrate de que esta importación sea correcta y que WorkCenter venga de tu hook
-import { useWorkCenters, WorkCenter } from '../hooks/useWorkCenters'; 
+import { useWorkCenters, WorkCenter } from '../hooks/useWorkCenters';
 import { savePracticeEvaluation } from '../services/practiceEvaluationService';
+
+// Importamos componentes para el ComboBox
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { cn } from '@/lib/utils'; // Necesario para combinar clases de Tailwind (si no lo tienes, puedes agregarlo o usar 'clsx')
+
 
 // Esquema Zod (sin cambios si ya funciona con los nombres de campo actualizados)
 const practiceEvaluationSchema = z.object({
@@ -78,8 +84,10 @@ export default function PracticeEvaluationForm() {
   const navigate = useNavigate();
   const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  // CAMBIO: Obtener 'error' del hook useWorkCenters
   const { workCenters, isLoading: isLoadingWorkCenters, error: workCentersError } = useWorkCenters();
+  // NUEVO ESTADO: Para controlar la apertura del ComboBox
+  const [openWorkCenterCombobox, setOpenWorkCenterCombobox] = useState(false);
+
 
   const {
     control,
@@ -156,7 +164,6 @@ export default function PracticeEvaluationForm() {
     );
   }
 
-  // CAMBIO: Mostrar un mensaje de error si los centros de trabajo no se cargaron
   if (workCentersError) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
@@ -173,7 +180,6 @@ export default function PracticeEvaluationForm() {
     );
   }
 
-  // CAMBIO: Mostrar spinner mientras cargan los centros de trabajo
   if (isLoadingWorkCenters) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
@@ -245,19 +251,53 @@ export default function PracticeEvaluationForm() {
                     name="workCenter"
                     control={control}
                     render={({ field }) => (
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <SelectTrigger className={errors.workCenter ? 'border-red-500' : ''}>
-                          <SelectValue placeholder="Seleccione un centro de trabajo" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {/* CAMBIO: Usar id y displayText de WorkCenter */}
-                          {workCenters.map((center: WorkCenter) => (
-                            <SelectItem key={center.id} value={center.displayText}>
-                              {center.displayText}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <Popover open={openWorkCenterCombobox} onOpenChange={setOpenWorkCenterCombobox}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            aria-expanded={openWorkCenterCombobox}
+                            className={cn(
+                              "w-full justify-between",
+                              errors.workCenter && "border-red-500"
+                            )}
+                          >
+                            {field.value
+                              ? workCenters.find((center) => center.displayText === field.value)?.displayText
+                              : "Seleccione un centro de trabajo..."}
+                            <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
+                          <Command>
+                            <CommandInput placeholder="Buscar centro de trabajo..." className="h-9" />
+                            <CommandEmpty>No se encontró ningún centro.</CommandEmpty>
+                            <CommandList>
+                              <CommandGroup>
+                                {workCenters.map((center) => (
+                                  <CommandItem
+                                    key={center.id}
+                                    value={center.displayText} // El valor usado para buscar y comparar
+                                    onSelect={(currentValue) => {
+                                      // Si el valor seleccionado es el mismo que el actual, deselecciónalo
+                                      field.onChange(currentValue === field.value ? "" : currentValue);
+                                      setOpenWorkCenterCombobox(false); // Cierra el popover después de la selección
+                                    }}
+                                  >
+                                    {center.displayText}
+                                    <CheckIcon
+                                      className={cn(
+                                        "ml-auto h-4 w-4",
+                                        field.value === center.displayText ? "opacity-100" : "opacity-0"
+                                      )}
+                                    />
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
                     )}
                   />
                   {errors.workCenter && (
@@ -266,7 +306,7 @@ export default function PracticeEvaluationForm() {
                 </div>
               </div>
 
-              {/* Datos del Alumno */}
+              {/* Resto del formulario (sin cambios) */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-blue-600 dark:text-blue-300">
                   Datos del Alumno
@@ -748,7 +788,7 @@ export default function PracticeEvaluationForm() {
                 </Button>
                 <Button
                   type="submit"
-                  disabled={isLoadingSubmit} // Usamos isLoadingSubmit para el botón de enviar
+                  disabled={isLoadingSubmit}
                   className="bg-blue-600 hover:bg-blue-700"
                 >
                   {isLoadingSubmit ? (
