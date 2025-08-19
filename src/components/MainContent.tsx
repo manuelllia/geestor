@@ -52,7 +52,7 @@ export default function MainContent({ activeSection, language }: MainContentProp
           onViewTables={() => {}} 
         />;
       case 'valoracion-practicas':
-        return <PracticeEvaluationsListView />;
+        return <PracticeEvaluationsListView language={language} />;
       case 'entrevista-salida':
         return <ExitInterviewsListView language={language} />;
       default:
