@@ -4,11 +4,22 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Eye, Copy, Download, Plus, Upload, FileDown, RefreshCw, AlertCircle, Share, Link } from 'lucide-react';
+import { 
+  Eye, Copy, Download, Plus, Upload, FileDown, RefreshCw, AlertCircle, 
+  Share, Link, Edit, Trash2 
+} from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Language } from '../../utils/translations';
-import { getExitInterviews, ExitInterviewRecord, generateExitInterviewToken } from '../../services/exitInterviewService';
+import { 
+  getExitInterviews, 
+  ExitInterviewRecord, 
+  generateExitInterviewToken,
+  duplicateExitInterview,
+  deleteExitInterview,
+  exportExitInterviewsToCSV
+} from '../../services/exitInterviewService';
 import { useToast } from '@/hooks/use-toast';
+import ExitInterviewDetailView from './ExitInterviewDetailView';
 
 interface ExitInterviewsListViewProps {
   language: Language;
@@ -21,6 +32,8 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
   const [exitInterviews, setExitInterviews] = useState<ExitInterviewRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedInterviewId, setSelectedInterviewId] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'list' | 'detail'>('list');
   const itemsPerPage = 30;
 
   const loadExitInterviews = async () => {
@@ -47,6 +60,16 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
   const endIndex = Math.min(startIndex + itemsPerPage, exitInterviews.length);
   const currentData = exitInterviews.slice(startIndex, endIndex);
 
+  const handleViewDetails = (id: string) => {
+    setSelectedInterviewId(id);
+    setViewMode('detail');
+  };
+
+  const handleBackToList = () => {
+    setViewMode('list');
+    setSelectedInterviewId(null);
+  };
+
   const handleGenerateLink = () => {
     const token = generateExitInterviewToken();
     const link = `${window.location.origin}/entrevista-salida/${token}`;
@@ -65,16 +88,74 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
     });
   };
 
-  const handleDuplicate = (id: string) => {
-    console.log('Duplicar entrevista:', id);
+  const handleDuplicate = async (id: string) => {
+    try {
+      await duplicateExitInterview(id);
+      toast({
+        title: 'Entrevista duplicada',
+        description: 'La entrevista de salida ha sido duplicada exitosamente.',
+      });
+      loadExitInterviews();
+    } catch (error) {
+      toast({
+        title: 'Error al duplicar',
+        description: 'No se pudo duplicar la entrevista de salida.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (confirm('¿Estás seguro de que deseas eliminar esta entrevista de salida?')) {
+      try {
+        await deleteExitInterview(id);
+        toast({
+          title: 'Entrevista eliminada',
+          description: 'La entrevista de salida ha sido eliminada exitosamente.',
+        });
+        loadExitInterviews();
+      } catch (error) {
+        toast({
+          title: 'Error al eliminar',
+          description: 'No se pudo eliminar la entrevista de salida.',
+          variant: 'destructive',
+        });
+      }
+    }
   };
 
   const handleDownloadPDF = (id: string) => {
-    console.log('Descargar PDF:', id);
+    handleViewDetails(id);
   };
 
   const handleExport = () => {
-    console.log('Exportar datos');
+    if (exitInterviews.length === 0) {
+      toast({
+        title: 'Sin datos',
+        description: 'No hay entrevistas de salida para exportar.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const csvContent = exportExitInterviewsToCSV(exitInterviews);
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    
+    if (link.download !== undefined) {
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `entrevistas_salida_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast({
+        title: 'Exportación completada',
+        description: 'Las entrevistas de salida han sido exportadas exitosamente.',
+      });
+    }
   };
 
   const handleImport = () => {
@@ -96,6 +177,16 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
   const formatDate = (date: Date) => {
     return date.toLocaleDateString(language === 'es' ? 'es-ES' : 'en-US');
   };
+
+  if (viewMode === 'detail' && selectedInterviewId) {
+    return (
+      <ExitInterviewDetailView
+        language={language}
+        interviewId={selectedInterviewId}
+        onBack={handleBackToList}
+      />
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -246,7 +337,7 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => console.log('Ver detalles:', interview.id)}
+                              onClick={() => handleViewDetails(interview.id)}
                               title="Ver detalles"
                             >
                               <Eye className="w-4 h-4" />
@@ -266,6 +357,15 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
                               title="Descargar PDF"
                             >
                               <Download className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDelete(interview.id)}
+                              title="Eliminar"
+                              className="text-red-600 hover:text-red-800"
+                            >
+                              <Trash2 className="w-4 h-4" />
                             </Button>
                           </div>
                         </TableCell>

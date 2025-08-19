@@ -1,62 +1,211 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Eye, Copy, Download, Plus, Upload, FileDown } from 'lucide-react';
+import { Eye, Copy, Download, Plus, Upload, FileDown, RefreshCw, AlertCircle, Edit, Trash2 } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Language } from '../../utils/translations';
+import { 
+  getEmployeeAgreements, 
+  EmployeeAgreementRecord,
+  duplicateEmployeeAgreement,
+  deleteEmployeeAgreement,
+  exportEmployeeAgreementsToCSV
+} from '../../services/employeeAgreementsService';
+import { useToast } from '@/hooks/use-toast';
 import ImportEmployeeAgreementsModal from './ImportEmployeeAgreementsModal';
+import EmployeeAgreementDetailView from './EmployeeAgreementDetailView';
+import EmployeeAgreementCreateForm from './EmployeeAgreementCreateForm';
 
 interface EmployeeAgreementsListViewProps {
   language: Language;
-  onViewDetails: (agreementId: string) => void;
-  onCreateNew: () => void;
 }
 
-const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({ 
-  language, 
-  onViewDetails,
-  onCreateNew
-}) => {
+const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({ language }) => {
   const { t } = useTranslation(language);
+  const { toast } = useToast();
   const [showImportModal, setShowImportModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [agreements, setAgreements] = useState<EmployeeAgreementRecord[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedAgreementId, setSelectedAgreementId] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'list' | 'detail' | 'create'>('list');
   const itemsPerPage = 30;
 
-  // Datos vacíos - se cargarán desde Firebase cuando se implemente
-  const mockData: any[] = [];
+  const loadAgreements = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const agreementsData = await getEmployeeAgreements();
+      setAgreements(agreementsData);
+      console.log('Acuerdos con empleados cargados:', agreementsData.length);
+    } catch (err) {
+      console.error('Error cargando acuerdos:', err);
+      setError('Error al cargar los acuerdos con empleados');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-  const totalPages = Math.ceil(mockData.length / itemsPerPage);
+  useEffect(() => {
+    loadAgreements();
+  }, []);
+
+  const totalPages = Math.ceil(agreements.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = Math.min(startIndex + itemsPerPage, mockData.length);
-  const currentData = mockData.slice(startIndex, endIndex);
+  const endIndex = Math.min(startIndex + itemsPerPage, agreements.length);
+  const currentData = agreements.slice(startIndex, endIndex);
 
-  const handleDuplicate = (id: string) => {
-    console.log('Duplicar acuerdo:', id);
+  const handleViewDetails = (agreementId: string) => {
+    setSelectedAgreementId(agreementId);
+    setViewMode('detail');
+  };
+
+  const handleCreateNew = () => {
+    setViewMode('create');
+  };
+
+  const handleBackToList = () => {
+    setViewMode('list');
+    setSelectedAgreementId(null);
+  };
+
+  const handleSave = () => {
+    loadAgreements();
+    handleBackToList();
+  };
+
+  const handleDuplicate = async (id: string) => {
+    try {
+      await duplicateEmployeeAgreement(id);
+      toast({
+        title: 'Acuerdo duplicado',
+        description: 'El acuerdo con empleado ha sido duplicado exitosamente.',
+      });
+      loadAgreements();
+    } catch (error) {
+      toast({
+        title: 'Error al duplicar',
+        description: 'No se pudo duplicar el acuerdo con empleado.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (confirm('¿Estás seguro de que deseas eliminar este acuerdo con empleado?')) {
+      try {
+        await deleteEmployeeAgreement(id);
+        toast({
+          title: 'Acuerdo eliminado',
+          description: 'El acuerdo con empleado ha sido eliminado exitosamente.',
+        });
+        loadAgreements();
+      } catch (error) {
+        toast({
+          title: 'Error al eliminar',
+          description: 'No se pudo eliminar el acuerdo con empleado.',
+          variant: 'destructive',
+        });
+      }
+    }
   };
 
   const handleDownloadPDF = (id: string) => {
-    console.log('Descargar PDF:', id);
+    handleViewDetails(id);
   };
 
   const handleExport = () => {
-    console.log('Exportar datos');
+    if (agreements.length === 0) {
+      toast({
+        title: 'Sin datos',
+        description: 'No hay acuerdos con empleados para exportar.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const csvContent = exportEmployeeAgreementsToCSV(agreements);
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    
+    if (link.download !== undefined) {
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `acuerdos_empleados_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast({
+        title: 'Exportación completada',
+        description: 'Los acuerdos con empleados han sido exportados exitosamente.',
+      });
+    }
   };
 
-  const getStatusBadge = (status: string) => {
-    const statusConfig = {
-      'Activo': 'bg-green-100 text-green-800 border-green-300',
-      'Vencido': 'bg-red-100 text-red-800 border-red-300',
-      'Pendiente': 'bg-yellow-100 text-yellow-800 border-yellow-300'
-    };
-    return statusConfig[status as keyof typeof statusConfig] || 'bg-gray-100 text-gray-800 border-gray-300';
+  const handleRefresh = () => {
+    loadAgreements();
   };
 
-  const formatDate = (date: Date) => {
+  const getStatusBadge = (agreement: EmployeeAgreementRecord) => {
+    const now = new Date();
+    const endDate = agreement.endDate;
+    
+    if (!endDate) {
+      return 'bg-green-100 text-green-800 border-green-300';
+    }
+    
+    if (endDate < now) {
+      return 'bg-red-100 text-red-800 border-red-300';
+    }
+    
+    return 'bg-green-100 text-green-800 border-green-300';
+  };
+
+  const getStatusText = (agreement: EmployeeAgreementRecord) => {
+    const now = new Date();
+    const endDate = agreement.endDate;
+    
+    if (!endDate) {
+      return 'Activo';
+    }
+    
+    if (endDate < now) {
+      return 'Vencido';
+    }
+    
+    return 'Activo';
+  };
+
+  const formatDate = (date: Date | undefined) => {
+    if (!date) return '-';
     return date.toLocaleDateString(language === 'es' ? 'es-ES' : 'en-US');
   };
+
+  if (viewMode === 'detail' && selectedAgreementId) {
+    return (
+      <EmployeeAgreementDetailView
+        language={language}
+        agreementId={selectedAgreementId}
+        onBack={handleBackToList}
+      />
+    );
+  }
+
+  if (viewMode === 'create') {
+    return (
+      <EmployeeAgreementCreateForm
+        language={language}
+        onBack={handleBackToList}
+        onSave={handleSave}
+      />
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -68,11 +217,21 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
         
         <div className="flex flex-wrap gap-2">
           <Button
-            onClick={onCreateNew}
+            onClick={handleRefresh}
+            variant="outline"
+            disabled={isLoading}
+            className="border-blue-300 text-blue-700 hover:bg-blue-50"
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+            Actualizar
+          </Button>
+          
+          <Button
+            onClick={handleCreateNew}
             className="bg-blue-600 hover:bg-blue-700 text-white"
           >
             <Plus className="w-4 h-4 mr-2" />
-            {t('createNew')}
+            Crear Nuevo
           </Button>
           
           <Button
@@ -81,7 +240,7 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
             className="border-blue-300 text-blue-700 hover:bg-blue-50"
           >
             <FileDown className="w-4 h-4 mr-2" />
-            {t('export')}
+            Exportar
           </Button>
           
           <Button
@@ -90,7 +249,7 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
             className="border-blue-300 text-blue-700 hover:bg-blue-50"
           >
             <Upload className="w-4 h-4 mr-2" />
-            {t('import')}
+            Importar
           </Button>
         </div>
       </div>
@@ -103,7 +262,35 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {mockData.length === 0 ? (
+          {error && (
+            <div className="text-center py-8">
+              <div className="mx-auto w-16 h-16 bg-red-100 dark:bg-red-800 rounded-lg flex items-center justify-center mb-4">
+                <AlertCircle className="w-8 h-8 text-red-400" />
+              </div>
+              <h3 className="text-lg font-medium text-red-900 dark:text-red-100 mb-2">
+                Error al cargar datos
+              </h3>
+              <p className="text-red-600 dark:text-red-400 mb-4">
+                {error}
+              </p>
+              <Button onClick={handleRefresh} className="bg-blue-600 hover:bg-blue-700 text-white">
+                Intentar de nuevo
+              </Button>
+            </div>
+          )}
+
+          {isLoading && (
+            <div className="text-center py-12">
+              <div className="mx-auto w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center mb-4">
+                <RefreshCw className="w-8 h-8 text-gray-400 animate-spin" />
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+                Cargando acuerdos con empleados...
+              </h3>
+            </div>
+          )}
+
+          {!isLoading && !error && agreements.length === 0 && (
             <div className="text-center py-12">
               <div className="mx-auto w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center mb-4">
                 <Upload className="w-8 h-8 text-gray-400" />
@@ -116,7 +303,7 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
               </p>
               <div className="flex justify-center space-x-2">
                 <Button
-                  onClick={onCreateNew}
+                  onClick={handleCreateNew}
                   className="bg-blue-600 hover:bg-blue-700 text-white"
                 >
                   <Plus className="w-4 h-4 mr-2" />
@@ -132,25 +319,139 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
                 </Button>
               </div>
             </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Empleado</TableHead>
-                    <TableHead>Puesto</TableHead>
-                    <TableHead>Departamento</TableHead>
-                    <TableHead>Tipo de Acuerdo</TableHead>
-                    <TableHead>Fecha Inicio</TableHead>
-                    <TableHead>Estado</TableHead>
-                    <TableHead className="text-center">Acciones</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {/* Aquí se mostrarán los datos cuando se carguen desde Firebase */}
-                </TableBody>
-              </Table>
-            </div>
+          )}
+
+          {!isLoading && !error && agreements.length > 0 && (
+            <>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Nombre Empleado</TableHead>
+                      <TableHead>Puesto</TableHead>
+                      <TableHead>Departamento</TableHead>
+                      <TableHead>Tipo de Acuerdo</TableHead>
+                      <TableHead>Fecha Inicio</TableHead>
+                      <TableHead>Estado</TableHead>
+                      <TableHead className="text-center">Acciones</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {currentData.map((agreement) => (
+                      <TableRow key={agreement.id}>
+                        <TableCell className="font-medium">
+                          {agreement.employeeName} {agreement.employeeLastName}
+                        </TableCell>
+                        <TableCell>{agreement.position}</TableCell>
+                        <TableCell>{agreement.department}</TableCell>
+                        <TableCell>{agreement.agreementType}</TableCell>
+                        <TableCell>
+                          {formatDate(agreement.startDate)}
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={getStatusBadge(agreement)}>
+                            {getStatusText(agreement)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex justify-center space-x-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleViewDetails(agreement.id)}
+                              title="Ver detalles"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDuplicate(agreement.id)}
+                              title="Duplicar"
+                            >
+                              <Copy className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDownloadPDF(agreement.id)}
+                              title="Descargar PDF"
+                            >
+                              <Download className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDelete(agreement.id)}
+                              title="Eliminar"
+                              className="text-red-600 hover:text-red-800"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Paginación */}
+              {agreements.length > itemsPerPage && (
+                <div className="flex flex-col sm:flex-row justify-between items-center mt-4 gap-4">
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    Mostrando {startIndex + 1} a {endIndex} de {agreements.length} registros
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                      disabled={currentPage === 1}
+                    >
+                      Anterior
+                    </Button>
+                    
+                    <div className="flex space-x-1">
+                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        let pageNumber;
+                        if (totalPages <= 5) {
+                          pageNumber = i + 1;
+                        } else if (currentPage <= 3) {
+                          pageNumber = i + 1;
+                        } else if (currentPage >= totalPages - 2) {
+                          pageNumber = totalPages - 4 + i;
+                        } else {
+                          pageNumber = currentPage - 2 + i;
+                        }
+                        
+                        return (
+                          <Button
+                            key={pageNumber}
+                            variant={currentPage === pageNumber ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => setCurrentPage(pageNumber)}
+                            className={currentPage === pageNumber ? "bg-blue-600 text-white" : ""}
+                          >
+                            {pageNumber}
+                          </Button>
+                        );
+                      })}
+                    </div>
+                    
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                      disabled={currentPage === totalPages}
+                    >
+                      Siguiente
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </CardContent>
       </Card>

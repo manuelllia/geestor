@@ -1,14 +1,22 @@
+
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Button } from '../ui/button';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
-import { Badge } from '../ui/badge';
-import { Plus, Upload, Download, AlertCircle, Loader2, RefreshCw, FileDown, Edit, Trash2 } from 'lucide-react';
-import { Language } from '../../utils/translations';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Eye, Copy, Download, Plus, Upload, FileDown, RefreshCw, AlertCircle, Edit, Trash2 } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
-import { getContractRequests, ContractRequestData, deleteContractRequest } from '../../services/contractRequestsService';
-import ContractRequestCreateForm from './ContractRequestCreateForm';
+import { Language } from '../../utils/translations';
+import { 
+  getContractRequests, 
+  ContractRequestData,
+  deleteContractRequest,
+  updateContractRequest,
+  saveContractRequest
+} from '../../services/contractRequestsService';
+import { useToast } from '@/hooks/use-toast';
 import ImportContractRequestsModal from './ImportContractRequestsModal';
+import ContractRequestCreateForm from './ContractRequestCreateForm';
 
 interface ContractRequestsListViewProps {
   language: Language;
@@ -16,95 +24,195 @@ interface ContractRequestsListViewProps {
 
 const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ language }) => {
   const { t } = useTranslation(language);
-  const [requests, setRequests] = useState<ContractRequestData[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [showCreateForm, setShowCreateForm] = useState(false);
+  const { toast } = useToast();
   const [showImportModal, setShowImportModal] = useState(false);
-  const [editingRequest, setEditingRequest] = useState<ContractRequestData | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [requests, setRequests] = useState<ContractRequestData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'list' | 'detail' | 'create'>('list');
   const itemsPerPage = 30;
+
+  const loadRequests = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const requestsData = await getContractRequests();
+      setRequests(requestsData);
+      console.log('Solicitudes de contratación cargadas:', requestsData.length);
+    } catch (err) {
+      console.error('Error cargando solicitudes:', err);
+      setError('Error al cargar las solicitudes de contratación');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     loadRequests();
   }, []);
-
-  const loadRequests = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const data = await getContractRequests();
-      setRequests(data);
-      console.log('Solicitudes de contrato cargadas:', data.length);
-    } catch (err) {
-      console.error('Error loading contract requests:', err);
-      setError('Error al cargar las solicitudes de contrato');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleEdit = (request: ContractRequestData) => {
-    setEditingRequest(request);
-    setShowCreateForm(true);
-  };
-
-  const handleDelete = async (id: string) => {
-    if (window.confirm('¿Estás seguro de que deseas eliminar esta solicitud de contratación?')) {
-      try {
-        await deleteContractRequest(id);
-        await loadRequests(); // Recargar la lista
-        console.log('Solicitud eliminada correctamente');
-      } catch (error) {
-        console.error('Error deleting request:', error);
-        alert('Error al eliminar la solicitud');
-      }
-    }
-  };
 
   const totalPages = Math.ceil(requests.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = Math.min(startIndex + itemsPerPage, requests.length);
   const currentData = requests.slice(startIndex, endIndex);
 
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'pendiente':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-300 dark:bg-yellow-900/20 dark:text-yellow-300';
-      case 'en proceso':
-        return 'bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-900/20 dark:text-blue-300';
-      case 'aprobado':
-        return 'bg-green-100 text-green-800 border-green-300 dark:bg-green-900/20 dark:text-green-300';
-      case 'rechazado':
-        return 'bg-red-100 text-red-800 border-red-300 dark:bg-red-900/20 dark:text-red-300';
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-300 dark:bg-gray-900/20 dark:text-gray-300';
+  const handleViewDetails = (requestId: string) => {
+    setSelectedRequestId(requestId);
+    setViewMode('detail');
+  };
+
+  const handleCreateNew = () => {
+    setViewMode('create');
+  };
+
+  const handleBackToList = () => {
+    setViewMode('list');
+    setSelectedRequestId(null);
+  };
+
+  const handleSave = () => {
+    loadRequests();
+    handleBackToList();
+  };
+
+  const handleDuplicate = async (id: string) => {
+    try {
+      const originalRequest = requests.find(r => r.id === id);
+      if (!originalRequest) return;
+
+      const { id: _, createdAt, updatedAt, ...requestData } = originalRequest;
+      const duplicatedData = {
+        ...requestData,
+        applicantName: `${requestData.applicantName} (Copia)`,
+      };
+      
+      await saveContractRequest(duplicatedData);
+      toast({
+        title: 'Solicitud duplicada',
+        description: 'La solicitud de contratación ha sido duplicada exitosamente.',
+      });
+      loadRequests();
+    } catch (error) {
+      toast({
+        title: 'Error al duplicar',
+        description: 'No se pudo duplicar la solicitud de contratación.',
+        variant: 'destructive',
+      });
     }
   };
 
+  const handleDelete = async (id: string) => {
+    if (confirm('¿Estás seguro de que deseas eliminar esta solicitud de contratación?')) {
+      try {
+        await deleteContractRequest(id);
+        toast({
+          title: 'Solicitud eliminada',
+          description: 'La solicitud de contratación ha sido eliminada exitosamente.',
+        });
+        loadRequests();
+      } catch (error) {
+        toast({
+          title: 'Error al eliminar',
+          description: 'No se pudo eliminar la solicitud de contratación.',
+          variant: 'destructive',
+        });
+      }
+    }
+  };
+
+  const handleDownloadPDF = (id: string) => {
+    handleViewDetails(id);
+  };
+
   const handleExport = () => {
-    console.log('Exportar solicitudes de contrato');
+    if (requests.length === 0) {
+      toast({
+        title: 'Sin datos',
+        description: 'No hay solicitudes de contratación para exportar.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const headers = [
+      'ID',
+      'Nombre Solicitante',
+      'Apellidos Solicitante',
+      'Puesto',
+      'Departamento',
+      'Tipo de Solicitud',
+      'Fecha de Solicitud',
+      'Fecha Inicio Esperada',
+      'Salario',
+      'Estado',
+      'Observaciones',
+      'Fecha de Creación'
+    ];
+
+    const csvContent = [
+      headers.join(','),
+      ...requests.map(request => [
+        request.id || '',
+        `"${request.applicantName}"`,
+        `"${request.applicantLastName}"`,
+        `"${request.position}"`,
+        `"${request.department}"`,
+        `"${request.requestType}"`,
+        request.requestDate.toLocaleDateString('es-ES'),
+        request.expectedStartDate ? request.expectedStartDate.toLocaleDateString('es-ES') : '',
+        `"${request.salary}"`,
+        `"${request.status}"`,
+        `"${request.observations}"`,
+        request.createdAt ? request.createdAt.toLocaleDateString('es-ES') : ''
+      ].join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    
+    if (link.download !== undefined) {
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `solicitudes_contratacion_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast({
+        title: 'Exportación completada',
+        description: 'Las solicitudes de contratación han sido exportadas exitosamente.',
+      });
+    }
   };
 
   const handleRefresh = () => {
     loadRequests();
   };
 
-  const formatDate = (date: Date) => {
+  const getStatusBadge = (status: string) => {
+    const statusConfig = {
+      'Pendiente': 'bg-yellow-100 text-yellow-800 border-yellow-300',
+      'Aprobado': 'bg-green-100 text-green-800 border-green-300',
+      'Rechazado': 'bg-red-100 text-red-800 border-red-300',
+      'En Proceso': 'bg-blue-100 text-blue-800 border-blue-300'
+    };
+    return statusConfig[status as keyof typeof statusConfig] || 'bg-gray-100 text-gray-800 border-gray-300';
+  };
+
+  const formatDate = (date: Date | undefined) => {
+    if (!date) return '-';
     return date.toLocaleDateString(language === 'es' ? 'es-ES' : 'en-US');
   };
 
-  if (showCreateForm) {
+  if (viewMode === 'create') {
     return (
       <ContractRequestCreateForm
         language={language}
-        editingRequest={editingRequest}
-        onBack={() => {
-          setShowCreateForm(false);
-          setEditingRequest(null);
-          loadRequests();
-        }}
-        onSave={loadRequests}
+        onBack={handleBackToList}
+        onSave={handleSave}
       />
     );
   }
@@ -121,22 +229,19 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
           <Button
             onClick={handleRefresh}
             variant="outline"
-            disabled={loading}
+            disabled={isLoading}
             className="border-blue-300 text-blue-700 hover:bg-blue-50"
           >
-            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
             Actualizar
           </Button>
           
           <Button
-            onClick={() => {
-              setEditingRequest(null);
-              setShowCreateForm(true);
-            }}
+            onClick={handleCreateNew}
             className="bg-blue-600 hover:bg-blue-700 text-white"
           >
             <Plus className="w-4 h-4 mr-2" />
-            {t('createNew')}
+            Crear Nueva
           </Button>
           
           <Button
@@ -145,7 +250,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
             className="border-blue-300 text-blue-700 hover:bg-blue-50"
           >
             <FileDown className="w-4 h-4 mr-2" />
-            {t('export')}
+            Exportar
           </Button>
           
           <Button
@@ -154,12 +259,12 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
             className="border-blue-300 text-blue-700 hover:bg-blue-50"
           >
             <Upload className="w-4 h-4 mr-2" />
-            {t('import')}
+            Importar
           </Button>
         </div>
       </div>
 
-      {/* Tabla de solicitudes de contratación */}
+      {/* Tabla de solicitudes */}
       <Card className="border-blue-200 dark:border-blue-800">
         <CardHeader>
           <CardTitle className="text-blue-800 dark:text-blue-200">
@@ -183,19 +288,19 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
               </Button>
             </div>
           )}
-          
-          {loading && (
+
+          {isLoading && (
             <div className="text-center py-12">
               <div className="mx-auto w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center mb-4">
-                <Loader2 className="w-8 h-8 text-gray-400 animate-spin" />
+                <RefreshCw className="w-8 h-8 text-gray-400 animate-spin" />
               </div>
               <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
                 Cargando solicitudes de contratación...
               </h3>
             </div>
           )}
-          
-          {!loading && !error && requests.length === 0 && (
+
+          {!isLoading && !error && requests.length === 0 && (
             <div className="text-center py-12">
               <div className="mx-auto w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center mb-4">
                 <Upload className="w-8 h-8 text-gray-400" />
@@ -208,10 +313,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
               </p>
               <div className="flex justify-center space-x-2">
                 <Button
-                  onClick={() => {
-                    setEditingRequest(null);
-                    setShowCreateForm(true);
-                  }}
+                  onClick={handleCreateNew}
                   className="bg-blue-600 hover:bg-blue-700 text-white"
                 >
                   <Plus className="w-4 h-4 mr-2" />
@@ -228,20 +330,18 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
               </div>
             </div>
           )}
-          
-          {!loading && !error && requests.length > 0 && (
+
+          {!isLoading && !error && requests.length > 0 && (
             <>
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Nombre</TableHead>
-                      <TableHead>Apellidos</TableHead>
+                      <TableHead>Solicitante</TableHead>
                       <TableHead>Puesto</TableHead>
                       <TableHead>Departamento</TableHead>
-                      <TableHead>Tipo de Solicitud</TableHead>
-                      <TableHead>Fecha de Solicitud</TableHead>
-                      <TableHead>Salario</TableHead>
+                      <TableHead>Tipo</TableHead>
+                      <TableHead>Fecha Solicitud</TableHead>
                       <TableHead>Estado</TableHead>
                       <TableHead className="text-center">Acciones</TableHead>
                     </TableRow>
@@ -249,20 +349,17 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
                   <TableBody>
                     {currentData.map((request) => (
                       <TableRow key={request.id}>
-                        <TableCell className="font-medium">{request.applicantName}</TableCell>
-                        <TableCell>{request.applicantLastName}</TableCell>
+                        <TableCell className="font-medium">
+                          {request.applicantName} {request.applicantLastName}
+                        </TableCell>
                         <TableCell>{request.position}</TableCell>
                         <TableCell>{request.department}</TableCell>
                         <TableCell>{request.requestType}</TableCell>
                         <TableCell>
-                          {request.requestDate 
-                            ? formatDate(request.requestDate) 
-                            : '-'
-                          }
+                          {formatDate(request.requestDate)}
                         </TableCell>
-                        <TableCell>{request.salary}</TableCell>
                         <TableCell>
-                          <Badge className={getStatusColor(request.status)}>
+                          <Badge className={getStatusBadge(request.status)}>
                             {request.status}
                           </Badge>
                         </TableCell>
@@ -271,17 +368,33 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => handleEdit(request)}
-                              title="Editar solicitud"
+                              onClick={() => handleViewDetails(request.id!)}
+                              title="Ver detalles"
                             >
-                              <Edit className="w-4 h-4" />
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDuplicate(request.id!)}
+                              title="Duplicar"
+                            >
+                              <Copy className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDownloadPDF(request.id!)}
+                              title="Descargar PDF"
+                            >
+                              <Download className="w-4 h-4" />
                             </Button>
                             <Button
                               variant="ghost"
                               size="sm"
                               onClick={() => handleDelete(request.id!)}
-                              title="Eliminar solicitud"
-                              className="text-red-600 hover:text-red-800 hover:bg-red-50"
+                              title="Eliminar"
+                              className="text-red-600 hover:text-red-800"
                             >
                               <Trash2 className="w-4 h-4" />
                             </Button>
@@ -356,10 +469,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
       {/* Modal de importación */}
       <ImportContractRequestsModal
         open={showImportModal}
-        onClose={() => {
-          setShowImportModal(false);
-          loadRequests();
-        }}
+        onClose={() => setShowImportModal(false)}
         language={language}
       />
     </div>
