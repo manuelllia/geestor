@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { User, Camera, Shield, Building, Edit, CheckCircle, UserPlus } from 'lucide-react';
+import { User, Camera, Shield, Building, Edit, CheckCircle, UserPlus, LogOut } from 'lucide-react';
 import { User as UserType } from '../types/auth';
 import { useTranslation } from '../hooks/useTranslation';
 import { Language } from '../utils/translations';
@@ -17,6 +17,7 @@ interface UserProfileModalProps {
   language: Language;
   onUserUpdate: (updatedUser: UserType) => void;
   onPermissionsUpdate?: () => void;
+  onLogout: () => void;
   children: React.ReactNode;
 }
 
@@ -24,7 +25,8 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
   user, 
   language, 
   onUserUpdate,
-  onPermissionsUpdate, 
+  onPermissionsUpdate,
+  onLogout,
   children 
 }) => {
   const { t } = useTranslation(language);
@@ -81,6 +83,11 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
     }
     
     setIsOpen(false);
+  };
+
+  const handleLogout = () => {
+    setIsOpen(false);
+    onLogout();
   };
 
   const handlePermissionChange = (category: string, key: string, value: boolean) => {
@@ -254,8 +261,17 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
             </CardContent>
           </Card>
 
-          {/* Botón Guardar */}
-          <div className="flex justify-end">
+          {/* Botones de acción */}
+          <div className="flex justify-between gap-4">
+            <Button 
+              onClick={handleLogout}
+              variant="destructive"
+              className="flex items-center gap-2"
+            >
+              <LogOut className="w-4 h-4" />
+              {t('logout')}
+            </Button>
+            
             <Button 
               onClick={handleSave}
               className="bg-blue-600 hover:bg-blue-700 text-white"

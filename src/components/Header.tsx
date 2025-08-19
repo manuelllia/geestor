@@ -52,6 +52,7 @@ export function Header({
             language={language}
             onUserUpdate={onUserUpdate}
             onPermissionsUpdate={onPermissionsUpdate}
+            onLogout={onLogout}
           >
             <Button 
               variant="ghost" 
