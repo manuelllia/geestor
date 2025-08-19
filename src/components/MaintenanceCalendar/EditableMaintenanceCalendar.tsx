@@ -88,9 +88,11 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
       const match = freq.match(pattern.regex);
       if (match) {
         const num = parseInt(match[1], 10);
-        const result = num * pattern.multiplier;
-        console.log(`✅ Patrón encontrado: ${match[0]} = ${result} días`);
-        return Math.max(1, Math.round(result)); // Mínimo 1 día
+        if (!isNaN(num)) {
+          const result = num * pattern.multiplier;
+          console.log(`✅ Patrón encontrado: ${match[0]} = ${result} días`);
+          return Math.max(1, Math.round(result)); // Mínimo 1 día
+        }
       }
     }
     
@@ -98,14 +100,16 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
     const numberMatch = freq.match(/(\d+)/);
     if (numberMatch) {
       const num = parseInt(numberMatch[1], 10);
-      // Si hay contexto de tiempo, aplicar lógica
-      if (freq.includes('h') || freq.includes('hora')) {
-        return Math.max(1, Math.round(num / 24)); // Convertir horas a días
+      if (!isNaN(num)) {
+        // Si hay contexto de tiempo, aplicar lógica
+        if (freq.includes('h') || freq.includes('hora')) {
+          return Math.max(1, Math.round(num / 24)); // Convertir horas a días
+        }
+        // Si es un número sin contexto, asumir días por defecto
+        const result = num > 365 ? 365 : num; // Máximo un año
+        console.log(`⚠️ Número sin contexto: ${num} -> ${result} días`);
+        return result;
       }
-      // Si es un número sin contexto, asumir días por defecto
-      const result = num > 365 ? 365 : num; // Máximo un año
-      console.log(`⚠️ Número sin contexto: ${num} -> ${result} días`);
-      return result;
     }
     
     console.log(`❌ No se pudo parsear frecuencia: "${frecuencia}" - usando 90 días por defecto`);
