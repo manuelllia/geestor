@@ -102,15 +102,15 @@ const EmployeeAgreementDetailView: React.FC<EmployeeAgreementDetailViewProps> = 
       title: t('agreementDetails'),
       fields: [
         { label: t('agreementType'), value: agreementData.agreementType, icon: <FileText className="w-4 h-4 text-green-500" /> },
-        { label: t('startDate'), value: agreementData.startDate, type: 'date', icon: <Calendar className="w-4 h-4 text-green-500" /> },
-        { label: t('endDate'), value: agreementData.endDate, type: 'date', icon: <Calendar className="w-4 h-4 text-green-500" /> },
-        { label: t('salary'), value: agreementData.salary, type: 'currency', icon: <DollarSign className="w-4 h-4 text-green-500" /> }
+        { label: t('startDate'), value: agreementData.startDate, type: 'date' as const, icon: <Calendar className="w-4 h-4 text-green-500" /> },
+        { label: t('endDate'), value: agreementData.endDate, type: 'date' as const, icon: <Calendar className="w-4 h-4 text-green-500" /> },
+        { label: t('salary'), value: agreementData.salary, type: 'currency' as const, icon: <DollarSign className="w-4 h-4 text-green-500" /> }
       ]
     },
     {
       title: t('benefitsAndConditions'),
       fields: [
-        { label: t('benefits'), value: agreementData.benefits, type: 'list', icon: <Award className="w-4 h-4 text-purple-500" /> },
+        { label: t('benefits'), value: agreementData.benefits, type: 'list' as const, icon: <Award className="w-4 h-4 text-purple-500" /> },
         { label: t('conditions'), value: agreementData.conditions, icon: <FileText className="w-4 h-4 text-purple-500" /> },
         { label: t('observations'), value: agreementData.observations, icon: <FileText className="w-4 h-4 text-purple-500" /> }
       ]

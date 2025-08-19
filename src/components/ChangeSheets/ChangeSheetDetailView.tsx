@@ -94,14 +94,14 @@ const ChangeSheetDetailView: React.FC<ChangeSheetDetailViewProps> = ({
         { label: t('newPosition'), value: sheetData.newPosition, icon: <FileText className="w-4 h-4 text-purple-500" /> },
         { label: t('newSupervisorName'), value: sheetData.newSupervisorName, icon: <Users className="w-4 h-4 text-purple-500" /> },
         { label: t('newSupervisorLastName'), value: sheetData.newSupervisorLastName, icon: <Users className="w-4 h-4 text-purple-500" /> },
-        { label: t('startDate'), value: sheetData.startDate, type: 'date', icon: <Calendar className="w-4 h-4 text-purple-500" /> }
+        { label: t('startDate'), value: sheetData.startDate, type: 'date' as const, icon: <Calendar className="w-4 h-4 text-purple-500" /> }
       ]
     },
     {
       title: t('changeDetails'),
       fields: [
         { label: t('changeType'), value: sheetData.changeType === 'permanent' ? t('permanent') : t('temporary'), icon: <FileText className="w-4 h-4 text-orange-500" /> },
-        { label: t('needs'), value: sheetData.needs, type: 'list', icon: <FileText className="w-4 h-4 text-orange-500" /> },
+        { label: t('needs'), value: sheetData.needs, type: 'list' as const, icon: <FileText className="w-4 h-4 text-orange-500" /> },
         { label: t('currentCompany'), value: sheetData.currentCompany, icon: <Building className="w-4 h-4 text-orange-500" /> },
         { label: t('companyChange'), value: sheetData.companyChange === 'yes' ? t('yes') : t('no'), icon: <Building className="w-4 h-4 text-orange-500" /> },
         { label: t('observations'), value: sheetData.observations, icon: <FileText className="w-4 h-4 text-orange-500" /> },
