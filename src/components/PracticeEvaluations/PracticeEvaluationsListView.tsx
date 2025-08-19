@@ -1,42 +1,41 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { FileUp, Download, RefreshCw, Plus, Calendar } from 'lucide-react';
-import { getPracticeEvaluations, generatePracticeEvaluationToken } from '../../services/practiceEvaluationService';
-import { toast } from 'sonner';
+import { getPracticeEvaluations } from '../../services/practiceEvaluationService';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { Language } from '../../utils/translations';
+import { useTranslation } from '../../hooks/useTranslation';
+import PracticeEvaluationLinkModal from './PracticeEvaluationLinkModal';
 
-export default function PracticeEvaluationsListView() {
+interface PracticeEvaluationsListViewProps {
+  language: Language;
+}
+
+export default function PracticeEvaluationsListView({ language }: PracticeEvaluationsListViewProps) {
+  const { t } = useTranslation(language);
+  const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
+  
   const { data: evaluations = [], isLoading, refetch } = useQuery({
     queryKey: ['practice-evaluations'],
     queryFn: getPracticeEvaluations,
   });
 
   const handleGenerateLink = () => {
-    const token = generatePracticeEvaluationToken();
-    const link = `${window.location.origin}/valoracion-practicas/${token}`;
-    
-    navigator.clipboard.writeText(link);
-    toast.success('Enlace copiado al portapapeles', {
-      description: 'Comparte este enlace para que se complete la valoración de prácticas',
-    });
+    setIsLinkModalOpen(true);
   };
 
   const handleExport = () => {
-    toast.info('Función de exportación', {
-      description: 'Esta función se implementará próximamente',
-    });
+    // TODO: Implementar exportación
   };
 
   const handleImport = () => {
-    toast.info('Función de importación', {
-      description: 'Esta función se implementará próximamente',
-    });
+    // TODO: Implementar importación
   };
 
   if (isLoading) {
@@ -52,49 +51,51 @@ export default function PracticeEvaluationsListView() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="text-blue-600 dark:text-blue-300">Valoración de Prácticas</CardTitle>
+          <CardTitle className="text-blue-600 dark:text-blue-300">
+            {t('practiceEvaluations')}
+          </CardTitle>
           <CardDescription>
-            Gestiona las valoraciones de prácticas realizadas por los tutores de GEE
+            {t('managePracticeEvaluations')}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-2 mb-6">
             <Button onClick={handleGenerateLink} className="bg-blue-600 hover:bg-blue-700">
               <Plus className="w-4 h-4 mr-2" />
-              Generar Enlace de Valoración
+              {t('generateEvaluationLink')}
             </Button>
             <Button variant="outline" onClick={handleExport}>
               <Download className="w-4 h-4 mr-2" />
-              Exportar
+              {t('export')}
             </Button>
             <Button variant="outline" onClick={handleImport}>
               <FileUp className="w-4 h-4 mr-2" />
-              Importar
+              {t('import')}
             </Button>
             <Button variant="outline" onClick={() => refetch()}>
               <RefreshCw className="w-4 h-4 mr-2" />
-              Actualizar
+              {t('refresh')}
             </Button>
           </div>
 
           {evaluations.length === 0 ? (
             <div className="text-center py-8 text-gray-500 dark:text-gray-400">
               <Calendar className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p>No hay valoraciones de prácticas registradas</p>
-              <p className="text-sm">Genera un enlace para comenzar a recibir valoraciones</p>
+              <p>{t('noPracticeEvaluations')}</p>
+              <p className="text-sm">{t('generateLinkToStart')}</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Estudiante</TableHead>
-                    <TableHead>Tutor</TableHead>
-                    <TableHead>Centro de Trabajo</TableHead>
-                    <TableHead>Formación</TableHead>
-                    <TableHead>Evaluación Final</TableHead>
-                    <TableHead>Fecha</TableHead>
-                    <TableHead>Valoración</TableHead>
+                    <TableHead>{t('student')}</TableHead>
+                    <TableHead>{t('tutor')}</TableHead>
+                    <TableHead>{t('workCenter')}</TableHead>
+                    <TableHead>{t('formation')}</TableHead>
+                    <TableHead>{t('finalEvaluation')}</TableHead>
+                    <TableHead>{t('date')}</TableHead>
+                    <TableHead>{t('rating')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -138,6 +139,12 @@ export default function PracticeEvaluationsListView() {
           )}
         </CardContent>
       </Card>
+
+      <PracticeEvaluationLinkModal
+        isOpen={isLinkModalOpen}
+        onClose={() => setIsLinkModalOpen(false)}
+        onLinkGenerated={() => refetch()}
+      />
     </div>
   );
 }

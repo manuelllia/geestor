@@ -37,9 +37,10 @@ interface AppSidebarProps {
   language: Language;
   activeSection: string;
   onSectionChange: (section: string) => void;
+  currentUserId?: string;
 }
 
-export function AppSidebar({ language, activeSection, onSectionChange }: AppSidebarProps) {
+export function AppSidebar({ language, activeSection, onSectionChange, currentUserId }: AppSidebarProps) {
   const { t } = useTranslation(language);
   const { setOpenMobile, state } = useSidebar();
   const { permissions, isLoading } = useUserPermissions();
@@ -47,6 +48,9 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
   const [openGroup, setOpenGroup] = useState<string | null>(null);
   
   const isCollapsed = state === 'collapsed';
+
+  // Detectar si el usuario es administrador
+  const isAdmin = currentUserId === 'f5hxxnZBA9Xn7hxkdpzkcdFkfEz1';
 
   const handleGroupToggle = (groupId: string) => {
     setOpenGroup(openGroup === groupId ? null : groupId);
@@ -87,7 +91,7 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
     {
       id: 'operaciones',
       label: 'OPERACIONES',
-      visible: permissions?.Per_Ope ?? true,
+      visible: isAdmin || (permissions?.Per_Ope ?? true),
       items: [
         {
           id: 'analisis-coste',
@@ -101,7 +105,7 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
       id: 'gestion-tecnica',
       label: 'GESTIÓN TÉCNICA',
       shortLabel: 'GT',
-      visible: permissions?.Per_GT ?? true,
+      visible: isAdmin || (permissions?.Per_GT ?? true),
       items: [
         {
           id: 'calendario-mantenimiento',
@@ -121,7 +125,7 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
       id: 'gestion-talento',
       label: 'GESTIÓN DE TALENTO',
       shortLabel: 'GDT',
-      visible: permissions?.Per_GDT ?? true,
+      visible: isAdmin || (permissions?.Per_GDT ?? true),
       items: [
         {
           id: 'solicitudes-contratacion',

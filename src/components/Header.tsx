@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { User, Settings, Menu } from 'lucide-react';
+import { User, Settings, Menu, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Language, Theme } from '../utils/translations';
 import { useTranslation } from '../hooks/useTranslation';
@@ -37,6 +37,9 @@ export function Header({
     setIsSettingsOpen(true);
   };
 
+  // Detectar si el usuario es administrador
+  const isAdmin = user.id === 'f5hxxnZBA9Xn7hxkdpzkcdFkfEz1';
+
   return (
     <>
       <header className="bg-white dark:bg-gray-900 border-b border-blue-200 dark:border-blue-800 px-2 sm:px-4 py-2 sm:py-3 flex items-center justify-between h-14 sm:h-16">
@@ -52,14 +55,24 @@ export function Header({
             language={language}
             onUserUpdate={onUserUpdate}
             onPermissionsUpdate={onPermissionsUpdate}
+            onLogout={onLogout}
           >
             <Button 
               variant="ghost" 
               size="sm"
-              className="text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
+              className={`${isAdmin 
+                ? 'text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20' 
+                : 'text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20'
+              } text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2`}
             >
-              <User className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-              <span className="hidden xs:inline">{t('profile')}</span>
+              {isAdmin ? (
+                <Shield className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+              ) : (
+                <User className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+              )}
+              <span className="hidden xs:inline">
+                {isAdmin ? 'ADMIN' : t('profile')}
+              </span>
             </Button>
           </UserProfileModal>
           

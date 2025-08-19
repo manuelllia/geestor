@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { Calendar, ChevronLeft, ChevronRight, Plus, Edit, Trash2, Clock, Users } from 'lucide-react';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, addMonths, subMonths, parseISO, isValid, addDays, startOfYear, endOfYear, addWeeks } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, addMonths, subMonths, parseISO, isValid, addDays, startOfYear, endOfYear, addWeeks, getWeeksInMonth, startOfWeek, endOfWeek, eachWeekOfInterval, getDay } from 'date-fns';
 import { es } from 'date-fns/locale';
 import MaintenanceEventModal from './MaintenanceEventModal';
 
@@ -109,7 +109,7 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
     return 90; // Por defecto trimestral
   };
 
-  // Función para parsear tiempo de mantenimiento (sin cambios)
+  // Función para parsear tiempo de mantenimiento
   const parseMaintenanceTime = (tiempo?: string): number => {
     if (!tiempo) return 2; // Por defecto 2 horas
     
@@ -126,7 +126,7 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
     return 2;
   };
 
-  // Función para obtener prioridad basada en el tipo de mantenimiento (sin cambios)
+  // Función para obtener prioridad basada en el tipo de mantenimiento
   const getPriorityFromType = (tipoMantenimiento: string): 'baja' | 'media' | 'alta' | 'critica' => {
     const tipo = tipoMantenimiento.toLowerCase();
     
@@ -136,82 +136,193 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
     return 'baja';
   };
 
-  // Función mejorada para generar eventos respetando frecuencias exactas
-  useEffect(() => {
-    const generatePreciseMaintenanceCalendar = () => {
-      const today = new Date();
-      const nextYear = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate());
-      const allEvents: MaintenanceEvent[] = [];
+  // ALGORITMO MEJORADO: Distribución equitativa de mantenimientos
+  const generateOptimizedMaintenanceCalendar = () => {
+    const today = new Date();
+    const nextYear = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate());
+    
+    console.log(`🔧 GENERANDO CALENDARIO OPTIMIZADO - Distribución Equitativa`);
+    console.log(`📅 Período: ${format(today, 'dd/MM/yyyy')} hasta ${format(nextYear, 'dd/MM/yyyy')}`);
+    
+    // Paso 1: Calcular todos los mantenimientos necesarios en el año
+    const allMaintenanceNeeds: Array<{
+      denominacion: string;
+      codigo: string;
+      tipoMantenimiento: string;
+      tiempo: number;
+      cantidad: number;
+      frecuenciaDias: number;
+      prioridad: 'baja' | 'media' | 'alta' | 'critica';
+      mantenimientosAnuales: number;
+      horasTotalesAnuales: number;
+    }> = [];
+
+    denominaciones.forEach(denom => {
+      const diasEntreMant = parseFrequencyToDays(denom.frecuencia);
+      const tiempoHoras = parseMaintenanceTime(denom.tiempo);
+      const prioridad = getPriorityFromType(denom.tipoMantenimiento);
       
-      console.log(`📅 Generando calendario desde ${format(today, 'dd/MM/yyyy')} hasta ${format(nextYear, 'dd/MM/yyyy')}`);
+      // Calcular cuántos mantenimientos se necesitan en el año
+      const mantenimientosAnuales = Math.ceil(365 / diasEntreMant);
+      const horasTotalesAnuales = mantenimientosAnuales * tiempoHoras * denom.cantidad;
       
-      denominaciones.forEach((denominacion, denomIndex) => {
-        const diasEntreMant = parseFrequencyToDays(denominacion.frecuencia);
-        const tiempoHoras = parseMaintenanceTime(denominacion.tiempo);
-        const prioridad = getPriorityFromType(denominacion.tipoMantenimiento);
-        
-        console.log(`🔧 ${denominacion.denominacion}:`);
-        console.log(`   - Frecuencia: ${denominacion.frecuencia} (${diasEntreMant} días)`);
-        console.log(`   - Tipo: ${denominacion.tipoMantenimiento}`);
-        console.log(`   - Tiempo: ${tiempoHoras}h`);
-        
-        // Calcular fechas de mantenimiento desde hoy hasta el año que viene
-        const fechasMantenimiento: Date[] = [];
-        let fechaActual = new Date(today);
-        let contador = 0;
-        
-        // Generar fechas respetando la frecuencia exacta
-        while (fechaActual <= nextYear && contador < 50) { // Límite de seguridad
-          fechasMantenimiento.push(new Date(fechaActual));
-          
-          // Sumar los días exactos según la frecuencia
-          fechaActual = addDays(fechaActual, diasEntreMant);
-          contador++;
+      allMaintenanceNeeds.push({
+        denominacion: denom.denominacion,
+        codigo: denom.codigo,
+        tipoMantenimiento: denom.tipoMantenimiento,
+        tiempo: tiempoHoras,
+        cantidad: denom.cantidad,
+        frecuenciaDias: diasEntreMant,
+        prioridad,
+        mantenimientosAnuales,
+        horasTotalesAnuales
+      });
+      
+      console.log(`📊 ${denom.denominacion}: ${mantenimientosAnuales} mant/año, ${horasTotalesAnuales}h/año`);
+    });
+
+    // Paso 2: Calcular distribución mensual objetivo
+    const horasTotalesAnuales = allMaintenanceNeeds.reduce((sum, item) => sum + item.horasTotalesAnuales, 0);
+    const horasObjetivoMensual = horasTotalesAnuales / 12;
+    
+    console.log(`🎯 Objetivo: ${horasObjetivoMensual.toFixed(1)} horas por mes`);
+    
+    // Paso 3: Crear estructura mensual para distribución
+    const monthlyDistribution: { [key: string]: number } = {};
+    const monthlyEvents: { [key: string]: MaintenanceEvent[] } = {};
+    
+    for (let i = 0; i < 12; i++) {
+      const monthKey = format(addMonths(today, i), 'yyyy-MM');
+      monthlyDistribution[monthKey] = 0;
+      monthlyEvents[monthKey] = [];
+    }
+
+    // Paso 4: Distribuir mantenimientos de forma equitativa
+    const allEvents: MaintenanceEvent[] = [];
+    let eventCounter = 0;
+
+    allMaintenanceNeeds.forEach(maintenance => {
+      const fechasMantenimiento: Date[] = [];
+      
+      // Generar fechas base según frecuencia
+      if (maintenance.frecuenciaDias <= 7) {
+        // Mantenimientos frecuentes (diarios/semanales) - distribuir uniformemente
+        const intervalo = Math.floor(365 / maintenance.mantenimientosAnuales);
+        for (let i = 0; i < maintenance.mantenimientosAnuales; i++) {
+          fechasMantenimiento.push(addDays(today, i * intervalo));
         }
-        
-        console.log(`   - Fechas generadas: ${fechasMantenimiento.length}`);
-        console.log(`   - Primera fecha: ${format(fechasMantenimiento[0], 'dd/MM/yyyy')}`);
-        console.log(`   - Última fecha: ${format(fechasMantenimiento[fechasMantenimiento.length - 1], 'dd/MM/yyyy')}`);
-        
-        // Crear eventos para cada fecha calculada
-        fechasMantenimiento.forEach((fecha, mantIndex) => {
+      } else if (maintenance.frecuenciaDias <= 30) {
+        // Mantenimientos mensuales - uno por mes, balanceando carga
+        for (let month = 0; month < 12; month++) {
+          const monthStart = startOfMonth(addMonths(today, month));
+          const monthEnd = endOfMonth(addMonths(today, month));
+          
+          // Buscar el día con menos carga en el mes
+          let bestDay = monthStart;
+          let minHours = Infinity;
+          
+          for (let day = monthStart; day <= monthEnd; day = addDays(day, 1)) {
+            // Evitar fines de semana para mantenimientos programados
+            const dayOfWeek = getDay(day);
+            if (dayOfWeek === 0 || dayOfWeek === 6) continue;
+            
+            const dayKey = format(day, 'yyyy-MM-dd');
+            const currentDayHours = allEvents
+              .filter(e => format(e.fecha, 'yyyy-MM-dd') === dayKey)
+              .reduce((sum, e) => sum + (e.tiempo * e.cantidad), 0);
+            
+            if (currentDayHours < minHours) {
+              minHours = currentDayHours;
+              bestDay = day;
+            }
+          }
+          
+          fechasMantenimiento.push(bestDay);
+        }
+      } else {
+        // Mantenimientos menos frecuentes - distribuir según frecuencia real
+        let fechaActual = new Date(today);
+        while (fechaActual <= nextYear && fechasMantenimiento.length < maintenance.mantenimientosAnuales) {
+          fechasMantenimiento.push(new Date(fechaActual));
+          fechaActual = addDays(fechaActual, maintenance.frecuenciaDias);
+        }
+      }
+
+      // Crear eventos para cada fecha
+      fechasMantenimiento.forEach((fecha, index) => {
+        if (fecha <= nextYear) {
+          const monthKey = format(fecha, 'yyyy-MM');
+          const horasEvento = maintenance.tiempo * maintenance.cantidad;
+          
+          // Verificar si añadir este evento excede mucho el objetivo mensual
+          if (monthlyDistribution[monthKey] + horasEvento > horasObjetivoMensual * 1.5) {
+            // Buscar un mes alternativo con menos carga
+            const mesesAlternativos = Object.keys(monthlyDistribution)
+              .map(key => ({ key, horas: monthlyDistribution[key] }))
+              .sort((a, b) => a.horas - b.horas)
+              .slice(0, 3);
+            
+            const mejorMes = mesesAlternativos[0];
+            if (mejorMes && mejorMes.horas < horasObjetivoMensual * 1.2) {
+              // Mover al mes con menos carga
+              const [year, month] = mejorMes.key.split('-');
+              fecha = new Date(parseInt(year), parseInt(month) - 1, fecha.getDate());
+            }
+          }
+
           const event: MaintenanceEvent = {
-            id: `event-${denomIndex}-${mantIndex}-${Date.now()}-${Math.random()}`,
-            denominacion: denominacion.denominacion,
-            codigo: denominacion.codigo,
-            tipoMantenimiento: denominacion.tipoMantenimiento,
+            id: `opt-event-${eventCounter++}-${Date.now()}`,
+            denominacion: maintenance.denominacion,
+            codigo: maintenance.codigo,
+            tipoMantenimiento: maintenance.tipoMantenimiento,
             fecha: fecha,
-            tiempo: tiempoHoras,
-            cantidad: denominacion.cantidad,
-            equipos: Array.from({ length: denominacion.cantidad }, (_, i) => 
-              `${denominacion.denominacion} #${i + 1}`
+            tiempo: maintenance.tiempo,
+            cantidad: maintenance.cantidad,
+            equipos: Array.from({ length: maintenance.cantidad }, (_, i) => 
+              `${maintenance.denominacion} #${i + 1}`
             ),
             estado: fecha < today ? 'completado' : 'programado',
-            prioridad,
-            notas: `Mantenimiento ${mantIndex + 1} - Frecuencia: cada ${diasEntreMant} días (${denominacion.frecuencia})`
+            prioridad: maintenance.prioridad,
+            notas: `Mantenimiento optimizado ${index + 1}/${fechasMantenimiento.length} - Distribución equitativa`
           };
-          
-          allEvents.push(event);
-        });
-      });
-      
-      // Ordenar eventos por fecha
-      allEvents.sort((a, b) => a.fecha.getTime() - b.fecha.getTime());
-      
-      console.log(`✅ Calendario generado: ${allEvents.length} eventos totales`);
-      console.log(`📊 Resumen por denominación:`);
-      
-      // Log resumen
-      denominaciones.forEach(denom => {
-        const eventosEstaDenom = allEvents.filter(e => e.denominacion === denom.denominacion);
-        console.log(`   ${denom.denominacion}: ${eventosEstaDenom.length} eventos`);
-      });
-      
-      return allEvents;
-    };
 
+          allEvents.push(event);
+          
+          const finalMonthKey = format(fecha, 'yyyy-MM');
+          monthlyDistribution[finalMonthKey] += horasEvento;
+          monthlyEvents[finalMonthKey].push(event);
+        }
+      });
+    });
+
+    // Paso 5: Reporte de distribución
+    console.log(`✅ CALENDARIO OPTIMIZADO GENERADO:`);
+    console.log(`📊 Total eventos: ${allEvents.length}`);
+    console.log(`⏱️ Total horas anuales: ${horasTotalesAnuales.toFixed(1)}h`);
+    console.log(`📈 Distribución mensual:`);
+    
+    Object.entries(monthlyDistribution).forEach(([month, hours]) => {
+      const percentage = ((hours / horasObjetivoMensual) * 100).toFixed(1);
+      console.log(`   ${month}: ${hours.toFixed(1)}h (${percentage}% del objetivo)`);
+    });
+
+    // Calcular desviación estándar para medir equidad
+    const horasMensuales = Object.values(monthlyDistribution);
+    const promedio = horasMensuales.reduce((sum, h) => sum + h, 0) / horasMensuales.length;
+    const varianza = horasMensuales.reduce((sum, h) => sum + Math.pow(h - promedio, 2), 0) / horasMensuales.length;
+    const desviacionEstandar = Math.sqrt(varianza);
+    
+    console.log(`📏 Desviación estándar: ${desviacionEstandar.toFixed(2)}h (menor = más equitativo)`);
+
+    return allEvents.sort((a, b) => a.fecha.getTime() - b.fecha.getTime());
+  };
+
+  // Generar calendario optimizado al cargar el componente
+  useEffect(() => {
     if (denominaciones.length > 0 && events.length === 0) {
-      setEvents(generatePreciseMaintenanceCalendar());
+      console.log('🚀 Iniciando generación de calendario optimizado...');
+      const optimizedEvents = generateOptimizedMaintenanceCalendar();
+      setEvents(optimizedEvents);
     }
   }, [denominaciones, events.length]);
 
@@ -333,16 +444,16 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
           <div>
             <CardTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5" />
-              📅 Calendario de Mantenimiento Anual
+              📅 Calendario de Mantenimiento Optimizado
             </CardTitle>
             <p className="text-sm text-gray-600 dark:text-gray-300 mt-2">
-              Arrastra eventos para cambiar fechas • Haz clic para editar • Usa + para agregar nuevos
+              Distribución equitativa de horas • Optimizado para eficiencia operacional • Arrastra eventos para reprogramar
             </p>
           </div>
           <div className="flex items-center gap-4">
             <div className="text-right">
               <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                {getTotalHoursForCurrentMonth()}h
+                {getTotalHoursForCurrentMonth().toFixed(1)}h
               </div>
               <div className="text-sm text-gray-600 dark:text-gray-400">
                 Este mes
@@ -350,7 +461,7 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
             </div>
             <div className="text-right">
               <div className="text-xl font-bold text-green-600 dark:text-green-400">
-                {getTotalHoursForYear()}h
+                {getTotalHoursForYear().toFixed(1)}h
               </div>
               <div className="text-sm text-gray-600 dark:text-gray-400">
                 Total año
@@ -395,7 +506,7 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
               return (
                 <div
                   key={day.toISOString()}
-                  className={`min-h-32 p-2 border border-gray-200 dark:border-gray-700 rounded-lg relative
+                  className={`min-h-32 p-2 border border-gray-200 dark:border-gray-700 rounded-lg relative group
                     ${isToday ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-300 dark:border-blue-600' : 'bg-white dark:bg-gray-800'}
                     ${!isSameMonth(day, currentDate) ? 'opacity-50' : ''}
                     hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors
@@ -421,7 +532,7 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
                     <div className="flex items-center gap-1 mb-2">
                       <Clock className="h-3 w-3 text-gray-500" />
                       <span className="text-xs text-gray-600 dark:text-gray-400">
-                        {totalHours}h
+                        {totalHours.toFixed(1)}h
                       </span>
                     </div>
                   )}
