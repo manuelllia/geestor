@@ -1,9 +1,5 @@
 
 import { useState } from 'react';
-import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist';
-
-// Configure PDF.js worker with a more reliable CDN
-GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@4.0.379/build/pdf.worker.min.js`;
 
 interface ReportData {
   presupuestoGeneral: string;
@@ -141,42 +137,20 @@ export const useCostAnalysis = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const extractTextFromPDF = async (file: File): Promise<string> => {
-    try {
-      console.log('📄 Iniciando extracción de texto del PDF:', file.name);
-      const arrayBuffer = await file.arrayBuffer();
-      console.log('✅ ArrayBuffer obtenido, tamaño:', arrayBuffer.byteLength);
-      
-      const pdf = await getDocument({ 
-        data: arrayBuffer,
-        useWorkerFetch: false,
-        isEvalSupported: false,
-        useSystemFonts: true
-      }).promise;
-      
-      console.log('✅ PDF cargado, páginas:', pdf.numPages);
-      let fullText = '';
-
-      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-        console.log(`📖 Procesando página ${pageNum}/${pdf.numPages}`);
-        const page = await pdf.getPage(pageNum);
-        const textContent = await page.getTextContent();
-        const pageText = textContent.items
-          .map((item: any) => item.str)
-          .join(' ');
-        fullText += pageText + '\n';
-      }
-
-      console.log('✅ Extracción completada, caracteres totales:', fullText.length);
-      return fullText;
-    } catch (error) {
-      console.error('❌ Error extracting text from PDF:', error);
-      throw new Error(`Error al extraer texto del PDF: ${error instanceof Error ? error.message : 'Error desconocido'}`);
-    }
+  const convertFileToBase64 = async (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64String = (reader.result as string).split(',')[1];
+        resolve(base64String);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
   };
 
-  const createAnalysisPrompt = (pcapText: string, pptText: string): string => {
-    return `Actúa como un prestigioso matemático y un experto consultor especializado en licitaciones públicas de electromedicina en España. Tu tarea es analizar el texto extraído de un Pliego de Cláusulas Administrativas Particulares (PCAP) y un Pliego de Prescripciones Técnicas (PPT).
+  const createAnalysisPrompt = (): string => {
+    return `Actúa como un prestigioso matemático y un experto consultor especializado en licitaciones públicas de electromedicina en España. Tu tarea es analizar los documentos PDF proporcionados: un Pliego de Cláusulas Administrativas Particulares (PCAP) y un Pliego de Prescripciones Técnicas (PPT).
 
 **Instrucción de Idioma (CRÍTICA):** Los documentos de entrada (PCAP y PPT) pueden estar escritos en español, catalán, gallego, euskera (vasco), valenciano o inglés. Independientemente del idioma de origen, TU RESPUESTA Y TODOS LOS DATOS EXTRAÍDOS en el JSON final DEBEN ESTAR OBLIGATORIAMENTE EN ESPAÑOL. Realiza la traducción necesaria para todos los campos.
 
@@ -248,82 +222,99 @@ Tu objetivo es que un usuario pueda entender perfectamente cómo funciona cada c
 *   **Presupuesto General:** Busca el "Presupuesto Base de Licitación" (PBL) o "Valor Estimado del Contrato" (VEC) **TOTAL**. Extrae su valor numérico **sin IVA** como una cadena de texto.
 *   **Recomendaciones de Costes ('costesDetalladosRecomendados'):** Actúa como un director de operaciones. Tu objetivo es generar un desglose de costes **realista, completo y rentable**.
 
-Regla general: Si un dato no se encuentra, usa "No especificado en los documentos" para strings y arrays vacíos para listas. Para los costes recomendados, omite los campos que no puedas estimar.
-
---- TEXTO PCAP ---
-${pcapText}
---- FIN TEXTO PCAP ---
-
---- TEXTO PPT ---
-${pptText}
---- FIN TEXTO PPT ---`;
+Regla general: Si un dato no se encuentra, usa "No especificado en los documentos" para strings y arrays vacíos para listas. Para los costes recomendados, omite los campos que no puedas estimar.`;
   };
 
-  const callGeminiAPI = async (prompt: string): Promise<ReportData> => {
+  const callGeminiAPI = async (pcapFile: File, pptFile: File): Promise<ReportData> => {
     const GEMINI_API_KEY = 'AIzaSyANIWvIMRvCW7f0meHRk4SobRz4s0pnxtg';
     const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent';
 
     console.log('🤖 Llamando a Gemini API...');
 
-    const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        contents: [{
-          parts: [{
-            text: prompt
-          }]
-        }],
-        generationConfig: {
-          temperature: 0.1,
-          topK: 40,
-          topP: 0.95,
-          maxOutputTokens: 8192,
-          responseMimeType: "application/json",
-          responseSchema: responseSchema
-        }
-      }),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('❌ Error de Gemini API:', response.status, errorText);
-      throw new Error(`Error de Gemini API: ${response.status} - ${errorText}`);
-    }
-
-    const data = await response.json();
-    console.log('✅ Respuesta de Gemini recibida:', data);
-    
-    if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
-      throw new Error('Respuesta inválida de Gemini API');
-    }
-
-    const responseText = data.candidates[0].content.parts[0].text;
-    console.log('📝 Texto de respuesta:', responseText);
-    
-    let parsedResult: ReportData;
     try {
-      parsedResult = JSON.parse(responseText);
-      console.log('✅ JSON parseado correctamente:', parsedResult);
-    } catch (parseError) {
-      console.error('❌ Error al parsear JSON:', parseError);
-      throw new Error('Error al parsear la respuesta de la IA');
-    }
+      // Convertir archivos a base64
+      console.log('📄 Convirtiendo archivos a base64...');
+      const pcapBase64 = await convertFileToBase64(pcapFile);
+      const pptBase64 = await convertFileToBase64(pptFile);
+      console.log('✅ Archivos convertidos a base64');
 
-    // Post-procesamiento: parsear formulaEconomica si existe y no está vacía
-    if (parsedResult.formulaEconomica && parsedResult.formulaEconomica !== '{}') {
-      try {
-        const formulaObject = JSON.parse(parsedResult.formulaEconomica);
-        console.log('✅ Fórmula económica parseada:', formulaObject);
-        parsedResult.formulaEconomica = JSON.stringify(formulaObject);
-      } catch (formulaError) {
-        console.warn('⚠️ Error al parsear formulaEconomica, manteniendo como string:', formulaError);
+      const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [
+              {
+                text: createAnalysisPrompt()
+              },
+              {
+                inline_data: {
+                  mime_type: "application/pdf",
+                  data: pcapBase64
+                }
+              },
+              {
+                inline_data: {
+                  mime_type: "application/pdf", 
+                  data: pptBase64
+                }
+              }
+            ]
+          }],
+          generationConfig: {
+            temperature: 0.1,
+            topK: 40,
+            topP: 0.95,
+            maxOutputTokens: 8192,
+            responseMimeType: "application/json",
+            responseSchema: responseSchema
+          }
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ Error de Gemini API:', response.status, errorText);
+        throw new Error(`Error de Gemini API: ${response.status} - ${errorText}`);
       }
-    }
 
-    return parsedResult;
+      const data = await response.json();
+      console.log('✅ Respuesta de Gemini recibida:', data);
+      
+      if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
+        throw new Error('Respuesta inválida de Gemini API');
+      }
+
+      const responseText = data.candidates[0].content.parts[0].text;
+      console.log('📝 Texto de respuesta:', responseText);
+      
+      let parsedResult: ReportData;
+      try {
+        parsedResult = JSON.parse(responseText);
+        console.log('✅ JSON parseado correctamente:', parsedResult);
+      } catch (parseError) {
+        console.error('❌ Error al parsear JSON:', parseError);
+        throw new Error('Error al parsear la respuesta de la IA');
+      }
+
+      // Post-procesamiento: parsear formulaEconomica si existe y no está vacía
+      if (parsedResult.formulaEconomica && parsedResult.formulaEconomica !== '{}') {
+        try {
+          const formulaObject = JSON.parse(parsedResult.formulaEconomica);
+          console.log('✅ Fórmula económica parseada:', formulaObject);
+          parsedResult.formulaEconomica = JSON.stringify(formulaObject);
+        } catch (formulaError) {
+          console.warn('⚠️ Error al parsear formulaEconomica, manteniendo como string:', formulaError);
+        }
+      }
+
+      return parsedResult;
+    } catch (error) {
+      console.error('❌ Error en llamada a Gemini API:', error);
+      throw error;
+    }
   };
 
   const analyzeCosts = async (pcapFile: File, pptFile: File): Promise<void> => {
@@ -338,28 +329,9 @@ ${pptText}
         ppt: pptFile.name
       });
 
-      // Extraer texto de ambos PDFs
-      console.log('📝 Extrayendo texto del PCAP...');
-      const pcapText = await extractTextFromPDF(pcapFile);
-      console.log('✅ PCAP procesado, caracteres:', pcapText.length);
-
-      console.log('📝 Extrayendo texto del PPT...');
-      const pptText = await extractTextFromPDF(pptFile);
-      console.log('✅ PPT procesado, caracteres:', pptText.length);
-
-      // Solo procesar si se obtuvieron textos válidos
-      if (!pcapText.trim() && !pptText.trim()) {
-        throw new Error('No se pudo extraer texto de los archivos PDF');
-      }
-
-      // Crear prompt
-      console.log('🔧 Creando prompt para análisis...');
-      const prompt = createAnalysisPrompt(pcapText, pptText);
-      console.log('✅ Prompt creado, longitud:', prompt.length);
-
-      // Llamar a Gemini API
-      console.log('🤖 Enviando a Gemini API...');
-      const result = await callGeminiAPI(prompt);
+      // Llamar directamente a Gemini API con los archivos
+      console.log('🤖 Enviando archivos a Gemini API...');
+      const result = await callGeminiAPI(pcapFile, pptFile);
       console.log('✅ Análisis completado:', result);
 
       setAnalysisResult(result);
