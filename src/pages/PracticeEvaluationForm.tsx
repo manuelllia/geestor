@@ -102,7 +102,7 @@ export default function PracticeEvaluationForm() {
         const data = await getPracticeEvaluationById(id);
         setEvaluationData(data);
         
-        if (data?.completed) {
+        if (data?.response) {
           setIsSubmitted(true);
         }
       } catch (error) {
@@ -119,26 +119,7 @@ export default function PracticeEvaluationForm() {
     
     setIsLoading(true);
     try {
-      // Transform the form data to match PracticeEvaluationResponse interface
-      const responseData = {
-        student: `${data.studentName} ${data.studentLastName}`,
-        tutor: `${data.tutorName} ${data.tutorLastName}`,
-        workCenter: data.workCenter,
-        formation: data.formation,
-        finalEvaluation: data.finalEvaluation,
-        performanceRating: data.performanceRating,
-        comments: data.performanceJustification,
-        studentName: data.studentName,
-        studentLastName: data.studentLastName,
-        tutorName: data.tutorName,
-        tutorLastName: data.tutorLastName,
-        institute: data.institution,
-        evaluationDate: data.evaluationDate,
-        evaluatorName: data.evaluatorName,
-        observations: data.observations
-      };
-
-      await savePracticeEvaluationResponse(id, responseData);
+      await savePracticeEvaluationResponse(id, data);
       setIsSubmitted(true);
       toast.success('Valoración de prácticas enviada correctamente');
     } catch (error) {

@@ -1,10 +1,6 @@
 
 import { useState, useEffect } from 'react';
 import { User, AuthState } from '../types/auth';
-import { signOut, onAuthStateChanged } from 'firebase/auth';
-import { auth } from '../lib/firebase';
-
-const ADMIN_UID = 'f5hxxnZBA9Xn7hxkdpzkcdFkfEz1';
 
 export const useAuth = () => {
   const [authState, setAuthState] = useState<AuthState>({
@@ -15,41 +11,81 @@ export const useAuth = () => {
   });
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      if (firebaseUser) {
-        const isAdmin = firebaseUser.uid === ADMIN_UID;
-        
-        const user: User = {
-          id: firebaseUser.uid, // Usar uid en lugar de uuid
-          email: firebaseUser.email || '',
-          name: firebaseUser.displayName || 'Usuario',
-          profilePicture: firebaseUser.photoURL || undefined,
-          isAdmin
-        };
-
+    // Check for existing session
+    const savedUser = localStorage.getItem('geestor-user');
+    if (savedUser) {
+      try {
+        const user = JSON.parse(savedUser);
         setAuthState({
           user,
           isAuthenticated: true,
           isLoading: false,
           isVerifying: false
         });
-        
-        // Guardar en localStorage también
-        localStorage.setItem('geestor-user', JSON.stringify(user));
-      } else {
-        // No hay usuario autenticado
-        setAuthState({
-          user: null,
-          isAuthenticated: false,
-          isLoading: false,
-          isVerifying: false
-        });
+      } catch (error) {
         localStorage.removeItem('geestor-user');
+        setAuthState(prev => ({ ...prev, isLoading: false }));
       }
-    });
+    } else {
+      // En desarrollo, solo verificar si hay un callback de OAuth
+      if (process.env.NODE_ENV !== 'development') {
+        // Check if we're returning from Microsoft OAuth
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get('code');
+        const state = urlParams.get('state');
+        const savedState = sessionStorage.getItem('oauth-state');
 
-    return () => unsubscribe();
+        if (code && state && state === savedState) {
+          handleOAuthCallback(code);
+        } else {
+          setAuthState(prev => ({ ...prev, isLoading: false }));
+        }
+      } else {
+        setAuthState(prev => ({ ...prev, isLoading: false }));
+      }
+    }
   }, []);
+
+  const handleOAuthCallback = async (code: string) => {
+    try {
+      setAuthState(prev => ({ ...prev, isLoading: true }));
+      
+      // Limpiar URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+      
+      // En producción, aquí enviarías el código al backend
+      // POST /api/auth/microsoft con { code }
+      // El backend intercambia el código por un token y devuelve los datos del usuario
+      
+      setAuthState(prev => ({ ...prev, isVerifying: true, isLoading: false }));
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      
+      // Mock user data - en producción vendría del token de Microsoft
+      const mockUser: User = {
+        id: '1',
+        email: 'usuario@empresa.com',
+        name: 'Usuario Demo',
+        profilePicture: 'https://via.placeholder.com/40'
+      };
+
+      localStorage.setItem('geestor-user', JSON.stringify(mockUser));
+      sessionStorage.removeItem('oauth-state');
+      
+      setAuthState({
+        user: mockUser,
+        isAuthenticated: true,
+        isLoading: false,
+        isVerifying: false
+      });
+    } catch (error) {
+      console.error('OAuth callback failed:', error);
+      setAuthState(prev => ({ 
+        ...prev, 
+        isLoading: false, 
+        isVerifying: false 
+      }));
+    }
+  };
 
   const loginWithMicrosoft = async () => {
     try {
@@ -62,11 +98,10 @@ export const useAuth = () => {
       
       // Mock user data para desarrollo
       const mockUser: User = {
-        id: ADMIN_UID, // Usar UID de admin para pruebas
-        email: 'admin@empresa.com',
-        name: 'Administrador Demo',
-        profilePicture: 'https://via.placeholder.com/40',
-        isAdmin: true
+        id: '1',
+        email: 'usuario@empresa.com',
+        name: 'Usuario Demo',
+        profilePicture: 'https://via.placeholder.com/40'
       };
 
       localStorage.setItem('geestor-user', JSON.stringify(mockUser));
@@ -87,38 +122,15 @@ export const useAuth = () => {
     }
   };
 
-  const logout = async () => {
-    try {
-      // Cerrar sesión en Firebase
-      await signOut(auth);
-      
-      // Limpiar localStorage
-      localStorage.removeItem('geestor-user');
-      localStorage.removeItem('geestor-language');
-      
-      // Actualizar estado
-      setAuthState({
-        user: null,
-        isAuthenticated: false,
-        isLoading: false,
-        isVerifying: false
-      });
-      
-      // Redirigir a login
-      window.location.href = '/';
-    } catch (error) {
-      console.error('Error al cerrar sesión:', error);
-      // Forzar limpieza local aunque falle Firebase
-      localStorage.removeItem('geestor-user');
-      localStorage.removeItem('geestor-language');
-      setAuthState({
-        user: null,
-        isAuthenticated: false,
-        isLoading: false,
-        isVerifying: false
-      });
-      window.location.href = '/';
-    }
+  const logout = () => {
+    localStorage.removeItem('geestor-user');
+    sessionStorage.removeItem('oauth-state');
+    setAuthState({
+      user: null,
+      isAuthenticated: false,
+      isLoading: false,
+      isVerifying: false
+    });
   };
 
   return {

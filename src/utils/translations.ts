@@ -1,524 +1,392 @@
 
-export type Language = 'es' | 'en';
-export type Theme = 'light' | 'dark';
+export type Language = "es" | "en";
+export type Theme = "light" | "dark";
 
-export const translations = {
+export const languages = [
+  {
+    key: "es",
+    label: "Español",
+  },
+  {
+    key: "en",
+    label: "English",
+  },
+];
+
+type TranslationKeys =
+  | "error"
+  | "language"
+  | "loading"
+  | "success"
+  | "selectLanguage"
+  | "selectTheme"
+  | "emailPlaceholder"
+  | "passwordPlaceholder"
+  | "detailViewPlaceholder"
+  | "comingSoon"
+  | "submit"
+  | "login"
+  | "logout"
+  | "register"
+  | "email"
+  | "password"
+  | "firstName"
+  | "lastName"
+  | "termsAndConditions"
+  | "iAgree"
+  | "alreadyHaveAnAccount"
+  | "forgotPassword"
+  | "resetPassword"
+  | "rememberMe"
+  | "orContinueWith"
+  | "google"
+  | "facebook"
+  | "github"
+  | "profile"
+  | "settings"
+  | "dashboard"
+  | "users"
+  | "roles"
+  | "permissions"
+  | "editProfile"
+  | "changePassword"
+  | "saveChanges"
+  | "currentPassword"
+  | "newPassword"
+  | "confirmNewPassword"
+  | "cancel"
+  | "deleteAccount"
+  | "deleteAccountConfirmation"
+  | "close"
+  | "search"
+  | "noResultsFound"
+  | "name"
+  | "description"
+  | "createdAt"
+  | "updatedAt"
+  | "actions"
+  | "edit"
+  | "delete"
+  | "view"
+  | "create"
+  | "import"
+  | "export"
+  | "id"
+  | "general"
+  | "security"
+  | "appearance"
+  | "system"
+  | "light"
+  | "dark"
+  | "auto"
+  | "confirmPassword"
+  | "goBack"
+  | "home"
+  | "unauthorized"
+  | "pageNotFound"
+  | "somethingWentWrong"
+  | "maintenance"
+  | "builtBy"
+  | "version"
+  | "documentation"
+  | "examplePage"
+  | "welcome"
+  | "exampleCard"
+  | "exampleTitle"
+  | "exampleDescription"
+  | "exampleButton"
+  | "realEstateDashboard"
+  | "activeProperties"
+  | "inactiveProperties"
+  | "totalProperties"
+  | "totalRooms"
+  | "back"
+  | "exportPDF"
+  | "changeSheetDetails"
+  | "changeSheetsManagement"
+  | "createNew"
+  | "hojasCambio"
+  | "employeeName"
+  | "originCenter"
+  | "startDate"
+  | "status"
+  | "duplicateRecord"
+  | "downloadPDF"
+  | "employeeAgreementDetails"
+  | "loginSubtitle"
+  | "loginButton"
+  | "welcomeMessage"
+  | "welcomeSubtitle"
+  | "selectSection"
+  | "mainContent"
+  | "noContentSelected"
+  | "realEstateDetails"
+  | "spanish"
+  | "english"
+  | "theme"
+  | "userProfile"
+  | "personalInformation"
+  | "changePhoto"
+  | "departmentPermissions"
+  | "departmentPermissionsDesc"
+  | "operaciones"
+  | "gestionTecnica"
+  | "gestionTalento"
+  | "actionPermissions"
+  | "actionPermissionsDesc"
+  | "verifyingAccount";
+
+type Translations = {
+  [key in Language]: {
+    [key in TranslationKeys]: string;
+  };
+};
+
+export const translations: Translations = {
   es: {
-    // Navegación y menús
-    dashboard: 'Panel Principal',
-    operations: 'Operaciones',
-    technicalManagement: 'Gestión Técnica',
-    talentManagement: 'Gestión de Talento',
-    settings: 'Configuración',
-    profile: 'Perfil',
-    admin: 'ADMIN',
-    logout: 'Cerrar Sesión',
-    
-    // Login y autenticación
-    welcome: 'Bienvenido',
-    loginSubtitle: 'Accede a tu cuenta para continuar',
-    loginButton: 'Continuar con Microsoft',
-    verifyingAccount: 'Verificando cuenta',
-    
-    // Idiomas
-    spanish: 'Español',
-    english: 'English',
-    light: 'Claro',
-    dark: 'Oscuro',
-    
-    // Perfil de usuario
-    userProfile: 'Perfil de Usuario',
-    personalInformation: 'Información Personal',
-    changePhoto: 'Cambiar Foto',
-    name: 'Nombre',
-    departmentPermissions: 'Permisos de Departamentos',
-    departmentPermissionsDesc: 'Configura el acceso a los diferentes departamentos',
-    operaciones: 'Operaciones',
-    gestionTecnica: 'Gestión Técnica',
-    gestionTalento: 'Gestión de Talento',
-    actionPermissions: 'Permisos de Acciones',
-    actionPermissionsDesc: 'Configura las acciones permitidas para el usuario',
-    create: 'Crear',
-    saveChanges: 'Guardar Cambios',
-    
-    // Propiedades inmobiliarias
-    realEstateDashboard: 'Dashboard Inmobiliario',
-    activeProperties: 'Propiedades Activas',
-    inactiveProperties: 'Propiedades Inactivas',
-    totalProperties: 'Total de Propiedades',
-    
-    // Análisis de costes
-    costAnalysis: 'Análisis de Costes',
-    costAnalysisDescription: 'Realiza análisis completos de costes y puntuación de licitaciones',
-    uploadDocuments: 'Subir Documentos',
-    analyzeCosts: 'Analizar Costes',
-    
-    // Calendario de mantenimiento
-    maintenanceCalendar: 'Calendario de Mantenimiento',
-    maintenanceCalendarDescription: 'Gestiona y programa el mantenimiento de equipos médicos',
-    
-    // Valoración de prácticas
-    practiceEvaluation: 'Valoración de Prácticas',
-    practiceEvaluationDescription: 'Gestiona las valoraciones de prácticas realizadas por los tutores de GEE',
-    generateEvaluationLink: 'Generar Enlace de Valoración',
-    linkCopied: 'Enlace copiado al portapapeles',
-    linkCopiedDescription: 'Comparte este enlace para que se complete la valoración de prácticas',
-    linkGenerationError: 'Error al generar enlace',
-    linkGenerationErrorDescription: 'No se pudo generar el enlace de valoración. Inténtalo de nuevo.',
-    noPracticeEvaluations: 'No hay valoraciones de prácticas registradas',
-    generateLinkToStart: 'Genera un enlace para comenzar a recibir valoraciones',
-    
-    // Hojas de cambio
-    changeSheetsManagement: 'Gestión de Hojas de Cambio',
-    changeSheetDetails: 'Detalles de la Hoja de Cambio',
-    hojasCambio: 'Hojas de Cambio',
-    employeeName: 'Nombre del Empleado',
-    employeeLastName: 'Apellidos del Empleado',
-    originCenter: 'Centro de Origen',
-    newPosition: 'Nuevo Puesto',
-    startDate: 'Fecha de Inicio',
-    status: 'Estado',
-    
-    // Acuerdos con empleados
-    employeeAgreements: 'Acuerdos con Empleados',
-    employeeAgreementDetails: 'Detalles del Acuerdo con Empleado',
-    agreementType: 'Tipo de Acuerdo',
-    benefits: 'Beneficios',
-    conditions: 'Condiciones',
-    observations: 'Observaciones',
-    
-    // Inmuebles
-    realEstate: 'Inmuebles',
-    realEstateDetails: 'Detalles del Inmueble',
-    
-    // Formularios y acciones
-    export: 'Exportar',
-    import: 'Importar',
-    refresh: 'Actualizar',
-    save: 'Guardar',
-    cancel: 'Cancelar',
-    delete: 'Eliminar',
-    edit: 'Editar',
-    add: 'Agregar',
-    search: 'Buscar',
-    filter: 'Filtrar',
-    back: 'Volver',
-    createNew: 'Crear Nuevo',
-    actions: 'Acciones',
-    view: 'Ver',
-    duplicateRecord: 'Duplicar Registro',
-    downloadPDF: 'Descargar PDF',
-    exportPDF: 'Exportar PDF',
-    
-    // Campos de formulario
-    student: 'Estudiante',
-    tutor: 'Tutor',
-    workCenter: 'Centro de Trabajo',
-    formation: 'Formación',
-    finalEvaluation: 'Evaluación Final',
-    date: 'Fecha',
-    rating: 'Valoración',
-    position: 'Puesto',
-    department: 'Departamento',
-    salary: 'Salario',
-    
-    // Estados y mensajes
-    loading: 'Cargando...',
-    error: 'Error',
-    success: 'Éxito',
-    warning: 'Advertencia',
-    info: 'Información',
-    comingSoon: 'Próximamente',
-    detailViewPlaceholder: 'Vista de detalle en desarrollo',
-    
-    // Configuración
-    language: 'Idioma',
-    theme: 'Tema',
-    lightTheme: 'Tema Claro',
-    darkTheme: 'Tema Oscuro',
-    
-    // Funciones
-    exportFunction: 'Función de exportación',
-    exportFunctionDescription: 'Esta función se implementará próximamente',
-    importFunction: 'Función de importación',
-    importFunctionDescription: 'Esta función se implementará próximamente',
-    
-    // Solicitudes de contratación
-    contractRequests: 'Solicitudes de Contratación',
-    applicantName: 'Nombre del Solicitante',
-    applicantLastName: 'Apellidos del Solicitante',
-    requestType: 'Tipo de Solicitud',
-    requestDate: 'Fecha de Solicitud',
-    
-    // Entrevistas de salida
-    exitInterviews: 'Entrevistas de Salida',
-    
-    // Permisos y roles
-    permissions: 'Permisos',
-    role: 'Rol',
-    accessLevel: 'Nivel de Acceso',
-    
-    // Mensajes de error y éxito
-    errorLoadingData: 'Error al cargar los datos',
-    dataLoadedSuccessfully: 'Datos cargados correctamente',
-    operationCompletedSuccessfully: 'Operación completada con éxito',
-    
-    // Paginación
-    previous: 'Anterior',
-    next: 'Siguiente',
-    page: 'Página',
-    of: 'de',
-    showing: 'Mostrando',
-    to: 'a',
-    records: 'registros',
-    
-    // Calendario
-    calendar: 'Calendario',
-    event: 'Evento',
-    events: 'Eventos',
-    today: 'Hoy',
-    month: 'Mes',
-    week: 'Semana',
-    day: 'Día',
-    
-    // Archivos y documentos
-    file: 'Archivo',
-    files: 'Archivos',
-    document: 'Documento',
-    documents: 'Documentos',
-    upload: 'Subir',
-    download: 'Descargar',
-    
-    // Filtros y búsqueda
-    filterBy: 'Filtrar por',
-    searchBy: 'Buscar por',
-    noResults: 'No se encontraron resultados',
-    allResults: 'Todos los resultados',
-    
-    // Estados de proceso
-    pending: 'Pendiente',
-    approved: 'Aprobado',
-    rejected: 'Rechazado',
-    inProgress: 'En Proceso',
-    completed: 'Completado',
-    
-    // Notificaciones
-    notification: 'Notificación',
-    notifications: 'Notificaciones',
-    noNotifications: 'No hay notificaciones',
-    
-    // Configuración de usuario
-    userSettings: 'Configuración de Usuario',
-    accountSettings: 'Configuración de Cuenta',
-    preferences: 'Preferencias',
-    
-    // Tiempo
-    createdAt: 'Creado el',
-    updatedAt: 'Actualizado el',
-    lastModified: 'Última modificación',
-    
-    // Validación
-    required: 'Requerido',
-    optional: 'Opcional',
-    invalid: 'Inválido',
-    valid: 'Válido',
-    
-    // Confirmaciones
-    confirmDelete: '¿Confirmar eliminación?',
-    confirmSave: '¿Confirmar guardado?',
-    confirmCancel: '¿Confirmar cancelación?',
-    areYouSure: '¿Estás seguro?',
-    
-    // Menús contextuales
-    contextMenu: 'Menú contextual',
-    options: 'Opciones',
-    moreOptions: 'Más opciones',
-    
-    // Datos personales
-    personalData: 'Datos Personales',
-    contactInfo: 'Información de Contacto',
-    address: 'Dirección',
-    phone: 'Teléfono',
-    email: 'Correo Electrónico',
-    
-    // Administración
-    administration: 'Administración',
-    systemSettings: 'Configuración del Sistema',
-    userManagement: 'Gestión de Usuarios',
-    
-    // Estados de conexión
-    online: 'En línea',
-    offline: 'Desconectado',
-    connecting: 'Conectando',
-    
-    // Tipos de archivo
-    pdf: 'PDF',
-    excel: 'Excel',
-    word: 'Word',
-    image: 'Imagen',
-    
-    // Accesibilidad
-    accessibility: 'Accesibilidad',
-    altText: 'Texto alternativo',
-    screenReader: 'Lector de pantalla',
+    error: "Error",
+    language: "Idioma",
+    loading: "Cargando...",
+    success: "Éxito",
+    selectLanguage: "Seleccionar idioma",
+    selectTheme: "Seleccionar tema",
+    emailPlaceholder: "correo@ejemplo.com",
+    passwordPlaceholder: "Contraseña",
+    detailViewPlaceholder: "Vista detallada",
+    comingSoon: "Próximamente",
+    submit: "Enviar",
+    login: "Iniciar sesión",
+    logout: "Cerrar sesión",
+    register: "Registrarse",
+    email: "Correo electrónico",
+    password: "Contraseña",
+    firstName: "Nombre",
+    lastName: "Apellido",
+    termsAndConditions: "Términos y condiciones",
+    iAgree: "Estoy de acuerdo",
+    alreadyHaveAnAccount: "¿Ya tienes una cuenta?",
+    forgotPassword: "¿Olvidaste tu contraseña?",
+    resetPassword: "Restablecer contraseña",
+    rememberMe: "Recuérdame",
+    orContinueWith: "O continúa con",
+    google: "Google",
+    facebook: "Facebook",
+    github: "GitHub",
+    profile: "Perfil",
+    settings: "Configuración",
+    dashboard: "Panel de control",
+    users: "Usuarios",
+    roles: "Roles",
+    permissions: "Permisos",
+    editProfile: "Editar perfil",
+    changePassword: "Cambiar contraseña",
+    saveChanges: "Guardar cambios",
+    currentPassword: "Contraseña actual",
+    newPassword: "Nueva contraseña",
+    confirmNewPassword: "Confirmar nueva contraseña",
+    cancel: "Cancelar",
+    deleteAccount: "Eliminar cuenta",
+    deleteAccountConfirmation: "¿Estás seguro de que quieres eliminar tu cuenta?",
+    close: "Cerrar",
+    search: "Buscar",
+    noResultsFound: "No se encontraron resultados",
+    name: "Nombre",
+    description: "Descripción",
+    createdAt: "Creado el",
+    updatedAt: "Actualizado el",
+    actions: "Acciones",
+    edit: "Editar",
+    delete: "Eliminar",
+    view: "Ver",
+    create: "Crear",
+    import: "Importar",
+    export: "Exportar",
+    id: "ID",
+    general: "General",
+    security: "Seguridad",
+    appearance: "Apariencia",
+    system: "Sistema",
+    light: "Claro",
+    dark: "Oscuro",
+    auto: "Automático",
+    confirmPassword: "Confirmar contraseña",
+    goBack: "Volver",
+    home: "Inicio",
+    unauthorized: "No autorizado",
+    pageNotFound: "Página no encontrada",
+    somethingWentWrong: "Algo salió mal",
+    maintenance: "Mantenimiento",
+    builtBy: "Construido por",
+    version: "Versión",
+    documentation: "Documentación",
+    examplePage: "Página de ejemplo",
+    welcome: "Bienvenido",
+    exampleCard: "Tarjeta de ejemplo",
+    exampleTitle: "Título de ejemplo",
+    exampleDescription: "Descripción de ejemplo",
+    exampleButton: "Botón de ejemplo",
+    realEstateDashboard: "Dashboard Inmobiliario",
+    activeProperties: "Propiedades Activas",
+    inactiveProperties: "Propiedades Inactivas",
+    totalProperties: "Total Propiedades",
+    totalRooms: "Total Habitaciones",
+    back: "Volver",
+    exportPDF: "Exportar PDF",
+    changeSheetDetails: "Detalles de Hoja de Cambio",
+    changeSheetsManagement: "Gestión de Hojas de Cambio",
+    createNew: "Crear Nuevo",
+    hojasCambio: "Hojas de Cambio",
+    employeeName: "Nombre del Empleado",
+    originCenter: "Centro de Origen",
+    startDate: "Fecha de Inicio",
+    status: "Estado",
+    duplicateRecord: "Duplicar Registro",
+    downloadPDF: "Descargar PDF",
+    employeeAgreementDetails: "Detalles del Acuerdo de Empleado",
+    loginSubtitle: "Accede a tu cuenta para continuar",
+    loginButton: "Iniciar Sesión",
+    welcomeMessage: "Bienvenido a GEEstor",
+    welcomeSubtitle: "Sistema de gestión empresarial integral",
+    selectSection: "Selecciona una sección del menú lateral para comenzar",
+    mainContent: "Contenido Principal",
+    noContentSelected: "No se ha seleccionado contenido",
+    realEstateDetails: "Detalles del Inmueble",
+    spanish: "Español",
+    english: "Inglés",
+    theme: "Tema",
+    userProfile: "Perfil de Usuario",
+    personalInformation: "Información Personal",
+    changePhoto: "Cambiar Foto",
+    departmentPermissions: "Permisos de Departamento",
+    departmentPermissionsDesc: "Controla el acceso a cada departamento",
+    operaciones: "Operaciones",
+    gestionTecnica: "Gestión Técnica",
+    gestionTalento: "Gestión de Talento",
+    actionPermissions: "Permisos de Acciones",
+    actionPermissionsDesc: "Controla las acciones que puede realizar",
+    verifyingAccount: "Verificando cuenta"
   },
   en: {
-    // Navigation and menus
-    dashboard: 'Dashboard',
-    operations: 'Operations',
-    technicalManagement: 'Technical Management',
-    talentManagement: 'Talent Management',
-    settings: 'Settings',
-    profile: 'Profile',
-    admin: 'ADMIN',
-    logout: 'Logout',
-    
-    // Login and authentication
-    welcome: 'Welcome',
-    loginSubtitle: 'Sign in to your account to continue',
-    loginButton: 'Continue with Microsoft',
-    verifyingAccount: 'Verifying account',
-    
-    // Languages
-    spanish: 'Español',
-    english: 'English',
-    light: 'Light',
-    dark: 'Dark',
-    
-    // User profile
-    userProfile: 'User Profile',
-    personalInformation: 'Personal Information',
-    changePhoto: 'Change Photo',
-    name: 'Name',
-    departmentPermissions: 'Department Permissions',
-    departmentPermissionsDesc: 'Configure access to different departments',
-    operaciones: 'Operations',
-    gestionTecnica: 'Technical Management',
-    gestionTalento: 'Talent Management',
-    actionPermissions: 'Action Permissions',
-    actionPermissionsDesc: 'Configure allowed actions for the user',
-    create: 'Create',
-    saveChanges: 'Save Changes',
-    
-    // Real estate properties
-    realEstateDashboard: 'Real Estate Dashboard',
-    activeProperties: 'Active Properties',
-    inactiveProperties: 'Inactive Properties',
-    totalProperties: 'Total Properties',
-    
-    // Cost analysis
-    costAnalysis: 'Cost Analysis',
-    costAnalysisDescription: 'Perform comprehensive cost and scoring analysis of tenders',
-    uploadDocuments: 'Upload Documents',
-    analyzeCosts: 'Analyze Costs',
-    
-    // Maintenance calendar
-    maintenanceCalendar: 'Maintenance Calendar',
-    maintenanceCalendarDescription: 'Manage and schedule medical equipment maintenance',
-    
-    // Practice evaluation
-    practiceEvaluation: 'Practice Evaluation',
-    practiceEvaluationDescription: 'Manage practice evaluations conducted by GEE tutors',
-    generateEvaluationLink: 'Generate Evaluation Link',
-    linkCopied: 'Link copied to clipboard',
-    linkCopiedDescription: 'Share this link to complete the practice evaluation',
-    linkGenerationError: 'Error generating link',
-    linkGenerationErrorDescription: 'Could not generate evaluation link. Please try again.',
-    noPracticeEvaluations: 'No practice evaluations recorded',
-    generateLinkToStart: 'Generate a link to start receiving evaluations',
-    
-    // Change sheets
-    changeSheetsManagement: 'Change Sheets Management',
-    changeSheetDetails: 'Change Sheet Details',
-    hojasCambio: 'Change Sheets',
-    employeeName: 'Employee Name',
-    employeeLastName: 'Employee Last Name',
-    originCenter: 'Origin Center',
-    newPosition: 'New Position',
-    startDate: 'Start Date',
-    status: 'Status',
-    
-    // Employee agreements
-    employeeAgreements: 'Employee Agreements',
-    employeeAgreementDetails: 'Employee Agreement Details',
-    agreementType: 'Agreement Type',
-    benefits: 'Benefits',
-    conditions: 'Conditions',
-    observations: 'Observations',
-    
-    // Real estate
-    realEstate: 'Real Estate',
-    realEstateDetails: 'Real Estate Details',
-    
-    // Forms and actions
-    export: 'Export',
-    import: 'Import',
-    refresh: 'Refresh',
-    save: 'Save',
-    cancel: 'Cancel',
-    delete: 'Delete',
-    edit: 'Edit',
-    add: 'Add',
-    search: 'Search',
-    filter: 'Filter',
-    back: 'Back',
-    createNew: 'Create New',
-    actions: 'Actions',
-    view: 'View',
-    duplicateRecord: 'Duplicate Record',
-    downloadPDF: 'Download PDF',
-    exportPDF: 'Export PDF',
-    
-    // Form fields
-    student: 'Student',
-    tutor: 'Tutor',
-    workCenter: 'Work Center',
-    formation: 'Training',
-    finalEvaluation: 'Final Evaluation',
-    date: 'Date',
-    rating: 'Rating',
-    position: 'Position',
-    department: 'Department',
-    salary: 'Salary',
-    
-    // States and messages
-    loading: 'Loading...',
-    error: 'Error',
-    success: 'Success',
-    warning: 'Warning',
-    info: 'Information',
-    comingSoon: 'Coming Soon',
-    detailViewPlaceholder: 'Detail view under development',
-    
-    // Settings
-    language: 'Language',
-    theme: 'Theme',
-    lightTheme: 'Light Theme',
-    darkTheme: 'Dark Theme',
-    
-    // Functions
-    exportFunction: 'Export function',
-    exportFunctionDescription: 'This function will be implemented soon',
-    importFunction: 'Import function',
-    importFunctionDescription: 'This function will be implemented soon',
-    
-    // Contract requests
-    contractRequests: 'Contract Requests',
-    applicantName: 'Applicant Name',
-    applicantLastName: 'Applicant Last Name',
-    requestType: 'Request Type',
-    requestDate: 'Request Date',
-    
-    // Exit interviews
-    exitInterviews: 'Exit Interviews',
-    
-    // Permissions and roles
-    permissions: 'Permissions',
-    role: 'Role',
-    accessLevel: 'Access Level',
-    
-    // Error and success messages
-    errorLoadingData: 'Error loading data',
-    dataLoadedSuccessfully: 'Data loaded successfully',
-    operationCompletedSuccessfully: 'Operation completed successfully',
-    
-    // Pagination
-    previous: 'Previous',
-    next: 'Next',
-    page: 'Page',
-    of: 'of',
-    showing: 'Showing',
-    to: 'to',
-    records: 'records',
-    
-    // Calendar
-    calendar: 'Calendar',
-    event: 'Event',
-    events: 'Events',
-    today: 'Today',
-    month: 'Month',
-    week: 'Week',
-    day: 'Day',
-    
-    // Files and documents
-    file: 'File',
-    files: 'Files',
-    document: 'Document',
-    documents: 'Documents',
-    upload: 'Upload',
-    download: 'Download',
-    
-    // Filters and search
-    filterBy: 'Filter by',
-    searchBy: 'Search by',
-    noResults: 'No results found',
-    allResults: 'All results',
-    
-    // Process states
-    pending: 'Pending',
-    approved: 'Approved',
-    rejected: 'Rejected',
-    inProgress: 'In Progress',
-    completed: 'Completed',
-    
-    // Notifications
-    notification: 'Notification',
-    notifications: 'Notifications',
-    noNotifications: 'No notifications',
-    
-    // User settings
-    userSettings: 'User Settings',
-    accountSettings: 'Account Settings',
-    preferences: 'Preferences',
-    
-    // Time
-    createdAt: 'Created at',
-    updatedAt: 'Updated at',
-    lastModified: 'Last modified',
-    
-    // Validation
-    required: 'Required',
-    optional: 'Optional',
-    invalid: 'Invalid',
-    valid: 'Valid',
-    
-    // Confirmations
-    confirmDelete: 'Confirm deletion?',
-    confirmSave: 'Confirm save?',
-    confirmCancel: 'Confirm cancellation?',
-    areYouSure: 'Are you sure?',
-    
-    // Context menus
-    contextMenu: 'Context menu',
-    options: 'Options',
-    moreOptions: 'More options',
-    
-    // Personal data
-    personalData: 'Personal Data',
-    contactInfo: 'Contact Information',
-    address: 'Address',
-    phone: 'Phone',
-    email: 'Email',
-    
-    // Administration
-    administration: 'Administration',
-    systemSettings: 'System Settings',
-    userManagement: 'User Management',
-    
-    // Connection states
-    online: 'Online',
-    offline: 'Offline',
-    connecting: 'Connecting',
-    
-    // File types
-    pdf: 'PDF',
-    excel: 'Excel',
-    word: 'Word',
-    image: 'Image',
-    
-    // Accessibility
-    accessibility: 'Accessibility',
-    altText: 'Alt text',
-    screenReader: 'Screen reader',
-  }
+    error: "Error",
+    language: "Language",
+    loading: "Loading...",
+    success: "Success",
+    selectLanguage: "Select language",
+    selectTheme: "Select theme",
+    emailPlaceholder: "email@example.com",
+    passwordPlaceholder: "Password",
+    detailViewPlaceholder: "Detail view",
+    comingSoon: "Coming soon",
+    submit: "Submit",
+    login: "Login",
+    logout: "Logout",
+    register: "Register",
+    email: "Email",
+    password: "Password",
+    firstName: "First Name",
+    lastName: "Last Name",
+    termsAndConditions: "Terms and conditions",
+    iAgree: "I agree",
+    alreadyHaveAnAccount: "Already have an account?",
+    forgotPassword: "Forgot your password?",
+    resetPassword: "Reset password",
+    rememberMe: "Remember me",
+    orContinueWith: "Or continue with",
+    google: "Google",
+    facebook: "Facebook",
+    github: "GitHub",
+    profile: "Profile",
+    settings: "Settings",
+    dashboard: "Dashboard",
+    users: "Users",
+    roles: "Roles",
+    permissions: "Permissions",
+    editProfile: "Edit profile",
+    changePassword: "Change password",
+    saveChanges: "Save changes",
+    currentPassword: "Current password",
+    newPassword: "New password",
+    confirmNewPassword: "Confirm new password",
+    cancel: "Cancel",
+    deleteAccount: "Delete account",
+    deleteAccountConfirmation: "Are you sure you want to delete your account?",
+    close: "Close",
+    search: "Search",
+    noResultsFound: "No results found",
+    name: "Name",
+    description: "Description",
+    createdAt: "Created at",
+    updatedAt: "Updated at",
+    actions: "Actions",
+    edit: "Edit",
+    delete: "Delete",
+    view: "View",
+    create: "Create",
+    import: "Import",
+    export: "Export",
+    id: "ID",
+    general: "General",
+    security: "Security",
+    appearance: "Appearance",
+    system: "System",
+    light: "Light",
+    dark: "Dark",
+    auto: "Auto",
+    confirmPassword: "Confirm password",
+    goBack: "Go back",
+    home: "Home",
+    unauthorized: "Unauthorized",
+    pageNotFound: "Page not found",
+    somethingWentWrong: "Something went wrong",
+    maintenance: "Maintenance",
+    builtBy: "Built by",
+    version: "Version",
+    documentation: "Documentation",
+    examplePage: "Example page",
+    welcome: "Welcome",
+    exampleCard: "Example card",
+    exampleTitle: "Example title",
+    exampleDescription: "Example description",
+    exampleButton: "Example button",
+    realEstateDashboard: "Real Estate Dashboard",
+    activeProperties: "Active Properties",
+    inactiveProperties: "Inactive Properties",
+    totalProperties: "Total Properties",
+    totalRooms: "Total Rooms",
+    back: "Back",
+    exportPDF: "Export PDF",
+    changeSheetDetails: "Change Sheet Details",
+    changeSheetsManagement: "Change Sheets Management",
+    createNew: "Create New",
+    hojasCambio: "Change Sheets",
+    employeeName: "Employee Name",
+    originCenter: "Origin Center",
+    startDate: "Start Date",
+    status: "Status",
+    duplicateRecord: "Duplicate Record",
+    downloadPDF: "Download PDF",
+    employeeAgreementDetails: "Employee Agreement Details",
+    loginSubtitle: "Access your account to continue",
+    loginButton: "Login",
+    welcomeMessage: "Welcome to GEEstor",
+    welcomeSubtitle: "Comprehensive business management system",
+    selectSection: "Select a section from the side menu to get started",
+    mainContent: "Main Content",
+    noContentSelected: "No content selected",
+    realEstateDetails: "Real Estate Details",
+    spanish: "Spanish",
+    english: "English",
+    theme: "Theme",
+    userProfile: "User Profile",
+    personalInformation: "Personal Information",
+    changePhoto: "Change Photo",
+    departmentPermissions: "Department Permissions",
+    departmentPermissionsDesc: "Control access to each department",
+    operaciones: "Operations",
+    gestionTecnica: "Technical Management",
+    gestionTalento: "Talent Management",
+    actionPermissions: "Action Permissions",
+    actionPermissionsDesc: "Control the actions that can be performed",
+    verifyingAccount: "Verifying account"
+  },
 };
