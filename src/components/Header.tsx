@@ -51,7 +51,6 @@ export function Header({
             user={user}
             language={language}
             onUserUpdate={onUserUpdate}
-            onPermissionsUpdate={onPermissionsUpdate}
             onLogout={onLogout}
           >
             <Button 

@@ -1,9 +1,9 @@
 
 export interface User {
-  id: string;
-  email: string;
+  uid: string;
+  email: string | null;
   name: string;
-  profilePicture?: string;
+  profilePicture?: string | null;
 }
 
 export interface AuthState {

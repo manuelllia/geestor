@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -6,48 +7,37 @@ import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { User, Camera, Shield, Building, Edit, CheckCircle, UserPlus, LogOut, Loader2, AlertCircle, Eye } from 'lucide-react'; // Añadir Eye para 'ver'
+import { User, Camera, Shield, Building, Edit, CheckCircle, UserPlus, LogOut, Loader2, AlertCircle, Eye, Trash2 } from 'lucide-react';
 import { useTranslation } from '../hooks/useTranslation';
 import { Language } from '../utils/translations';
+import { User as AppUser } from '../types/auth';
 
-// --- INICIO DE CÓDIGO CONSOLIDADO DE authService.ts ---
-
-// Importaciones de Firebase Firestore y Auth
+// Firebase imports
 import { getAuth, onAuthStateChanged, signOut, User as FirebaseAuthUser } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../lib/firebase'; // Asegúrate de que esta ruta sea correcta para tu instancia de db
-
-// Interfaz para el usuario de la aplicación
-export interface AppUser {
-  uid: string;
-  email: string | null;
-  name: string;
-  profilePicture: string | null;
-  // Puedes añadir otros campos que tu aplicación necesite aquí si los obtienes de Firebase Auth o un perfil de usuario
-}
+import { db } from '../lib/firebase';
 
 // Interfaz para los permisos tal como los obtendremos de Firestore
 export interface UserFirestorePermissions {
-  Per_Ope?: boolean; // Operaciones
-  Per_view?: boolean; // Ver
-  Per_Modificate?: boolean; // Modificar
-  Per_GT?: boolean; // Gestión Técnica
-  Per_GDT?: boolean; // Gestión de Talento
-  Per_Delete?: boolean; // Eliminar
-  Per_Create?: boolean; // Crear
+  Per_Ope?: boolean;
+  Per_view?: boolean;
+  Per_Modificate?: boolean;
+  Per_GT?: boolean;
+  Per_GDT?: boolean;
+  Per_Delete?: boolean;
+  Per_Create?: boolean;
 }
 
 // Función para obtener los permisos de Firestore para un UID dado
 export const getUserPermissionsFromFirestore = async (uid: string): Promise<UserFirestorePermissions | null> => {
   try {
-    // Ruta a los permisos: Usuarios (colección) -> Informacion (documento) -> [uid] (subcolección) -> [uid] (documento)
     const permissionsDocRef = doc(db, "Usuarios", "Informacion", uid, uid);
     const docSnap = await getDoc(permissionsDocRef);
 
     if (docSnap.exists()) {
       return docSnap.data() as UserFirestorePermissions;
     } else {
-      console.warn(`Documento de permisos no encontrado en Firestore para UID: ${uid}. Verifique la ruta o la existencia del documento.`);
+      console.warn(`Documento de permisos no encontrado en Firestore para UID: ${uid}`);
       return null;
     }
   } catch (error) {
@@ -56,10 +46,8 @@ export const getUserPermissionsFromFirestore = async (uid: string): Promise<User
   }
 };
 
-// --- FIN DE CÓDIGO CONSOLIDADO DE authService.ts ---
-
 interface UserProfileModalProps {
-  user: AppUser; // CAMBIO: Usar la interfaz AppUser importada
+  user: AppUser;
   language: Language;
   onUserUpdate: (updatedUser: AppUser) => void;
   onLogout: () => void;
@@ -105,11 +93,10 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
       };
       fetchPermissions();
     } else if (!isOpen) {
-      // Opcional: limpiar los permisos al cerrar el modal para que se recarguen la próxima vez
       setUserPermissions(null);
       setPermissionsError(null);
     }
-  }, [isOpen, user?.uid]); // Depende de que el modal esté abierto y el UID del usuario
+  }, [isOpen, user?.uid]);
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -129,18 +116,13 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
       ...formData
     };
     
-    // Aquí solo guardamos la información personal del usuario.
-    // Los permisos NO se guardan desde este modal ya que son de solo lectura.
-    // Opcional: Puedes guardar user.name, user.email, user.profilePicture en localStorage si lo usas para persistencia local
-    // localStorage.setItem('userData', JSON.stringify(updatedUser));
-    
     onUserUpdate(updatedUser);
     setIsOpen(false);
   };
 
   const handleLogout = () => {
     setIsOpen(false);
-    onLogout(); // Llama a la función de logout del padre (que debería manejar el logout de Firebase Auth)
+    onLogout();
   };
 
   return (
@@ -169,7 +151,7 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
               {/* Avatar */}
               <div className="flex items-center gap-4">
                 <Avatar className="w-20 h-20">
-                  <AvatarImage src={formData.profilePicture || undefined} /> {/* Asegurarse que es undefined si es null */}
+                  <AvatarImage src={formData.profilePicture || undefined} />
                   <AvatarFallback className="bg-blue-500 text-white text-lg">
                     {formData.name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'US'}
                   </AvatarFallback>
@@ -228,10 +210,10 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
             <CardHeader>
               <CardTitle className="text-blue-800 dark:text-blue-200 flex items-center gap-2">
                 <Shield className="w-4 h-4" />
-                {t('userPermissions')} {/* Título más general */}
+                {t('permissions')}
               </CardTitle>
               <CardDescription className="text-blue-600 dark:text-blue-400">
-                {t('permissionsDesc')} {/* Descripción genérica */}
+                {t('permissionsDescription')}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -250,24 +232,24 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
                   {/* Permisos de Departamentos */}
                   <h4 className="font-semibold text-blue-700 dark:text-blue-300 mt-4">{t('departmentPermissions')}</h4>
                   <div className="flex items-center justify-between">
-                    <span className="text-blue-700 dark:text-blue-300">{t('operaciones')}</span>
+                    <span className="text-blue-700 dark:text-blue-300">{t('operations')}</span>
                     <Switch
                       checked={userPermissions.Per_Ope ?? false}
-                      disabled={true} // SIEMPRE DESHABILITADO
+                      disabled={true}
                     />
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-blue-700 dark:text-blue-300">{t('gestionTecnica')}</span>
+                    <span className="text-blue-700 dark:text-blue-300">{t('technicalManagement')}</span>
                     <Switch
                       checked={userPermissions.Per_GT ?? false} 
-                      disabled={true} // SIEMPRE DESHABILITADO
+                      disabled={true}
                     />
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-blue-700 dark:text-blue-300">{t('gestionTalento')}</span>
+                    <span className="text-blue-700 dark:text-blue-300">{t('talentManagement')}</span>
                     <Switch
                       checked={userPermissions.Per_GDT ?? false} 
-                      disabled={true} // SIEMPRE DESHABILITADO
+                      disabled={true}
                     />
                   </div>
 
@@ -280,7 +262,7 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
                     </div>
                     <Switch
                       checked={userPermissions.Per_Create ?? false} 
-                      disabled={true} // SIEMPRE DESHABILITADO
+                      disabled={true}
                     />
                   </div>
                   <div className="flex items-center justify-between">
@@ -290,18 +272,17 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
                     </div>
                     <Switch
                       checked={userPermissions.Per_Modificate ?? false} 
-                      disabled={true} // SIEMPRE DESHABILITADO
+                      disabled={true}
                     />
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      {/* Aquí usé Trash2 como ejemplo, si quieres un icono de eliminación */}
                       <Trash2 className="w-4 h-4 text-red-600" /> 
                       <span className="text-blue-700 dark:text-blue-300">{t('delete')}</span>
                     </div>
                     <Switch
                       checked={userPermissions.Per_Delete ?? false} 
-                      disabled={true} // SIEMPRE DESHABILITADO
+                      disabled={true}
                     />
                   </div>
                   <div className="flex items-center justify-between">
@@ -311,7 +292,7 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
                     </div>
                     <Switch
                       checked={userPermissions.Per_view ?? false} 
-                      disabled={true} // SIEMPRE DESHABILITADO
+                      disabled={true}
                     />
                   </div>
                 </>
