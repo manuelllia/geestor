@@ -106,7 +106,7 @@ export default function PracticeEvaluationsListView() {
                             {evaluation.studentName} {evaluation.studentLastName}
                           </div>
                           <div className="text-sm text-gray-500">
-                            {evaluation.institute}
+                            {evaluation.institution}
                           </div>
                         </div>
                       </TableCell>

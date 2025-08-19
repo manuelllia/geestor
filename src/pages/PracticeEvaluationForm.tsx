@@ -1,5 +1,5 @@
-import React, { useState } from 'react'; // Eliminamos useEffect
-import { useNavigate } from 'react-router-dom'; // Eliminamos useParams
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,12 +9,11 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { Loader2, CheckCircle } from 'lucide-react'; // Eliminamos AlertCircle
+import { Loader2, CheckCircle } from 'lucide-react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useWorkCenters } from '../hooks/useWorkCenters';
-// CAMBIO CLAVE: Importar solo savePracticeEvaluation
 import { savePracticeEvaluation } from '../services/practiceEvaluationService';
 
 // Esquema Zod ajustado para coincidir exactamente con la interfaz del servicio
@@ -25,7 +24,7 @@ const practiceEvaluationSchema = z.object({
   studentName: z.string().min(1, 'El nombre del alumno es obligatorio'),
   studentLastName: z.string().min(1, 'Los apellidos del alumno son obligatorios'),
   formation: z.string().min(1, 'La formación es obligatoria'),
-  institution: z.string().min(1, 'El instituto/universidad es obligatorio'), // AHORA COINCIDE: institution
+  institution: z.string().min(1, 'El instituto/universidad es obligatorio'),
   practices: z.string().min(1, 'Las prácticas son obligatorias'),
   
   // Competencias (1-10) - COINCIDE CON EL SERVICIO Y JSX
@@ -37,8 +36,8 @@ const practiceEvaluationSchema = z.object({
     verbalCommunication: z.number().min(1).max(10, 'La valoración debe ser entre 1 y 10'),
     commitment: z.number().min(1).max(10, 'La valoración debe ser entre 1 y 10'),
     initiative: z.number().min(1).max(10, 'La valoración debe ser entre 1 y 10'),
-    charisma: z.number().min(1).max(10, 'La valoración debe ser entre 1 y 10'), // COINCIDE: charisma
-    learningCapacity: z.number().min(1).max(10, 'La valoración debe ser entre 1 y 10'), // COINCIDE: learningCapacity
+    charisma: z.number().min(1).max(10, 'La valoración debe ser entre 1 y 10'),
+    learningCapacity: z.number().min(1).max(10, 'La valoración debe ser entre 1 y 10'),
     writtenCommunication: z.number().min(1).max(10, 'La valoración debe ser entre 1 y 10'),
     problemSolving: z.number().min(1).max(10, 'La valoración debe ser entre 1 y 10'),
     taskCommitment: z.number().min(1).max(10, 'La valoración debe ser entre 1 y 10'),
@@ -48,7 +47,7 @@ const practiceEvaluationSchema = z.object({
   organizationalSkills: z.object({
     organized: z.number().min(1).max(10, 'La valoración debe ser entre 1 y 10'),
     newChallenges: z.number().min(1).max(10, 'La valoración debe ser entre 1 y 10'),
-    systemAdaptation: z.number().min(1).max(10, 'La valoración debe ser entre 1 y 10'), // COINCIDE: systemAdaptation
+    systemAdaptation: z.number().min(1).max(10, 'La valoración debe ser entre 1 y 10'),
     efficiency: z.number().min(1).max(10, 'La valoración debe ser entre 1 y 10'),
     punctuality: z.number().min(1).max(10, 'La valoración debe ser entre 1 y 10'),
   }),
@@ -58,22 +57,22 @@ const practiceEvaluationSchema = z.object({
     serviceImprovements: z.number().min(1).max(10, 'La valoración debe ser entre 1 y 10'),
     diagnosticSkills: z.number().min(1).max(10, 'La valoración debe ser entre 1 y 10'),
     innovativeSolutions: z.number().min(1).max(10, 'La valoración debe ser entre 1 y 10'),
-    sharesSolutions: z.number().min(1).max(10, 'La valoración debe ser entre 1 y 10'), // COINCIDE: sharesSolutions
-    toolUsage: z.number().min(1).max(10, 'La valoración debe ser entre 1 y 10'), // COINCIDE: toolUsage
+    sharesSolutions: z.number().min(1).max(10, 'La valoración debe ser entre 1 y 10'),
+    toolUsage: z.number().min(1).max(10, 'La valoración debe ser entre 1 y 10'),
   }),
   
   // Otros datos
   travelAvailability: z.array(z.string()).optional(),
-  residenceChange: z.enum(['Si', 'No'], { required_error: 'La disponibilidad de cambio de residencia es obligatoria' }), // COINCIDE: residenceChange
+  residenceChange: z.enum(['Si', 'No'], { required_error: 'La disponibilidad de cambio de residencia es obligatoria' }),
   englishLevel: z.string().min(1, 'El nivel de inglés es obligatorio'),
   performanceRating: z.number().min(1).max(10, 'La valoración debe ser entre 1 y 10'),
   performanceJustification: z.string().min(1, 'La justificación es obligatoria'),
   finalEvaluation: z.enum(['Apto', 'No Apto'], { required_error: 'La valoración final es obligatoria' }),
-  futureInterest: z.string().optional(), // Asegúrate de que este campo existe en tu interfaz del servicio si es necesario
+  futureInterest: z.string().optional(),
   practicalTraining: z.string().optional(),
   observations: z.string().optional(),
   evaluatorName: z.string().min(1, 'El nombre del evaluador es obligatorio'),
-  evaluationDate: z.string().min(1, 'La fecha es obligatoria'), // Zod para input type="date" suele ser string
+  evaluationDate: z.string().min(1, 'La fecha es obligatoria'),
 });
 
 type PracticeEvaluationFormType = z.infer<typeof practiceEvaluationSchema>;
@@ -91,14 +90,23 @@ export default function PracticeEvaluationForm() {
   } = useForm<PracticeEvaluationFormType>({
     resolver: zodResolver(practiceEvaluationSchema),
     defaultValues: {
+      tutorName: '',
+      tutorLastName: '',
+      workCenter: '',
+      studentName: '',
+      studentLastName: '',
+      formation: '',
+      institution: '',
+      practices: '',
       travelAvailability: [],
-      residenceChange: 'No', // COINCIDE: residenceChange
+      residenceChange: 'No',
       englishLevel: '',
       finalEvaluation: 'Apto',
       futureInterest: '',
       practicalTraining: '',
       observations: '',
       evaluationDate: new Date().toISOString().split('T')[0],
+      evaluatorName: '',
       
       // Defaults para competencias anidadas
       competencies: {
@@ -116,7 +124,7 @@ export default function PracticeEvaluationForm() {
         toolUsage: 5,
       },
       performanceRating: 5,
-      evaluatorName: '', // Asegúrate de que tiene un valor por defecto si es obligatorio
+      performanceJustification: '',
     }
   });
 
