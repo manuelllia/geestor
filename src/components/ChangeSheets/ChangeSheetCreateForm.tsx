@@ -12,6 +12,7 @@ import { Language } from '../../utils/translations';
 import { useTranslation } from '../../hooks/useTranslation';
 import { saveChangeSheet, ChangeSheetData } from '../../services/changeSheetService';
 import { updateChangeSheet, ChangeSheetRecord } from '../../services/changeSheetsService';
+import { useWorkCenters } from '../../hooks/useWorkCenters';
 
 interface ChangeSheetCreateFormProps {
   language: Language;
@@ -28,6 +29,8 @@ const ChangeSheetCreateForm: React.FC<ChangeSheetCreateFormProps> = ({
 }) => {
   const { t } = useTranslation(language);
   const [loading, setLoading] = useState(false);
+  const { workCenters, isLoading: loadingWorkCenters, error: workCentersError } = useWorkCenters();
+  
   const [formData, setFormData] = useState<ChangeSheetData>({
     employeeName: '',
     employeeLastName: '',
@@ -108,11 +111,9 @@ const ChangeSheetCreateForm: React.FC<ChangeSheetCreateFormProps> = ({
       setLoading(true);
       
       if (editingSheet) {
-        // Actualizar registro existente
         await updateChangeSheet(editingSheet.id, formData);
         console.log('Hoja de cambio actualizada correctamente');
       } else {
-        // Crear nuevo registro
         await saveChangeSheet(formData);
         console.log('Nueva hoja de cambio creada correctamente');
       }
@@ -173,12 +174,25 @@ const ChangeSheetCreateForm: React.FC<ChangeSheetCreateFormProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label htmlFor="originCenter">Centro de Origen</Label>
-                <Input
-                  id="originCenter"
-                  value={formData.originCenter}
-                  onChange={(e) => handleInputChange('originCenter', e.target.value)}
-                  placeholder="Centro de Origen"
-                />
+                <Select 
+                  value={formData.originCenter} 
+                  onValueChange={(value) => handleInputChange('originCenter', value)}
+                  disabled={loadingWorkCenters}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={loadingWorkCenters ? "Cargando centros..." : "Seleccionar centro de origen"} />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg z-50">
+                    {workCenters.map((center) => (
+                      <SelectItem key={center.id} value={center.displayText}>
+                        {center.displayText}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {workCentersError && (
+                  <p className="text-sm text-red-500">Error al cargar centros de trabajo</p>
+                )}
               </div>
               
               <div className="space-y-2">
@@ -215,7 +229,6 @@ const ChangeSheetCreateForm: React.FC<ChangeSheetCreateFormProps> = ({
               </div>
             </div>
 
-            {/* Nueva Posición */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label htmlFor="newPosition">{t('newPosition')} *</Label>
@@ -239,7 +252,6 @@ const ChangeSheetCreateForm: React.FC<ChangeSheetCreateFormProps> = ({
               </div>
             </div>
 
-            {/* Nuevo Supervisor */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label htmlFor="newSupervisorName">{t('newSupervisorName')}</Label>
@@ -262,21 +274,19 @@ const ChangeSheetCreateForm: React.FC<ChangeSheetCreateFormProps> = ({
               </div>
             </div>
 
-            {/* Tipo de Cambio */}
             <div className="space-y-2">
               <Label htmlFor="changeType">Tipo de Cambio</Label>
               <Select value={formData.changeType} onValueChange={(value) => handleInputChange('changeType', value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Seleccionar tipo de cambio" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg z-50">
                   <SelectItem value="permanent">Permanente</SelectItem>
                   <SelectItem value="temporary">Temporal</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            {/* Necesidades */}
             <div className="space-y-4">
               <Label>Necesidades de Formación</Label>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -293,7 +303,6 @@ const ChangeSheetCreateForm: React.FC<ChangeSheetCreateFormProps> = ({
               </div>
             </div>
 
-            {/* Información de la Empresa */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label htmlFor="currentCompany">Empresa Actual</Label>
@@ -311,7 +320,7 @@ const ChangeSheetCreateForm: React.FC<ChangeSheetCreateFormProps> = ({
                   <SelectTrigger>
                     <SelectValue placeholder="Seleccionar opción" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg z-50">
                     <SelectItem value="yes">Sí</SelectItem>
                     <SelectItem value="no">No</SelectItem>
                   </SelectContent>
@@ -319,7 +328,6 @@ const ChangeSheetCreateForm: React.FC<ChangeSheetCreateFormProps> = ({
               </div>
             </div>
 
-            {/* Observaciones */}
             <div className="space-y-2">
               <Label htmlFor="observations">Observaciones</Label>
               <Textarea
@@ -331,7 +339,6 @@ const ChangeSheetCreateForm: React.FC<ChangeSheetCreateFormProps> = ({
               />
             </div>
 
-            {/* Botones de Acción */}
             <div className="flex justify-end space-x-4 pt-6">
               <Button
                 type="button"
