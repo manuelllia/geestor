@@ -47,16 +47,17 @@ export const useCostAnalysis = () => {
     setAnalysisResult(null);
     setCurrentStep(0);
     setTotalSteps(5);
-    setCurrentProgress('Iniciando análisis por tramos...');
+    setCurrentProgress('Iniciando análisis con Gemini 2.5 Flash...');
     
     try {
-      console.log('🔍 Iniciando análisis de costes por tramos...');
+      console.log('🔍 Iniciando análisis de costes con Gemini 2.5 Flash...');
       console.log('📄 Archivos:', {
         pcap: `${pcapFile.name} (${(pcapFile.size / 1024 / 1024).toFixed(2)} MB)`,
         ppt: `${pptFile.name} (${(pptFile.size / 1024 / 1024).toFixed(2)} MB)`
       });
 
       // Convertir archivos a texto (placeholder - en producción usarías pdf-parse)
+      setCurrentProgress('Procesando archivos PDF...');
       const pcapText = await convertFileToText(pcapFile);
       const pptText = await convertFileToText(pptFile);
 
@@ -66,16 +67,17 @@ export const useCostAnalysis = () => {
       for (let step = 1; step <= totalSteps; step++) {
         try {
           setCurrentStep(step);
-          console.log(`🔄 Ejecutando paso ${step}/${totalSteps}...`);
+          setCurrentProgress(`Analizando paso ${step}/${totalSteps} con Gemini...`);
+          console.log(`🔄 Ejecutando paso ${step}/${totalSteps} con Gemini 2.5 Flash...`);
           
           const stepResult = await analyzeDocumentsStep(pcapText, pptText, step, totalSteps);
           stepResults.push(stepResult);
           
           console.log(`✅ Paso ${step} completado exitosamente:`, stepResult);
           
-          // Esperar entre 5-10 segundos entre llamadas (excepto en el último paso)
+          // Esperar entre 3-5 segundos entre llamadas (excepto en el último paso)
           if (step < totalSteps) {
-            const waitTime = Math.floor(Math.random() * 6) + 5; // Entre 5 y 10 segundos
+            const waitTime = Math.floor(Math.random() * 3) + 3; // Entre 3 y 5 segundos
             console.log(`⏳ Esperando ${waitTime} segundos antes del siguiente paso...`);
             setCurrentProgress(`Esperando ${waitTime}s antes del paso ${step + 1}...`);
             await wait(waitTime);
@@ -94,14 +96,14 @@ export const useCostAnalysis = () => {
       
       const finalResult = mergeStepResults(...stepResults);
       
-      console.log('✅ Análisis por tramos completado exitosamente');
+      console.log('✅ Análisis completado exitosamente');
       console.log('📊 Resultado final:', finalResult);
       
       setAnalysisResult(finalResult);
-      setCurrentProgress('Análisis completado');
+      setCurrentProgress('Análisis completado con éxito');
       
     } catch (err) {
-      console.error('❌ Error final en análisis por tramos:', err);
+      console.error('❌ Error final en análisis:', err);
       const errorMessage = err instanceof Error ? err.message : 'Error desconocido en el análisis';
       setError(errorMessage);
       setCurrentProgress('Error en el análisis');

@@ -15,122 +15,6 @@ interface ReportData {
   costesDetalladosRecomendados: any[];
 }
 
-const responseSchema = {
-  type: "object",
-  properties: {
-    presupuestoGeneral: { type: "string" },
-    esPorLotes: { type: "boolean" },
-    lotes: {
-      type: "array",
-      items: {
-        type: "object",
-        properties: {
-          nombre: { type: "string" },
-          centroAsociado: { type: "string" },
-          descripcion: { type: "string" },
-          presupuesto: { type: "string" },
-          requisitosClave: {
-            type: "array",
-            items: { type: "string" }
-          }
-        },
-        required: ["nombre", "centroAsociado", "descripcion", "presupuesto"]
-      }
-    },
-    variablesDinamicas: {
-      type: "array",
-      items: {
-        type: "object",
-        properties: {
-          nombre: { type: "string" },
-          descripcion: { type: "string" },
-          mapeo: {
-            type: "string",
-            enum: ["price", "tenderBudget", "maxScore", "lowestPrice", "averagePrice"]
-          }
-        },
-        required: ["nombre", "descripcion", "mapeo"]
-      }
-    },
-    formulaEconomica: { type: "string" },
-    formulasDetectadas: {
-      type: "array",
-      items: {
-        type: "object",
-        properties: {
-          formulaOriginal: { type: "string" },
-          representacionLatex: { type: "string" },
-          descripcionVariables: { type: "string" }
-        },
-        required: ["formulaOriginal", "representacionLatex", "descripcionVariables"]
-      }
-    },
-    umbralBajaTemeraria: { type: "string" },
-    criteriosAutomaticos: {
-      type: "array",
-      items: {
-        type: "object",
-        properties: {
-          nombre: { type: "string" },
-          descripcion: { type: "string" },
-          puntuacionMaxima: { type: "number" }
-        },
-        required: ["nombre", "descripcion", "puntuacionMaxima"]
-      }
-    },
-    criteriosSubjetivos: {
-      type: "array",
-      items: {
-        type: "object",
-        properties: {
-          nombre: { type: "string" },
-          descripcion: { type: "string" },
-          puntuacionMaxima: { type: "number" }
-        },
-        required: ["nombre", "descripcion", "puntuacionMaxima"]
-      }
-    },
-    otrosCriterios: {
-      type: "array",
-      items: {
-        type: "object",
-        properties: {
-          nombre: { type: "string" },
-          descripcion: { type: "string" },
-          puntuacionMaxima: { type: "number" }
-        },
-        required: ["nombre", "descripcion", "puntuacionMaxima"]
-      }
-    },
-    costesDetalladosRecomendados: {
-      type: "array",
-      items: {
-        type: "object",
-        properties: {
-          categoria: { type: "string" },
-          concepto: { type: "string" },
-          costeEstimado: { type: "number" },
-          justificacion: { type: "string" }
-        },
-        required: ["categoria", "concepto", "costeEstimado", "justificacion"]
-      }
-    }
-  },
-  required: [
-    "presupuestoGeneral",
-    "esPorLotes", 
-    "lotes",
-    "variablesDinamicas",
-    "formulaEconomica",
-    "formulasDetectadas",
-    "umbralBajaTemeraria",
-    "criteriosAutomaticos",
-    "criteriosSubjetivos",
-    "otrosCriterios",
-    "costesDetalladosRecomendados"
-  ]
-};
-
 const generatePromptForStep = (stepNumber: number, totalSteps: number): string => {
   const basePrompt = `Eres un experto consultor en licitaciones públicas de electromedicina en España. Analiza los documentos PDF: PCAP y PPT.
 
@@ -271,14 +155,13 @@ DOCUMENTO PPT:
 ${pptText}`;
 
   try {
-    console.log(`🤖 Analizando paso ${step} con Gemini...`);
+    console.log(`🤖 Analizando paso ${step}/${totalSteps} con Gemini 2.5 Flash...`);
     
     const response = await geminiAI.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: prompt,
       config: {
         responseMimeType: "application/json",
-        responseSchema: responseSchema,
         temperature: 0.1
       }
     });
@@ -288,7 +171,7 @@ ${pptText}`;
       `Error al parsear la respuesta del paso ${step}. La IA devolvió una respuesta inválida.`
     );
 
-    console.log(`✅ Paso ${step} completado:`, parsedData);
+    console.log(`✅ Paso ${step} completado exitosamente:`, parsedData);
     return parsedData;
 
   } catch (error) {
@@ -301,6 +184,8 @@ ${pptText}`;
 };
 
 export const mergeStepResults = (...stepResults: any[]): ReportData => {
+  console.log('🔧 Combinando resultados de todos los pasos...');
+  
   const merged: ReportData = {
     presupuestoGeneral: "No especificado",
     esPorLotes: false,
@@ -315,8 +200,9 @@ export const mergeStepResults = (...stepResults: any[]): ReportData => {
     costesDetalladosRecomendados: []
   };
 
-  stepResults.forEach(stepData => {
+  stepResults.forEach((stepData, index) => {
     if (stepData) {
+      console.log(`📊 Procesando datos del paso ${index + 1}:`, stepData);
       Object.keys(stepData).forEach(key => {
         if (stepData[key] !== undefined && stepData[key] !== null) {
           const typedKey = key as keyof ReportData;
@@ -330,5 +216,6 @@ export const mergeStepResults = (...stepResults: any[]): ReportData => {
     }
   });
 
+  console.log('✅ Resultados combinados correctamente:', merged);
   return merged;
 };
