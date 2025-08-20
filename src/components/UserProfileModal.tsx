@@ -291,7 +291,7 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
                       <span className="text-blue-700 dark:text-blue-300">{t('view')}</span>
                     </div>
                     <Switch
-                      checked={userPermissions.Per_view ?? false} 
+                      checked={userPermissions.Per_View ?? false} 
                       disabled={true}
                     />
                   </div>
