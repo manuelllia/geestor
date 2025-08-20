@@ -300,7 +300,7 @@ Responde con este JSON:
 
   const callGemini = async (pcapFile: File, pptFile: File, step: number): Promise<any> => {
     const GEMINI_API_KEY = 'AIzaSyANIWvIMRvCW7f0meHRk4SobRz4s0pnxtg';
-    const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-experimental:generateContent';
+    const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
     
     console.log(`🤖 Iniciando paso ${step} con Gemini...`);
     setCurrentProgress(`Analizando paso ${step} de ${totalSteps}...`);
