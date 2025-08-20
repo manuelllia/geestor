@@ -20,7 +20,7 @@ import { db } from '../lib/firebase';
 // Interfaz para los permisos tal como los obtendremos de Firestore
 export interface UserFirestorePermissions {
   Per_Ope?: boolean;
-  Per_view?: boolean;
+  Per_View?: boolean;
   Per_Modificate?: boolean;
   Per_GT?: boolean;
   Per_GDT?: boolean;
@@ -31,7 +31,7 @@ export interface UserFirestorePermissions {
 // Función para obtener los permisos de Firestore para un UID dado
 export const getUserPermissionsFromFirestore = async (uid: string): Promise<UserFirestorePermissions | null> => {
   try {
-    const permissionsDocRef = doc(db, "Usuarios", "Información", uid, uid);
+    const permissionsDocRef = doc(db, "Usuarios", "Informacion", uid, uid);
     const docSnap = await getDoc(permissionsDocRef);
 
     if (docSnap.exists()) {
