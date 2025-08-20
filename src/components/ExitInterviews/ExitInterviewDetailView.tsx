@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { getExitInterviewById, ExitInterviewRecord } from '../../services/exitInterviewService';
 import DetailPDFView from '../Common/DetailPDFView';
@@ -60,7 +61,7 @@ const ExitInterviewDetailView: React.FC<ExitInterviewDetailViewProps> = ({
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">{t('common.loading')}</p>
+          <p className="text-gray-600">{t('loading')}</p>
         </div>
       </div>
     );
@@ -70,10 +71,10 @@ const ExitInterviewDetailView: React.FC<ExitInterviewDetailViewProps> = ({
   if (!interviewData || workCentersError) {
     return (
       <div className="text-center py-12">
-        {workCentersError && <p className="text-red-600 mb-4">{t('errors.work_centers_loading_failed', { error: workCentersError })}</p>}
-        {!interviewData && <p className="text-gray-600">{t('interview.not_found')}</p>}
+        {workCentersError && <p className="text-red-600 mb-4">{t('error')}: {workCentersError}</p>}
+        {!interviewData && <p className="text-gray-600">{t('recordNotFound')}</p>}
         <button onClick={onBack} className="mt-4 text-blue-600 hover:underline">
-          {t('common.back')}
+          {t('back')}
         </button>
       </div>
     );
@@ -81,48 +82,48 @@ const ExitInterviewDetailView: React.FC<ExitInterviewDetailViewProps> = ({
 
   const sections = [
     {
-      title: t('employee_info.title'),
+      title: t('employeeInformation'),
       fields: [
-        { label: t('employee_info.name'), value: interviewData.employeeName, icon: <User className="w-4 h-4 text-blue-500" /> },
-        { label: t('employee_info.last_name'), value: interviewData.employeeLastName, icon: <User className="w-4 h-4 text-blue-500" /> },
-        { label: t('employee_info.position'), value: interviewData.position, icon: <FileText className="w-4 h-4 text-blue-500" /> },
+        { label: t('name'), value: interviewData.employeeName, icon: <User className="w-4 h-4 text-blue-500" /> },
+        { label: t('employeeLastName'), value: interviewData.employeeLastName, icon: <User className="w-4 h-4 text-blue-500" /> },
+        { label: t('position'), value: interviewData.position, icon: <FileText className="w-4 h-4 text-blue-500" /> },
         // Aquí usamos directamente interviewData.workCenter, ya que asumimos que es el nombre legible
-        { label: t('employee_info.work_center'), value: interviewData.workCenter, icon: <Building className="w-4 h-4 text-blue-500" /> },
-        { label: t('employee_info.seniority'), value: interviewData.seniority, icon: <Calendar className="w-4 h-4 text-blue-500" /> }
+        { label: t('workCenter'), value: interviewData.workCenter, icon: <Building className="w-4 h-4 text-blue-500" /> },
+        { label: 'Antigüedad', value: interviewData.seniority, icon: <Calendar className="w-4 h-4 text-blue-500" /> }
       ]
     },
     {
-      title: t('supervisor_info.title'),
+      title: 'Información del Supervisor',
       fields: [
-        { label: t('supervisor_info.name'), value: interviewData.supervisorName, icon: <User className="w-4 h-4 text-green-500" /> },
-        { label: t('supervisor_info.last_name'), value: interviewData.supervisorLastName, icon: <User className="w-4 h-4 text-green-500" /> }
+        { label: t('name'), value: interviewData.supervisorName, icon: <User className="w-4 h-4 text-green-500" /> },
+        { label: t('employeeLastName'), value: interviewData.supervisorLastName, icon: <User className="w-4 h-4 text-green-500" /> }
       ]
     },
     {
-      title: t('exit_details.title'),
+      title: 'Detalles de la Salida',
       fields: [
-        { label: t('exit_details.exit_type'), value: interviewData.exitType, icon: <FileText className="w-4 h-4 text-orange-500" /> },
-        { label: t('exit_details.exit_date'), value: interviewData.exitDate, type: 'date' as const, icon: <Calendar className="w-4 h-4 text-orange-500" /> },
-        { label: t('exit_details.main_reason'), value: interviewData.mainExitReason, icon: <MessageSquare className="w-4 h-4 text-orange-500" /> },
-        { label: t('exit_details.joining_reasons'), value: interviewData.joiningReasons, type: 'list' as const, icon: <FileText className="w-4 h-4 text-orange-500" /> },
-        { label: t('exit_details.other_factors'), value: interviewData.otherInfluencingFactors, type: 'list' as const, icon: <FileText className="w-4 h-4 text-orange-500" /> },
-        { label: t('exit_details.comments'), value: interviewData.comments, icon: <MessageSquare className="w-4 h-4 text-orange-500" /> }
+        { label: 'Tipo de Baja', value: interviewData.exitType, icon: <FileText className="w-4 h-4 text-orange-500" /> },
+        { label: 'Fecha de Baja', value: interviewData.exitDate, type: 'date' as const, icon: <Calendar className="w-4 h-4 text-orange-500" /> },
+        { label: 'Razón Principal', value: interviewData.mainExitReason, icon: <MessageSquare className="w-4 h-4 text-orange-500" /> },
+        { label: 'Razones de Ingreso', value: interviewData.joiningReasons, type: 'list' as const, icon: <FileText className="w-4 h-4 text-orange-500" /> },
+        { label: 'Otros Factores', value: interviewData.otherInfluencingFactors, type: 'list' as const, icon: <FileText className="w-4 h-4 text-orange-500" /> },
+        { label: 'Comentarios', value: interviewData.comments, icon: <MessageSquare className="w-4 h-4 text-orange-500" /> }
       ]
     },
     {
-      title: t('scores.title'),
+      title: 'Puntuaciones',
       fields: [
-        { label: t('scores.integration'), value: `${interviewData.scores.integration}/10`, icon: <Star className="w-4 h-4 text-purple-500" /> },
-        { label: t('scores.internal_communication'), value: `${interviewData.scores.internalCommunication}/10`, icon: <Star className="w-4 h-4 text-purple-500" /> },
-        { label: t('scores.compensation'), value: `${interviewData.scores.compensation}/10`, icon: <Star className="w-4 h-4 text-purple-500" /> },
-        { label: t('scores.training'), value: `${interviewData.scores.training}/10`, icon: <Star className="w-4 h-4 text-purple-500" /> },
-        { label: t('scores.work_schedule'), value: `${interviewData.scores.workSchedule}/10`, icon: <Star className="w-4 h-4 text-purple-500" /> },
-        { label: t('scores.mentoring'), value: `${interviewData.scores.mentoring}/10`, icon: <Star className="w-4 h-4 text-purple-500" /> },
-        { label: t('scores.work_performed'), value: `${interviewData.scores.workPerformed}/10`, icon: <Star className="w-4 h-4 text-purple-500" /> },
-        { label: t('scores.work_environment'), value: `${interviewData.scores.workEnvironment}/10`, icon: <Star className="w-4 h-4 text-purple-500" /> },
-        { label: t('scores.corporate_culture'), value: `${interviewData.scores.corporateCulture}/10`, icon: <Star className="w-4 h-4 text-purple-500" /> },
-        { label: t('scores.supervisor_relation'), value: `${interviewData.scores.supervisorRelation}/10`, icon: <Star className="w-4 h-4 text-purple-500" /> },
-        { label: t('scores.global_assessment'), value: `${interviewData.scores.globalAssessment}/10`, icon: <Star className="w-4 h-4 text-purple-500" /> }
+        { label: 'Integración', value: `${interviewData.scores.integration}/10`, icon: <Star className="w-4 h-4 text-purple-500" /> },
+        { label: 'Comunicación Interna', value: `${interviewData.scores.internalCommunication}/10`, icon: <Star className="w-4 h-4 text-purple-500" /> },
+        { label: 'Compensación', value: `${interviewData.scores.compensation}/10`, icon: <Star className="w-4 h-4 text-purple-500" /> },
+        { label: 'Formación', value: `${interviewData.scores.training}/10`, icon: <Star className="w-4 h-4 text-purple-500" /> },
+        { label: 'Horario de Trabajo', value: `${interviewData.scores.workSchedule}/10`, icon: <Star className="w-4 h-4 text-purple-500" /> },
+        { label: 'Mentoring', value: `${interviewData.scores.mentoring}/10`, icon: <Star className="w-4 h-4 text-purple-500" /> },
+        { label: 'Trabajo Realizado', value: `${interviewData.scores.workPerformed}/10`, icon: <Star className="w-4 h-4 text-purple-500" /> },
+        { label: 'Ambiente de Trabajo', value: `${interviewData.scores.workEnvironment}/10`, icon: <Star className="w-4 h-4 text-purple-500" /> },
+        { label: 'Cultura Corporativa', value: `${interviewData.scores.corporateCulture}/10`, icon: <Star className="w-4 h-4 text-purple-500" /> },
+        { label: 'Relación con Supervisor', value: `${interviewData.scores.supervisorRelation}/10`, icon: <Star className="w-4 h-4 text-purple-500" /> },
+        { label: 'Evaluación Global', value: `${interviewData.scores.globalAssessment}/10`, icon: <Star className="w-4 h-4 text-purple-500" /> }
       ]
     }
   ];
@@ -132,7 +133,7 @@ const ExitInterviewDetailView: React.FC<ExitInterviewDetailViewProps> = ({
   return (
     <DetailPDFView
       language={language}
-      title={t('interview_detail.title')}
+      title={t('exitInterviews')}
       recordId={interviewData.id}
       sections={sections}
       onBack={onBack}
