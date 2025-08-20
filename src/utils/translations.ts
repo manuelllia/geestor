@@ -34,6 +34,11 @@ export const translations = {
     settings: 'Configuración',
     profile: 'Perfil',
     saveChanges: 'Guardar Cambios',
+    theme: 'Tema',
+    light: 'Claro',
+    dark: 'Oscuro',
+    spanish: 'Español',
+    english: 'Inglés',
     
     // Bid Analyzer
     bidAnalyzer: 'Analizador de Licitaciones',
@@ -50,6 +55,8 @@ export const translations = {
     totalProperties: 'Total de Propiedades',
     exportPDF: 'Exportar PDF',
     realEstateDetails: 'Detalles Inmobiliarios',
+    detailViewPlaceholder: 'Vista de detalles del inmueble',
+    comingSoon: 'Próximamente',
     
     // Maintenance Calendar
     maintenanceCalendar: 'Calendario de Mantenimiento',
@@ -228,6 +235,11 @@ export const translations = {
     settings: 'Settings',
     profile: 'Profile',
     saveChanges: 'Save Changes',
+    theme: 'Theme',
+    light: 'Light',
+    dark: 'Dark',
+    spanish: 'Spanish',
+    english: 'English',
     
     // Bid Analyzer
     bidAnalyzer: 'Bid Analyzer',
@@ -244,6 +256,8 @@ export const translations = {
     totalProperties: 'Total Properties',
     exportPDF: 'Export PDF',
     realEstateDetails: 'Real Estate Details',
+    detailViewPlaceholder: 'Property detail view',
+    comingSoon: 'Coming Soon',
     
     // Maintenance Calendar
     maintenanceCalendar: 'Maintenance Calendar',

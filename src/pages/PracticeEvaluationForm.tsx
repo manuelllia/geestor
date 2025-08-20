@@ -49,34 +49,28 @@ const formSchema = z.object({
   practices: z.string().min(2, {
     message: "Las prácticas deben tener al menos 2 caracteres.",
   }),
-  competencies: z.object({
-    meticulousness: z.number().min(1).max(10),
-    teamwork: z.number().min(1).max(10),
-    adaptability: z.number().min(1).max(10),
-    stressTolerance: z.number().min(1).max(10),
-    verbalCommunication: z.number().min(1).max(10),
-    commitment: z.number().min(1).max(10),
-    initiative: z.number().min(1).max(10),
-    charisma: z.number().min(1).max(10),
-    learningCapacity: z.number().min(1).max(10),
-    writtenCommunication: z.number().min(1).max(10),
-    problemSolving: z.number().min(1).max(10),
-    taskCommitment: z.number().min(1).max(10),
-  }),
-  organizationalSkills: z.object({
-    organized: z.number().min(1).max(10),
-    newChallenges: z.number().min(1).max(10),
-    systemAdaptation: z.number().min(1).max(10),
-    efficiency: z.number().min(1).max(10),
-    punctuality: z.number().min(1).max(10),
-  }),
-  technicalSkills: z.object({
-    serviceImprovements: z.number().min(1).max(10),
-    diagnosticSkills: z.number().min(1).max(10),
-    innovativeSolutions: z.number().min(1).max(10),
-    sharesSolutions: z.number().min(1).max(10),
-    toolUsage: z.number().min(1).max(10),
-  }),
+  meticulousness: z.number().min(1).max(10),
+  teamwork: z.number().min(1).max(10),
+  adaptability: z.number().min(1).max(10),
+  stressTolerance: z.number().min(1).max(10),
+  verbalCommunication: z.number().min(1).max(10),
+  commitment: z.number().min(1).max(10),
+  initiative: z.number().min(1).max(10),
+  charisma: z.number().min(1).max(10),
+  learningCapacity: z.number().min(1).max(10),
+  writtenCommunication: z.number().min(1).max(10),
+  problemSolving: z.number().min(1).max(10),
+  taskCommitment: z.number().min(1).max(10),
+  organized: z.number().min(1).max(10),
+  newChallenges: z.number().min(1).max(10),
+  systemAdaptation: z.number().min(1).max(10),
+  efficiency: z.number().min(1).max(10),
+  punctuality: z.number().min(1).max(10),
+  serviceImprovements: z.number().min(1).max(10),
+  diagnosticSkills: z.number().min(1).max(10),
+  innovativeSolutions: z.number().min(1).max(10),
+  sharesSolutions: z.number().min(1).max(10),
+  toolUsage: z.number().min(1).max(10),
   travelAvailability: z.string().array().optional(),
   residenceChange: z.enum(["Si", "No"]),
   englishLevel: z.string().optional(),
@@ -111,34 +105,28 @@ const PracticeEvaluationForm = () => {
       formation: "",
       institution: "",
       practices: "",
-      competencies: {
-        meticulousness: 5,
-        teamwork: 5,
-        adaptability: 5,
-        stressTolerance: 5,
-        verbalCommunication: 5,
-        commitment: 5,
-        initiative: 5,
-        charisma: 5,
-        learningCapacity: 5,
-        writtenCommunication: 5,
-        problemSolving: 5,
-        taskCommitment: 5,
-      },
-      organizationalSkills: {
-        organized: 5,
-        newChallenges: 5,
-        systemAdaptation: 5,
-        efficiency: 5,
-        punctuality: 5,
-      },
-      technicalSkills: {
-        serviceImprovements: 5,
-        diagnosticSkills: 5,
-        innovativeSolutions: 5,
-        sharesSolutions: 5,
-        toolUsage: 5,
-      },
+      meticulousness: 5,
+      teamwork: 5,
+      adaptability: 5,
+      stressTolerance: 5,
+      verbalCommunication: 5,
+      commitment: 5,
+      initiative: 5,
+      charisma: 5,
+      learningCapacity: 5,
+      writtenCommunication: 5,
+      problemSolving: 5,
+      taskCommitment: 5,
+      organized: 5,
+      newChallenges: 5,
+      systemAdaptation: 5,
+      efficiency: 5,
+      punctuality: 5,
+      serviceImprovements: 5,
+      diagnosticSkills: 5,
+      innovativeSolutions: 5,
+      sharesSolutions: 5,
+      toolUsage: 5,
       travelAvailability: [],
       residenceChange: "No",
       englishLevel: "",
@@ -157,43 +145,54 @@ const PracticeEvaluationForm = () => {
     try {
       setIsSubmitting(true);
       
-      // Validate that all required fields are present
-      const requiredFields = [
-        'tutorName', 'tutorLastName', 'workCenter', 'studentName', 'studentLastName',
-        'formation', 'institution', 'practices', 'performanceRating', 
-        'performanceJustification', 'finalEvaluation', 'evaluatorName'
-      ];
-      
-      const missingFields = requiredFields.filter(field => !data[field as keyof FormData]);
-      
-      if (missingFields.length > 0) {
-        toast.error(`Faltan campos obligatorios: ${missingFields.join(', ')}`);
-        return;
-      }
-
-      // Construct the evaluation data with all required fields
+      // Construct the evaluation data with nested structure for service
       const evaluationData: PracticeEvaluationData = {
-        tutorName: data.tutorName!,
-        tutorLastName: data.tutorLastName!,
-        workCenter: data.workCenter!,
-        studentName: data.studentName!,
-        studentLastName: data.studentLastName!,
-        formation: data.formation!,
-        institution: data.institution!,
-        practices: data.practices!,
-        competencies: data.competencies,
-        organizationalSkills: data.organizationalSkills,
-        technicalSkills: data.technicalSkills,
+        tutorName: data.tutorName,
+        tutorLastName: data.tutorLastName,
+        workCenter: data.workCenter,
+        studentName: data.studentName,
+        studentLastName: data.studentLastName,
+        formation: data.formation,
+        institution: data.institution,
+        practices: data.practices,
+        competencies: {
+          meticulousness: data.meticulousness,
+          teamwork: data.teamwork,
+          adaptability: data.adaptability,
+          stressTolerance: data.stressTolerance,
+          verbalCommunication: data.verbalCommunication,
+          commitment: data.commitment,
+          initiative: data.initiative,
+          charisma: data.charisma,
+          learningCapacity: data.learningCapacity,
+          writtenCommunication: data.writtenCommunication,
+          problemSolving: data.problemSolving,
+          taskCommitment: data.taskCommitment,
+        },
+        organizationalSkills: {
+          organized: data.organized,
+          newChallenges: data.newChallenges,
+          systemAdaptation: data.systemAdaptation,
+          efficiency: data.efficiency,
+          punctuality: data.punctuality,
+        },
+        technicalSkills: {
+          serviceImprovements: data.serviceImprovements,
+          diagnosticSkills: data.diagnosticSkills,
+          innovativeSolutions: data.innovativeSolutions,
+          sharesSolutions: data.sharesSolutions,
+          toolUsage: data.toolUsage,
+        },
         travelAvailability: data.travelAvailability,
         residenceChange: data.residenceChange,
         englishLevel: data.englishLevel || '',
-        performanceRating: data.performanceRating!,
-        performanceJustification: data.performanceJustification!,
-        finalEvaluation: data.finalEvaluation!,
+        performanceRating: data.performanceRating,
+        performanceJustification: data.performanceJustification,
+        finalEvaluation: data.finalEvaluation,
         futureInterest: data.futureInterest,
         practicalTraining: data.practicalTraining,
         observations: data.observations,
-        evaluatorName: data.evaluatorName!,
+        evaluatorName: data.evaluatorName,
         evaluationDate: data.evaluationDate
       };
 
@@ -212,6 +211,37 @@ const PracticeEvaluationForm = () => {
       setIsSubmitting(false);
     }
   };
+
+  const competencyFields = [
+    { key: 'meticulousness', label: 'Meticulosidad' },
+    { key: 'teamwork', label: 'Trabajo en Equipo' },
+    { key: 'adaptability', label: 'Adaptabilidad' },
+    { key: 'stressTolerance', label: 'Tolerancia al Estrés' },
+    { key: 'verbalCommunication', label: 'Comunicación Verbal' },
+    { key: 'commitment', label: 'Compromiso' },
+    { key: 'initiative', label: 'Iniciativa' },
+    { key: 'charisma', label: 'Carisma' },
+    { key: 'learningCapacity', label: 'Capacidad de Aprendizaje' },
+    { key: 'writtenCommunication', label: 'Comunicación Escrita' },
+    { key: 'problemSolving', label: 'Resolución de Problemas' },
+    { key: 'taskCommitment', label: 'Compromiso con la Tarea' },
+  ];
+
+  const organizationalFields = [
+    { key: 'organized', label: 'Organizado' },
+    { key: 'newChallenges', label: 'Nuevos Retos' },
+    { key: 'systemAdaptation', label: 'Adaptación al Sistema' },
+    { key: 'efficiency', label: 'Eficiencia' },
+    { key: 'punctuality', label: 'Puntualidad' },
+  ];
+
+  const technicalFields = [
+    { key: 'serviceImprovements', label: 'Mejoras del Servicio' },
+    { key: 'diagnosticSkills', label: 'Habilidades de Diagnóstico' },
+    { key: 'innovativeSolutions', label: 'Soluciones Innovadoras' },
+    { key: 'sharesSolutions', label: 'Comparte Soluciones' },
+    { key: 'toolUsage', label: 'Uso de Herramientas' },
+  ];
 
   return (
     <div className="container mx-auto py-10">
@@ -333,19 +363,22 @@ const PracticeEvaluationForm = () => {
           <div>
             <h2 className="text-xl font-semibold mb-2">Competencias (1-10)</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {Object.entries(formSchema.shape.competencies.shape).map(([key, value]) => (
+              {competencyFields.map(({ key, label }) => (
                 <FormField
                   key={key}
                   control={form.control}
-                  name={`competencies.${key}` as keyof FormData["competencies"]}
+                  name={key as keyof FormData}
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{key}</FormLabel>
+                      <FormLabel>{label}</FormLabel>
                       <FormControl>
                         <Input
                           type="number"
-                          placeholder={key}
+                          min="1"
+                          max="10"
+                          placeholder={label}
                           {...field}
+                          onChange={(e) => field.onChange(parseInt(e.target.value) || 5)}
                         />
                       </FormControl>
                       <FormMessage />
@@ -360,19 +393,22 @@ const PracticeEvaluationForm = () => {
           <div>
             <h2 className="text-xl font-semibold mb-2">Aptitudes Organizativas (1-10)</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {Object.entries(formSchema.shape.organizationalSkills.shape).map(([key, value]) => (
+              {organizationalFields.map(({ key, label }) => (
                 <FormField
                   key={key}
                   control={form.control}
-                  name={`organizationalSkills.${key}` as keyof FormData["organizationalSkills"]}
+                  name={key as keyof FormData}
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{key}</FormLabel>
+                      <FormLabel>{label}</FormLabel>
                       <FormControl>
                         <Input
                           type="number"
-                          placeholder={key}
+                          min="1"
+                          max="10"
+                          placeholder={label}
                           {...field}
+                          onChange={(e) => field.onChange(parseInt(e.target.value) || 5)}
                         />
                       </FormControl>
                       <FormMessage />
@@ -387,19 +423,22 @@ const PracticeEvaluationForm = () => {
           <div>
             <h2 className="text-xl font-semibold mb-2">Aptitudes Técnicas (1-10)</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {Object.entries(formSchema.shape.technicalSkills.shape).map(([key, value]) => (
+              {technicalFields.map(({ key, label }) => (
                 <FormField
                   key={key}
                   control={form.control}
-                  name={`technicalSkills.${key}` as keyof FormData["technicalSkills"]}
+                  name={key as keyof FormData}
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{key}</FormLabel>
+                      <FormLabel>{label}</FormLabel>
                       <FormControl>
                         <Input
                           type="number"
-                          placeholder={key}
+                          min="1"
+                          max="10"
+                          placeholder={label}
                           {...field}
+                          onChange={(e) => field.onChange(parseInt(e.target.value) || 5)}
                         />
                       </FormControl>
                       <FormMessage />
