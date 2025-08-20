@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { getExitInterviewById, ExitInterviewRecord } from '../../services/exitInterviewService';
 import DetailPDFView from '../Common/DetailPDFView';
@@ -21,9 +22,9 @@ const ExitInterviewDetailView: React.FC<ExitInterviewDetailViewProps> = ({
 }) => {
   const { t } = useTranslation(language);
   const [interviewData, setInterviewData] = useState<ExitInterviewRecord | null>(null);
-  const [isLoadingInterview, setIsLoadingInterview] = useState(true); // Renombrado para claridad
+  const [isLoadingInterview, setIsLoadingInterview] = useState(true);
 
-  // 1. Usa el hook para cargar los centros de trabajo
+  // Usa el hook para cargar los centros de trabajo
   const { 
     workCenters, 
     isLoading: isLoadingWorkCenters, 
@@ -41,7 +42,7 @@ const ExitInterviewDetailView: React.FC<ExitInterviewDetailViewProps> = ({
       } catch (error) {
         console.error('Error al obtener datos de la entrevista:', error);
       } finally {
-        setIsLoadingInterview(false); // Usa el nuevo estado
+        setIsLoadingInterview(false);
       }
     };
 
@@ -49,20 +50,18 @@ const ExitInterviewDetailView: React.FC<ExitInterviewDetailViewProps> = ({
   }, [interviewId]);
 
   // Función auxiliar para obtener el nombre del centro de trabajo por su ID
-  // Asumimos que interviewData.workCenter es el ID del centro de trabajo.
   const getWorkCenterName = (workCenterId: string | undefined): string => {
-    if (!workCenterId) return t('common.not_available'); // o 'N/A'
+    if (!workCenterId) return t('notAvailable');
     const center = workCenters.find(wc => wc.id === workCenterId);
-    return center ? center.name : t('common.unknown_work_center', { id: workCenterId }); // 'Centro Desconocido (ID: ...)'
+    return center ? center.displayText : t('unknownWorkCenter');
   };
-
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">{t('common.loading')}</p> {/* 'Cargando...' */}
+          <p className="text-gray-600">{t('loading')}</p>
         </div>
       </div>
     );
@@ -72,10 +71,10 @@ const ExitInterviewDetailView: React.FC<ExitInterviewDetailViewProps> = ({
   if (!interviewData || workCentersError) {
     return (
       <div className="text-center py-12">
-        {workCentersError && <p className="text-red-600 mb-4">{t('errors.work_centers_loading_failed', { error: workCentersError })}</p>}
-        {!interviewData && <p className="text-gray-600">{t('interview.not_found')}</p>} {/* 'Entrevista no encontrada' */}
+        {workCentersError && <p className="text-red-600 mb-4">{t('workCentersLoadingFailed')}</p>}
+        {!interviewData && <p className="text-gray-600">{t('interviewNotFound')}</p>}
         <button onClick={onBack} className="mt-4 text-blue-600 hover:underline">
-          {t('common.back')} {/* 'Volver' */}
+          {t('back')}
         </button>
       </div>
     );
@@ -83,48 +82,47 @@ const ExitInterviewDetailView: React.FC<ExitInterviewDetailViewProps> = ({
 
   const sections = [
     {
-      title: t('employee_info.title'), // 'Información del Empleado'
+      title: t('employeeInfoTitle'),
       fields: [
-        { label: t('employee_info.name'), value: interviewData.employeeName, icon: <User className="w-4 h-4 text-blue-500" /> },
-        { label: t('employee_info.last_name'), value: interviewData.employeeLastName, icon: <User className="w-4 h-4 text-blue-500" /> },
-        { label: t('employee_info.position'), value: interviewData.position, icon: <FileText className="w-4 h-4 text-blue-500" /> },
-        // 2. Usa la función getWorkCenterName para mostrar el nombre
-        { label: t('employee_info.work_center'), value: getWorkCenterName(interviewData.workCenter), icon: <Building className="w-4 h-4 text-blue-500" /> },
-        { label: t('employee_info.seniority'), value: interviewData.seniority, icon: <Calendar className="w-4 h-4 text-blue-500" /> }
+        { label: t('employeeInfoName'), value: interviewData.employeeName, icon: <User className="w-4 h-4 text-blue-500" /> },
+        { label: t('employeeInfoLastName'), value: interviewData.employeeLastName, icon: <User className="w-4 h-4 text-blue-500" /> },
+        { label: t('employeeInfoPosition'), value: interviewData.position, icon: <FileText className="w-4 h-4 text-blue-500" /> },
+        { label: t('employeeInfoWorkCenter'), value: getWorkCenterName(interviewData.workCenter), icon: <Building className="w-4 h-4 text-blue-500" /> },
+        { label: t('employeeInfoSeniority'), value: interviewData.seniority, icon: <Calendar className="w-4 h-4 text-blue-500" /> }
       ]
     },
     {
-      title: t('supervisor_info.title'), // 'Información del Supervisor'
+      title: t('supervisorInfoTitle'),
       fields: [
-        { label: t('supervisor_info.name'), value: interviewData.supervisorName, icon: <User className="w-4 h-4 text-green-500" /> },
-        { label: t('supervisor_info.last_name'), value: interviewData.supervisorLastName, icon: <User className="w-4 h-4 text-green-500" /> }
+        { label: t('supervisorInfoName'), value: interviewData.supervisorName, icon: <User className="w-4 h-4 text-green-500" /> },
+        { label: t('supervisorInfoLastName'), value: interviewData.supervisorLastName, icon: <User className="w-4 h-4 text-green-500" /> }
       ]
     },
     {
-      title: t('exit_details.title'), // 'Detalles de la Salida'
+      title: t('exitDetailsTitle'),
       fields: [
-        { label: t('exit_details.exit_type'), value: interviewData.exitType, icon: <FileText className="w-4 h-4 text-orange-500" /> },
-        { label: t('exit_details.exit_date'), value: interviewData.exitDate, type: 'date' as const, icon: <Calendar className="w-4 h-4 text-orange-500" /> },
-        { label: t('exit_details.main_reason'), value: interviewData.mainExitReason, icon: <MessageSquare className="w-4 h-4 text-orange-500" /> },
-        { label: t('exit_details.joining_reasons'), value: interviewData.joiningReasons, type: 'list' as const, icon: <FileText className="w-4 h-4 text-orange-500" /> },
-        { label: t('exit_details.other_factors'), value: interviewData.otherInfluencingFactors, type: 'list' as const, icon: <FileText className="w-4 h-4 text-orange-500" /> },
-        { label: t('exit_details.comments'), value: interviewData.comments, icon: <MessageSquare className="w-4 h-4 text-orange-500" /> }
+        { label: t('exitDetailsExitType'), value: interviewData.exitType, icon: <FileText className="w-4 h-4 text-orange-500" /> },
+        { label: t('exitDetailsExitDate'), value: interviewData.exitDate, type: 'date' as const, icon: <Calendar className="w-4 h-4 text-orange-500" /> },
+        { label: t('exitDetailsMainReason'), value: interviewData.mainExitReason, icon: <MessageSquare className="w-4 h-4 text-orange-500" /> },
+        { label: t('exitDetailsJoiningReasons'), value: interviewData.joiningReasons, type: 'list' as const, icon: <FileText className="w-4 h-4 text-orange-500" /> },
+        { label: t('exitDetailsOtherFactors'), value: interviewData.otherInfluencingFactors, type: 'list' as const, icon: <FileText className="w-4 h-4 text-orange-500" /> },
+        { label: t('exitDetailsComments'), value: interviewData.comments, icon: <MessageSquare className="w-4 h-4 text-orange-500" /> }
       ]
     },
     {
-      title: t('scores.title'), // 'Puntuaciones'
+      title: t('scoresTitle'),
       fields: [
-        { label: t('scores.integration'), value: `${interviewData.scores.integration}/10`, icon: <Star className="w-4 h-4 text-purple-500" /> },
-        { label: t('scores.internal_communication'), value: `${interviewData.scores.internalCommunication}/10`, icon: <Star className="w-4 h-4 text-purple-500" /> },
-        { label: t('scores.compensation'), value: `${interviewData.scores.compensation}/10`, icon: <Star className="w-4 h-4 text-purple-500" /> },
-        { label: t('scores.training'), value: `${interviewData.scores.training}/10`, icon: <Star className="w-4 h-4 text-purple-500" /> },
-        { label: t('scores.work_schedule'), value: `${interviewData.scores.workSchedule}/10`, icon: <Star className="w-4 h-4 text-purple-500" /> },
-        { label: t('scores.mentoring'), value: `${interviewData.scores.mentoring}/10`, icon: <Star className="w-4 h-4 text-purple-500" /> },
-        { label: t('scores.work_performed'), value: `${interviewData.scores.workPerformed}/10`, icon: <Star className="w-4 h-4 text-purple-500" /> },
-        { label: t('scores.work_environment'), value: `${interviewData.scores.workEnvironment}/10`, icon: <Star className="w-4 h-4 text-purple-500" /> },
-        { label: t('scores.corporate_culture'), value: `${interviewData.scores.corporateCulture}/10`, icon: <Star className="w-4 h-4 text-purple-500" /> },
-        { label: t('scores.supervisor_relation'), value: `${interviewData.scores.supervisorRelation}/10`, icon: <Star className="w-4 h-4 text-purple-500" /> },
-        { label: t('scores.global_assessment'), value: `${interviewData.scores.globalAssessment}/10`, icon: <Star className="w-4 h-4 text-purple-500" /> }
+        { label: t('scoresIntegration'), value: `${interviewData.scores.integration}/10`, icon: <Star className="w-4 h-4 text-purple-500" /> },
+        { label: t('scoresInternalCommunication'), value: `${interviewData.scores.internalCommunication}/10`, icon: <Star className="w-4 h-4 text-purple-500" /> },
+        { label: t('scoresCompensation'), value: `${interviewData.scores.compensation}/10`, icon: <Star className="w-4 h-4 text-purple-500" /> },
+        { label: t('scoresTraining'), value: `${interviewData.scores.training}/10`, icon: <Star className="w-4 h-4 text-purple-500" /> },
+        { label: t('scoresWorkSchedule'), value: `${interviewData.scores.workSchedule}/10`, icon: <Star className="w-4 h-4 text-purple-500" /> },
+        { label: t('scoresMentoring'), value: `${interviewData.scores.mentoring}/10`, icon: <Star className="w-4 h-4 text-purple-500" /> },
+        { label: t('scoresWorkPerformed'), value: `${interviewData.scores.workPerformed}/10`, icon: <Star className="w-4 h-4 text-purple-500" /> },
+        { label: t('scoresWorkEnvironment'), value: `${interviewData.scores.workEnvironment}/10`, icon: <Star className="w-4 h-4 text-purple-500" /> },
+        { label: t('scoresCorporateCulture'), value: `${interviewData.scores.corporateCulture}/10`, icon: <Star className="w-4 h-4 text-purple-500" /> },
+        { label: t('scoresSupervisorRelation'), value: `${interviewData.scores.supervisorRelation}/10`, icon: <Star className="w-4 h-4 text-purple-500" /> },
+        { label: t('scoresGlobalAssessment'), value: `${interviewData.scores.globalAssessment}/10`, icon: <Star className="w-4 h-4 text-purple-500" /> }
       ]
     }
   ];
@@ -134,7 +132,7 @@ const ExitInterviewDetailView: React.FC<ExitInterviewDetailViewProps> = ({
   return (
     <DetailPDFView
       language={language}
-      title={t('interview_detail.title')} // 'Detalle de Entrevista de Salida'
+      title={t('interviewDetailTitle')}
       recordId={interviewData.id}
       sections={sections}
       onBack={onBack}

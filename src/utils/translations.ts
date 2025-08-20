@@ -155,6 +155,49 @@ export const translations = {
     generatedOn: 'Generado el',
     documentGenerated: 'Documento Generado',
     
+    // Exit Interview Detail View - Adding missing keys
+    notAvailable: 'No Disponible',
+    unknownWorkCenter: 'Centro Desconocido',
+    interviewNotFound: 'Entrevista no encontrada',
+    workCentersLoadingFailed: 'Error al cargar centros de trabajo',
+    interviewDetailTitle: 'Detalle de Entrevista de Salida',
+    
+    // Employee Info Section
+    employeeInfoTitle: 'Información del Empleado',
+    employeeInfoName: 'Nombre',
+    employeeInfoLastName: 'Apellidos',
+    employeeInfoPosition: 'Puesto',
+    employeeInfoWorkCenter: 'Centro de Trabajo',
+    employeeInfoSeniority: 'Antigüedad',
+    
+    // Supervisor Info Section
+    supervisorInfoTitle: 'Información del Supervisor',
+    supervisorInfoName: 'Nombre',
+    supervisorInfoLastName: 'Apellidos',
+    
+    // Exit Details Section
+    exitDetailsTitle: 'Detalles de la Salida',
+    exitDetailsExitType: 'Tipo de Baja',
+    exitDetailsExitDate: 'Fecha de Baja',
+    exitDetailsMainReason: 'Razón Principal',
+    exitDetailsJoiningReasons: 'Razones de Ingreso',
+    exitDetailsOtherFactors: 'Otros Factores',
+    exitDetailsComments: 'Comentarios',
+    
+    // Scores Section
+    scoresTitle: 'Puntuaciones',
+    scoresIntegration: 'Integración',
+    scoresInternalCommunication: 'Comunicación Interna',
+    scoresCompensation: 'Compensación',
+    scoresTraining: 'Formación',
+    scoresWorkSchedule: 'Horario de Trabajo',
+    scoresMentoring: 'Mentoring',
+    scoresWorkPerformed: 'Trabajo Realizado',
+    scoresWorkEnvironment: 'Ambiente de Trabajo',
+    scoresCorporateCulture: 'Cultura Corporativa',
+    scoresSupervisorRelation: 'Relación con Supervisor',
+    scoresGlobalAssessment: 'Evaluación Global',
+    
     // Common
     cancel: 'Cancelar',
     save: 'Guardar',
@@ -355,6 +398,49 @@ export const translations = {
     // PDF Generation
     generatedOn: 'Generated on',
     documentGenerated: 'Document Generated',
+    
+    // Exit Interview Detail View - Adding missing keys
+    notAvailable: 'Not Available',
+    unknownWorkCenter: 'Unknown Work Center',
+    interviewNotFound: 'Interview not found',
+    workCentersLoadingFailed: 'Failed to load work centers',
+    interviewDetailTitle: 'Exit Interview Detail',
+    
+    // Employee Info Section
+    employeeInfoTitle: 'Employee Information',
+    employeeInfoName: 'Name',
+    employeeInfoLastName: 'Last Name',
+    employeeInfoPosition: 'Position',
+    employeeInfoWorkCenter: 'Work Center',
+    employeeInfoSeniority: 'Seniority',
+    
+    // Supervisor Info Section
+    supervisorInfoTitle: 'Supervisor Information',
+    supervisorInfoName: 'Name',
+    supervisorInfoLastName: 'Last Name',
+    
+    // Exit Details Section
+    exitDetailsTitle: 'Exit Details',
+    exitDetailsExitType: 'Exit Type',
+    exitDetailsExitDate: 'Exit Date',
+    exitDetailsMainReason: 'Main Reason',
+    exitDetailsJoiningReasons: 'Joining Reasons',
+    exitDetailsOtherFactors: 'Other Factors',
+    exitDetailsComments: 'Comments',
+    
+    // Scores Section
+    scoresTitle: 'Scores',
+    scoresIntegration: 'Integration',
+    scoresInternalCommunication: 'Internal Communication',
+    scoresCompensation: 'Compensation',
+    scoresTraining: 'Training',
+    scoresWorkSchedule: 'Work Schedule',
+    scoresMentoring: 'Mentoring',
+    scoresWorkPerformed: 'Work Performed',
+    scoresWorkEnvironment: 'Work Environment',
+    scoresCorporateCulture: 'Corporate Culture',
+    scoresSupervisorRelation: 'Supervisor Relation',
+    scoresGlobalAssessment: 'Global Assessment',
     
     // Common
     cancel: 'Cancel',
