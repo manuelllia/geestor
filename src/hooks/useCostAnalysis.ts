@@ -267,7 +267,7 @@ La respuesta debe ser UNICAMENTE un objeto JSON válido que se ajuste *estrictam
     console.log('🤖 Llamando a Gemini API con modelo gemini-2.5-flash-preview-05-20...');
 
     try {
-      // Convertir archivos a base64 para input multimodal
+      // Convertir archivos a base64
       console.log('📄 Convirtiendo archivos a base64...');
       const pcapBase64 = await convertFileToBase64(pcapFile);
       const pptBase64 = await convertFileToBase64(pptFile);
@@ -343,46 +343,4 @@ La respuesta debe ser UNICAMENTE un objeto JSON válido que se ajuste *estrictam
       console.log('✅ JSON parseado correctamente:', parsedResult);
       
       return parsedResult;
-    } catch (error) {
-      console.error('❌ Error en llamada a Gemini API:', error);
-      if (error instanceof Error) {
-        throw new Error(`Error en análisis con Gemini: ${error.message}`);
-      }
-      throw new Error('Error desconocido en análisis con Gemini');
-    }
-  };
-
-  const analyzeCosts = async (pcapFile: File, pptFile: File): Promise<void> => {
-    setIsLoading(true);
-    setError(null);
-    setAnalysisResult(null);
-
-    try {
-      console.log('🔍 Iniciando análisis de costes...');
-      console.log('📄 Archivos recibidos:', {
-        pcap: pcapFile.name,
-        ppt: pptFile.name
-      });
-
-      // Llamar directamente a Gemini API con los archivos
-      console.log('🤖 Enviando archivos a Gemini API...');
-      const result = await callGeminiAPI(pcapFile, pptFile);
-      console.log('✅ Análisis completado:', result);
-
-      setAnalysisResult(result);
-    } catch (err) {
-      console.error('❌ Error en análisis de costes:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Error desconocido';
-      setError(`Error en el análisis: ${errorMessage}`);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return {
-    analyzeCosts,
-    analysisResult,
-    isLoading,
-    error
-  };
-};
+   
