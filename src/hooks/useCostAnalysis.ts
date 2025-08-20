@@ -151,7 +151,7 @@ export const useCostAnalysis = () => {
     });
   };
 
-  const createPromptForStep = (stepNumber: number, totalSteps: number, previousData?: any): string => {
+  const createPromptForStep = (stepNumber: number, totalSteps: number): string => {
     const basePrompt = `Eres un experto consultor en licitaciones públicas de electromedicina en España. Analiza los documentos PDF: PCAP y PPT.
 
 CRÍTICO: Responde ÚNICAMENTE con JSON válido y bien formateado. No añadas texto antes ni después del JSON. Los documentos pueden estar en cualquier idioma de España, pero tu respuesta debe estar en español.
@@ -300,14 +300,19 @@ Responde con este JSON:
 
   const callGemini = async (pcapFile: File, pptFile: File, step: number): Promise<any> => {
     const GEMINI_API_KEY = 'AIzaSyANIWvIMRvCW7f0meHRk4SobRz4s0pnxtg';
-    const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
+    const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-experimental:generateContent';
     
     console.log(`🤖 Iniciando paso ${step} con Gemini...`);
     setCurrentProgress(`Analizando paso ${step} de ${totalSteps}...`);
 
     try {
+      // Convertir archivos a base64
       const pcapBase64 = await convertFileToBase64(pcapFile);
       const pptBase64 = await convertFileToBase64(pptFile);
+
+      console.log(`📄 Archivos convertidos a base64 para paso ${step}`);
+      console.log(`📄 PCAP: ${pcapBase64.substring(0, 100)}...`);
+      console.log(`📄 PPT: ${pptBase64.substring(0, 100)}...`);
 
       const requestBody = {
         contents: [{
@@ -339,6 +344,9 @@ Responde con este JSON:
       };
 
       console.log(`🚀 Enviando solicitud paso ${step} a Gemini...`);
+      console.log(`📋 Request body keys:`, Object.keys(requestBody));
+      console.log(`📋 Contents parts:`, requestBody.contents[0].parts.length);
+
       const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
         method: 'POST',
         headers: {
@@ -346,6 +354,8 @@ Responde con este JSON:
         },
         body: JSON.stringify(requestBody),
       });
+
+      console.log(`📡 Respuesta HTTP paso ${step}:`, response.status, response.statusText);
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -357,18 +367,19 @@ Responde con este JSON:
       console.log(`📥 Respuesta paso ${step} recibida:`, data);
       
       if (!data.candidates?.[0]?.content?.parts?.[0]?.text) {
+        console.error(`❌ Respuesta inválida paso ${step}:`, data);
         throw new Error(`Respuesta inválida de Gemini API en paso ${step}`);
       }
 
       let responseText = data.candidates[0].content.parts[0].text;
-      console.log(`📝 Texto bruto paso ${step}:`, responseText.substring(0, 300) + '...');
+      console.log(`📝 Texto bruto paso ${step}:`, responseText.substring(0, 500) + '...');
       
       // Limpiar y parsear JSON
       const cleanedJson = cleanJsonResponse(responseText);
-      console.log(`🔧 JSON limpio paso ${step}:`, cleanedJson.substring(0, 300) + '...');
+      console.log(`🔧 JSON limpio paso ${step}:`, cleanedJson.substring(0, 500) + '...');
       
       const parsedResult = JSON.parse(cleanedJson);
-      console.log(`✅ JSON paso ${step} parseado correctamente`);
+      console.log(`✅ JSON paso ${step} parseado correctamente:`, parsedResult);
       return parsedResult;
       
     } catch (error) {
@@ -398,7 +409,7 @@ Responde con este JSON:
           if (stepData[key] !== undefined && stepData[key] !== null) {
             const typedKey = key as keyof ReportData;
             if (Array.isArray(stepData[key])) {
-              (merged[typedKey] as any[]) = stepData[key];
+              (merged[typedKey] as any) = stepData[key];
             } else {
               (merged[typedKey] as any) = stepData[key];
             }
@@ -440,7 +451,7 @@ Responde con este JSON:
           const stepResult = await callGemini(pcapFile, pptFile, step);
           stepResults.push(stepResult);
           
-          console.log(`✅ Paso ${step} completado exitosamente`);
+          console.log(`✅ Paso ${step} completado exitosamente:`, stepResult);
           
           // Esperar entre 5-10 segundos entre llamadas (excepto en el último paso)
           if (step < totalSteps) {
