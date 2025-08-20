@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -377,7 +378,7 @@ const PracticeEvaluationForm = () => {
                           min="1"
                           max="10"
                           placeholder={label}
-                          {...field}
+                          value={field.value as number}
                           onChange={(e) => field.onChange(parseInt(e.target.value) || 5)}
                         />
                       </FormControl>
@@ -407,7 +408,7 @@ const PracticeEvaluationForm = () => {
                           min="1"
                           max="10"
                           placeholder={label}
-                          {...field}
+                          value={field.value as number}
                           onChange={(e) => field.onChange(parseInt(e.target.value) || 5)}
                         />
                       </FormControl>
@@ -437,7 +438,7 @@ const PracticeEvaluationForm = () => {
                           min="1"
                           max="10"
                           placeholder={label}
-                          {...field}
+                          value={field.value as number}
                           onChange={(e) => field.onChange(parseInt(e.target.value) || 5)}
                         />
                       </FormControl>
@@ -572,8 +573,11 @@ const PracticeEvaluationForm = () => {
                     <FormControl>
                       <Input
                         type="number"
+                        min="1"
+                        max="10"
                         placeholder="Valoración del rendimiento"
-                        {...field}
+                        value={field.value}
+                        onChange={(e) => field.onChange(parseInt(e.target.value) || 5)}
                       />
                     </FormControl>
                     <FormMessage />
