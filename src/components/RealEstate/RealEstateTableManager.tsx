@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,8 +9,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Plus, Edit, Trash2, ArrowLeft } from 'lucide-react';
-import { getAvailableSheets, getSheetData, PropertyData } from '../../services/realEstateService';
+import { Plus, Edit, Trash2, ArrowLeft, Loader2 } from 'lucide-react';
+import { 
+  getAvailableSheets, 
+  getSheetData, 
+  createPropertyRecord,
+  updatePropertyRecord,
+  deletePropertyRecord,
+  PropertyData 
+} from '../../services/realEstateService';
 import { toast } from 'sonner';
 
 interface RealEstateTableManagerProps {
@@ -32,6 +40,8 @@ const RealEstateTableManager: React.FC<RealEstateTableManagerProps> = ({ onBack 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState<PropertyData | null>(null);
   const [formData, setFormData] = useState<{ [key: string]: string }>({});
+  const [saveLoading, setSaveLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
 
   useEffect(() => {
     loadAvailableSheets();
@@ -132,32 +142,38 @@ const RealEstateTableManager: React.FC<RealEstateTableManagerProps> = ({ onBack 
   };
 
   const handleDelete = async (recordId: string) => {
+    setDeleteLoading(recordId);
     try {
-      // Aquí implementarías la lógica de eliminación
-      console.log('Eliminando registro:', recordId);
+      await deletePropertyRecord(recordId, selectedSheet);
       setTableData(prev => prev.filter(item => item.id !== recordId));
       toast.success('Registro eliminado correctamente');
     } catch (error) {
       console.error('Error deleting record:', error);
       toast.error('Error al eliminar el registro');
+    } finally {
+      setDeleteLoading(null);
     }
   };
 
   const handleSaveRecord = async () => {
+    if (!selectedSheet) return;
+    
+    setSaveLoading(true);
     try {
-      // Aquí implementarías la lógica de guardado
       if (editingRecord) {
         // Actualizar registro existente
+        await updatePropertyRecord(editingRecord.id, formData, selectedSheet);
         setTableData(prev => prev.map(item => 
           item.id === editingRecord.id 
-            ? { ...item, ...formData, updatedAt: new Date() }
+            ? { ...item, ...formData }
             : item
         ));
         toast.success('Registro actualizado correctamente');
       } else {
         // Crear nuevo registro
+        const newRecordId = await createPropertyRecord(formData, selectedSheet);
         const newRecord = {
-          id: `new_${Date.now()}`,
+          id: newRecordId,
           ...formData,
           originalSheet: selectedSheet,
           createdAt: new Date(),
@@ -174,6 +190,8 @@ const RealEstateTableManager: React.FC<RealEstateTableManagerProps> = ({ onBack 
     } catch (error) {
       console.error('Error saving record:', error);
       toast.error('Error al guardar el registro');
+    } finally {
+      setSaveLoading(false);
     }
   };
 
@@ -294,7 +312,7 @@ const RealEstateTableManager: React.FC<RealEstateTableManagerProps> = ({ onBack 
           <CardContent>
             {loading ? (
               <div className="flex items-center justify-center h-32">
-                <div className="w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
+                <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -321,20 +339,29 @@ const RealEstateTableManager: React.FC<RealEstateTableManagerProps> = ({ onBack 
                               size="sm"
                               variant="outline"
                               onClick={() => handleEdit(record)}
+                              disabled={deleteLoading === record.id}
                             >
                               <Edit className="w-3 h-3" />
                             </Button>
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
-                                <Button size="sm" variant="outline">
-                                  <Trash2 className="w-3 h-3 text-red-500" />
+                                <Button 
+                                  size="sm" 
+                                  variant="outline"
+                                  disabled={deleteLoading === record.id}
+                                >
+                                  {deleteLoading === record.id ? (
+                                    <Loader2 className="w-3 h-3 animate-spin" />
+                                  ) : (
+                                    <Trash2 className="w-3 h-3 text-red-500" />
+                                  )}
                                 </Button>
                               </AlertDialogTrigger>
                               <AlertDialogContent>
                                 <AlertDialogHeader>
                                   <AlertDialogTitle>¿Confirmar eliminación?</AlertDialogTitle>
                                   <AlertDialogDescription>
-                                    Esta acción no se puede deshacer. El registro será eliminado permanentemente.
+                                    Esta acción no se puede deshacer. El registro será eliminado permanentemente de Firebase.
                                   </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
@@ -378,8 +405,15 @@ const RealEstateTableManager: React.FC<RealEstateTableManagerProps> = ({ onBack 
             <Button variant="outline" onClick={() => setIsCreateModalOpen(false)}>
               Cancelar
             </Button>
-            <Button onClick={handleSaveRecord}>
-              Crear Registro
+            <Button onClick={handleSaveRecord} disabled={saveLoading}>
+              {saveLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Creando...
+                </>
+              ) : (
+                'Crear Registro'
+              )}
             </Button>
           </div>
         </DialogContent>
@@ -403,8 +437,15 @@ const RealEstateTableManager: React.FC<RealEstateTableManagerProps> = ({ onBack 
             <Button variant="outline" onClick={() => setIsEditModalOpen(false)}>
               Cancelar
             </Button>
-            <Button onClick={handleSaveRecord}>
-              Guardar Cambios
+            <Button onClick={handleSaveRecord} disabled={saveLoading}>
+              {saveLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Guardando...
+                </>
+              ) : (
+                'Guardar Cambios'
+              )}
             </Button>
           </div>
         </DialogContent>

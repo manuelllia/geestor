@@ -1,5 +1,4 @@
-
-import { collection, doc, getDoc, setDoc, addDoc, getDocs, Timestamp } from "firebase/firestore";
+import { collection, doc, getDoc, setDoc, addDoc, getDocs, updateDoc, deleteDoc, Timestamp } from "firebase/firestore";
 import { db } from "../lib/firebase";
 
 export interface PropertyData {
@@ -84,6 +83,67 @@ export const insertPropertyData = async (
     console.log(`${data.length} registros insertados en la hoja: ${sheetName}`);
   } catch (error) {
     console.error(`Error al insertar datos de la hoja ${sheetName}:`, error);
+    throw error;
+  }
+};
+
+// Nueva función para crear un registro individual
+export const createPropertyRecord = async (
+  data: PropertyData,
+  sheetName: string
+): Promise<string> => {
+  try {
+    const subcollectionRef = collection(db, "Gestión de Talento", "Gestión Inmuebles", sheetName);
+    
+    const docData = {
+      ...data,
+      originalSheet: sheetName,
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now()
+    };
+    
+    const docRef = await addDoc(subcollectionRef, docData);
+    console.log(`Registro creado con ID: ${docRef.id} en la hoja: ${sheetName}`);
+    return docRef.id;
+  } catch (error) {
+    console.error(`Error al crear registro en ${sheetName}:`, error);
+    throw error;
+  }
+};
+
+// Nueva función para actualizar un registro
+export const updatePropertyRecord = async (
+  recordId: string,
+  data: PropertyData,
+  sheetName: string
+): Promise<void> => {
+  try {
+    const docRef = doc(db, "Gestión de Talento", "Gestión Inmuebles", sheetName, recordId);
+    
+    const updateData = {
+      ...data,
+      updatedAt: Timestamp.now()
+    };
+    
+    await updateDoc(docRef, updateData);
+    console.log(`Registro ${recordId} actualizado en la hoja: ${sheetName}`);
+  } catch (error) {
+    console.error(`Error al actualizar registro ${recordId} en ${sheetName}:`, error);
+    throw error;
+  }
+};
+
+// Nueva función para eliminar un registro
+export const deletePropertyRecord = async (
+  recordId: string,
+  sheetName: string
+): Promise<void> => {
+  try {
+    const docRef = doc(db, "Gestión de Talento", "Gestión Inmuebles", sheetName, recordId);
+    await deleteDoc(docRef);
+    console.log(`Registro ${recordId} eliminado de la hoja: ${sheetName}`);
+  } catch (error) {
+    console.error(`Error al eliminar registro ${recordId} de ${sheetName}:`, error);
     throw error;
   }
 };
