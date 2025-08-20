@@ -1,29 +1,15 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
-import { Calendar, ChevronLeft, ChevronRight, Plus, Clock, Users, CheckCircle, Settings } from 'lucide-react';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, addMonths, subMonths, addDays } from 'date-fns';
+import { Calendar, ChevronLeft, ChevronRight, Plus, Clock, Users, CheckCircle, Settings, AlertTriangle } from 'lucide-react';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, addMonths, subMonths } from 'date-fns';
 import { es } from 'date-fns/locale';
 import MaintenanceEventModal from './MaintenanceEventModal';
 import HospitalConfirmationModal from './HospitalConfirmationModal';
-import { MaintenanceSchedulingEngine, ScheduledMaintenance, WorkingConstraints } from '../../utils/maintenance/MaintenanceSchedulingEngine';
-import { MaintenanceTaskProcessor } from '../../utils/maintenance/MaintenanceTaskProcessor';
-
-interface MaintenanceEvent {
-  id: string;
-  denominacion: string;
-  codigo: string;
-  tipoMantenimiento: string;
-  fecha: Date;
-  tiempo: number;
-  cantidad: number;
-  equipos: string[];
-  tecnico?: string;
-  estado: 'programado' | 'en-progreso' | 'completado' | 'pendiente';
-  prioridad: 'baja' | 'media' | 'alta' | 'critica';
-  notas?: string;
-}
+import IncompleteDenominationsManager from './IncompleteDenominationsManager';
+import { useEnhancedMaintenanceCalendar } from '../../hooks/useEnhancedMaintenanceCalendar';
 
 interface DenominacionHomogeneaData {
   codigo: string;
@@ -44,159 +30,26 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
   onBack
 }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [events, setEvents] = useState<MaintenanceEvent[]>([]);
-  const [selectedEvent, setSelectedEvent] = useState<MaintenanceEvent | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [draggedEvent, setDraggedEvent] = useState<MaintenanceEvent | null>(null);
+  const [draggedEvent, setDraggedEvent] = useState<any>(null);
   const [isHospitalModalOpen, setIsHospitalModalOpen] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
   const [showConstraintsConfig, setShowConstraintsConfig] = useState(false);
 
-  // Configuración CORREGIDA: 2-3 técnicos, L-V, parámetros realistas
-  const [constraints, setConstraints] = useState<WorkingConstraints>({
-    horasPorDia: 6, // 6 horas efectivas de trabajo técnico
-    tecnicos: 2, // 2 técnicos (ajustable a 3)
-    eventosMaxPorDia: 3, // Máximo 3 intervenciones por día
-    trabajarSabados: false, // SOLO lunes a viernes
-    horasEmergencia: 1, // 1 hora reservada para emergencias
-  });
-
-  /**
-   * Genera el calendario usando el motor profesional CORREGIDO
-   */
-  const generateProfessionalMaintenanceCalendar = (): MaintenanceEvent[] => {
-    console.log('🏗️ GENERANDO CALENDARIO PROFESIONAL - VERSIÓN CORREGIDA');
-    console.log('📋 Denominaciones a procesar:', denominaciones?.length || 0);
-    
-    if (!denominaciones || denominaciones.length === 0) {
-      console.warn('⚠️ No hay denominaciones disponibles');
-      return [];
-    }
-    
-    try {
-      // Período exacto: desde hoy hasta un año
-      const startDate = new Date();
-      const endDate = addDays(startDate, 365);
-      
-      console.log(`📅 Período: ${format(startDate, 'dd/MM/yyyy')} - ${format(endDate, 'dd/MM/yyyy')}`);
-      console.log(`⚙️ Configuración:`, constraints);
-      
-      // Inicializar motor con configuración corregida
-      const schedulingEngine = new MaintenanceSchedulingEngine(startDate, endDate, constraints);
-      
-      // Convertir denominaciones a tareas
-      console.log('🔄 Convirtiendo denominaciones...');
-      const maintenanceTasks = MaintenanceTaskProcessor.convertToMaintenanceTasks(denominaciones);
-      
-      console.log(`✅ Tareas generadas: ${maintenanceTasks.length}`);
-      
-      if (maintenanceTasks.length === 0) {
-        console.warn('⚠️ No se generaron tareas de mantenimiento');
-        return [];
-      }
-      
-      // Log de muestra
-      console.log('📋 Muestra de tareas:');
-      maintenanceTasks.slice(0, 3).forEach(task => {
-        console.log(`   - ${task.denominacion}: cada ${task.frecuenciaDias}d, ${task.tiempoHoras}h, prioridad ${task.prioridad}`);
-      });
-      
-      // Generar calendario
-      console.log('🚀 Ejecutando programación...');
-      const scheduledMaintenances = schedulingEngine.generateFullSchedule(maintenanceTasks);
-      
-      console.log(`✅ Mantenimientos programados: ${scheduledMaintenances.length}`);
-      
-      if (scheduledMaintenances.length === 0) {
-        console.warn('⚠️ No se programaron mantenimientos');
-        return [];
-      }
-      
-      // Convertir a eventos del calendario
-      const calendarEvents: MaintenanceEvent[] = scheduledMaintenances.map((scheduled, index) => ({
-        id: scheduled.id || `maintenance-${index}`,
-        denominacion: scheduled.denominacion,
-        codigo: scheduled.codigo,
-        tipoMantenimiento: scheduled.tipoMantenimiento,
-        fecha: scheduled.fechaProgramada,
-        tiempo: scheduled.tiempoHoras,
-        cantidad: scheduled.cantidad,
-        equipos: scheduled.equipos,
-        tecnico: scheduled.tecnicoAsignado,
-        estado: scheduled.estado,
-        prioridad: scheduled.prioridad,
-        notas: scheduled.notas
-      }));
-      
-      console.log(`🎯 Eventos del calendario: ${calendarEvents.length}`);
-      
-      // Verificar distribución
-      const eventsByMonth = calendarEvents.reduce((acc, event) => {
-        const month = format(event.fecha, 'yyyy-MM');
-        acc[month] = (acc[month] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>);
-      
-      console.log('📊 Distribución mensual:', eventsByMonth);
-      
-      return calendarEvents;
-      
-    } catch (error) {
-      console.error('❌ Error generando calendario:', error);
-      return [];
-    }
-  };
-
-  // Efecto para generación automática MEJORADO
-  useEffect(() => {
-    console.log('🔄 useEffect - Estado actual:', {
-      denominacionesCount: denominaciones?.length || 0,
-      eventsCount: events.length,
-      isGenerating
-    });
-    
-    // Solo generar si hay denominaciones y no hay eventos
-    if (denominaciones && denominaciones.length > 0 && events.length === 0 && !isGenerating) {
-      console.log('🚀 Iniciando generación automática...');
-      setIsGenerating(true);
-      
-      // Pequeño delay para asegurar que el estado se actualice
-      setTimeout(() => {
-        const calendar = generateProfessionalMaintenanceCalendar();
-        
-        if (calendar.length > 0) {
-          console.log('✅ Calendario generado, actualizando eventos...');
-          setEvents(calendar);
-        } else {
-          console.warn('⚠️ Calendario vacío generado');
-        }
-        
-        setIsGenerating(false);
-      }, 500);
-    }
-  }, [denominaciones, events.length, isGenerating]);
-
-  // Función para regenerar manualmente
-  const handleRegenerateCalendar = () => {
-    console.log('🔄 Regeneración manual iniciada...');
-    setIsGenerating(true);
-    setEvents([]); // Limpiar eventos
-    
-    setTimeout(() => {
-      const newCalendar = generateProfessionalMaintenanceCalendar();
-      
-      if (newCalendar.length > 0) {
-        setEvents(newCalendar);
-        setShowConstraintsConfig(false);
-        console.log('✅ Calendario regenerado exitosamente');
-      } else {
-        console.error('❌ Error en regeneración - calendario vacío');
-      }
-      
-      setIsGenerating(false);
-    }, 1000);
-  };
+  const {
+    events,
+    setEvents,
+    incompleteDenominaciones,
+    isGenerating,
+    selectedEvent,
+    setSelectedEvent,
+    constraints,
+    setConstraints,
+    generateEnhancedCalendar,
+    addIncompleteToCalendar,
+    isCalendarComplete,
+    stats
+  } = useEnhancedMaintenanceCalendar(denominaciones);
 
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
@@ -211,10 +64,6 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
   const getTotalHoursForDay = (day: Date) => {
     const dayEvents = getEventsForDay(day);
     return dayEvents.reduce((total, event) => total + (event.tiempo * event.cantidad), 0);
-  };
-
-  const getTotalHoursForYear = () => {
-    return events.reduce((total, event) => total + (event.tiempo * event.cantidad), 0);
   };
 
   const getTotalHoursForCurrentMonth = () => {
@@ -264,7 +113,7 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
     }
   };
 
-  const handleEventClick = (event: MaintenanceEvent) => {
+  const handleEventClick = (event: any) => {
     setSelectedEvent(event);
     setIsModalOpen(true);
   };
@@ -275,7 +124,7 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
     setIsModalOpen(true);
   };
 
-  const handleSaveEvent = (eventData: Partial<MaintenanceEvent>) => {
+  const handleSaveEvent = (eventData: any) => {
     if (selectedEvent) {
       setEvents(prev => prev.map(event => 
         event.id === selectedEvent.id 
@@ -283,7 +132,7 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
           : event
       ));
     } else {
-      const newEvent: MaintenanceEvent = {
+      const newEvent = {
         id: `event-${Date.now()}`,
         denominacion: eventData.denominacion || 'Nuevo Mantenimiento',
         codigo: eventData.codigo || 'NUEVO',
@@ -309,7 +158,7 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
     setEvents(prev => prev.filter(event => event.id !== eventId));
   };
 
-  const handleDragStart = (event: MaintenanceEvent) => {
+  const handleDragStart = (event: any) => {
     setDraggedEvent(event);
   };
 
@@ -332,13 +181,24 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
   const handleConfirmCalendar = (hospitalName: string) => {
     console.log(`✅ Calendario profesional confirmado para: ${hospitalName}`);
     console.log(`📅 Eventos totales: ${events.length}`);
-    console.log(`⏱️ Total horas anuales: ${getTotalHoursForYear()}h`);
+    console.log(`⏱️ Total horas anuales: ${stats.totalHours}h`);
     
     setIsHospitalModalOpen(false);
   };
 
+  const handleRegenerateCalendar = () => {
+    generateEnhancedCalendar();
+    setShowConstraintsConfig(false);
+  };
+
   return (
     <div className="space-y-6">
+      {/* Denominaciones incompletas */}
+      <IncompleteDenominationsManager
+        incompleteDenominaciones={incompleteDenominaciones}
+        onAddToCalendar={addIncompleteToCalendar}
+      />
+
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
@@ -348,8 +208,16 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
             </CardTitle>
             <p className="text-sm text-gray-600 dark:text-gray-300 mt-2">
               📋 Programación L-V • {constraints.tecnicos} técnicos • {constraints.horasPorDia}h/día • 
-              {events.length} mantenimientos programados
+              {stats.totalEvents} mantenimientos programados • {stats.completionPercentage}% completo
             </p>
+            {incompleteDenominaciones.length > 0 && (
+              <div className="flex items-center gap-2 mt-2 text-amber-600 dark:text-amber-400">
+                <AlertTriangle className="h-4 w-4" />
+                <span className="text-sm">
+                  {incompleteDenominaciones.length} denominaciones pendientes de completar
+                </span>
+              </div>
+            )}
           </div>
           <div className="flex items-center gap-4">
             <div className="text-right">
@@ -362,7 +230,7 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
             </div>
             <div className="text-right">
               <div className="text-xl font-bold text-green-600 dark:text-green-400">
-                {getTotalHoursForYear()}h
+                {stats.totalHours}h
               </div>
               <div className="text-sm text-gray-600 dark:text-gray-400">
                 Total año
@@ -378,11 +246,15 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
             </Button>
             <Button 
               onClick={() => setIsHospitalModalOpen(true)}
-              className="bg-green-600 hover:bg-green-700 text-white"
-              disabled={isGenerating || events.length === 0}
+              className={`text-white ${
+                isCalendarComplete()
+                  ? 'bg-green-600 hover:bg-green-700'
+                  : 'bg-gray-400 cursor-not-allowed'
+              }`}
+              disabled={!isCalendarComplete() || isGenerating}
             >
               <CheckCircle className="h-4 w-4 mr-2" />
-              Confirmar Calendario
+              {isCalendarComplete() ? 'Confirmar Calendario' : `Faltan ${incompleteDenominaciones.length} denominaciones`}
             </Button>
             <Button onClick={onBack} variant="outline">
               Volver al Análisis
@@ -390,7 +262,7 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
           </div>
         </CardHeader>
         
-        {/* Panel de configuración MEJORADO */}
+        {/* Panel de configuración */}
         {showConstraintsConfig && (
           <CardContent className="border-t bg-gray-50 dark:bg-gray-800/50">
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
@@ -406,14 +278,14 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
                 />
               </div>
               <div>
-                <label className="text-sm font-medium">Técnicos (2-3)</label>
+                <label className="text-sm font-medium">Técnicos</label>
                 <input
                   type="number"
                   value={constraints.tecnicos}
                   onChange={(e) => setConstraints(prev => ({ ...prev, tecnicos: Number(e.target.value) }))}
                   className="w-full p-2 border rounded"
                   min="2"
-                  max="3"
+                  max="5"
                 />
               </div>
               <div>
@@ -424,7 +296,7 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
                   onChange={(e) => setConstraints(prev => ({ ...prev, eventosMaxPorDia: Number(e.target.value) }))}
                   className="w-full p-2 border rounded"
                   min="2"
-                  max="5"
+                  max="6"
                 />
               </div>
               <div>
@@ -436,7 +308,6 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
                   />
                   Sábados
                 </label>
-                <p className="text-xs text-gray-500">Por defecto L-V</p>
               </div>
               <div>
                 <Button 
@@ -452,48 +323,16 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
         )}
 
         <CardContent>
-          {/* Estado de carga MEJORADO */}
+          {/* Estado de carga */}
           {isGenerating && (
             <div className="text-center py-12">
               <div className="w-16 h-16 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin mx-auto mb-6" />
               <p className="text-xl font-semibold text-blue-600 mb-2">Generando calendario profesional...</p>
               <p className="text-gray-600 dark:text-gray-300">Aplicando algoritmos de distribución óptima</p>
-              <div className="mt-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 max-w-md mx-auto">
-                <p className="text-sm text-blue-700 dark:text-blue-300">
-                  ⚙️ Procesando {denominaciones?.length || 0} denominaciones homogéneas
-                </p>
-              </div>
             </div>
           )}
 
-          {/* Calendario vacío con debugging */}
-          {!isGenerating && events.length === 0 && (
-            <div className="text-center py-12">
-              <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-6 max-w-lg mx-auto">
-                <p className="text-xl font-semibold text-red-800 dark:text-red-200 mb-4">
-                  ⚠️ Calendario vacío
-                </p>
-                <div className="text-left bg-white dark:bg-gray-800 rounded p-4 mb-4">
-                  <p className="font-medium mb-2">Estado del sistema:</p>
-                  <ul className="text-sm space-y-1">
-                    <li>📋 Denominaciones: {denominaciones?.length || 0}</li>
-                    <li>🔧 Técnicos: {constraints.tecnicos}</li>
-                    <li>📅 Días: {constraints.trabajarSabados ? 'L-S' : 'L-V'}</li>
-                    <li>⏰ Horas/día: {constraints.horasPorDia}h</li>
-                  </ul>
-                </div>
-                <Button 
-                  onClick={handleRegenerateCalendar} 
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3"
-                  size="lg"
-                >
-                  🚀 Generar Calendario Ahora
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {/* Calendario principal - solo si hay eventos */}
+          {/* Calendario principal */}
           {!isGenerating && events.length > 0 && (
             <>
               <div className="flex items-center justify-between mb-6">
@@ -514,7 +353,7 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
                 </Button>
               </div>
 
-              {/* Leyenda mejorada */}
+              {/* Leyenda */}
               <div className="flex items-center gap-6 mb-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 bg-green-100 border border-green-200 rounded"></div>
@@ -526,11 +365,11 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 bg-red-100 border border-red-200 rounded"></div>
-                  <span className="text-sm">Carga alta ({'>'}80%)</span>
+                  <span className="text-sm">Carga alta (>80%)</span>
                 </div>
                 <div className="flex items-center gap-2 ml-auto">
                   <Users className="h-4 w-4 text-gray-500" />
-                  <span className="text-sm text-gray-600">Recursos profesionales optimizados</span>
+                  <span className="text-sm text-gray-600">Recursos optimizados</span>
                 </div>
               </div>
 
@@ -556,10 +395,11 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
                         ${isToday ? 'ring-2 ring-blue-500 dark:ring-blue-400' : ''}
                         ${!isSameMonth(day, currentDate) ? 'opacity-50' : ''}
                         ${dayColor}
-                        hover:shadow-md transition-shadow
+                        hover:shadow-md transition-shadow cursor-pointer
                       `}
                       onDragOver={handleDragOver}
                       onDrop={(e) => handleDrop(e, day)}
+                      onClick={() => dayEvents.length > 0 && handleEventClick(dayEvents[0])}
                     >
                       <div className="flex items-center justify-between mb-1">
                         <span className={`text-sm font-medium ${isToday ? 'text-blue-600 dark:text-blue-400' : ''}`}>
@@ -569,8 +409,11 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
                           <Button
                             size="sm"
                             variant="ghost"
-                            className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 hover:opacity-100"
-                            onClick={() => handleAddEvent(day)}
+                            className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleAddEvent(day);
+                            }}
                           >
                             <Plus className="h-3 w-3" />
                           </Button>
@@ -602,7 +445,10 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
                             className="p-1 rounded text-xs cursor-pointer bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 transition-all"
                             draggable
                             onDragStart={() => handleDragStart(event)}
-                            onClick={() => handleEventClick(event)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEventClick(event);
+                            }}
                           >
                             <div className="flex items-center gap-1">
                               <div className={`w-2 h-2 rounded-full ${getPriorityColor(event.prioridad)}`} />
@@ -617,7 +463,7 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
                           </div>
                         ))}
                         {dayEvents.length > 2 && (
-                          <div className="text-xs text-gray-500 text-center">
+                          <div className="text-xs text-gray-500 text-center cursor-pointer hover:text-blue-600">
                             +{dayEvents.length - 2} más
                           </div>
                         )}
@@ -633,6 +479,39 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
                 })}
               </div>
             </>
+          )}
+
+          {/* Estado vacío */}
+          {!isGenerating && events.length === 0 && (
+            <div className="text-center py-12">
+              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-6 max-w-lg mx-auto">
+                <p className="text-xl font-semibold text-blue-800 dark:text-blue-200 mb-4">
+                  📅 Preparando tu calendario profesional
+                </p>
+                <div className="text-left bg-white dark:bg-gray-800 rounded p-4 mb-4">
+                  <p className="font-medium mb-2">Estado del sistema:</p>
+                  <ul className="text-sm space-y-1">
+                    <li>📋 Denominaciones válidas: {denominaciones.length - incompleteDenominaciones.length}</li>
+                    <li>⚠️ Denominaciones pendientes: {incompleteDenominaciones.length}</li>
+                    <li>🔧 Técnicos disponibles: {constraints.tecnicos}</li>
+                    <li>📅 Días laborables: {constraints.trabajarSabados ? 'L-S' : 'L-V'}</li>
+                  </ul>
+                </div>
+                {incompleteDenominaciones.length > 0 ? (
+                  <p className="text-sm text-blue-700 dark:text-blue-300">
+                    Completa la información de las denominaciones pendientes para generar el calendario completo
+                  </p>
+                ) : (
+                  <Button 
+                    onClick={handleRegenerateCalendar} 
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3"
+                    size="lg"
+                  >
+                    🚀 Generar Calendario
+                  </Button>
+                )}
+              </div>
+            </div>
           )}
         </CardContent>
       </Card>
@@ -655,7 +534,7 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
         onClose={() => setIsHospitalModalOpen(false)}
         onConfirm={handleConfirmCalendar}
         totalEvents={events.length}
-        totalHours={getTotalHoursForYear()}
+        totalHours={stats.totalHours}
       />
     </div>
   );
