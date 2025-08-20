@@ -134,6 +134,8 @@ export const useCostAnalysis = () => {
   const [analysisResult, setAnalysisResult] = useState<ReportData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [currentAttempt, setCurrentAttempt] = useState(0);
+  const [partialData, setPartialData] = useState<any>(null);
 
   const convertFileToBase64 = async (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -147,16 +149,27 @@ export const useCostAnalysis = () => {
     });
   };
 
-  const createOptimizedPrompt = (): string => {
-    return `Eres un experto consultor en licitaciones públicas de electromedicina en España. Analiza los documentos PDF: PCAP y PPT.
+  const createOptimizedPrompt = (attempt: number = 0, existingData: any = null): string => {
+    const basePrompt = `Eres un experto consultor en licitaciones públicas de electromedicina en España. Analiza los documentos PDF: PCAP y PPT.
 
-CRÍTICO: Responde ÚNICAMENTE con JSON válido y bien formateado. No añadas texto antes ni después del JSON. Los documentos pueden estar en cualquier idioma de España, pero tu respuesta debe estar en español.
+CRÍTICO: Responde ÚNICAMENTE con JSON válido y bien formateado. No añadas texto antes ni después del JSON. Los documentos pueden estar en cualquier idioma de España, pero tu respuesta debe estar en español.`;
 
-Extrae solo información verificable de los textos para completar esta estructura JSON exacta:
+    if (attempt === 0 || !existingData) {
+      return `${basePrompt}
 
+PRIMERA CONSULTA - Extrae la información básica en este orden de prioridad:
+1. presupuestoGeneral
+2. esPorLotes
+3. formulaEconomica
+4. umbralBajaTemeraria
+5. Solo los primeros 2-3 lotes si existen
+
+Estructura JSON requerida:
 {
   "presupuestoGeneral": "string con el presupuesto base sin IVA o 'No especificado'",
   "esPorLotes": true/false,
+  "formulaEconomica": "fórmula principal encontrada o 'No especificada'",
+  "umbralBajaTemeraria": "porcentaje o criterio encontrado o 'No especificado'",
   "lotes": [
     {
       "nombre": "string",
@@ -166,14 +179,20 @@ Extrae solo información verificable de los textos para completar esta estructur
       "requisitosClave": ["string1", "string2"]
     }
   ],
-  "variablesDinamicas": [
-    {
-      "nombre": "string",
-      "descripcion": "string",
-      "mapeo": "price|tenderBudget|maxScore|lowestPrice|averagePrice"
-    }
-  ],
-  "formulaEconomica": "fórmula principal encontrada o 'No especificada'",
+  "variablesDinamicas": [],
+  "formulasDetectadas": [],
+  "criteriosAutomaticos": [],
+  "criteriosSubjetivos": [],
+  "otrosCriterios": [],
+  "costesDetalladosRecomendados": []
+}`;
+    } else if (attempt === 1) {
+      return `${basePrompt}
+
+SEGUNDA CONSULTA - Completa solo las fórmulas y variables dinámicas:
+
+Completa ÚNICAMENTE estos campos del JSON existente:
+{
   "formulasDetectadas": [
     {
       "formulaOriginal": "string",
@@ -181,74 +200,105 @@ Extrae solo información verificable de los textos para completar esta estructur
       "descripcionVariables": "string"
     }
   ],
-  "umbralBajaTemeraria": "porcentaje o criterio encontrado o 'No especificado'",
+  "variablesDinamicas": [
+    {
+      "nombre": "string",
+      "descripcion": "string",
+      "mapeo": "price|tenderBudget|maxScore|lowestPrice|averagePrice"
+    }
+  ]
+}`;
+    } else if (attempt === 2) {
+      return `${basePrompt}
+
+TERCERA CONSULTA - Completa solo los criterios:
+
+Responde ÚNICAMENTE con este JSON:
+{
   "criteriosAutomaticos": [
     {
       "nombre": "string",
       "descripcion": "string", 
-      "puntuacionMaxima": 0
+      "puntuacionMaxima": number
     }
   ],
   "criteriosSubjetivos": [
     {
       "nombre": "string",
       "descripcion": "string",
-      "puntuacionMaxima": 0
+      "puntuacionMaxima": number
     }
   ],
   "otrosCriterios": [
     {
       "nombre": "string",
       "descripcion": "string",
-      "puntuacionMaxima": 0
+      "puntuacionMaxima": number
     }
-  ],
+  ]
+}`;
+    } else {
+      return `${basePrompt}
+
+CUARTA CONSULTA - Completa solo los costes detallados:
+
+Responde ÚNICAMENTE con este JSON:
+{
   "costesDetalladosRecomendados": [
     {
       "categoria": "string",
       "concepto": "string",
-      "costeEstimado": 0,
+      "costeEstimado": number,
       "justificacion": "string"
     }
   ]
-}
-
-IMPORTANTE: Si no encuentras información específica, usa "No especificado" para strings, false para booleanos, 0 para números y arrays vacíos [] para listas. Máximo 2 fórmulas en formulasDetectadas.`;
+}`;
+    }
   };
 
-  const cleanJsonResponse = (text: string): string => {
-    // Remover texto antes y después del JSON
-    let cleaned = text.trim();
+  const fixIncompleteJson = (jsonString: string): string => {
+    let fixed = jsonString.trim();
     
-    // Buscar el primer { y el último }
-    const firstBrace = cleaned.indexOf('{');
-    const lastBrace = cleaned.lastIndexOf('}');
-    
-    if (firstBrace !== -1 && lastBrace !== -1 && firstBrace < lastBrace) {
-      cleaned = cleaned.substring(firstBrace, lastBrace + 1);
+    // Si termina abruptamente, intentar cerrar correctamente
+    if (!fixed.endsWith('}')) {
+      // Encontrar la última coma o corchete de apertura
+      const lastComma = fixed.lastIndexOf(',');
+      const lastOpenBracket = fixed.lastIndexOf('[');
+      const lastOpenBrace = fixed.lastIndexOf('{');
+      
+      if (lastOpenBracket > lastComma && lastOpenBrace < lastOpenBracket) {
+        // Estamos en un array incompleto
+        fixed = fixed.substring(0, lastOpenBracket) + '[]';
+      } else if (lastOpenBrace > lastComma) {
+        // Estamos en un objeto incompleto
+        fixed = fixed.substring(0, lastComma);
+      }
+      
+      // Cerrar todos los brackets/braces abiertos
+      let openBraces = 0;
+      let openBrackets = 0;
+      
+      for (let i = 0; i < fixed.length; i++) {
+        if (fixed[i] === '{') openBraces++;
+        else if (fixed[i] === '}') openBraces--;
+        else if (fixed[i] === '[') openBrackets++;
+        else if (fixed[i] === ']') openBrackets--;
+      }
+      
+      // Cerrar brackets abiertos
+      fixed += ']'.repeat(openBrackets);
+      // Cerrar braces abiertos
+      fixed += '}'.repeat(openBraces);
     }
     
-    // Limpiar caracteres problemáticos
-    cleaned = cleaned
-      .replace(/[\u0000-\u001F\u007F-\u009F]/g, '') // Caracteres de control
-      .replace(/\\/g, '\\\\') // Escapar backslashes
-      .replace(/"/g, '\\"') // Escapar comillas
-      .replace(/\n/g, '\\n') // Escapar saltos de línea
-      .replace(/\r/g, '\\r') // Escapar retornos de carro
-      .replace(/\t/g, '\\t') // Escapar tabulaciones
-      .trim();
-
-    // Reemplazar las comillas escapadas de vuelta
-    cleaned = cleaned.replace(/\\"/g, '"');
-    
-    return cleaned;
+    return fixed;
   };
 
-  const callGeminiAPI = async (pcapFile: File, pptFile: File): Promise<ReportData> => {
+  const callGeminiAPI = async (pcapFile: File, pptFile: File, attempt: number = 0, existingData: any = null): Promise<any> => {
     const GEMINI_API_KEY = 'AIzaSyANIWvIMRvCW7f0meHRk4SobRz4s0pnxtg';
     const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent';
     
-    console.log('🤖 Iniciando análisis con Gemini API optimizado...');
+    console.log(`🤖 Iniciando consulta ${attempt + 1} a Gemini...`);
 
     try {
       console.log('📄 Convirtiendo archivos a base64...');
@@ -260,7 +310,7 @@ IMPORTANTE: Si no encuentras información específica, usa "No especificado" par
         contents: [{
           parts: [
             {
-              text: createOptimizedPrompt()
+              text: createOptimizedPrompt(attempt, existingData)
             },
             {
               inline_data: {
@@ -280,13 +330,13 @@ IMPORTANTE: Si no encuentras información específica, usa "No especificado" par
           temperature: 0.1,
           topK: 10,
           topP: 0.8,
-          maxOutputTokens: 8192,
+          maxOutputTokens: attempt === 0 ? 4096 : 2048, // Menos tokens para consultas específicas
           responseMimeType: "application/json",
-          responseSchema: responseSchema
+          responseSchema: attempt === 0 ? responseSchema : undefined
         }
       };
 
-      console.log('🚀 Enviando solicitud a Gemini...');
+      console.log(`🚀 Enviando consulta ${attempt + 1} a Gemini...`);
       const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
         method: 'POST',
         headers: {
@@ -302,127 +352,60 @@ IMPORTANTE: Si no encuentras información específica, usa "No especificado" par
       }
 
       const data = await response.json();
-      console.log('📥 Respuesta recibida:', data);
+      console.log(`📥 Respuesta ${attempt + 1} recibida:`, data);
       
       if (!data.candidates?.[0]?.content?.parts?.[0]?.text) {
         throw new Error('Respuesta inválida de Gemini API');
       }
 
       let responseText = data.candidates[0].content.parts[0].text;
-      console.log('📝 Procesando respuesta JSON...');
+      console.log(`📝 Texto bruto consulta ${attempt + 1}:`, responseText.substring(0, 500) + '...');
       
       try {
-        // Intentar parsear directamente primero
-        let parsedResult: ReportData = JSON.parse(responseText);
-        console.log('✅ JSON parseado correctamente');
-        return validateAndCleanData(parsedResult);
+        // Intentar parsear directamente
+        const parsedResult = JSON.parse(responseText);
+        console.log(`✅ JSON consulta ${attempt + 1} parseado correctamente`);
+        return parsedResult;
       } catch (parseError) {
-        console.log('❌ Error parseando JSON:', parseError);
-        console.log('🧹 Intentando limpiar el JSON...');
+        console.log(`❌ Error parseando JSON consulta ${attempt + 1}:`, parseError);
         
-        // Intentar limpiar y parsear de nuevo
-        responseText = cleanJsonResponse(responseText);
-        console.log('🔄 Texto limpiado, reintentando parseo...');
+        // Intentar arreglar JSON incompleto
+        const fixedJson = fixIncompleteJson(responseText);
+        console.log(`🔧 JSON arreglado consulta ${attempt + 1}:`, fixedJson.substring(0, 500) + '...');
         
         try {
-          let parsedResult: ReportData = JSON.parse(responseText);
-          console.log('✅ JSON parseado tras limpieza');
-          return validateAndCleanData(parsedResult);
-        } catch (secondParseError) {
-          console.error('❌ Error persistente en JSON:', secondParseError);
-          console.log('🔄 Intentando con Claude...');
-          throw new Error('Error parseando respuesta JSON de Gemini');
+          const parsedFixed = JSON.parse(fixedJson);
+          console.log(`✅ JSON arreglado consulta ${attempt + 1} parseado correctamente`);
+          return parsedFixed;
+        } catch (fixedError) {
+          console.error(`❌ Error persistente en JSON consulta ${attempt + 1}:`, fixedError);
+          throw new Error(`Error parseando respuesta JSON de consulta ${attempt + 1}`);
         }
       }
       
     } catch (error) {
-      console.error('❌ Error en Gemini:', error);
-      console.log('🔄 Intentando con Claude...');
+      console.error(`❌ Error en consulta ${attempt + 1}:`, error);
       throw error;
     }
   };
 
-  const callClaudeAPI = async (pcapFile: File, pptFile: File): Promise<ReportData> => {
-    console.log('🧠 Usando Claude como fallback...');
+  const mergeResults = (baseData: any, ...additionalData: any[]): ReportData => {
+    let merged = { ...baseData };
     
-    // Claude API no se puede llamar directamente desde el cliente por CORS
-    // Necesitarías un backend proxy o usar una implementación diferente
-    throw new Error('Claude API requiere un backend proxy para evitar CORS');
-  };
-
-  const callOpenAIAPI = async (pcapFile: File, pptFile: File): Promise<ReportData> => {
-    const OPENAI_API_KEY = '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';
-    const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
+    additionalData.forEach(data => {
+      if (data) {
+        Object.keys(data).forEach(key => {
+          if (data[key] && (!merged[key] || (Array.isArray(merged[key]) && merged[key].length === 0))) {
+            merged[key] = data[key];
+          }
+        });
+      }
+    });
     
-    console.log('🔥 Usando OpenAI como último recurso...');
-
-    try {
-      const pcapBase64 = await convertFileToBase64(pcapFile);
-      const pptBase64 = await convertFileToBase64(pptFile);
-
-      const response = await fetch(OPENAI_API_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${OPENAI_API_KEY}`
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o',
-          messages: [{
-            role: 'user',
-            content: [
-              {
-                type: 'text',
-                text: createOptimizedPrompt()
-              },
-              {
-                type: 'image_url',
-                image_url: {
-                  url: `data:application/pdf;base64,${pcapBase64}`
-                }
-              },
-              {
-                type: 'image_url', 
-                image_url: {
-                  url: `data:application/pdf;base64,${pptBase64}`
-                }
-              }
-            ]
-          }],
-          max_tokens: 4000,
-          temperature: 0.1,
-          response_format: { type: "json_object" }
-        })
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ Error OpenAI:', response.status, errorText);
-        throw new Error(`OpenAI API error: ${response.status}`);
-      }
-
-      const data = await response.json();
-      let responseText = data.choices[0].message.content;
-      
-      try {
-        const parsedResult = JSON.parse(responseText);
-        return validateAndCleanData(parsedResult);
-      } catch (parseError) {
-        console.error('❌ Error parseando respuesta de OpenAI:', parseError);
-        // Intentar limpiar el JSON
-        responseText = cleanJsonResponse(responseText);
-        const parsedResult = JSON.parse(responseText);
-        return validateAndCleanData(parsedResult);
-      }
-      
-    } catch (error) {
-      console.error('❌ Error en OpenAI:', error);
-      throw new Error('Error en el análisis con OpenAI');
-    }
+    return validateAndCleanData(merged);
   };
 
   const validateAndCleanData = (data: any): ReportData => {
-    // Validar y limpiar los datos recibidos
     const cleanedData: ReportData = {
       presupuestoGeneral: data.presupuestoGeneral || "No especificado",
       esPorLotes: Boolean(data.esPorLotes),
@@ -444,38 +427,85 @@ IMPORTANTE: Si no encuentras información específica, usa "No especificado" par
     setIsLoading(true);
     setError(null);
     setAnalysisResult(null);
+    setCurrentAttempt(0);
+    setPartialData(null);
     
     try {
-      console.log('🔍 Iniciando análisis de costes optimizado...');
+      console.log('🔍 Iniciando análisis de costes por partes...');
       console.log('📄 Archivos:', {
         pcap: `${pcapFile.name} (${(pcapFile.size / 1024 / 1024).toFixed(2)} MB)`,
         ppt: `${pptFile.name} (${(pptFile.size / 1024 / 1024).toFixed(2)} MB)`
       });
 
-      let result: ReportData;
-      
+      let baseData: any = {};
+      let formulasData: any = {};
+      let criteriosData: any = {};
+      let costesData: any = {};
+
+      // Consulta 1: Datos básicos y lotes
       try {
-        // Intentar primero con Gemini
-        result = await callGeminiAPI(pcapFile, pptFile);
-      } catch (geminiError) {
-        console.log('🔄 Fallback a Claude API...');
-        try {
-          result = await callClaudeAPI(pcapFile, pptFile);
-        } catch (claudeError) {
-          console.log('🔥 Usando OpenAI como último recurso...');
-          result = await callOpenAIAPI(pcapFile, pptFile);
-        }
+        console.log('🔄 Consulta 1: Datos básicos y lotes...');
+        setCurrentAttempt(1);
+        baseData = await callGeminiAPI(pcapFile, pptFile, 0);
+        setPartialData(baseData);
+        console.log('✅ Consulta 1 completada');
+        
+        // Esperar un poco entre consultas para evitar límites
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      } catch (error) {
+        console.error('❌ Error en consulta 1:', error);
+        throw new Error('Error obteniendo datos básicos');
       }
+
+      // Consulta 2: Fórmulas y variables dinámicas
+      try {
+        console.log('🔄 Consulta 2: Fórmulas y variables...');
+        setCurrentAttempt(2);
+        formulasData = await callGeminiAPI(pcapFile, pptFile, 1, baseData);
+        console.log('✅ Consulta 2 completada');
+        
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      } catch (error) {
+        console.warn('⚠️ Error en consulta 2, continuando...', error);
+      }
+
+      // Consulta 3: Criterios
+      try {
+        console.log('🔄 Consulta 3: Criterios...');
+        setCurrentAttempt(3);
+        criteriosData = await callGeminiAPI(pcapFile, pptFile, 2, baseData);
+        console.log('✅ Consulta 3 completada');
+        
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      } catch (error) {
+        console.warn('⚠️ Error en consulta 3, continuando...', error);
+      }
+
+      // Consulta 4: Costes detallados
+      try {
+        console.log('🔄 Consulta 4: Costes detallados...');
+        setCurrentAttempt(4);
+        costesData = await callGeminiAPI(pcapFile, pptFile, 3, baseData);
+        console.log('✅ Consulta 4 completada');
+      } catch (error) {
+        console.warn('⚠️ Error en consulta 4, continuando...', error);
+      }
+
+      // Combinar todos los resultados
+      console.log('🔧 Combinando resultados...');
+      const finalResult = mergeResults(baseData, formulasData, criteriosData, costesData);
       
       console.log('✅ Análisis completado exitosamente');
-      setAnalysisResult(result);
+      setAnalysisResult(finalResult);
       
     } catch (err) {
       console.error('❌ Error final en análisis:', err);
       const errorMessage = err instanceof Error ? err.message : 'Error desconocido en el análisis';
-      setError('Todos los servicios de IA han fallado. Por favor, inténtalo más tarde.');
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
+      setCurrentAttempt(0);
+      setPartialData(null);
     }
   };
 
@@ -483,6 +513,8 @@ IMPORTANTE: Si no encuentras información específica, usa "No especificado" par
     analyzeCosts,
     analysisResult,
     isLoading,
-    error
+    error,
+    currentAttempt,
+    partialData
   };
 };
