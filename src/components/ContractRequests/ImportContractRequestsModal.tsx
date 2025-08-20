@@ -1,50 +1,13 @@
+
 import React, { useState, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Button } from '../ui/button';
 import { Upload, FileText, AlertCircle, CheckCircle, X } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Language } from '../../utils/translations';
-// Importamos ContractRequestData directamente si está disponible, si no, la definimos aquí para el mapeo
-import { importContractRequests, ContractRequestData } from '../../services/contractRequestsService';
+import { importContractRequests, ContractRequestInput } from '../../services/contractRequestsService';
 import * as XLSX from 'xlsx';
 import Papa from 'papaparse';
-
-// Si ContractRequestData no está exportada desde services/contractRequestsService,
-// puedes definirla aquí (o en un archivo de tipos común) para el mapeo.
-// Asumo que ContractRequestData es la misma estructura que el formData en el formulario de creación.
-// Si ya está definida en el servicio y es igual a lo que el formulario espera, esta definición no es necesaria.
-// Si la importas desde el servicio, asegúrate de que sea la misma estructura esperada.
-/*
-export interface ContractRequestData {
-  id?: string; // Para edición
-  applicantName: string;
-  applicantLastName: string;
-  contractType: string;
-  salary?: string; // Es un input de tipo number, pero el estado lo guarda como string
-  observations?: string;
-  incorporationDate: Date;
-  company: string;
-  position: string;
-  professionalCategory: string;
-  city?: string;
-  province?: string;
-  autonomousCommunity?: string;
-  workCenter: string;
-  directResponsible?: string;
-  directSupervisorLastName?: string;
-  companyFloor: string; // "Si" o "No"
-  language?: string;
-  languageLevel?: string;
-  language2?: string;
-  languageLevel2?: string;
-  electromedicalExperience?: string;
-  installationExperience?: string;
-  hiringReason?: string;
-  commitmentsObservations?: string;
-  status: 'Pendiente' | 'Aprobada' | 'Rechazada' | 'Cerrada'; // O los estados que manejes
-  requestDate: Date;
-}
-*/
 
 interface ImportContractRequestsModalProps {
   open: boolean;
@@ -92,34 +55,17 @@ const ImportContractRequestsModal: React.FC<ImportContractRequestsModalProps> = 
         throw new Error('Formato de archivo no soportado. Use CSV o Excel (.xlsx, .xls)');
       }
 
-      // Mapeo de columnas del archivo a los campos de ContractRequestData
-      const requests: ContractRequestData[] = data.map((row: any) => ({
-        applicantName: row['Nombre del Candidato'] || row['Nombre'] || row['applicantName'] || '',
-        applicantLastName: row['Apellido del Candidato'] || row['Apellidos'] || row['applicantLastName'] || '',
-        contractType: row['Tipo de Contrato'] || row['contractType'] || '',
-        salary: String(row['Salario'] || row['salary'] || ''), // Asegurarse de que sea string
-        observations: row['Observaciones'] || row['observations'] || '',
-        incorporationDate: parseDate(row['Fecha de Incorporación'] || row['incorporationDate']) || new Date(), // Es requerido en el formulario
-        company: row['Empresa'] || row['company'] || '',
+      const requests: ContractRequestInput[] = data.map((row: any) => ({
+        applicantName: row['Nombre'] || row['applicantName'] || '',
+        applicantLastName: row['Apellidos'] || row['applicantLastName'] || '',
         position: row['Puesto'] || row['position'] || '',
-        professionalCategory: row['Categoría Profesional'] || row['professionalCategory'] || '',
-        city: row['Ciudad'] || row['city'] || '',
-        province: row['Provincia'] || row['province'] || '',
-        autonomousCommunity: row['Comunidad Autónoma'] || row['autonomousCommunity'] || '',
-        workCenter: row['Centro de Trabajo'] || row['workCenter'] || '',
-        directResponsible: row['Nombre Responsable Directo'] || row['directResponsible'] || '',
-        directSupervisorLastName: row['Apellido Responsable Directo'] || row['directSupervisorLastName'] || '',
-        companyFloor: row['Piso de Empresa'] || row['companyFloor'] || '', // Debe ser "Si" o "No"
-        language: row['Idioma 1'] || row['language'] || '',
-        languageLevel: row['Nivel Idioma 1'] || row['languageLevel'] || '',
-        language2: row['Idioma 2'] || row['language2'] || '',
-        languageLevel2: row['Nivel Idioma 2'] || row['languageLevel2'] || '',
-        electromedicalExperience: row['Experiencia Electromedicina'] || row['electromedicalExperience'] || '',
-        installationExperience: row['Experiencia Instalaciones'] || row['installationExperience'] || '',
-        hiringReason: row['Motivo de Contratación'] || row['hiringReason'] || '',
-        commitmentsObservations: row['Observaciones de Compromisos'] || row['commitmentsObservations'] || '',
-        status: row['Estado'] || row['status'] || 'Pendiente', // Default 'Pendiente'
-        requestDate: parseDate(row['Fecha de Solicitud'] || row['requestDate']) || new Date() // Default a la fecha actual si no se proporciona
+        department: row['Departamento'] || row['department'] || '',
+        requestType: row['Tipo de Solicitud'] || row['requestType'] || 'Nueva Contratación',
+        requestDate: parseDate(row['Fecha de Solicitud'] || row['requestDate']) || new Date(),
+        expectedStartDate: parseDate(row['Fecha de Inicio Esperada'] || row['expectedStartDate']) || new Date(),
+        salary: row['Salario'] || row['salary'] || '',
+        status: row['Estado'] || row['status'] || 'Pendiente',
+        observations: row['Observaciones'] || row['observations'] || '',
       }));
 
       console.log('Datos procesados para importar:', requests);
@@ -127,54 +73,33 @@ const ImportContractRequestsModal: React.FC<ImportContractRequestsModalProps> = 
       const result = await importContractRequests(requests);
       setUploadResult(result);
 
-    } catch (error: any) { // Usar 'any' para capturar posibles errores de tipo Error o string
+    } catch (error) {
       console.error('Error procesando archivo:', error);
       setUploadResult({
         success: 0,
-        errors: [`Error procesando archivo: ${error.message || error}`]
+        errors: [`Error procesando archivo: ${error}`]
       });
     } finally {
       setIsUploading(false);
     }
   };
 
-  const parseDate = (dateString: string | number): Date | undefined => {
-    if (!dateString) return undefined;
-
-    // Si es un número, podría ser un número de serie de fecha de Excel
-    if (typeof dateString === 'number') {
-      // Excel guarda las fechas como días desde 1/1/1900.
-      // 25569 es la fecha de inicio de Unix epoch (1/1/1970) en formato Excel.
-      // Se resta para ajustar la diferencia de base de Excel (empieza en 1900, Unix en 1970)
-      // y se multiplica por 24 * 60 * 60 * 1000 para convertir días a milisegundos.
-      const excelDate = dateString - (25569); // Ajuste para el offset de Excel (1/1/1900 vs 1/1/1970)
-      const date = new Date(excelDate * 24 * 60 * 60 * 1000);
-      if (!isNaN(date.getTime())) {
-          return date;
-      }
-    }
+  const parseDate = (dateString: string): Date | null => {
+    if (!dateString) return null;
     
-    // Si es una cadena, intenta varios formatos
     const formats = [
-      (str: string) => new Date(str), // Intenta formato ISO (YYYY-MM-DDTHH:mm:ss.sssZ) o YYYY-MM-DD
-      (str: string) => { // DD/MM/YYYY
-        const parts = str.split('/');
+      () => new Date(dateString),
+      () => {
+        const parts = dateString.split('/');
         if (parts.length === 3) {
           return new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
         }
         return null;
       },
-      (str: string) => { // MM/DD/YYYY
-        const parts = str.split('/');
+      () => {
+        const parts = dateString.split('-');
         if (parts.length === 3) {
-          return new Date(parseInt(parts[2]), parseInt(parts[0]) - 1, parseInt(parts[1]));
-        }
-        return null;
-      },
-      (str: string) => { // DD-MM-YYYY
-        const parts = str.split('-');
-        if (parts.length === 3) {
-          return new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+          return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
         }
         return null;
       }
@@ -182,7 +107,7 @@ const ImportContractRequestsModal: React.FC<ImportContractRequestsModalProps> = 
 
     for (const format of formats) {
       try {
-        const date = format(String(dateString)); // Asegurarse de que dateString sea un string para los parsers de string
+        const date = format();
         if (date && !isNaN(date.getTime())) {
           return date;
         }
@@ -191,7 +116,7 @@ const ImportContractRequestsModal: React.FC<ImportContractRequestsModalProps> = 
       }
     }
 
-    return undefined; // Retorna undefined si no se puede parsear
+    return new Date();
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -237,40 +162,24 @@ const ImportContractRequestsModal: React.FC<ImportContractRequestsModalProps> = 
           {!uploadResult && (
             <>
               <div className="text-sm text-gray-600 dark:text-gray-400">
-                Sube un archivo CSV o Excel con las solicitudes de contratación. El archivo debe contener las siguientes columnas (se sugieren los nombres, pero también se reconocen los nombres programáticos):
+                Sube un archivo CSV o Excel con las solicitudes de contratación. El archivo debe contener las siguientes columnas:
               </div>
               
               <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
                 <div className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-2">
-                  Columnas aceptadas (obligatorias marcadas con *):
+                  Columnas requeridas:
                 </div>
                 <ul className="text-xs text-blue-800 dark:text-blue-200 space-y-1">
-                  <li>• Nombre del Candidato* (o applicantName)</li>
-                  <li>• Apellido del Candidato* (o applicantLastName)</li>
-                  <li>• Tipo de Contrato* (o contractType)</li>
-                  <li>• Salario (o salary)</li>
-                  <li>• Observaciones (o observations)</li>
-                  <li>• Fecha de Incorporación* (o incorporationDate)</li>
-                  <li>• Empresa* (o company)</li>
-                  <li>• Puesto* (o position)</li>
-                  <li>• Categoría Profesional* (o professionalCategory)</li>
-                  <li>• Ciudad (o city)</li>
-                  <li>• Provincia (o province)</li>
-                  <li>• Comunidad Autónoma (o autonomousCommunity)</li>
-                  <li>• Centro de Trabajo* (o workCenter)</li>
-                  <li>• Nombre Responsable Directo (o directResponsible)</li>
-                  <li>• Apellido Responsable Directo (o directSupervisorLastName)</li>
-                  <li>• Piso de Empresa* (o companyFloor) - Valores: "Si" o "No"</li>
-                  <li>• Idioma 1 (o language)</li>
-                  <li>• Nivel Idioma 1 (o languageLevel)</li>
-                  <li>• Idioma 2 (o language2)</li>
-                  <li>• Nivel Idioma 2 (o languageLevel2)</li>
-                  <li>• Experiencia Electromedicina (o electromedicalExperience)</li>
-                  <li>• Experiencia Instalaciones (o installationExperience)</li>
-                  <li>• Motivo de Contratación (o hiringReason)</li>
-                  <li>• Observaciones de Compromisos (o commitmentsObservations)</li>
-                  <li>• Estado (o status) - Default: "Pendiente"</li>
-                  <li>• Fecha de Solicitud (o requestDate) - Default: fecha actual</li>
+                  <li>• Nombre</li>
+                  <li>• Apellidos</li>
+                  <li>• Puesto</li>
+                  <li>• Departamento</li>
+                  <li>• Tipo de Solicitud</li>
+                  <li>• Fecha de Solicitud</li>
+                  <li>• Fecha de Inicio Esperada</li>
+                  <li>• Salario</li>
+                  <li>• Estado</li>
+                  <li>• Observaciones</li>
                 </ul>
               </div>
 
