@@ -31,7 +31,7 @@ export interface UserFirestorePermissions {
 // Función para obtener los permisos de Firestore para un UID dado
 export const getUserPermissionsFromFirestore = async (uid: string): Promise<UserFirestorePermissions | null> => {
   try {
-    const permissionsDocRef = doc(db, "Usuarios", "Informacion", uid, uid);
+    const permissionsDocRef = doc(db, "Usuarios", "Información", uid, uid);
     const docSnap = await getDoc(permissionsDocRef);
 
     if (docSnap.exists()) {
