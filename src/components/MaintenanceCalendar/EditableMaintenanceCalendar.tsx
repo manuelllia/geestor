@@ -53,62 +53,69 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
   const [isGenerating, setIsGenerating] = useState(false);
   const [showConstraintsConfig, setShowConstraintsConfig] = useState(false);
 
-  // Configuración de restricciones operativas MEJORADA - más profesional
+  // Configuración CORREGIDA: 2-3 técnicos, L-V, parámetros realistas
   const [constraints, setConstraints] = useState<WorkingConstraints>({
-    horasPorDia: 7, // 7 horas efectivas de trabajo técnico
-    tecnicos: 3, // 3 técnicos especializados
-    eventosMaxPorDia: 4, // Máximo 4 intervenciones por día
-    trabajarSabados: true, // Sábados para mantenimientos programados
+    horasPorDia: 6, // 6 horas efectivas de trabajo técnico
+    tecnicos: 2, // 2 técnicos (ajustable a 3)
+    eventosMaxPorDia: 3, // Máximo 3 intervenciones por día
+    trabajarSabados: false, // SOLO lunes a viernes
     horasEmergencia: 1, // 1 hora reservada para emergencias
   });
 
   /**
-   * Genera el calendario usando el motor de programación profesional
-   * Basado en principios de ingeniería de confiabilidad y gestión técnica
+   * Genera el calendario usando el motor profesional CORREGIDO
    */
   const generateProfessionalMaintenanceCalendar = (): MaintenanceEvent[] => {
-    console.log('🏗️ GENERANDO CALENDARIO PROFESIONAL DE MANTENIMIENTO');
-    console.log('📋 Denominaciones recibidas:', denominaciones);
+    console.log('🏗️ GENERANDO CALENDARIO PROFESIONAL - VERSIÓN CORREGIDA');
+    console.log('📋 Denominaciones a procesar:', denominaciones?.length || 0);
     
     if (!denominaciones || denominaciones.length === 0) {
-      console.warn('⚠️ No hay denominaciones para procesar');
+      console.warn('⚠️ No hay denominaciones disponibles');
       return [];
     }
     
-    setIsGenerating(true);
-    
     try {
-      // Período de planificación: desde hoy hasta un año
+      // Período exacto: desde hoy hasta un año
       const startDate = new Date();
       const endDate = addDays(startDate, 365);
       
-      console.log(`📅 Período de planificación: ${format(startDate, 'dd/MM/yyyy')} - ${format(endDate, 'dd/MM/yyyy')}`);
-      console.log(`⚙️ Restricciones aplicadas:`, constraints);
+      console.log(`📅 Período: ${format(startDate, 'dd/MM/yyyy')} - ${format(endDate, 'dd/MM/yyyy')}`);
+      console.log(`⚙️ Configuración:`, constraints);
       
-      // Inicializar el motor de programación profesional
+      // Inicializar motor con configuración corregida
       const schedulingEngine = new MaintenanceSchedulingEngine(startDate, endDate, constraints);
       
-      // Convertir denominaciones a tareas estructuradas
-      console.log('🔄 Convirtiendo denominaciones a tareas de mantenimiento...');
+      // Convertir denominaciones a tareas
+      console.log('🔄 Convirtiendo denominaciones...');
       const maintenanceTasks = MaintenanceTaskProcessor.convertToMaintenanceTasks(denominaciones);
       
-      console.log(`🔧 Tareas de mantenimiento generadas: ${maintenanceTasks.length}`);
-      console.log('📋 Muestra de tareas:', maintenanceTasks.slice(0, 3).map(t => ({
-        denominacion: t.denominacion,
-        frecuencia: t.frecuenciaDias,
-        tiempo: t.tiempoHoras,
-        prioridad: t.prioridad
-      })));
+      console.log(`✅ Tareas generadas: ${maintenanceTasks.length}`);
       
-      // Generar el calendario completo con optimización de recursos
-      console.log('📊 Ejecutando algoritmo de programación...');
+      if (maintenanceTasks.length === 0) {
+        console.warn('⚠️ No se generaron tareas de mantenimiento');
+        return [];
+      }
+      
+      // Log de muestra
+      console.log('📋 Muestra de tareas:');
+      maintenanceTasks.slice(0, 3).forEach(task => {
+        console.log(`   - ${task.denominacion}: cada ${task.frecuenciaDias}d, ${task.tiempoHoras}h, prioridad ${task.prioridad}`);
+      });
+      
+      // Generar calendario
+      console.log('🚀 Ejecutando programación...');
       const scheduledMaintenances = schedulingEngine.generateFullSchedule(maintenanceTasks);
       
       console.log(`✅ Mantenimientos programados: ${scheduledMaintenances.length}`);
       
-      // Convertir a formato de eventos del calendario
-      const calendarEvents: MaintenanceEvent[] = scheduledMaintenances.map(scheduled => ({
-        id: scheduled.id,
+      if (scheduledMaintenances.length === 0) {
+        console.warn('⚠️ No se programaron mantenimientos');
+        return [];
+      }
+      
+      // Convertir a eventos del calendario
+      const calendarEvents: MaintenanceEvent[] = scheduledMaintenances.map((scheduled, index) => ({
+        id: scheduled.id || `maintenance-${index}`,
         denominacion: scheduled.denominacion,
         codigo: scheduled.codigo,
         tipoMantenimiento: scheduled.tipoMantenimiento,
@@ -122,73 +129,73 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
         notas: scheduled.notas
       }));
       
-      console.log(`🎯 Eventos del calendario generados: ${calendarEvents.length}`);
-      console.log(`📊 Días laborables disponibles: ${schedulingEngine.getWorkingDaysCount()}`);
+      console.log(`🎯 Eventos del calendario: ${calendarEvents.length}`);
       
-      // Mostrar distribución temporal
+      // Verificar distribución
       const eventsByMonth = calendarEvents.reduce((acc, event) => {
         const month = format(event.fecha, 'yyyy-MM');
         acc[month] = (acc[month] || 0) + 1;
         return acc;
       }, {} as Record<string, number>);
       
-      console.log('📈 Distribución mensual de eventos:', eventsByMonth);
+      console.log('📊 Distribución mensual:', eventsByMonth);
       
       return calendarEvents;
       
     } catch (error) {
-      console.error('❌ Error generando calendario profesional:', error);
+      console.error('❌ Error generando calendario:', error);
       return [];
-    } finally {
-      setIsGenerating(false);
     }
   };
 
-  // Generar calendario al cargar el componente o cuando cambien las denominaciones
+  // Efecto para generación automática MEJORADO
   useEffect(() => {
-    console.log('🔄 useEffect ejecutado - denominaciones:', denominaciones.length, 'eventos actuales:', events.length);
-    
-    if (denominaciones && denominaciones.length > 0) {
-      if (events.length === 0) {
-        console.log('🚀 Iniciando generación automática del calendario...');
-        const professionalCalendar = generateProfessionalMaintenanceCalendar();
-        
-        if (professionalCalendar.length > 0) {
-          console.log('✅ Calendario generado, actualizando estado...');
-          setEvents(professionalCalendar);
-        } else {
-          console.warn('⚠️ No se generaron eventos en el calendario');
-        }
-      }
-    } else {
-      console.log('⚠️ No hay denominaciones disponibles para generar el calendario');
-    }
-  }, [denominaciones]);
-
-  // Log de debugging para el estado actual
-  useEffect(() => {
-    console.log('📊 Estado actual del calendario:', {
+    console.log('🔄 useEffect - Estado actual:', {
       denominacionesCount: denominaciones?.length || 0,
       eventsCount: events.length,
-      isGenerating,
-      currentMonth: format(currentDate, 'yyyy-MM')
+      isGenerating
     });
-  }, [denominaciones, events.length, isGenerating, currentDate]);
-
-  // Función para regenerar el calendario con nuevas restricciones
-  const handleRegenerateCalendar = () => {
-    console.log('🔄 Regenerando calendario con nuevas restricciones...');
-    setEvents([]);
     
-    // Forzar regeneración inmediata
+    // Solo generar si hay denominaciones y no hay eventos
+    if (denominaciones && denominaciones.length > 0 && events.length === 0 && !isGenerating) {
+      console.log('🚀 Iniciando generación automática...');
+      setIsGenerating(true);
+      
+      // Pequeño delay para asegurar que el estado se actualice
+      setTimeout(() => {
+        const calendar = generateProfessionalMaintenanceCalendar();
+        
+        if (calendar.length > 0) {
+          console.log('✅ Calendario generado, actualizando eventos...');
+          setEvents(calendar);
+        } else {
+          console.warn('⚠️ Calendario vacío generado');
+        }
+        
+        setIsGenerating(false);
+      }, 500);
+    }
+  }, [denominaciones, events.length, isGenerating]);
+
+  // Función para regenerar manualmente
+  const handleRegenerateCalendar = () => {
+    console.log('🔄 Regeneración manual iniciada...');
+    setIsGenerating(true);
+    setEvents([]); // Limpiar eventos
+    
     setTimeout(() => {
       const newCalendar = generateProfessionalMaintenanceCalendar();
+      
       if (newCalendar.length > 0) {
         setEvents(newCalendar);
         setShowConstraintsConfig(false);
         console.log('✅ Calendario regenerado exitosamente');
+      } else {
+        console.error('❌ Error en regeneración - calendario vacío');
       }
-    }, 100);
+      
+      setIsGenerating(false);
+    }, 1000);
   };
 
   const monthStart = startOfMonth(currentDate);
@@ -330,16 +337,6 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
     setIsHospitalModalOpen(false);
   };
 
-  // Mostrar mensaje de debugging si no hay eventos
-  if (events.length === 0 && !isGenerating) {
-    console.log('🔍 DEBUGGING - Calendario vacío:', {
-      denominaciones: denominaciones?.length || 0,
-      denominacionesSample: denominaciones?.slice(0, 2),
-      isGenerating,
-      eventsCount: events.length
-    });
-  }
-
   return (
     <div className="space-y-6">
       <Card>
@@ -347,11 +344,11 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
           <div>
             <CardTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5" />
-              🏥 Calendario Profesional de Mantenimiento - Gestión Técnica Avanzada
+              🏥 Calendario Profesional de Mantenimiento - Gestión Técnica
             </CardTitle>
             <p className="text-sm text-gray-600 dark:text-gray-300 mt-2">
-              📋 Programación basada en metodologías RCM • {constraints.tecnicos} técnicos • {constraints.horasPorDia}h/día • 
-              {constraints.trabajarSabados ? 'L-S' : 'L-V'} • {events.length} mantenimientos programados
+              📋 Programación L-V • {constraints.tecnicos} técnicos • {constraints.horasPorDia}h/día • 
+              {events.length} mantenimientos programados
             </p>
           </div>
           <div className="flex items-center gap-4">
@@ -393,7 +390,7 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
           </div>
         </CardHeader>
         
-        {/* Panel de configuración de restricciones */}
+        {/* Panel de configuración MEJORADO */}
         {showConstraintsConfig && (
           <CardContent className="border-t bg-gray-50 dark:bg-gray-800/50">
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
@@ -405,18 +402,18 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
                   onChange={(e) => setConstraints(prev => ({ ...prev, horasPorDia: Number(e.target.value) }))}
                   className="w-full p-2 border rounded"
                   min="4"
-                  max="10"
+                  max="8"
                 />
               </div>
               <div>
-                <label className="text-sm font-medium">Técnicos</label>
+                <label className="text-sm font-medium">Técnicos (2-3)</label>
                 <input
                   type="number"
                   value={constraints.tecnicos}
                   onChange={(e) => setConstraints(prev => ({ ...prev, tecnicos: Number(e.target.value) }))}
                   className="w-full p-2 border rounded"
-                  min="1"
-                  max="5"
+                  min="2"
+                  max="3"
                 />
               </div>
               <div>
@@ -427,7 +424,7 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
                   onChange={(e) => setConstraints(prev => ({ ...prev, eventosMaxPorDia: Number(e.target.value) }))}
                   className="w-full p-2 border rounded"
                   min="2"
-                  max="8"
+                  max="5"
                 />
               </div>
               <div>
@@ -439,9 +436,14 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
                   />
                   Sábados
                 </label>
+                <p className="text-xs text-gray-500">Por defecto L-V</p>
               </div>
               <div>
-                <Button onClick={handleRegenerateCalendar} className="w-full" disabled={isGenerating}>
+                <Button 
+                  onClick={handleRegenerateCalendar} 
+                  className="w-full" 
+                  disabled={isGenerating}
+                >
                   {isGenerating ? 'Generando...' : 'Regenerar'}
                 </Button>
               </div>
@@ -450,30 +452,48 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
         )}
 
         <CardContent>
-          {/* Mostrar estado de carga o debugging */}
+          {/* Estado de carga MEJORADO */}
           {isGenerating && (
-            <div className="text-center py-8">
-              <div className="w-12 h-12 border-4 border-purple-500/20 border-t-purple-500 rounded-full animate-spin mx-auto mb-4" />
-              <p className="text-lg font-medium">Generando calendario profesional...</p>
-              <p className="text-gray-600 dark:text-gray-300">Aplicando algoritmos de optimización</p>
+            <div className="text-center py-12">
+              <div className="w-16 h-16 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin mx-auto mb-6" />
+              <p className="text-xl font-semibold text-blue-600 mb-2">Generando calendario profesional...</p>
+              <p className="text-gray-600 dark:text-gray-300">Aplicando algoritmos de distribución óptima</p>
+              <div className="mt-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 max-w-md mx-auto">
+                <p className="text-sm text-blue-700 dark:text-blue-300">
+                  ⚙️ Procesando {denominaciones?.length || 0} denominaciones homogéneas
+                </p>
+              </div>
             </div>
           )}
 
+          {/* Calendario vacío con debugging */}
           {!isGenerating && events.length === 0 && (
-            <div className="text-center py-8 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
-              <p className="text-lg font-medium text-yellow-800 dark:text-yellow-200 mb-2">
-                🔍 Calendario vacío
-              </p>
-              <p className="text-yellow-700 dark:text-yellow-300 mb-4">
-                Denominaciones disponibles: {denominaciones?.length || 0}
-              </p>
-              <Button onClick={handleRegenerateCalendar} className="bg-blue-600 hover:bg-blue-700">
-                Generar Calendario Ahora
-              </Button>
+            <div className="text-center py-12">
+              <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-6 max-w-lg mx-auto">
+                <p className="text-xl font-semibold text-red-800 dark:text-red-200 mb-4">
+                  ⚠️ Calendario vacío
+                </p>
+                <div className="text-left bg-white dark:bg-gray-800 rounded p-4 mb-4">
+                  <p className="font-medium mb-2">Estado del sistema:</p>
+                  <ul className="text-sm space-y-1">
+                    <li>📋 Denominaciones: {denominaciones?.length || 0}</li>
+                    <li>🔧 Técnicos: {constraints.tecnicos}</li>
+                    <li>📅 Días: {constraints.trabajarSabados ? 'L-S' : 'L-V'}</li>
+                    <li>⏰ Horas/día: {constraints.horasPorDia}h</li>
+                  </ul>
+                </div>
+                <Button 
+                  onClick={handleRegenerateCalendar} 
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3"
+                  size="lg"
+                >
+                  🚀 Generar Calendario Ahora
+                </Button>
+              </div>
             </div>
           )}
 
-          {/* Calendario principal */}
+          {/* Calendario principal - solo si hay eventos */}
           {!isGenerating && events.length > 0 && (
             <>
               <div className="flex items-center justify-between mb-6">
