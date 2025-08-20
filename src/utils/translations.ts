@@ -44,6 +44,12 @@ export const translations = {
     // Real Estate
     realEstateData: 'Datos Inmobiliarios',
     uploadRealEstateData: 'Subir Datos Inmobiliarios',
+    realEstateDashboard: 'Panel Inmobiliario',
+    activeProperties: 'Propiedades Activas',
+    inactiveProperties: 'Propiedades Inactivas',
+    totalProperties: 'Total de Propiedades',
+    exportPDF: 'Exportar PDF',
+    realEstateDetails: 'Detalles Inmobiliarios',
     
     // Maintenance Calendar
     maintenanceCalendar: 'Calendario de Mantenimiento',
@@ -108,6 +114,15 @@ export const translations = {
     
     // Employee Agreements
     employeeAgreements: 'Acuerdos de Empleados',
+    recordNotFound: 'Registro no encontrado',
+    employeeInformation: 'Información del Empleado',
+    agreementDetails: 'Detalles del Acuerdo',
+    agreementType: 'Tipo de Acuerdo',
+    endDate: 'Fecha de Fin',
+    benefitsAndConditions: 'Beneficios y Condiciones',
+    benefits: 'Beneficios',
+    conditions: 'Condiciones',
+    employeeAgreementDetails: 'Detalles del Acuerdo de Empleado',
     
     // Cost Analysis
     costAnalysis: 'Análisis de Costos',
@@ -125,6 +140,13 @@ export const translations = {
     dontHaveAccount: '¿No tienes una cuenta?',
     loading: 'Cargando...',
     verifyingAccount: 'Verificando Cuenta...',
+    welcome: 'Bienvenido',
+    loginSubtitle: 'Accede a tu cuenta para continuar',
+    loginButton: 'Iniciar Sesión',
+    
+    // PDF Generation
+    generatedOn: 'Generado el',
+    documentGenerated: 'Documento Generado',
     
     // Common
     cancel: 'Cancelar',
@@ -216,6 +238,12 @@ export const translations = {
     // Real Estate
     realEstateData: 'Real Estate Data',
     uploadRealEstateData: 'Upload Real Estate Data',
+    realEstateDashboard: 'Real Estate Dashboard',
+    activeProperties: 'Active Properties',
+    inactiveProperties: 'Inactive Properties',
+    totalProperties: 'Total Properties',
+    exportPDF: 'Export PDF',
+    realEstateDetails: 'Real Estate Details',
     
     // Maintenance Calendar
     maintenanceCalendar: 'Maintenance Calendar',
@@ -280,6 +308,15 @@ export const translations = {
     
     // Employee Agreements
     employeeAgreements: 'Employee Agreements',
+    recordNotFound: 'Record not found',
+    employeeInformation: 'Employee Information',
+    agreementDetails: 'Agreement Details',
+    agreementType: 'Agreement Type',
+    endDate: 'End Date',
+    benefitsAndConditions: 'Benefits and Conditions',
+    benefits: 'Benefits',
+    conditions: 'Conditions',
+    employeeAgreementDetails: 'Employee Agreement Details',
     
     // Cost Analysis
     costAnalysis: 'Cost Analysis',
@@ -297,6 +334,13 @@ export const translations = {
     dontHaveAccount: "Don't have an account?",
     loading: 'Loading...',
     verifyingAccount: 'Verifying Account...',
+    welcome: 'Welcome',
+    loginSubtitle: 'Access your account to continue',
+    loginButton: 'Sign In',
+    
+    // PDF Generation
+    generatedOn: 'Generated on',
+    documentGenerated: 'Document Generated',
     
     // Common
     cancel: 'Cancel',

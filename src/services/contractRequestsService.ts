@@ -31,6 +31,8 @@ export interface ContractRequestData {
   workCenter?: string;
   specificCenter?: string;
   directResponsible?: string;
+  directSupervisorName?: string;
+  directSupervisorLastName?: string; // Added missing property
   companyFloor?: string;
   language?: string;
   languageLevel?: string;
