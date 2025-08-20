@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 
 interface ReportData {
@@ -44,9 +43,9 @@ const responseSchema = {
         properties: {
           nombre: { type: "string" },
           descripcion: { type: "string" },
-          mapeo: { 
+          mapeo: {
             type: "string",
-            enum: ["price", "tenderBudget", "maxScore", "lowestPrice", "averagePrice"] 
+            enum: ["price", "tenderBudget", "maxScore", "lowestPrice", "averagePrice"]
           }
         },
         required: ["nombre", "descripcion", "mapeo"]
@@ -151,7 +150,7 @@ export const useCostAnalysis = () => {
   const createOptimizedPrompt = (): string => {
     return `Eres un experto consultor en licitaciones públicas de electromedicina en España. Analiza los documentos PDF: PCAP y PPT.
 
-**CRÍTICO**: Responde ÚNICAMENTE con JSON válido y bien formateado. No añadas texto antes ni después del JSON. Los documentos pueden estar en cualquier idioma de España, pero tu respuesta debe estar en español.
+CRÍTICO: Responde ÚNICAMENTE con JSON válido y bien formateado. No añadas texto antes ni después del JSON. Los documentos pueden estar en cualquier idioma de España, pero tu respuesta debe estar en español.
 
 Extrae solo información verificable de los textos para completar esta estructura JSON exacta:
 
@@ -178,7 +177,7 @@ Extrae solo información verificable de los textos para completar esta estructur
   "formulasDetectadas": [
     {
       "formulaOriginal": "string",
-      "representacionLatex": "string", 
+      "representacionLatex": "string",
       "descripcionVariables": "string"
     }
   ],
@@ -186,13 +185,13 @@ Extrae solo información verificable de los textos para completar esta estructur
   "criteriosAutomaticos": [
     {
       "nombre": "string",
-      "descripcion": "string",
+      "descripcion": "string", 
       "puntuacionMaxima": 0
     }
   ],
   "criteriosSubjetivos": [
     {
-      "nombre": "string", 
+      "nombre": "string",
       "descripcion": "string",
       "puntuacionMaxima": 0
     }
@@ -200,7 +199,7 @@ Extrae solo información verificable de los textos para completar esta estructur
   "otrosCriterios": [
     {
       "nombre": "string",
-      "descripcion": "string", 
+      "descripcion": "string",
       "puntuacionMaxima": 0
     }
   ],
@@ -232,11 +231,15 @@ IMPORTANTE: Si no encuentras información específica, usa "No especificado" par
     // Limpiar caracteres problemáticos
     cleaned = cleaned
       .replace(/[\u0000-\u001F\u007F-\u009F]/g, '') // Caracteres de control
-      .replace(/\n/g, ' ') // Saltos de línea
-      .replace(/\r/g, '') // Retornos de carro
-      .replace(/\t/g, ' ') // Tabulaciones
-      .replace(/\s+/g, ' ') // Espacios múltiples
+      .replace(/\\/g, '\\\\') // Escapar backslashes
+      .replace(/"/g, '\\"') // Escapar comillas
+      .replace(/\n/g, '\\n') // Escapar saltos de línea
+      .replace(/\r/g, '\\r') // Escapar retornos de carro
+      .replace(/\t/g, '\\t') // Escapar tabulaciones
       .trim();
+
+    // Reemplazar las comillas escapadas de vuelta
+    cleaned = cleaned.replace(/\\"/g, '"');
     
     return cleaned;
   };
@@ -244,7 +247,7 @@ IMPORTANTE: Si no encuentras información específica, usa "No especificado" par
   const callGeminiAPI = async (pcapFile: File, pptFile: File): Promise<ReportData> => {
     const GEMINI_API_KEY = 'AIzaSyANIWvIMRvCW7f0meHRk4SobRz4s0pnxtg';
     const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent';
-
+    
     console.log('🤖 Iniciando análisis con Gemini API optimizado...');
 
     try {
@@ -306,38 +309,52 @@ IMPORTANTE: Si no encuentras información específica, usa "No especificado" par
       }
 
       let responseText = data.candidates[0].content.parts[0].text;
-      console.log('📝 Texto bruto recibido:', responseText);
+      console.log('📝 Procesando respuesta JSON...');
       
-      // Limpiar y procesar el JSON
-      responseText = cleanJsonResponse(responseText);
-      console.log('🧹 Texto limpiado:', responseText);
-      
-      let parsedResult: ReportData;
       try {
-        parsedResult = JSON.parse(responseText);
+        // Intentar parsear directamente primero
+        let parsedResult: ReportData = JSON.parse(responseText);
         console.log('✅ JSON parseado correctamente');
+        return validateAndCleanData(parsedResult);
       } catch (parseError) {
-        console.error('❌ Error parseando JSON:', parseError);
-        console.log('🔄 Intentando con OpenAI...');
-        return await callOpenAIAPI(pcapFile, pptFile);
+        console.log('❌ Error parseando JSON:', parseError);
+        console.log('🧹 Intentando limpiar el JSON...');
+        
+        // Intentar limpiar y parsear de nuevo
+        responseText = cleanJsonResponse(responseText);
+        console.log('🔄 Texto limpiado, reintentando parseo...');
+        
+        try {
+          let parsedResult: ReportData = JSON.parse(responseText);
+          console.log('✅ JSON parseado tras limpieza');
+          return validateAndCleanData(parsedResult);
+        } catch (secondParseError) {
+          console.error('❌ Error persistente en JSON:', secondParseError);
+          console.log('🔄 Intentando con Claude...');
+          throw new Error('Error parseando respuesta JSON de Gemini');
+        }
       }
-
-      // Validar y limpiar datos
-      parsedResult = validateAndCleanData(parsedResult);
-      return parsedResult;
       
     } catch (error) {
       console.error('❌ Error en Gemini:', error);
-      console.log('🔄 Fallback a OpenAI API...');
-      return await callOpenAIAPI(pcapFile, pptFile);
+      console.log('🔄 Intentando con Claude...');
+      throw error;
     }
+  };
+
+  const callClaudeAPI = async (pcapFile: File, pptFile: File): Promise<ReportData> => {
+    console.log('🧠 Usando Claude como fallback...');
+    
+    // Claude API no se puede llamar directamente desde el cliente por CORS
+    // Necesitarías un backend proxy o usar una implementación diferente
+    throw new Error('Claude API requiere un backend proxy para evitar CORS');
   };
 
   const callOpenAIAPI = async (pcapFile: File, pptFile: File): Promise<ReportData> => {
     const OPENAI_API_KEY = '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';
     const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
-
-    console.log('🔥 Usando OpenAI API...');
+    
+    console.log('🔥 Usando OpenAI como último recurso...');
 
     try {
       const pcapBase64 = await convertFileToBase64(pcapFile);
@@ -365,7 +382,7 @@ IMPORTANTE: Si no encuentras información específica, usa "No especificado" par
                 }
               },
               {
-                type: 'image_url',
+                type: 'image_url', 
                 image_url: {
                   url: `data:application/pdf;base64,${pptBase64}`
                 }
@@ -381,22 +398,26 @@ IMPORTANTE: Si no encuentras información específica, usa "No especificado" par
       if (!response.ok) {
         const errorText = await response.text();
         console.error('❌ Error OpenAI:', response.status, errorText);
-        throw new Error(`OpenAI API error: ${response.status} - ${errorText}`);
+        throw new Error(`OpenAI API error: ${response.status}`);
       }
 
       const data = await response.json();
       let responseText = data.choices[0].message.content;
       
-      // Limpiar y procesar el JSON
-      responseText = cleanJsonResponse(responseText);
-      console.log('🧹 OpenAI Texto limpiado:', responseText);
-      
-      const parsedResult = JSON.parse(responseText);
-      return validateAndCleanData(parsedResult);
+      try {
+        const parsedResult = JSON.parse(responseText);
+        return validateAndCleanData(parsedResult);
+      } catch (parseError) {
+        console.error('❌ Error parseando respuesta de OpenAI:', parseError);
+        // Intentar limpiar el JSON
+        responseText = cleanJsonResponse(responseText);
+        const parsedResult = JSON.parse(responseText);
+        return validateAndCleanData(parsedResult);
+      }
       
     } catch (error) {
       console.error('❌ Error en OpenAI:', error);
-      throw new Error('Error en el análisis con IA. Por favor, inténtalo más tarde.');
+      throw new Error('Error en el análisis con OpenAI');
     }
   };
 
@@ -415,7 +436,7 @@ IMPORTANTE: Si no encuentras información específica, usa "No especificado" par
       otrosCriterios: Array.isArray(data.otrosCriterios) ? data.otrosCriterios : [],
       costesDetalladosRecomendados: Array.isArray(data.costesDetalladosRecomendados) ? data.costesDetalladosRecomendados : []
     };
-
+    
     return cleanedData;
   };
 
@@ -423,7 +444,7 @@ IMPORTANTE: Si no encuentras información específica, usa "No especificado" par
     setIsLoading(true);
     setError(null);
     setAnalysisResult(null);
-
+    
     try {
       console.log('🔍 Iniciando análisis de costes optimizado...');
       console.log('📄 Archivos:', {
@@ -431,14 +452,28 @@ IMPORTANTE: Si no encuentras información específica, usa "No especificado" par
         ppt: `${pptFile.name} (${(pptFile.size / 1024 / 1024).toFixed(2)} MB)`
       });
 
-      const result = await callGeminiAPI(pcapFile, pptFile);
+      let result: ReportData;
+      
+      try {
+        // Intentar primero con Gemini
+        result = await callGeminiAPI(pcapFile, pptFile);
+      } catch (geminiError) {
+        console.log('🔄 Fallback a Claude API...');
+        try {
+          result = await callClaudeAPI(pcapFile, pptFile);
+        } catch (claudeError) {
+          console.log('🔥 Usando OpenAI como último recurso...');
+          result = await callOpenAIAPI(pcapFile, pptFile);
+        }
+      }
+      
       console.log('✅ Análisis completado exitosamente');
-
       setAnalysisResult(result);
+      
     } catch (err) {
       console.error('❌ Error final en análisis:', err);
       const errorMessage = err instanceof Error ? err.message : 'Error desconocido en el análisis';
-      setError(errorMessage);
+      setError('Todos los servicios de IA han fallado. Por favor, inténtalo más tarde.');
     } finally {
       setIsLoading(false);
     }
