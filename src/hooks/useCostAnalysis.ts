@@ -396,10 +396,11 @@ Responde con este JSON:
       if (stepData) {
         Object.keys(stepData).forEach(key => {
           if (stepData[key] !== undefined && stepData[key] !== null) {
+            const typedKey = key as keyof ReportData;
             if (Array.isArray(stepData[key])) {
-              merged[key as keyof ReportData] = stepData[key];
+              (merged[typedKey] as any[]) = stepData[key];
             } else {
-              merged[key as keyof ReportData] = stepData[key];
+              (merged[typedKey] as any) = stepData[key];
             }
           }
         });
