@@ -20,7 +20,7 @@ import { db } from '../lib/firebase';
 // Interfaz para los permisos tal como los obtendremos de Firestore
 export interface UserFirestorePermissions {
   Per_Ope?: boolean;
-  Per_view?: boolean;
+  Per_View?: boolean;
   Per_Modificate?: boolean;
   Per_GT?: boolean;
   Per_GDT?: boolean;
