@@ -151,20 +151,20 @@ export const useCostAnalysis = () => {
   const createOptimizedPrompt = (): string => {
     return `Eres un experto consultor en licitaciones públicas de electromedicina en España. Analiza los documentos PDF: PCAP y PPT.
 
-**IMPORTANTE**: Responde ÚNICAMENTE con JSON válido sin texto adicional. Los documentos pueden estar en cualquier idioma de España, pero tu respuesta debe estar en español.
+**CRÍTICO**: Responde ÚNICAMENTE con JSON válido y bien formateado. No añadas texto antes ni después del JSON. Los documentos pueden estar en cualquier idioma de España, pero tu respuesta debe estar en español.
 
-Extrae solo información verificable de los textos para completar esta estructura JSON:
+Extrae solo información verificable de los textos para completar esta estructura JSON exacta:
 
 {
-  "presupuestoGeneral": "string - Presupuesto Base sin IVA",
-  "esPorLotes": boolean,
+  "presupuestoGeneral": "string con el presupuesto base sin IVA o 'No especificado'",
+  "esPorLotes": true/false,
   "lotes": [
     {
       "nombre": "string",
       "centroAsociado": "string", 
       "descripcion": "string",
       "presupuesto": "string",
-      "requisitosClave": ["string"]
+      "requisitosClave": ["string1", "string2"]
     }
   ],
   "variablesDinamicas": [
@@ -174,7 +174,7 @@ Extrae solo información verificable de los textos para completar esta estructur
       "mapeo": "price|tenderBudget|maxScore|lowestPrice|averagePrice"
     }
   ],
-  "formulaEconomica": "string - JSON AST de la fórmula principal",
+  "formulaEconomica": "fórmula principal encontrada o 'No especificada'",
   "formulasDetectadas": [
     {
       "formulaOriginal": "string",
@@ -182,39 +182,63 @@ Extrae solo información verificable de los textos para completar esta estructur
       "descripcionVariables": "string"
     }
   ],
-  "umbralBajaTemeraria": "string",
+  "umbralBajaTemeraria": "porcentaje o criterio encontrado o 'No especificado'",
   "criteriosAutomaticos": [
     {
       "nombre": "string",
       "descripcion": "string",
-      "puntuacionMaxima": number
+      "puntuacionMaxima": 0
     }
   ],
   "criteriosSubjetivos": [
     {
       "nombre": "string", 
       "descripcion": "string",
-      "puntuacionMaxima": number
+      "puntuacionMaxima": 0
     }
   ],
   "otrosCriterios": [
     {
       "nombre": "string",
       "descripcion": "string", 
-      "puntuacionMaxima": number
+      "puntuacionMaxima": 0
     }
   ],
   "costesDetalladosRecomendados": [
     {
       "categoria": "string",
       "concepto": "string",
-      "costeEstimado": number,
+      "costeEstimado": 0,
       "justificacion": "string"
     }
   ]
 }
 
-Si no encuentras información, usa "No especificado" para strings y arrays vacíos para listas. Limita formulasDetectadas a máximo 2 fórmulas principales.`;
+IMPORTANTE: Si no encuentras información específica, usa "No especificado" para strings, false para booleanos, 0 para números y arrays vacíos [] para listas. Máximo 2 fórmulas en formulasDetectadas.`;
+  };
+
+  const cleanJsonResponse = (text: string): string => {
+    // Remover texto antes y después del JSON
+    let cleaned = text.trim();
+    
+    // Buscar el primer { y el último }
+    const firstBrace = cleaned.indexOf('{');
+    const lastBrace = cleaned.lastIndexOf('}');
+    
+    if (firstBrace !== -1 && lastBrace !== -1 && firstBrace < lastBrace) {
+      cleaned = cleaned.substring(firstBrace, lastBrace + 1);
+    }
+    
+    // Limpiar caracteres problemáticos
+    cleaned = cleaned
+      .replace(/[\u0000-\u001F\u007F-\u009F]/g, '') // Caracteres de control
+      .replace(/\n/g, ' ') // Saltos de línea
+      .replace(/\r/g, '') // Retornos de carro
+      .replace(/\t/g, ' ') // Tabulaciones
+      .replace(/\s+/g, ' ') // Espacios múltiples
+      .trim();
+    
+    return cleaned;
   };
 
   const callGeminiAPI = async (pcapFile: File, pptFile: File): Promise<ReportData> => {
@@ -250,8 +274,8 @@ Si no encuentras información, usa "No especificado" para strings y arrays vací
           ]
         }],
         generationConfig: {
-          temperature: 0.05,
-          topK: 20,
+          temperature: 0.1,
+          topK: 10,
           topP: 0.8,
           maxOutputTokens: 8192,
           responseMimeType: "application/json",
@@ -271,13 +295,6 @@ Si no encuentras información, usa "No especificado" para strings y arrays vací
       if (!response.ok) {
         const errorText = await response.text();
         console.error('❌ Error HTTP:', response.status, errorText);
-        
-        // Si es error de límite de tokens, intentar con Claude
-        if (response.status === 400 && errorText.includes('token')) {
-          console.log('🔄 Intentando con Claude debido a límite de tokens...');
-          return await callClaudeAPI(pcapFile, pptFile);
-        }
-        
         throw new Error(`Error HTTP ${response.status}: ${errorText}`);
       }
 
@@ -288,8 +305,12 @@ Si no encuentras información, usa "No especificado" para strings y arrays vací
         throw new Error('Respuesta inválida de Gemini API');
       }
 
-      const responseText = data.candidates[0].content.parts[0].text;
-      console.log('📝 Procesando respuesta JSON...');
+      let responseText = data.candidates[0].content.parts[0].text;
+      console.log('📝 Texto bruto recibido:', responseText);
+      
+      // Limpiar y procesar el JSON
+      responseText = cleanJsonResponse(responseText);
+      console.log('🧹 Texto limpiado:', responseText);
       
       let parsedResult: ReportData;
       try {
@@ -297,90 +318,26 @@ Si no encuentras información, usa "No especificado" para strings y arrays vací
         console.log('✅ JSON parseado correctamente');
       } catch (parseError) {
         console.error('❌ Error parseando JSON:', parseError);
-        console.log('🔄 Intentando con Claude...');
-        return await callClaudeAPI(pcapFile, pptFile);
+        console.log('🔄 Intentando con OpenAI...');
+        return await callOpenAIAPI(pcapFile, pptFile);
       }
 
       // Validar y limpiar datos
       parsedResult = validateAndCleanData(parsedResult);
-      
       return parsedResult;
+      
     } catch (error) {
       console.error('❌ Error en Gemini:', error);
-      console.log('🔄 Fallback a Claude API...');
-      return await callClaudeAPI(pcapFile, pptFile);
-    }
-  };
-
-  const callClaudeAPI = async (pcapFile: File, pptFile: File): Promise<ReportData> => {
-    const CLAUDE_API_KEY = 'sk-ant-api03-your-key-here'; // Necesitarás configurar esta key
-    const CLAUDE_API_URL = 'https://api.anthropic.com/v1/messages';
-
-    console.log('🧠 Usando Claude como fallback...');
-
-    try {
-      const pcapBase64 = await convertFileToBase64(pcapFile);
-      const pptBase64 = await convertFileToBase64(pptFile);
-
-      const response = await fetch(CLAUDE_API_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': CLAUDE_API_KEY,
-          'anthropic-version': '2023-06-01'
-        },
-        body: JSON.stringify({
-          model: 'claude-3-5-sonnet-20241022',
-          max_tokens: 8000,
-          messages: [{
-            role: 'user',
-            content: [
-              {
-                type: 'text',
-                text: createOptimizedPrompt()
-              },
-              {
-                type: 'image',
-                source: {
-                  type: 'base64',
-                  media_type: 'application/pdf',
-                  data: pcapBase64
-                }
-              },
-              {
-                type: 'image',
-                source: {
-                  type: 'base64',
-                  media_type: 'application/pdf',
-                  data: pptBase64
-                }
-              }
-            ]
-          }]
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error(`Claude API error: ${response.status}`);
-      }
-
-      const data = await response.json();
-      const responseText = data.content[0].text;
-      
-      const parsedResult = JSON.parse(responseText);
-      return validateAndCleanData(parsedResult);
-    } catch (error) {
-      console.error('❌ Error en Claude:', error);
-      // Como último recurso, usar GPT-4
+      console.log('🔄 Fallback a OpenAI API...');
       return await callOpenAIAPI(pcapFile, pptFile);
     }
   };
 
   const callOpenAIAPI = async (pcapFile: File, pptFile: File): Promise<ReportData> => {
-    const OPENAI_API_KEY = 'sk-your-openai-key-here'; // Necesitarás configurar esta key
+    const OPENAI_API_KEY = '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';
     const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 
-    console.log('🔥 Usando OpenAI como último recurso...');
+    console.log('🔥 Usando OpenAI API...');
 
     try {
       const pcapBase64 = await convertFileToBase64(pcapFile);
@@ -393,7 +350,7 @@ Si no encuentras información, usa "No especificado" para strings y arrays vací
           'Authorization': `Bearer ${OPENAI_API_KEY}`
         },
         body: JSON.stringify({
-          model: 'gpt-4-vision-preview',
+          model: 'gpt-4o',
           messages: [{
             role: 'user',
             content: [
@@ -416,22 +373,30 @@ Si no encuentras información, usa "No especificado" para strings y arrays vací
             ]
           }],
           max_tokens: 4000,
-          temperature: 0.1
+          temperature: 0.1,
+          response_format: { type: "json_object" }
         })
       });
 
       if (!response.ok) {
-        throw new Error(`OpenAI API error: ${response.status}`);
+        const errorText = await response.text();
+        console.error('❌ Error OpenAI:', response.status, errorText);
+        throw new Error(`OpenAI API error: ${response.status} - ${errorText}`);
       }
 
       const data = await response.json();
-      const responseText = data.choices[0].message.content;
+      let responseText = data.choices[0].message.content;
+      
+      // Limpiar y procesar el JSON
+      responseText = cleanJsonResponse(responseText);
+      console.log('🧹 OpenAI Texto limpiado:', responseText);
       
       const parsedResult = JSON.parse(responseText);
       return validateAndCleanData(parsedResult);
+      
     } catch (error) {
       console.error('❌ Error en OpenAI:', error);
-      throw new Error('Todos los servicios de IA han fallado. Por favor, inténtalo más tarde.');
+      throw new Error('Error en el análisis con IA. Por favor, inténtalo más tarde.');
     }
   };
 
@@ -442,7 +407,7 @@ Si no encuentras información, usa "No especificado" para strings y arrays vací
       esPorLotes: Boolean(data.esPorLotes),
       lotes: Array.isArray(data.lotes) ? data.lotes : [],
       variablesDinamicas: Array.isArray(data.variablesDinamicas) ? data.variablesDinamicas : [],
-      formulaEconomica: data.formulaEconomica || "{}",
+      formulaEconomica: data.formulaEconomica || "No especificada",
       formulasDetectadas: Array.isArray(data.formulasDetectadas) ? data.formulasDetectadas.slice(0, 2) : [],
       umbralBajaTemeraria: data.umbralBajaTemeraria || "No especificado",
       criteriosAutomaticos: Array.isArray(data.criteriosAutomaticos) ? data.criteriosAutomaticos : [],
