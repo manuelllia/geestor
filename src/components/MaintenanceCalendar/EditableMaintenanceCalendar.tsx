@@ -68,27 +68,43 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
    */
   const generateProfessionalMaintenanceCalendar = (): MaintenanceEvent[] => {
     console.log('🏗️ GENERANDO CALENDARIO PROFESIONAL DE MANTENIMIENTO');
-    console.log('📋 Inspirado en metodologías RCM y gestión técnica avanzada');
+    console.log('📋 Denominaciones recibidas:', denominaciones);
+    
+    if (!denominaciones || denominaciones.length === 0) {
+      console.warn('⚠️ No hay denominaciones para procesar');
+      return [];
+    }
     
     setIsGenerating(true);
     
     try {
       // Período de planificación: desde hoy hasta un año
-      const startDate = new Date(); // Hoy 20 de agosto
-      const endDate = addDays(startDate, 365); // 20 de agosto del año siguiente
+      const startDate = new Date();
+      const endDate = addDays(startDate, 365);
       
       console.log(`📅 Período de planificación: ${format(startDate, 'dd/MM/yyyy')} - ${format(endDate, 'dd/MM/yyyy')}`);
+      console.log(`⚙️ Restricciones aplicadas:`, constraints);
       
       // Inicializar el motor de programación profesional
       const schedulingEngine = new MaintenanceSchedulingEngine(startDate, endDate, constraints);
       
       // Convertir denominaciones a tareas estructuradas
+      console.log('🔄 Convirtiendo denominaciones a tareas de mantenimiento...');
       const maintenanceTasks = MaintenanceTaskProcessor.convertToMaintenanceTasks(denominaciones);
       
-      console.log(`🔧 Tareas de mantenimiento identificadas: ${maintenanceTasks.length}`);
+      console.log(`🔧 Tareas de mantenimiento generadas: ${maintenanceTasks.length}`);
+      console.log('📋 Muestra de tareas:', maintenanceTasks.slice(0, 3).map(t => ({
+        denominacion: t.denominacion,
+        frecuencia: t.frecuenciaDias,
+        tiempo: t.tiempoHoras,
+        prioridad: t.prioridad
+      })));
       
       // Generar el calendario completo con optimización de recursos
+      console.log('📊 Ejecutando algoritmo de programación...');
       const scheduledMaintenances = schedulingEngine.generateFullSchedule(maintenanceTasks);
+      
+      console.log(`✅ Mantenimientos programados: ${scheduledMaintenances.length}`);
       
       // Convertir a formato de eventos del calendario
       const calendarEvents: MaintenanceEvent[] = scheduledMaintenances.map(scheduled => ({
@@ -106,8 +122,17 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
         notas: scheduled.notas
       }));
       
-      console.log(`✅ Calendario profesional generado: ${calendarEvents.length} eventos programados`);
+      console.log(`🎯 Eventos del calendario generados: ${calendarEvents.length}`);
       console.log(`📊 Días laborables disponibles: ${schedulingEngine.getWorkingDaysCount()}`);
+      
+      // Mostrar distribución temporal
+      const eventsByMonth = calendarEvents.reduce((acc, event) => {
+        const month = format(event.fecha, 'yyyy-MM');
+        acc[month] = (acc[month] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+      
+      console.log('📈 Distribución mensual de eventos:', eventsByMonth);
       
       return calendarEvents;
       
@@ -119,21 +144,51 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
     }
   };
 
-  // Generar calendario al cargar el componente
+  // Generar calendario al cargar el componente o cuando cambien las denominaciones
   useEffect(() => {
-    if (denominaciones.length > 0 && events.length === 0) {
-      console.log('🚀 Iniciando generación automática del calendario profesional...');
-      const professionalCalendar = generateProfessionalMaintenanceCalendar();
-      setEvents(professionalCalendar);
+    console.log('🔄 useEffect ejecutado - denominaciones:', denominaciones.length, 'eventos actuales:', events.length);
+    
+    if (denominaciones && denominaciones.length > 0) {
+      if (events.length === 0) {
+        console.log('🚀 Iniciando generación automática del calendario...');
+        const professionalCalendar = generateProfessionalMaintenanceCalendar();
+        
+        if (professionalCalendar.length > 0) {
+          console.log('✅ Calendario generado, actualizando estado...');
+          setEvents(professionalCalendar);
+        } else {
+          console.warn('⚠️ No se generaron eventos en el calendario');
+        }
+      }
+    } else {
+      console.log('⚠️ No hay denominaciones disponibles para generar el calendario');
     }
-  }, [denominaciones, events.length]);
+  }, [denominaciones]);
+
+  // Log de debugging para el estado actual
+  useEffect(() => {
+    console.log('📊 Estado actual del calendario:', {
+      denominacionesCount: denominaciones?.length || 0,
+      eventsCount: events.length,
+      isGenerating,
+      currentMonth: format(currentDate, 'yyyy-MM')
+    });
+  }, [denominaciones, events.length, isGenerating, currentDate]);
 
   // Función para regenerar el calendario con nuevas restricciones
   const handleRegenerateCalendar = () => {
+    console.log('🔄 Regenerando calendario con nuevas restricciones...');
     setEvents([]);
-    const newCalendar = generateProfessionalMaintenanceCalendar();
-    setEvents(newCalendar);
-    setShowConstraintsConfig(false);
+    
+    // Forzar regeneración inmediata
+    setTimeout(() => {
+      const newCalendar = generateProfessionalMaintenanceCalendar();
+      if (newCalendar.length > 0) {
+        setEvents(newCalendar);
+        setShowConstraintsConfig(false);
+        console.log('✅ Calendario regenerado exitosamente');
+      }
+    }, 100);
   };
 
   const monthStart = startOfMonth(currentDate);
@@ -188,7 +243,7 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
     const isWeekend = day.getDay() === 0 || day.getDay() === 6;
     
     if (isWeekend && !constraints.trabajarSabados) {
-      return 'bg-gray-100 dark:bg-gray-700'; // Fin de semana no laborable
+      return 'bg-gray-100 dark:bg-gray-700';
     }
     
     if (utilization === 0) {
@@ -275,6 +330,16 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
     setIsHospitalModalOpen(false);
   };
 
+  // Mostrar mensaje de debugging si no hay eventos
+  if (events.length === 0 && !isGenerating) {
+    console.log('🔍 DEBUGGING - Calendario vacío:', {
+      denominaciones: denominaciones?.length || 0,
+      denominacionesSample: denominaciones?.slice(0, 2),
+      isGenerating,
+      eventsCount: events.length
+    });
+  }
+
   return (
     <div className="space-y-6">
       <Card>
@@ -317,7 +382,7 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
             <Button 
               onClick={() => setIsHospitalModalOpen(true)}
               className="bg-green-600 hover:bg-green-700 text-white"
-              disabled={isGenerating}
+              disabled={isGenerating || events.length === 0}
             >
               <CheckCircle className="h-4 w-4 mr-2" />
               Confirmar Calendario
@@ -385,142 +450,170 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
         )}
 
         <CardContent>
-          <div className="flex items-center justify-between mb-6">
-            <Button
-              variant="outline"
-              onClick={() => setCurrentDate(subMonths(currentDate, 1))}
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <h2 className="text-xl font-semibold">
-              {format(currentDate, 'MMMM yyyy', { locale: es })}
-            </h2>
-            <Button
-              variant="outline"
-              onClick={() => setCurrentDate(addMonths(currentDate, 1))}
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-
-          {/* Leyenda mejorada */}
-          <div className="flex items-center gap-6 mb-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-green-100 border border-green-200 rounded"></div>
-              <span className="text-sm">Carga baja (≤50%)</span>
+          {/* Mostrar estado de carga o debugging */}
+          {isGenerating && (
+            <div className="text-center py-8">
+              <div className="w-12 h-12 border-4 border-purple-500/20 border-t-purple-500 rounded-full animate-spin mx-auto mb-4" />
+              <p className="text-lg font-medium">Generando calendario profesional...</p>
+              <p className="text-gray-600 dark:text-gray-300">Aplicando algoritmos de optimización</p>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-yellow-100 border border-yellow-200 rounded"></div>
-              <span className="text-sm">Carga media (≤80%)</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-red-100 border border-red-200 rounded"></div>
-              <span className="text-sm">Carga alta ({'>'}80%)</span>
-            </div>
-            <div className="flex items-center gap-2 ml-auto">
-              <Users className="h-4 w-4 text-gray-500" />
-              <span className="text-sm text-gray-600">Recursos profesionales optimizados</span>
-            </div>
-          </div>
+          )}
 
-          <div className="grid grid-cols-7 gap-2">
-            {['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'].map(day => (
-              <div key={day} className="p-2 text-center font-semibold text-gray-600 dark:text-gray-300">
-                {day}
-              </div>
-            ))}
+          {!isGenerating && events.length === 0 && (
+            <div className="text-center py-8 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+              <p className="text-lg font-medium text-yellow-800 dark:text-yellow-200 mb-2">
+                🔍 Calendario vacío
+              </p>
+              <p className="text-yellow-700 dark:text-yellow-300 mb-4">
+                Denominaciones disponibles: {denominaciones?.length || 0}
+              </p>
+              <Button onClick={handleRegenerateCalendar} className="bg-blue-600 hover:bg-blue-700">
+                Generar Calendario Ahora
+              </Button>
+            </div>
+          )}
 
-            {monthDays.map(day => {
-              const dayEvents = getEventsForDay(day);
-              const totalHours = getTotalHoursForDay(day);
-              const isToday = format(day, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
-              const dayColor = getDayWorkloadColor(day);
-              const isWeekend = day.getDay() === 0 || day.getDay() === 6;
-              const utilization = totalHours / constraints.horasPorDia;
-
-              return (
-                <div
-                  key={day.toISOString()}
-                  className={`min-h-32 p-2 border rounded-lg relative transition-colors group
-                    ${isToday ? 'ring-2 ring-blue-500 dark:ring-blue-400' : ''}
-                    ${!isSameMonth(day, currentDate) ? 'opacity-50' : ''}
-                    ${dayColor}
-                    hover:shadow-md transition-shadow
-                  `}
-                  onDragOver={handleDragOver}
-                  onDrop={(e) => handleDrop(e, day)}
+          {/* Calendario principal */}
+          {!isGenerating && events.length > 0 && (
+            <>
+              <div className="flex items-center justify-between mb-6">
+                <Button
+                  variant="outline"
+                  onClick={() => setCurrentDate(subMonths(currentDate, 1))}
                 >
-                  <div className="flex items-center justify-between mb-1">
-                    <span className={`text-sm font-medium ${isToday ? 'text-blue-600 dark:text-blue-400' : ''}`}>
-                      {format(day, 'd')}
-                    </span>
-                    {!isWeekend && (
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 hover:opacity-100"
-                        onClick={() => handleAddEvent(day)}
-                      >
-                        <Plus className="h-3 w-3" />
-                      </Button>
-                    )}
-                  </div>
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <h2 className="text-xl font-semibold">
+                  {format(currentDate, 'MMMM yyyy', { locale: es })}
+                </h2>
+                <Button
+                  variant="outline"
+                  onClick={() => setCurrentDate(addMonths(currentDate, 1))}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
 
-                  {totalHours > 0 && (
-                    <div className="flex items-center justify-between gap-1 mb-2">
-                      <div className="flex items-center gap-1">
-                        <Clock className="h-3 w-3 text-gray-500" />
-                        <span className="text-xs text-gray-600 dark:text-gray-400">
-                          {totalHours.toFixed(1)}h
-                        </span>
-                      </div>
-                      <span className={`text-xs px-1 py-0.5 rounded ${
-                        utilization <= 0.5 ? 'bg-green-200 text-green-800' :
-                        utilization <= 0.8 ? 'bg-yellow-200 text-yellow-800' :
-                        'bg-red-200 text-red-800'
-                      }`}>
-                        {Math.round(utilization * 100)}%
-                      </span>
-                    </div>
-                  )}
-
-                  <div className="space-y-1">
-                    {dayEvents.slice(0, 2).map(event => (
-                      <div
-                        key={event.id}
-                        className="p-1 rounded text-xs cursor-pointer bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 transition-all"
-                        draggable
-                        onDragStart={() => handleDragStart(event)}
-                        onClick={() => handleEventClick(event)}
-                      >
-                        <div className="flex items-center gap-1">
-                          <div className={`w-2 h-2 rounded-full ${getPriorityColor(event.prioridad)}`} />
-                          <span className="truncate flex-1">{event.denominacion}</span>
-                        </div>
-                        <div className="flex items-center justify-between mt-1">
-                          <span className="text-xs opacity-80">{event.tiempo}h × {event.cantidad}</span>
-                          <Badge className={`text-xs px-1 py-0 ${getStatusColor(event.estado)}`}>
-                            {event.estado}
-                          </Badge>
-                        </div>
-                      </div>
-                    ))}
-                    {dayEvents.length > 2 && (
-                      <div className="text-xs text-gray-500 text-center">
-                        +{dayEvents.length - 2} más
-                      </div>
-                    )}
-                  </div>
-
-                  {isWeekend && !constraints.trabajarSabados && (
-                    <div className="absolute bottom-1 right-1">
-                      <div className="text-xs text-gray-400">🏖️</div>
-                    </div>
-                  )}
+              {/* Leyenda mejorada */}
+              <div className="flex items-center gap-6 mb-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-green-100 border border-green-200 rounded"></div>
+                  <span className="text-sm">Carga baja (≤50%)</span>
                 </div>
-              );
-            })}
-          </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-yellow-100 border border-yellow-200 rounded"></div>
+                  <span className="text-sm">Carga media (≤80%)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-red-100 border border-red-200 rounded"></div>
+                  <span className="text-sm">Carga alta ({'>'}80%)</span>
+                </div>
+                <div className="flex items-center gap-2 ml-auto">
+                  <Users className="h-4 w-4 text-gray-500" />
+                  <span className="text-sm text-gray-600">Recursos profesionales optimizados</span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-7 gap-2">
+                {['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'].map(day => (
+                  <div key={day} className="p-2 text-center font-semibold text-gray-600 dark:text-gray-300">
+                    {day}
+                  </div>
+                ))}
+
+                {monthDays.map(day => {
+                  const dayEvents = getEventsForDay(day);
+                  const totalHours = getTotalHoursForDay(day);
+                  const isToday = format(day, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
+                  const dayColor = getDayWorkloadColor(day);
+                  const isWeekend = day.getDay() === 0 || day.getDay() === 6;
+                  const utilization = totalHours / constraints.horasPorDia;
+
+                  return (
+                    <div
+                      key={day.toISOString()}
+                      className={`min-h-32 p-2 border rounded-lg relative transition-colors group
+                        ${isToday ? 'ring-2 ring-blue-500 dark:ring-blue-400' : ''}
+                        ${!isSameMonth(day, currentDate) ? 'opacity-50' : ''}
+                        ${dayColor}
+                        hover:shadow-md transition-shadow
+                      `}
+                      onDragOver={handleDragOver}
+                      onDrop={(e) => handleDrop(e, day)}
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <span className={`text-sm font-medium ${isToday ? 'text-blue-600 dark:text-blue-400' : ''}`}>
+                          {format(day, 'd')}
+                        </span>
+                        {!isWeekend && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 hover:opacity-100"
+                            onClick={() => handleAddEvent(day)}
+                          >
+                            <Plus className="h-3 w-3" />
+                          </Button>
+                        )}
+                      </div>
+
+                      {totalHours > 0 && (
+                        <div className="flex items-center justify-between gap-1 mb-2">
+                          <div className="flex items-center gap-1">
+                            <Clock className="h-3 w-3 text-gray-500" />
+                            <span className="text-xs text-gray-600 dark:text-gray-400">
+                              {totalHours.toFixed(1)}h
+                            </span>
+                          </div>
+                          <span className={`text-xs px-1 py-0.5 rounded ${
+                            utilization <= 0.5 ? 'bg-green-200 text-green-800' :
+                            utilization <= 0.8 ? 'bg-yellow-200 text-yellow-800' :
+                            'bg-red-200 text-red-800'
+                          }`}>
+                            {Math.round(utilization * 100)}%
+                          </span>
+                        </div>
+                      )}
+
+                      <div className="space-y-1">
+                        {dayEvents.slice(0, 2).map(event => (
+                          <div
+                            key={event.id}
+                            className="p-1 rounded text-xs cursor-pointer bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 transition-all"
+                            draggable
+                            onDragStart={() => handleDragStart(event)}
+                            onClick={() => handleEventClick(event)}
+                          >
+                            <div className="flex items-center gap-1">
+                              <div className={`w-2 h-2 rounded-full ${getPriorityColor(event.prioridad)}`} />
+                              <span className="truncate flex-1">{event.denominacion}</span>
+                            </div>
+                            <div className="flex items-center justify-between mt-1">
+                              <span className="text-xs opacity-80">{event.tiempo}h × {event.cantidad}</span>
+                              <Badge className={`text-xs px-1 py-0 ${getStatusColor(event.estado)}`}>
+                                {event.estado}
+                              </Badge>
+                            </div>
+                          </div>
+                        ))}
+                        {dayEvents.length > 2 && (
+                          <div className="text-xs text-gray-500 text-center">
+                            +{dayEvents.length - 2} más
+                          </div>
+                        )}
+                      </div>
+
+                      {isWeekend && !constraints.trabajarSabados && (
+                        <div className="absolute bottom-1 right-1">
+                          <div className="text-xs text-gray-400">🏖️</div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
 
