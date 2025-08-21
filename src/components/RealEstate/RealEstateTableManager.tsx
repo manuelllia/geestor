@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -5,19 +6,15 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { MoreHorizontal, Eye, Building2, RefreshCw, ArrowLeft } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Language } from '../../utils/translations';
-import { useTranslation } from '../../hooks/useTranslation';
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../../lib/firebase";
 import RealEstateDetailModal from './RealEstateDetailModal';
 
 interface RealEstateTableManagerProps {
-  language: Language;
   onBack: () => void;
 }
 
-const RealEstateTableManager: React.FC<RealEstateTableManagerProps> = ({ language, onBack }) => {
-  const { t } = useTranslation(language);
+const RealEstateTableManager: React.FC<RealEstateTableManagerProps> = ({ onBack }) => {
   const [properties, setProperties] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedProperty, setSelectedProperty] = useState<any>(null);
@@ -31,15 +28,35 @@ const RealEstateTableManager: React.FC<RealEstateTableManagerProps> = ({ languag
   const loadProperties = async () => {
     try {
       setLoading(true);
-      const propertiesRef = collection(db, "RealEstate");
-      const querySnapshot = await getDocs(propertiesRef);
+      const properties: any[] = [];
       
-      const propertiesData: any[] = [];
-      querySnapshot.forEach((doc) => {
-        propertiesData.push({ id: doc.id, ...doc.data() });
+      // Obtener datos de pisos activos
+      const activePisosRef = collection(db, "Gestión de Talento", "Gestión Inmuebles", "PISOS ACTIVOS");
+      const activePisosSnapshot = await getDocs(activePisosRef);
+      
+      activePisosSnapshot.forEach((doc) => {
+        properties.push({
+          id: doc.id,
+          ...doc.data(),
+          status: 'Activo',
+          source: 'PISOS ACTIVOS'
+        });
+      });
+
+      // Obtener datos de pisos de baja
+      const bajaPisosRef = collection(db, "Gestión de Talento", "Gestión Inmuebles", "BAJA PISOS");
+      const bajaPisosSnapshot = await getDocs(bajaPisosRef);
+      
+      bajaPisosSnapshot.forEach((doc) => {
+        properties.push({
+          id: doc.id,
+          ...doc.data(),
+          status: 'Inactivo',
+          source: 'BAJA PISOS'
+        });
       });
       
-      setProperties(propertiesData);
+      setProperties(properties);
     } catch (error) {
       console.error('Error loading properties:', error);
     } finally {
@@ -120,8 +137,8 @@ const RealEstateTableManager: React.FC<RealEstateTableManagerProps> = ({ languag
                     <TableCell>{property.ciudad || property.city || 'No especificado'}</TableCell>
                     <TableCell>{property.provincia || property.province || 'No especificado'}</TableCell>
                     <TableCell>
-                      <Badge variant={property.estado === 'Activo' ? 'default' : 'secondary'}>
-                        {property.estado || property.status || 'No especificado'}
+                      <Badge variant={property.status === 'Activo' ? 'default' : 'secondary'}>
+                        {property.status || 'No especificado'}
                       </Badge>
                     </TableCell>
                     <TableCell>

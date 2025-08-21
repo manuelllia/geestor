@@ -475,3 +475,41 @@ export const getSheetData = async (sheetName: string): Promise<PropertyData[]> =
     return [];
   }
 };
+
+export const getRealEstateProperties = async (): Promise<PropertyData[]> => {
+  try {
+    const properties: PropertyData[] = [];
+    
+    // Obtener datos de pisos activos
+    const activePisosRef = collection(db, "Gestión de Talento", "Gestión Inmuebles", "PISOS ACTIVOS");
+    const activePisosSnapshot = await getDocs(activePisosRef);
+    
+    activePisosSnapshot.forEach((doc) => {
+      properties.push({
+        id: doc.id,
+        ...doc.data(),
+        status: 'Activo',
+        source: 'PISOS ACTIVOS'
+      });
+    });
+
+    // Obtener datos de pisos de baja
+    const bajaPisosRef = collection(db, "Gestión de Talento", "Gestión Inmuebles", "BAJA PISOS");
+    const bajaPisosSnapshot = await getDocs(bajaPisosRef);
+    
+    bajaPisosSnapshot.forEach((doc) => {
+      properties.push({
+        id: doc.id,
+        ...doc.data(),
+        status: 'Inactivo',
+        source: 'BAJA PISOS'
+      });
+    });
+
+    console.log(`Total properties retrieved: ${properties.length}`);
+    return properties;
+  } catch (error) {
+    console.error('Error getting real estate properties:', error);
+    throw error;
+  }
+};
