@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react'; // Importa useEffect
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { format } from 'date-fns'; // Importamos format para el calendario
-import { CalendarIcon, Send, CheckCircle } from 'lucide-react'; // Iconos de lucide-react
+import { format } from 'date-fns';
+import { CalendarIcon, Send, CheckCircle, Loader2 } from 'lucide-react'; // Importa Loader2 para el spinner de carga
 
 import {
   Form,
@@ -12,6 +12,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription, // Útil para mensajes de carga/error del Select
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -21,10 +22,12 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'; // Importamos Card components
-import { cn } from '@/lib/utils'; // Importamos cn para combinar clases condicionalmente
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 
 import { savePracticeEvaluation, PracticeEvaluationData } from '../services/practiceEvaluationService';
+// Importa el servicio y la interfaz para los centros de trabajo
+import { getWorkCenters, WorkCenter } from '../services/workCentersService'; // Asegúrate de que la ruta sea correcta
 
 // Esquema de validación (sin cambios, ya es correcto)
 const formSchema = z.object({
@@ -34,6 +37,7 @@ const formSchema = z.object({
   tutorLastName: z.string().min(2, {
     message: "El apellido del tutor debe tener al menos 2 caracteres.",
   }),
+  // El centro de trabajo ahora validará la cadena de texto completa (ID - Nombre)
   workCenter: z.string().min(2, {
     message: "El centro de trabajo debe tener al menos 2 caracteres.",
   }),
@@ -96,15 +100,20 @@ const formSchema = z.object({
 type FormData = z.infer<typeof formSchema>;
 
 const PracticeEvaluationForm = () => {
-  const [isLoading, setIsLoading] = useState(false); // Cambiado a isLoading para consistencia
-  const [isSubmitted, setIsSubmitted] = useState(false); // Nuevo estado para la pantalla de éxito
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+
+  // Nuevos estados para cargar los centros de trabajo
+  const [workCentersOptions, setWorkCentersOptions] = useState<WorkCenter[]>([]);
+  const [isLoadingWorkCenters, setIsLoadingWorkCenters] = useState(true);
+  const [workCentersError, setWorkCentersError] = useState<string | null>(null);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       tutorName: "",
       tutorLastName: "",
-      workCenter: "",
+      workCenter: "", // El valor por defecto puede ser una cadena vacía
       studentName: "",
       studentLastName: "",
       formation: "",
@@ -146,6 +155,24 @@ const PracticeEvaluationForm = () => {
     },
   });
 
+  // useEffect para cargar los centros de trabajo
+  useEffect(() => {
+    const fetchCenters = async () => {
+      try {
+        setIsLoadingWorkCenters(true);
+        setWorkCentersError(null);
+        const centers = await getWorkCenters();
+        setWorkCentersOptions(centers);
+      } catch (err) {
+        console.error('Error al cargar centros de trabajo:', err);
+        setWorkCentersError('Error al cargar los centros de trabajo. Intente recargar la página.');
+      } finally {
+        setIsLoadingWorkCenters(false);
+      }
+    };
+    fetchCenters();
+  }, []); // El array vacío asegura que se ejecute solo una vez al montar
+
   const onSubmit = async (data: FormData) => {
     try {
       setIsLoading(true);
@@ -154,7 +181,7 @@ const PracticeEvaluationForm = () => {
       const evaluationData: PracticeEvaluationData = {
         tutorName: data.tutorName,
         tutorLastName: data.tutorLastName,
-        workCenter: data.workCenter,
+        workCenter: data.workCenter, // Este campo ahora contendrá "ID - Nombre"
         studentName: data.studentName,
         studentLastName: data.studentLastName,
         formation: data.formation,
@@ -203,20 +230,15 @@ const PracticeEvaluationForm = () => {
 
       await savePracticeEvaluation(evaluationData);
 
-      setIsSubmitted(true); // Cambiar a la pantalla de éxito
-      // console.log('Evaluación guardada con ID:', docId); // No es necesario si no se usa el ID
-      // form.reset(); // No es necesario resetear si se muestra una pantalla de éxito
+      setIsSubmitted(true);
       
     } catch (error) {
       console.error('Error al guardar la evaluación:', error);
-      // Aquí podrías añadir un toast si decides no usar la pantalla de éxito
-      // toast.error('Error al guardar la evaluación');
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Datos para los campos de competencias
   const competencyFields = [
     { key: 'meticulousness', label: 'Meticulosidad' },
     { key: 'teamwork', label: 'Trabajo en Equipo' },
@@ -232,7 +254,6 @@ const PracticeEvaluationForm = () => {
     { key: 'taskCommitment', label: 'Compromiso con la Tarea' },
   ];
 
-  // Datos para los campos de aptitudes organizativas
   const organizationalFields = [
     { key: 'organized', label: 'Organizado' },
     { key: 'newChallenges', label: 'Nuevos Retos' },
@@ -241,7 +262,6 @@ const PracticeEvaluationForm = () => {
     { key: 'punctuality', label: 'Puntualidad' },
   ];
 
-  // Datos para los campos de aptitudes técnicas
   const technicalFields = [
     { key: 'serviceImprovements', label: 'Mejoras del Servicio' },
     { key: 'diagnosticSkills', label: 'Habilidades de Diagnóstico' },
@@ -325,10 +345,40 @@ const PracticeEvaluationForm = () => {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Centro de Trabajo</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Centro de trabajo" {...field} />
-                          </FormControl>
-                          <FormMessage />
+                          <Select
+                            onValueChange={field.onChange}
+                            value={field.value} // Usa value para un componente controlado
+                            disabled={isLoadingWorkCenters || !!workCentersError} // Deshabilita si carga o hay error
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                {isLoadingWorkCenters ? (
+                                  <div className="flex items-center gap-2 text-muted-foreground">
+                                    <Loader2 className="h-4 w-4 animate-spin" /> Cargando centros...
+                                  </div>
+                                ) : workCentersError ? (
+                                  <span className="text-destructive">{workCentersError}</span>
+                                ) : (
+                                  <SelectValue placeholder="Centro de trabajo" />
+                                )}
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {workCentersOptions.map((center) => (
+                                <SelectItem key={center.id} value={center.displayText}>
+                                  {center.displayText}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          {/* Opcional: Mostrar el mensaje de error/carga debajo del Select */}
+                          {isLoadingWorkCenters && (
+                            <FormDescription>Cargando centros de trabajo...</FormDescription>
+                          )}
+                          {workCentersError && (
+                            <FormMessage>{workCentersError}</FormMessage>
+                          )}
+                          <FormMessage /> {/* Muestra errores de validación del zod */}
                         </FormItem>
                       )}
                     />
@@ -421,7 +471,6 @@ const PracticeEvaluationForm = () => {
                                 min="1"
                                 max="10"
                                 placeholder={label}
-                                // Asegúrate de que el valor sea un string para el input y se parsea a number para el hook-form
                                 value={typeof field.value === 'number' ? field.value.toString() : ''}
                                 onChange={(e) => field.onChange(parseInt(e.target.value) || 5)}
                               />
@@ -635,7 +684,7 @@ const PracticeEvaluationForm = () => {
                           <FormControl>
                             <Textarea
                               placeholder="Justificación del rendimiento"
-                              className="min-h-[100px]" // Añadido min-height
+                              className="min-h-[100px]"
                               {...field}
                             />
                           </FormControl>
@@ -655,7 +704,7 @@ const PracticeEvaluationForm = () => {
                           <RadioGroup
                             onValueChange={field.onChange}
                             defaultValue={field.value}
-                            className="flex flex-col space-y-2" // Ajustado el espacio
+                            className="flex flex-col space-y-2"
                           >
                             <FormItem className="flex items-center space-x-2">
                               <FormControl>
@@ -713,7 +762,7 @@ const PracticeEvaluationForm = () => {
                         <FormControl>
                           <Textarea
                             placeholder="Observaciones"
-                            className="min-h-[100px]" // Añadido min-height
+                            className="min-h-[100px]"
                             {...field}
                           />
                         </FormControl>
@@ -753,7 +802,7 @@ const PracticeEvaluationForm = () => {
                                   )}
                                 >
                                   {field.value ? (
-                                    format(field.value, "PPP") // Usamos format para mostrar la fecha
+                                    format(field.value, "PPP")
                                   ) : (
                                     <span>Seleccionar fecha</span>
                                   )}
