@@ -16,6 +16,7 @@ export interface Contract {
 
 export const getWorkCenters = async (): Promise<WorkCenter[]> => {
   try {
+    console.log("Intentando obtener centros de trabajo desde:", workCentersRef.path);
     const workCentersRef = collection(db, 'Centros de Trabajo', 'Centros', 'CENTROS');
     const snapshot = await getDocs(workCentersRef);
     
