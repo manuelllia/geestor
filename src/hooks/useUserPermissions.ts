@@ -54,8 +54,8 @@ export const useUserPermissions = () => {
       setIsLoading(true);
       setError(null);
 
-      // Ruta: Usuarios/Información/{uid}/{uid}
-      const userPermissionsDocRef = doc(db, 'Usuarios', 'Información', uid, uid);
+      // Nueva ruta: Usuarios/Información/Users/{uid}
+      const userPermissionsDocRef = doc(db, 'Usuarios', 'Información', 'Users', uid);
       
       // Configurar listener en tiempo real
       const unsubscribe = onSnapshot(
