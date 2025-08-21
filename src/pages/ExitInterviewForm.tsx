@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -30,6 +29,7 @@ import {
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { saveExitInterview, ExitInterviewData } from '../services/exitInterviewService';
+import { useWorkCenters } from '../hooks/useWorkCenters';
 
 const formSchema = z.object({
   employeeName: z.string().min(1, 'Nombre es obligatorio'),
@@ -67,6 +67,7 @@ const ExitInterviewForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [showOtherField, setShowOtherField] = useState(false);
+  const { workCenters, isLoading: workCentersLoading, error: workCentersError } = useWorkCenters();
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -97,17 +98,6 @@ const ExitInterviewForm = () => {
       globalAssessment: 5,
     },
   });
-
-  const workCenters = [
-    'Centro Madrid Norte',
-    'Centro Madrid Sur',
-    'Centro Barcelona',
-    'Centro Valencia',
-    'Centro Sevilla',
-    'Centro Bilbao',
-    'Centro Zaragoza',
-    'Sede Central Madrid',
-  ];
 
   const seniorityOptions = [
     'De 0 a 6 meses',
@@ -313,20 +303,23 @@ const ExitInterviewForm = () => {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Centro de Trabajo *</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select onValueChange={field.onChange} defaultValue={field.value} disabled={workCentersLoading}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Seleccionar centro" />
+                                <SelectValue placeholder={workCentersLoading ? "Cargando centros..." : "Seleccionar centro"} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
                               {workCenters.map((center) => (
-                                <SelectItem key={center} value={center}>
-                                  {center}
+                                <SelectItem key={center.id} value={center.displayText}>
+                                  {center.displayText}
                                 </SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
+                          {workCentersError && (
+                            <p className="text-sm text-red-600">{workCentersError}</p>
+                          )}
                           <FormMessage />
                         </FormItem>
                       )}
