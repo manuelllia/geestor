@@ -13,14 +13,13 @@ export interface UserData {
   Per_Ope: boolean;
   Per_GT: boolean;
   Per_GDT: boolean;
-  Per_User?: boolean;
 }
 
 export const getUsersList = async (): Promise<UserData[]> => {
   try {
     console.log('Obteniendo lista de usuarios desde Firebase...');
     
-    // Acceder a la colección: Usuarios/Información
+    // Acceder a la colección anidada: Usuarios/Información/{uid}
     const usersRef = collection(db, "Usuarios", "Información");
     const querySnapshot = await getDocs(usersRef);
     
@@ -30,40 +29,29 @@ export const getUsersList = async (): Promise<UserData[]> => {
     for (const userDoc of querySnapshot.docs) {
       const userId = userDoc.id;
       
-      // Obtener el documento específico del usuario: Usuarios/Información/{uid}/{uid}
-      const userDataDoc = doc(db, "Usuarios", "Información", userId, userId);
+      // Obtener la subcolección del usuario específico
+      const userDataRef = collection(db, "Usuarios", "Información", userId, userId);
+      const userDataSnapshot = await getDocs(userDataRef);
       
-      try {
-        // Como no podemos usar getDoc directamente en esta versión, 
-        // accedemos a la subcolección y buscamos el documento
-        const userSubCollectionRef = collection(db, "Usuarios", "Información", userId);
-        const userSubSnapshot = await getDocs(userSubCollectionRef);
+      userDataSnapshot.forEach((doc) => {
+        const data = doc.data();
         
-        userSubSnapshot.forEach((subDoc) => {
-          if (subDoc.id === userId) {
-            const data = subDoc.data();
-            
-            // Solo agregar si tiene los campos necesarios
-            if (data.nombre && data.email) {
-              users.push({
-                uid: userId,
-                nombre: data.nombre || '',
-                email: data.email || '',
-                Per_Create: data.Per_Create ?? true,
-                Per_Delete: data.Per_Delete ?? true,
-                Per_Modificate: data.Per_Modificate ?? true,
-                Per_View: data.Per_View ?? true,
-                Per_Ope: data.Per_Ope ?? true,
-                Per_GT: data.Per_GT ?? true,
-                Per_GDT: data.Per_GDT ?? true,
-                Per_User: data.Per_User ?? false
-              });
-            }
-          }
-        });
-      } catch (error) {
-        console.log(`Error al obtener datos del usuario ${userId}:`, error);
-      }
+        // Solo agregar si tiene los campos necesarios
+        if (data.nombre && data.email) {
+          users.push({
+            uid: doc.id,
+            nombre: data.nombre || '',
+            email: data.email || '',
+            Per_Create: data.Per_Create ?? true,
+            Per_Delete: data.Per_Delete ?? true,
+            Per_Modificate: data.Per_Modificate ?? true,
+            Per_View: data.Per_View ?? true,
+            Per_Ope: data.Per_Ope ?? true,
+            Per_GT: data.Per_GT ?? true,
+            Per_GDT: data.Per_GDT ?? true
+          });
+        }
+      });
     }
     
     console.log('Usuarios obtenidos:', users.length);
@@ -78,22 +66,35 @@ export const updateUserPermissions = async (userId: string, userData: Partial<Us
   try {
     console.log('Actualizando permisos de usuario:', userId);
     
-    // Ruta correcta: Usuarios/Información/{uid}/{uid}
-    const userDocRef = doc(db, "Usuarios", "Información", userId, userId);
+    // Buscar el documento del usuario en la estructura anidada
+    const usersRef = collection(db, "Usuarios", "Información");
+    const querySnapshot = await getDocs(usersRef);
     
-    await updateDoc(userDocRef, {
-      Per_Create: userData.Per_Create,
-      Per_Delete: userData.Per_Delete,
-      Per_Modificate: userData.Per_Modificate,
-      Per_View: userData.Per_View,
-      Per_Ope: userData.Per_Ope,
-      Per_GT: userData.Per_GT,
-      Per_GDT: userData.Per_GDT,
-      Per_User: userData.Per_User,
-      updatedAt: new Date()
-    });
+    for (const userDoc of querySnapshot.docs) {
+      const userDataRef = collection(db, "Usuarios", "Información", userDoc.id);
+      const userDataSnapshot = await getDocs(userDataRef);
+      
+      for (const doc of userDataSnapshot.docs) {
+        if (doc.id === userId) {
+          const docRef = doc.ref;
+          await updateDoc(docRef, {
+            Per_Create: userData.Per_Create,
+            Per_Delete: userData.Per_Delete,
+            Per_Modificate: userData.Per_Modificate,
+            Per_View: userData.Per_View,
+            Per_Ope: userData.Per_Ope,
+            Per_GT: userData.Per_GT,
+            Per_GDT: userData.Per_GDT,
+            updatedAt: new Date()
+          });
+          
+          console.log('Permisos de usuario actualizados:', userId);
+          return;
+        }
+      }
+    }
     
-    console.log('Permisos de usuario actualizados:', userId);
+    throw new Error('Usuario no encontrado');
   } catch (error) {
     console.error('Error al actualizar permisos de usuario:', error);
     throw error;

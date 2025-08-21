@@ -9,13 +9,11 @@ interface UserPermissions {
   Per_Ope: boolean;
   Per_GT: boolean;
   Per_GDT: boolean;
-  // Permisos de acciones
+  // Nuevos permisos de acciones
   Per_Create: boolean;
   Per_Delete: boolean;
   Per_View: boolean;
   Per_Modificate: boolean;
-  // Nuevo permiso de usuarios
-  Per_User: boolean;
 }
 
 export const useUserPermissions = () => {
@@ -38,8 +36,7 @@ export const useUserPermissions = () => {
           Per_Create: true,
           Per_Delete: true,
           Per_View: true,
-          Per_Modificate: true,
-          Per_User: false // Por defecto no tiene permisos de usuario
+          Per_Modificate: true
         });
         setCurrentUserUid(null);
         setIsLoading(false);
@@ -68,13 +65,11 @@ export const useUserPermissions = () => {
               Per_Ope: data.Per_Ope ?? true,
               Per_GT: data.Per_GT ?? true,
               Per_GDT: data.Per_GDT ?? true,
-              // Permisos de acciones
+              // Nuevos permisos de acciones
               Per_Create: data.Per_Create ?? true,
               Per_Delete: data.Per_Delete ?? true,
               Per_View: data.Per_View ?? true,
-              Per_Modificate: data.Per_Modificate ?? true,
-              // Permiso de usuarios
-              Per_User: data.Per_User ?? false
+              Per_Modificate: data.Per_Modificate ?? true
             });
             console.log('Permisos actualizados en tiempo real:', data);
           } else {
@@ -87,8 +82,7 @@ export const useUserPermissions = () => {
               Per_Create: true,
               Per_Delete: true,
               Per_View: true,
-              Per_Modificate: true,
-              Per_User: false
+              Per_Modificate: true
             });
           }
           setIsLoading(false);
@@ -104,8 +98,7 @@ export const useUserPermissions = () => {
             Per_Create: true,
             Per_Delete: true,
             Per_View: true,
-            Per_Modificate: true,
-            Per_User: false
+            Per_Modificate: true
           });
           setIsLoading(false);
         }
@@ -123,8 +116,7 @@ export const useUserPermissions = () => {
         Per_Create: true,
         Per_Delete: true,
         Per_View: true,
-        Per_Modificate: true,
-        Per_User: false
+        Per_Modificate: true
       });
       setIsLoading(false);
     }
