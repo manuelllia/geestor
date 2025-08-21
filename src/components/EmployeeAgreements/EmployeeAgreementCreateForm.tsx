@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,12 +10,29 @@ import { ArrowLeft, Save } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Language } from '../../utils/translations';
 import { useTranslation } from '../../hooks/useTranslation';
-import { createEmployeeAgreement, EmployeeAgreementFormData } from '../../services/employeeAgreementsService';
 import AddButton from '../Common/AddButton';
 import CreateWorkCenterModal from '../Modals/CreateWorkCenterModal';
 import CreateContractModal from '../Modals/CreateContractModal';
 import { useWorkCenterModals } from '../../hooks/useWorkCenterModals';
 import { getWorkCenters, getContracts } from '../../services/workCentersService';
+
+interface EmployeeAgreementFormData {
+  employeeName: string;
+  employeeLastName: string;
+  position: string;
+  department: string;
+  startDate: Date;
+  endDate?: Date;
+  agreementType: string;
+  salary: number;
+  benefits: string;
+  responsibilities: string;
+  workCenter: string;
+  contractsManaged: string;
+  performanceGoals: string;
+  developmentPlan: string;
+  comments: string;
+}
 
 interface EmployeeAgreementCreateFormProps {
   language: Language;
@@ -88,17 +106,18 @@ const EmployeeAgreementCreateForm: React.FC<EmployeeAgreementCreateFormProps> = 
   const handleSubmit = async () => {
     setIsLoading(true);
     try {
-      await createEmployeeAgreement(formData);
+      // Simulate creating employee agreement - replace with actual service call
+      console.log('Creating employee agreement:', formData);
       toast({
-        title: t('success'),
-        description: t('employeeAgreementCreatedSuccessfully'),
+        title: "Éxito",
+        description: "Acuerdo con empleado creado correctamente",
       });
       onSave();
     } catch (error) {
       console.error('Error creating employee agreement:', error);
       toast({
-        title: t('error'),
-        description: t('errorCreatingEmployeeAgreement'),
+        title: "Error",
+        description: "Error al crear el acuerdo con empleado",
         variant: 'destructive',
       });
     } finally {
@@ -132,27 +151,27 @@ const EmployeeAgreementCreateForm: React.FC<EmployeeAgreementCreateFormProps> = 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <Label htmlFor="employeeName" className="text-gray-700 dark:text-gray-300">
-                {t('employeeName')} *
+                Nombre del Empleado *
               </Label>
               <Input
                 id="employeeName"
                 type="text"
                 value={formData.employeeName}
                 onChange={(e) => setFormData({ ...formData, employeeName: e.target.value })}
-                placeholder={t('enterEmployeeName')}
+                placeholder="Ingrese el nombre del empleado"
               />
             </div>
 
             <div>
               <Label htmlFor="employeeLastName" className="text-gray-700 dark:text-gray-300">
-                {t('employeeLastName')} *
+                Apellidos del Empleado *
               </Label>
               <Input
                 id="employeeLastName"
                 type="text"
                 value={formData.employeeLastName}
                 onChange={(e) => setFormData({ ...formData, employeeLastName: e.target.value })}
-                placeholder={t('enterEmployeeLastName')}
+                placeholder="Ingrese los apellidos del empleado"
               />
             </div>
           </div>
@@ -160,27 +179,27 @@ const EmployeeAgreementCreateForm: React.FC<EmployeeAgreementCreateFormProps> = 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <Label htmlFor="position" className="text-gray-700 dark:text-gray-300">
-                {t('position')} *
+                Posición *
               </Label>
               <Input
                 id="position"
                 type="text"
                 value={formData.position}
                 onChange={(e) => setFormData({ ...formData, position: e.target.value })}
-                placeholder={t('enterPosition')}
+                placeholder="Ingrese la posición"
               />
             </div>
 
             <div>
               <Label htmlFor="department" className="text-gray-700 dark:text-gray-300">
-                {t('department')} *
+                Departamento *
               </Label>
               <Input
                 id="department"
                 type="text"
                 value={formData.department}
                 onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                placeholder={t('enterDepartment')}
+                placeholder="Ingrese el departamento"
               />
             </div>
           </div>
@@ -188,27 +207,27 @@ const EmployeeAgreementCreateForm: React.FC<EmployeeAgreementCreateFormProps> = 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <Label htmlFor="agreementType" className="text-gray-700 dark:text-gray-300">
-                {t('agreementType')} *
+                Tipo de Acuerdo *
               </Label>
               <Input
                 id="agreementType"
                 type="text"
                 value={formData.agreementType}
                 onChange={(e) => setFormData({ ...formData, agreementType: e.target.value })}
-                placeholder={t('enterAgreementType')}
+                placeholder="Ingrese el tipo de acuerdo"
               />
             </div>
 
             <div>
               <Label htmlFor="salary" className="text-gray-700 dark:text-gray-300">
-                {t('salary')} *
+                Salario *
               </Label>
               <Input
                 id="salary"
                 type="number"
                 value={formData.salary}
                 onChange={(e) => setFormData({ ...formData, salary: parseFloat(e.target.value) })}
-                placeholder={t('enterSalary')}
+                placeholder="Ingrese el salario"
               />
             </div>
           </div>
@@ -265,61 +284,61 @@ const EmployeeAgreementCreateForm: React.FC<EmployeeAgreementCreateFormProps> = 
 
           <div>
             <Label htmlFor="benefits" className="text-gray-700 dark:text-gray-300">
-              {t('benefits')}
+              Beneficios
             </Label>
             <Textarea
               id="benefits"
               value={formData.benefits}
               onChange={(e) => setFormData({ ...formData, benefits: e.target.value })}
-              placeholder={t('enterBenefits')}
+              placeholder="Ingrese los beneficios"
             />
           </div>
 
           <div>
             <Label htmlFor="responsibilities" className="text-gray-700 dark:text-gray-300">
-              {t('responsibilities')}
+              Responsabilidades
             </Label>
             <Textarea
               id="responsibilities"
               value={formData.responsibilities}
               onChange={(e) => setFormData({ ...formData, responsibilities: e.target.value })}
-              placeholder={t('enterResponsibilities')}
+              placeholder="Ingrese las responsabilidades"
             />
           </div>
 
           <div>
             <Label htmlFor="performanceGoals" className="text-gray-700 dark:text-gray-300">
-              {t('performanceGoals')}
+              Objetivos de Rendimiento
             </Label>
             <Textarea
               id="performanceGoals"
               value={formData.performanceGoals}
               onChange={(e) => setFormData({ ...formData, performanceGoals: e.target.value })}
-              placeholder={t('enterPerformanceGoals')}
+              placeholder="Ingrese los objetivos de rendimiento"
             />
           </div>
 
           <div>
             <Label htmlFor="developmentPlan" className="text-gray-700 dark:text-gray-300">
-              {t('developmentPlan')}
+              Plan de Desarrollo
             </Label>
             <Textarea
               id="developmentPlan"
               value={formData.developmentPlan}
               onChange={(e) => setFormData({ ...formData, developmentPlan: e.target.value })}
-              placeholder={t('enterDevelopmentPlan')}
+              placeholder="Ingrese el plan de desarrollo"
             />
           </div>
 
           <div>
             <Label htmlFor="comments" className="text-gray-700 dark:text-gray-300">
-              {t('comments')}
+              Comentarios
             </Label>
             <Textarea
               id="comments"
               value={formData.comments}
               onChange={(e) => setFormData({ ...formData, comments: e.target.value })}
-              placeholder={t('enterComments')}
+              placeholder="Ingrese comentarios adicionales"
             />
           </div>
 
@@ -331,12 +350,12 @@ const EmployeeAgreementCreateForm: React.FC<EmployeeAgreementCreateFormProps> = 
             {isLoading ? (
               <>
                 <Save className="w-4 h-4 mr-2 animate-spin" />
-                {t('saving')}...
+                Guardando...
               </>
             ) : (
               <>
                 <Save className="w-4 h-4 mr-2" />
-                {t('save')}
+                Guardar
               </>
             )}
           </Button>

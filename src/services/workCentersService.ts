@@ -1,55 +1,68 @@
-// src/services/workCentersService.ts
-import { collection, getDocs } from "firebase/firestore";
-import { db } from "../lib/firebase"; // Asegúrate de que esta ruta a tu instancia de Firestore sea correcta
 
-// Interfaz para un documento de centro de trabajo tal como viene de Firestore
-// CAMBIO CRÍTICO AQUÍ: 'Nombre' con 'N' mayúscula
-export interface RawWorkCenterDoc {
-  Nombre: string; // El campo que contiene el nombre del centro es 'Nombre'
-}
+import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 
-// Interfaz para el formato de los datos que WorkCenter (el hook) retornará y que tu Select espera
 export interface WorkCenter {
-  id: string; // Será el ID del documento de Firestore (ej. "01038")
-  displayText: string; // Será la cadena "ID - Nombre" (ej. "01038 - AGS SUR DE SEVILLA")
+  id: string;
+  name: string;
+  location?: string;
+  description?: string;
 }
 
-/**
- * Obtiene los centros de trabajo de la subcolección 'CENTROS' en Firestore.
- * Concatena el ID del documento y el campo 'Nombre' para el displayText.
- * @returns {Promise<WorkCenter[]>} Una promesa que resuelve a un array de WorkCenter.
- */
+export interface Contract {
+  id: string;
+  name: string;
+}
+
 export const getWorkCenters = async (): Promise<WorkCenter[]> => {
   try {
-    // Ruta: Colección "Centros De Trabajo" -> Documento "Centros" -> Subcolección "CENTROS"
-    const centersCollectionRef = collection(db, "Centros De Trabajo", "Centros", "CENTROS");
+    const workCentersRef = collection(db, 'Centros de Trabajo', 'Centros', 'CENTROS');
+    const snapshot = await getDocs(workCentersRef);
     
-    console.log("Intentando cargar centros de trabajo desde Firestore..."); 
-    const querySnapshot = await getDocs(centersCollectionRef);
-    console.log(`Se encontraron ${querySnapshot.size} documentos de centros de trabajo.`);
-    
-    const centers: WorkCenter[] = [];
-    querySnapshot.forEach((docSnap) => {
-      // CAMBIO CRÍTICO AQUÍ: Castea los datos usando 'Nombre'
-      const data = docSnap.data() as RawWorkCenterDoc; 
-      
-      // Verifica que el campo 'Nombre' exista en el documento de Firestore
-      // CAMBIO CRÍTICO AQUÍ: Accede a 'data.Nombre'
-      if (data.Nombre) { 
-        centers.push({
-          id: docSnap.id, 
-          // CAMBIO CRÍTICO AQUÍ: Usa 'data.Nombre'
-          displayText: `${docSnap.id} - ${data.Nombre}`, 
-        });
-      } else {
-        // CAMBIO CRÍTICO AQUÍ: Mensaje de advertencia actualizado
-        console.warn(`Documento de centro de trabajo con ID ${docSnap.id} no tiene el campo 'Nombre'. Se omitirá.`);
-      }
-    });
-    
-    return centers;
+    return snapshot.docs.map(doc => ({
+      id: doc.id,
+      name: doc.data().Nombre || doc.data().name || 'Sin nombre',
+      location: doc.data().location,
+      description: doc.data().description
+    }));
   } catch (error) {
-    console.error('Error al cargar centros de trabajo desde Firestore:', error);
-    throw new Error('No se pudieron cargar los centros de trabajo desde Firestore. Por favor, verifique la conexión y la ruta/nombres de campo en Firestore.');
+    console.error('Error fetching work centers:', error);
+    throw new Error('Error al obtener los centros de trabajo');
+  }
+};
+
+export const getContracts = async (): Promise<Contract[]> => {
+  try {
+    const contractsRef = collection(db, 'Centros de Trabajo', 'Contratos', 'CONTRATOS');
+    const snapshot = await getDocs(contractsRef);
+    
+    return snapshot.docs.map(doc => ({
+      id: doc.id,
+      name: doc.data().Nombre || doc.data().name || 'Sin nombre'
+    }));
+  } catch (error) {
+    console.error('Error fetching contracts:', error);
+    throw new Error('Error al obtener los contratos');
+  }
+};
+
+export const getWorkCenterById = async (id: string): Promise<WorkCenter | null> => {
+  try {
+    const workCenterRef = doc(db, 'Centros de Trabajo', 'Centros', 'CENTROS', id);
+    const snapshot = await getDoc(workCenterRef);
+    
+    if (!snapshot.exists()) {
+      return null;
+    }
+    
+    return {
+      id: snapshot.id,
+      name: snapshot.data().Nombre || snapshot.data().name || 'Sin nombre',
+      location: snapshot.data().location,
+      description: snapshot.data().description
+    };
+  } catch (error) {
+    console.error('Error fetching work center:', error);
+    throw new Error('Error al obtener el centro de trabajo');
   }
 };
