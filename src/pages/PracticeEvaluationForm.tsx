@@ -4,6 +4,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
+import { CalendarIcon, Send, CheckCircle } from 'lucide-react';
+import { format } from 'date-fns';
 
 import {
   Form,
@@ -22,8 +24,6 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { CalendarIcon } from 'lucide-react';
-import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 
 import { savePracticeEvaluation, PracticeEvaluationData } from '../services/practiceEvaluationService';
@@ -97,6 +97,7 @@ type FormData = z.infer<typeof formSchema>;
 
 const PracticeEvaluationForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
   const navigate = useNavigate();
   const { workCenters, isLoading: workCentersLoading, error: workCentersError } = useWorkCenters();
 
@@ -207,8 +208,7 @@ const PracticeEvaluationForm = () => {
       toast.success('Evaluación guardada exitosamente');
       console.log('Evaluación guardada con ID:', docId);
       
-      // Reset form after successful submission
-      form.reset();
+      setIsSubmitted(true);
       
     } catch (error) {
       console.error('Error al guardar la evaluación:', error);
@@ -217,6 +217,29 @@ const PracticeEvaluationForm = () => {
       setIsSubmitting(false);
     }
   };
+
+  if (isSubmitted) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-25 via-white to-blue-50 flex items-center justify-center p-6">
+        <Card className="w-full max-w-md animate-fade-in-scale">
+          <CardContent className="p-8 text-center">
+            <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-6 animate-gentle-bounce">
+              <CheckCircle className="w-8 h-8 text-green-600" />
+            </div>
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4 animate-slide-in-top">
+              ¡Evaluación enviada correctamente!
+            </h2>
+            <p className="text-gray-600 mb-6 animate-slide-in-bottom animate-stagger-1">
+              Gracias por completar la evaluación de prácticas. Tu valoración es muy importante para nosotros.
+            </p>
+            <p className="text-sm text-gray-500 animate-slide-in-bottom animate-stagger-2">
+              Ya puedes cerrar esta ventana.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   const competencyFields = [
     { key: 'meticulousness', label: 'Meticulosidad' },
@@ -252,12 +275,12 @@ const PracticeEvaluationForm = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-25 via-white to-blue-50 py-12">
       <div className="container mx-auto px-4 max-w-4xl">
-        <Card className="border-blue-200">
+        <Card className="border-blue-200 animate-slide-in-top hover-lift">
           <CardHeader className="text-center">
-            <CardTitle className="text-3xl font-bold text-blue-800">
+            <CardTitle className="text-3xl font-bold text-blue-800 animate-slide-in-left">
               Formulario de Evaluación de Prácticas
             </CardTitle>
-            <p className="text-gray-600 mt-4">
+            <p className="text-gray-600 mt-4 animate-slide-in-right animate-stagger-1">
               Completa esta evaluación para registrar el rendimiento y las competencias del estudiante durante sus prácticas.
             </p>
           </CardHeader>
@@ -265,17 +288,17 @@ const PracticeEvaluationForm = () => {
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
                 {/* Datos básicos */}
-                <div>
+                <div className="animate-slide-in-bottom animate-stagger-1">
                   <h2 className="text-xl font-semibold mb-4 text-blue-800">Datos básicos</h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
                       name="tutorName"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem className="animate-slide-in-left animate-stagger-1">
                           <FormLabel>Nombre del tutor</FormLabel>
                           <FormControl>
-                            <Input placeholder="Nombre del tutor" {...field} />
+                            <Input placeholder="Nombre del tutor" className="focus-ring hover-glow" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -285,10 +308,10 @@ const PracticeEvaluationForm = () => {
                       control={form.control}
                       name="tutorLastName"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem className="animate-slide-in-right animate-stagger-1">
                           <FormLabel>Apellido del tutor</FormLabel>
                           <FormControl>
-                            <Input placeholder="Apellido del tutor" {...field} />
+                            <Input placeholder="Apellido del tutor" className="focus-ring hover-glow" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -298,24 +321,24 @@ const PracticeEvaluationForm = () => {
                       control={form.control}
                       name="workCenter"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem className="animate-slide-in-left animate-stagger-2">
                           <FormLabel>Centro de trabajo *</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value} disabled={workCentersLoading}>
                             <FormControl>
-                              <SelectTrigger>
+                              <SelectTrigger className="focus-ring hover-glow">
                                 <SelectValue placeholder={workCentersLoading ? "Cargando centros..." : "Seleccionar centro de trabajo"} />
                               </SelectTrigger>
                             </FormControl>
-                            <SelectContent>
+                            <SelectContent className="bg-white border shadow-lg z-50">
                               {workCenters.map((center) => (
-                                <SelectItem key={center.id} value={center.displayText}>
+                                <SelectItem key={center.id} value={center.displayText} className="hover:bg-blue-50 cursor-pointer">
                                   {center.displayText}
                                 </SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
                           {workCentersError && (
-                            <p className="text-sm text-red-600">{workCentersError}</p>
+                            <p className="text-sm text-red-600 animate-slide-in-bottom">{workCentersError}</p>
                           )}
                           <FormMessage />
                         </FormItem>
@@ -762,8 +785,13 @@ const PracticeEvaluationForm = () => {
                   <Button 
                     type="submit" 
                     disabled={isSubmitting}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg"
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg hover-lift animate-pulse-glow transition-all duration-300"
                   >
+                    {isSubmitting ? (
+                      <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin mr-2" />
+                    ) : (
+                      <Send className="w-5 h-5 mr-2" />
+                    )}
                     {isSubmitting ? "Enviando..." : "Enviar Evaluación"}
                   </Button>
                 </div>
