@@ -1,10 +1,9 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react'; // Importa useEffect
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { format } from 'date-fns';
-import { CalendarIcon, Send, CheckCircle } from 'lucide-react';
+import { CalendarIcon, Send, CheckCircle, Loader2 } from 'lucide-react'; // Importa Loader2 para el spinner de carga
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -20,6 +19,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription, // Útil para mensajes de carga/error del Select
 } from '@/components/ui/form';
 import {
   Select,
@@ -31,11 +31,15 @@ import {
 import { cn } from '@/lib/utils';
 import { saveExitInterview, ExitInterviewData } from '../services/exitInterviewService';
 
+// Importa el servicio y la interfaz para los centros de trabajo
+import { getWorkCenters, WorkCenter } from '../services/workCentersService'; // Asegúrate de que la ruta sea correcta
+
 const formSchema = z.object({
   employeeName: z.string().min(1, 'Nombre es obligatorio'),
   employeeLastName: z.string().min(1, 'Apellidos es obligatorio'),
   supervisorName: z.string().min(1, 'Nombre del responsable es obligatorio'),
   supervisorLastName: z.string().min(1, 'Apellidos del responsable es obligatorio'),
+  // El centro de trabajo ahora validará la cadena de texto completa (ID - Nombre)
   workCenter: z.string().min(1, 'Centro de trabajo es obligatorio'),
   position: z.string().min(1, 'Puesto es obligatorio'),
   seniority: z.string().optional(),
@@ -68,6 +72,11 @@ const ExitInterviewForm = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [showOtherField, setShowOtherField] = useState(false);
 
+  // Nuevos estados para cargar los centros de trabajo
+  const [workCentersOptions, setWorkCentersOptions] = useState<WorkCenter[]>([]);
+  const [isLoadingWorkCenters, setIsLoadingWorkCenters] = useState(true);
+  const [workCentersError, setWorkCentersError] = useState<string | null>(null);
+
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -75,7 +84,7 @@ const ExitInterviewForm = () => {
       employeeLastName: '',
       supervisorName: '',
       supervisorLastName: '',
-      workCenter: '',
+      workCenter: '', // El valor por defecto puede ser una cadena vacía
       position: '',
       seniority: '',
       exitType: '',
@@ -98,16 +107,31 @@ const ExitInterviewForm = () => {
     },
   });
 
-  const workCenters = [
-    'Centro Madrid Norte',
-    'Centro Madrid Sur',
-    'Centro Barcelona',
-    'Centro Valencia',
-    'Centro Sevilla',
-    'Centro Bilbao',
-    'Centro Zaragoza',
-    'Sede Central Madrid',
-  ];
+  // useEffect para cargar los centros de trabajo
+  useEffect(() => {
+    const fetchCenters = async () => {
+      try {
+        setIsLoadingWorkCenters(true);
+        setWorkCentersError(null);
+        const centers = await getWorkCenters();
+        setWorkCentersOptions(centers);
+      } catch (err) {
+        console.error('Error al cargar centros de trabajo:', err);
+        setWorkCentersError('Error al cargar los centros de trabajo. Intente recargar la página.');
+      } finally {
+        setIsLoadingWorkCenters(false);
+      }
+    };
+    fetchCenters();
+  }, []); // El array vacío asegura que se ejecute solo una vez al montar
+
+  // Elimina la variable workCenters hardcodeada
+  // const workCenters = [
+  //   'Centro Madrid Norte',
+  //   'Centro Madrid Sur',
+  //   'Centro Barcelona',
+  //   // ... tus otros centros
+  // ];
 
   const seniorityOptions = [
     'De 0 a 6 meses',
@@ -165,13 +189,13 @@ const ExitInterviewForm = () => {
   const onSubmit = async (data: FormData) => {
     try {
       setIsLoading(true);
-      
+
       const exitInterviewData: ExitInterviewData = {
         employeeName: data.employeeName,
         employeeLastName: data.employeeLastName,
         supervisorName: data.supervisorName,
         supervisorLastName: data.supervisorLastName,
-        workCenter: data.workCenter,
+        workCenter: data.workCenter, // Este campo ahora contendrá "ID - Nombre"
         position: data.position,
         seniority: data.seniority || '',
         exitType: data.exitType,
@@ -245,7 +269,7 @@ const ExitInterviewForm = () => {
                 {/* Datos personales */}
                 <div className="space-y-6">
                   <h3 className="text-xl font-semibold text-blue-800">Datos Personales</h3>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
@@ -313,21 +337,40 @@ const ExitInterviewForm = () => {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Centro de Trabajo *</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select
+                            onValueChange={field.onChange}
+                            value={field.value} // Usa value en lugar de defaultValue para un componente controlado
+                            disabled={isLoadingWorkCenters || !!workCentersError} // Deshabilita si carga o hay error
+                          >
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Seleccionar centro" />
+                                {isLoadingWorkCenters ? (
+                                  <div className="flex items-center gap-2 text-muted-foreground">
+                                    <Loader2 className="h-4 w-4 animate-spin" /> Cargando centros...
+                                  </div>
+                                ) : workCentersError ? (
+                                  <span className="text-destructive">{workCentersError}</span>
+                                ) : (
+                                  <SelectValue placeholder="Seleccionar centro" />
+                                )}
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {workCenters.map((center) => (
-                                <SelectItem key={center} value={center}>
-                                  {center}
+                              {workCentersOptions.map((center) => (
+                                <SelectItem key={center.id} value={center.displayText}>
+                                  {center.displayText}
                                 </SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
-                          <FormMessage />
+                          {/* Opcional: Mostrar el mensaje de error/carga debajo del Select */}
+                          {isLoadingWorkCenters && (
+                            <FormDescription>Cargando centros de trabajo...</FormDescription>
+                          )}
+                          {workCentersError && (
+                            <FormMessage>{workCentersError}</FormMessage>
+                          )}
+                          <FormMessage /> {/* Muestra errores de validación del zod */}
                         </FormItem>
                       )}
                     />
@@ -442,7 +485,7 @@ const ExitInterviewForm = () => {
                 {/* Preguntas sobre motivación */}
                 <div className="space-y-6">
                   <h3 className="text-xl font-semibold text-blue-800">Preguntas sobre tu experiencia</h3>
-                  
+
                   {/* Razones para aceptar la oferta */}
                   <FormField
                     control={form.control}
@@ -469,10 +512,10 @@ const ExitInterviewForm = () => {
                                           return checked
                                             ? field.onChange([...field.value, reason])
                                             : field.onChange(
-                                                field.value?.filter(
-                                                  (value) => value !== reason
-                                                )
+                                              field.value?.filter(
+                                                (value) => value !== reason
                                               )
+                                            )
                                         }}
                                       />
                                     </FormControl>
@@ -564,10 +607,10 @@ const ExitInterviewForm = () => {
                                           return checked
                                             ? field.onChange([...field.value, factor])
                                             : field.onChange(
-                                                field.value?.filter(
-                                                  (value) => value !== factor
-                                                )
+                                              field.value?.filter(
+                                                (value) => value !== factor
                                               )
+                                            )
                                         }}
                                       />
                                     </FormControl>
@@ -613,7 +656,7 @@ const ExitInterviewForm = () => {
                       Por favor, puntúa de 1 a 10 (siendo 1 muy deficiente y 10 excelente) los siguientes aspectos de tu paso por el GEE.
                     </p>
                   </div>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {[
                       { name: 'integration', label: 'Acogida/Integración' },
