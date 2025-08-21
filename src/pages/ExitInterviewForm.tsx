@@ -357,8 +357,8 @@ const ExitInterviewForm = () => {
                             </FormControl>
                             <SelectContent>
                               {workCentersOptions.map((center) => (
-                                <SelectItem key={center.id} value={center.displayText}>
-                                  {center.displayText}
+                                <SelectItem key={center.id} value={center.name}>
+                                  {center.name}
                                 </SelectItem>
                               ))}
                             </SelectContent>

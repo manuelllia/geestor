@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Language } from '../../utils/translations';
 import { useTranslation } from '../../hooks/useTranslation';
 import { getWorkCenters, getContracts } from '../../services/workCentersService';
+import { ChangeSheetRecord } from '../../services/changeSheetsService';
 import AddButton from '../Common/AddButton';
 import CreateWorkCenterModal from '../Modals/CreateWorkCenterModal';
 import CreateContractModal from '../Modals/CreateContractModal';
@@ -31,12 +32,14 @@ interface ChangeSheetFormData {
 
 interface ChangeSheetCreateFormProps {
   language: Language;
+  editingSheet?: ChangeSheetRecord | null;
   onBack: () => void;
   onSave: () => void;
 }
 
 const ChangeSheetCreateForm: React.FC<ChangeSheetCreateFormProps> = ({
   language,
+  editingSheet,
   onBack,
   onSave
 }) => {
@@ -69,6 +72,25 @@ const ChangeSheetCreateForm: React.FC<ChangeSheetCreateFormProps> = ({
     employeeFeedback: '',
   });
 
+  // Initialize form data when editing
+  useEffect(() => {
+    if (editingSheet) {
+      setFormData({
+        title: editingSheet.employeeName || '',
+        description: editingSheet.observations || '',
+        reason: editingSheet.changeType || '',
+        date: editingSheet.startDate ? editingSheet.startDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+        workCenter: editingSheet.originCenter || '',
+        contractsManaged: '',
+        newPosition: editingSheet.newPosition || '',
+        newSalary: '',
+        newSchedule: '',
+        newBenefits: '',
+        employeeFeedback: '',
+      });
+    }
+  }, [editingSheet]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -80,17 +102,16 @@ const ChangeSheetCreateForm: React.FC<ChangeSheetCreateFormProps> = ({
   const handleSubmit = async () => {
     setIsLoading(true);
     try {
-      // Simulate creating change sheet - replace with actual service call
-      console.log('Creating change sheet:', formData);
+      console.log(editingSheet ? 'Updating change sheet:' : 'Creating change sheet:', formData);
       toast({
         title: "Éxito",
-        description: "Hoja de cambio creada correctamente",
+        description: editingSheet ? "Hoja de cambio actualizada correctamente" : "Hoja de cambio creada correctamente",
       });
       onSave();
     } catch (error) {
       toast({
         title: "Error",
-        description: "Error al crear la hoja de cambio",
+        description: editingSheet ? "Error al actualizar la hoja de cambio" : "Error al crear la hoja de cambio",
         variant: 'destructive',
       });
     } finally {
@@ -135,7 +156,7 @@ const ChangeSheetCreateForm: React.FC<ChangeSheetCreateFormProps> = ({
           Volver
         </Button>
         <h1 className="text-2xl font-semibold text-blue-800 dark:text-blue-200">
-          Crear Nueva Hoja de Cambio
+          {editingSheet ? 'Editar Hoja de Cambio' : 'Crear Nueva Hoja de Cambio'}
         </h1>
       </div>
 
@@ -333,12 +354,12 @@ const ChangeSheetCreateForm: React.FC<ChangeSheetCreateFormProps> = ({
             {isLoading ? (
               <>
                 <Save className="w-4 h-4 mr-2 animate-spin" />
-                Guardando...
+                {editingSheet ? 'Actualizando...' : 'Guardando...'}
               </>
             ) : (
               <>
                 <Save className="w-4 h-4 mr-2" />
-                Guardar
+                {editingSheet ? 'Actualizar' : 'Guardar'}
               </>
             )}
           </Button>
