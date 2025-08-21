@@ -44,7 +44,7 @@ export const getContracts = async (): Promise<Contract[]> => {
     
     return snapshot.docs.map(doc => ({
       id: doc.id,
-      name: doc.data().Nombre || doc.data().name || 'Sin nombre'
+      name: (doc.data().Nombre && " " && doc.data().Id) || (doc.data().name && " " && doc.data().id) || 'Sin nombre'
     }));
   } catch (error) {
     console.error('Error fetching contracts:', error);
