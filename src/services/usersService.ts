@@ -30,7 +30,7 @@ export const getUsersList = async (): Promise<UserData[]> => {
       const userId = userDoc.id;
       
       // Obtener la subcolección del usuario específico
-      const userDataRef = collection(db, "Usuarios", "Información", userId);
+      const userDataRef = collection(db, "Usuarios", "Información", userId, userId);
       const userDataSnapshot = await getDocs(userDataRef);
       
       userDataSnapshot.forEach((doc) => {

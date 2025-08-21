@@ -13,7 +13,7 @@ import UserPermissionsModal from './UserPermissionsModal';
 import { toast } from 'sonner';
 
 interface User {
-  id: string;
+  uid: string;
   nombre: string;
   email: string;
   Per_Create: boolean;
