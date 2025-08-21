@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import Dashboard from '../pages/Dashboard';
 import PracticeEvaluationForm from '../pages/PracticeEvaluationForm';
@@ -6,12 +7,18 @@ import RealEstateListView from './RealEstate/RealEstateListView';
 import { useTranslation } from 'react-i18next';
 
 interface MainContentProps {
-  activeView: string;
-  onViewChange: (view: string) => void;
+  activeView?: string;
+  activeSection?: string;
+  onViewChange?: (view: string) => void;
   language: string;
 }
 
-const MainContent: React.FC<MainContentProps> = ({ activeView, onViewChange, language }) => {
+const MainContent: React.FC<MainContentProps> = ({ 
+  activeView, 
+  activeSection, 
+  onViewChange = () => {}, 
+  language 
+}) => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const { t } = useTranslation();
 
@@ -19,8 +26,12 @@ const MainContent: React.FC<MainContentProps> = ({ activeView, onViewChange, lan
     setIsDarkMode(!isDarkMode);
   };
 
+  // Use activeSection if provided, otherwise use activeView
+  const currentView = activeSection || activeView || 'dashboard';
+
   const renderContent = () => {
-    switch (activeView) {
+    switch (currentView) {
+      case 'inicio':
       case 'dashboard':
         return <Dashboard language={language} />;
       case 'practiceEvaluationForm':

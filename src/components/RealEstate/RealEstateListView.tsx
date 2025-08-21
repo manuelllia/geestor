@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { RealEstateTableManager } from './RealEstateTableManager';
+import RealEstateTableManager from './RealEstateTableManager';
 
 export interface RealEstateListViewProps {
   onBack: () => void;
