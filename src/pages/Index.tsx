@@ -9,13 +9,12 @@ import VerificationScreen from '../components/VerificationScreen';
 import { Header } from '../components/Header';
 import { AppSidebar } from '../components/AppSidebar';
 import MainContent from '../components/MainContent';
-import { Language } from '../utils/translations';
 
 const Index = () => {
   const { user, isAuthenticated, isLoading, isVerifying, loginWithMicrosoft, logout } = useAuth();
   const { preferences, setLanguage, setTheme } = usePreferences();
   const { refreshPermissions } = useUserPermissions();
-  const [activeSection, setActiveSection] = useState('dashboard');
+  const [activeSection, setActiveSection] = useState('inicio');
   const [userState, setUserState] = useState(user);
   const [permissionsUpdateKey, setPermissionsUpdateKey] = useState(0);
 
@@ -44,7 +43,7 @@ const Index = () => {
 
   // Show verification screen during account verification
   if (isVerifying) {
-    return <VerificationScreen />;
+    return <VerificationScreen language={preferences.language} />;
   }
 
   // Show login screen if not authenticated
@@ -53,7 +52,7 @@ const Index = () => {
       <LoginScreen
         onLogin={loginWithMicrosoft}
         isLoading={isLoading}
-        language={preferences.language as Language}
+        language={preferences.language}
       />
     );
   }
@@ -63,7 +62,7 @@ const Index = () => {
     <SidebarProvider defaultOpen={true}>
       <div className="min-h-screen flex w-full bg-gray-50 dark:bg-gray-900">
         <AppSidebar
-          language={preferences.language as Language}
+          language={preferences.language}
           activeSection={activeSection}
           onSectionChange={setActiveSection}
           key={permissionsUpdateKey}
@@ -73,7 +72,7 @@ const Index = () => {
           <Header
             user={userState}
             onLogout={logout}
-            language={preferences.language as Language}
+            language={preferences.language}
             theme={preferences.theme}
             onLanguageChange={setLanguage}
             onThemeChange={setTheme}
@@ -83,7 +82,7 @@ const Index = () => {
           
           <MainContent
             activeSection={activeSection}
-            language={preferences.language as Language}
+            language={preferences.language}
           />
         </div>
       </div>
