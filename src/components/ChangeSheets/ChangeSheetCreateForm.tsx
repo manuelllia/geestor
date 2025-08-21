@@ -1,374 +1,348 @@
-
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { Textarea } from '../ui/textarea';
-import { Checkbox } from '../ui/checkbox';
-import { ArrowLeft, Save, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ArrowLeft, Save } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import { Language } from '../../utils/translations';
 import { useTranslation } from '../../hooks/useTranslation';
-import { saveChangeSheet, ChangeSheetData } from '../../services/changeSheetService';
-import { updateChangeSheet, ChangeSheetRecord } from '../../services/changeSheetsService';
-import { useWorkCenters } from '../../hooks/useWorkCenters';
+import { createChangeSheet, ChangeSheetFormData } from '../../services/changeSheetsService';
+import { getWorkCenters, getContracts } from '../../services/workCentersService';
+import AddButton from '../Common/AddButton';
+import CreateWorkCenterModal from '../Modals/CreateWorkCenterModal';
+import CreateContractModal from '../Modals/CreateContractModal';
+import { useWorkCenterModals } from '../../hooks/useWorkCenterModals';
 
 interface ChangeSheetCreateFormProps {
   language: Language;
-  editingSheet?: ChangeSheetRecord | null;
   onBack: () => void;
   onSave: () => void;
 }
 
 const ChangeSheetCreateForm: React.FC<ChangeSheetCreateFormProps> = ({
   language,
-  editingSheet,
   onBack,
   onSave
 }) => {
   const { t } = useTranslation(language);
-  const [loading, setLoading] = useState(false);
-  const { workCenters, isLoading: loadingWorkCenters, error: workCentersError } = useWorkCenters();
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+  const [workCenters, setWorkCenters] = useState<Array<{id: string, name: string}>>([]);
+  const [contracts, setContracts] = useState<Array<{id: string, name: string}>>([]);
   
-  const [formData, setFormData] = useState<ChangeSheetData>({
-    employeeName: '',
-    employeeLastName: '',
-    originCenter: '',
-    currentPosition: '',
-    currentSupervisorName: '',
-    currentSupervisorLastName: '',
+  const {
+    isWorkCenterModalOpen,
+    isContractModalOpen,
+    openWorkCenterModal,
+    closeWorkCenterModal,
+    openContractModal,
+    closeContractModal
+  } = useWorkCenterModals();
+
+  const [formData, setFormData] = useState<ChangeSheetFormData>({
+    title: '',
+    description: '',
+    reason: '',
+    date: new Date().toISOString().split('T')[0],
+    workCenter: '',
+    contractsManaged: '',
     newPosition: '',
-    newSupervisorName: '',
-    newSupervisorLastName: '',
-    startDate: undefined,
-    changeType: '',
-    needs: [],
-    currentCompany: '',
-    companyChange: '',
-    observations: ''
+    newSalary: '',
+    newSchedule: '',
+    newBenefits: '',
+    employeeFeedback: '',
   });
 
-  // Cargar datos si estamos editando
-  useEffect(() => {
-    if (editingSheet) {
-      setFormData({
-        employeeName: editingSheet.employeeName,
-        employeeLastName: editingSheet.employeeLastName,
-        originCenter: editingSheet.originCenter,
-        currentPosition: editingSheet.currentPosition,
-        currentSupervisorName: editingSheet.currentSupervisorName,
-        currentSupervisorLastName: editingSheet.currentSupervisorLastName,
-        newPosition: editingSheet.newPosition,
-        newSupervisorName: editingSheet.newSupervisorName,
-        newSupervisorLastName: editingSheet.newSupervisorLastName,
-        startDate: editingSheet.startDate,
-        changeType: editingSheet.changeType,
-        needs: editingSheet.needs,
-        currentCompany: editingSheet.currentCompany,
-        companyChange: editingSheet.companyChange,
-        observations: editingSheet.observations
-      });
-    }
-  }, [editingSheet]);
-
-  const handleInputChange = (field: keyof ChangeSheetData, value: any) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [field]: value
+      [name]: value
     }));
   };
 
-  const handleNeedsChange = (need: string, checked: boolean) => {
-    setFormData(prev => ({
-      ...prev,
-      needs: checked 
-        ? [...prev.needs, need]
-        : prev.needs.filter(n => n !== need)
-    }));
-  };
-
-  const availableNeeds = [
-    'Capacitación técnica',
-    'Formación en nuevas tecnologías',
-    'Desarrollo de habilidades de liderazgo',
-    'Mejora en comunicación',
-    'Conocimiento del producto',
-    'Habilidades de gestión',
-    'Actualización en normativas',
-    'Idiomas'
-  ];
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!formData.employeeName || !formData.employeeLastName || !formData.newPosition) {
-      alert('Por favor, complete todos los campos obligatorios');
-      return;
-    }
-
+  const handleSubmit = async () => {
+    setIsLoading(true);
     try {
-      setLoading(true);
-      
-      if (editingSheet) {
-        await updateChangeSheet(editingSheet.id, formData);
-        console.log('Hoja de cambio actualizada correctamente');
-      } else {
-        await saveChangeSheet(formData);
-        console.log('Nueva hoja de cambio creada correctamente');
-      }
-      
+      await createChangeSheet(formData);
+      toast({
+        title: t('Success'),
+        description: t('Change sheet created successfully'),
+      });
       onSave();
     } catch (error) {
-      console.error('Error saving change sheet:', error);
-      alert(editingSheet ? 'Error al actualizar la hoja de cambio' : 'Error al guardar la hoja de cambio');
+      toast({
+        title: t('Error'),
+        description: t('Failed to create change sheet'),
+        variant: 'destructive',
+      });
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
+  };
+
+  const loadWorkCentersAndContracts = async () => {
+    try {
+      const [workCentersData, contractsData] = await Promise.all([
+        getWorkCenters(),
+        getContracts()
+      ]);
+      setWorkCenters(workCentersData);
+      setContracts(contractsData);
+    } catch (error) {
+      console.error('Error loading work centers and contracts:', error);
+    }
+  };
+
+  useEffect(() => {
+    loadWorkCentersAndContracts();
+  }, []);
+
+  const handleWorkCenterSuccess = () => {
+    loadWorkCentersAndContracts();
+  };
+
+  const handleContractSuccess = () => {
+    loadWorkCentersAndContracts();
   };
 
   return (
     <div className="space-y-6">
-      <Card>
+      <div className="flex items-center space-x-4">
+        <Button
+          variant="outline"
+          onClick={onBack}
+          className="border-blue-300 text-blue-700 hover:bg-blue-50"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Volver
+        </Button>
+        <h1 className="text-2xl font-semibold text-blue-800 dark:text-blue-200">
+          Crear Nueva Hoja de Cambio
+        </h1>
+      </div>
+
+      <Card className="border-blue-200 dark:border-blue-800">
         <CardHeader>
-          <div className="flex items-center space-x-4">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={onBack}
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-            <CardTitle className="text-2xl font-bold text-blue-900 dark:text-blue-100">
-              {editingSheet ? 'Editar Hoja de Cambio' : 'Nueva Hoja de Cambio'}
-            </CardTitle>
-          </div>
+          <CardTitle className="text-blue-800 dark:text-blue-200">
+            Información de la Hoja de Cambio
+          </CardTitle>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Información del Empleado */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="employeeName">{t('employeeName')} *</Label>
-                <Input
-                  id="employeeName"
-                  value={formData.employeeName}
-                  onChange={(e) => handleInputChange('employeeName', e.target.value)}
-                  placeholder={t('employeeName')}
-                  required
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="employeeLastName">{t('employeeLastName')} *</Label>
-                <Input
-                  id="employeeLastName"
-                  value={formData.employeeLastName}
-                  onChange={(e) => handleInputChange('employeeLastName', e.target.value)}
-                  placeholder={t('employeeLastName')}
-                  required
-                />
-              </div>
+        <CardContent className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <Label htmlFor="title" className="text-gray-700 dark:text-gray-300">
+                Título *
+              </Label>
+              <Input
+                type="text"
+                id="title"
+                name="title"
+                value={formData.title}
+                onChange={handleChange}
+                placeholder="Título de la hoja de cambio"
+                required
+              />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="originCenter">Centro de Origen</Label>
-                <Select 
-                  value={formData.originCenter} 
-                  onValueChange={(value) => handleInputChange('originCenter', value)}
-                  disabled={loadingWorkCenters}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={loadingWorkCenters ? "Cargando centros..." : "Seleccionar centro de origen"} />
+            <div>
+              <Label htmlFor="date" className="text-gray-700 dark:text-gray-300">
+                Fecha *
+              </Label>
+              <Input
+                type="date"
+                id="date"
+                name="date"
+                value={formData.date}
+                onChange={handleChange}
+                required
+              />
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor="description" className="text-gray-700 dark:text-gray-300">
+              Descripción *
+            </Label>
+            <Textarea
+              id="description"
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+              placeholder="Descripción detallada de la hoja de cambio"
+              required
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="reason" className="text-gray-700 dark:text-gray-300">
+              Razón del Cambio *
+            </Label>
+            <Textarea
+              id="reason"
+              name="reason"
+              value={formData.reason}
+              onChange={handleChange}
+              placeholder="Motivo o justificación del cambio"
+              required
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <Label htmlFor="workCenter" className="text-gray-700 dark:text-gray-300">
+                Centro de Trabajo *
+              </Label>
+              <div className="flex items-center space-x-2 mt-1">
+                <Select value={formData.workCenter} onValueChange={(value) => setFormData(prev => ({ ...prev, workCenter: value }))}>
+                  <SelectTrigger className="flex-1">
+                    <SelectValue placeholder="Seleccione un centro de trabajo" />
                   </SelectTrigger>
-                  <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg z-50">
+                  <SelectContent>
                     {workCenters.map((center) => (
-                      <SelectItem key={center.id} value={center.displayText}>
-                        {center.displayText}
+                      <SelectItem key={center.id} value={center.id}>
+                        {center.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-                {workCentersError && (
-                  <p className="text-sm text-red-500">Error al cargar centros de trabajo</p>
-                )}
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="currentPosition">Posición Actual</Label>
-                <Input
-                  id="currentPosition"
-                  value={formData.currentPosition}
-                  onChange={(e) => handleInputChange('currentPosition', e.target.value)}
-                  placeholder="Posición Actual"
+                <AddButton 
+                  onClick={openWorkCenterModal}
+                  label="Añadir"
                 />
               </div>
             </div>
 
-            {/* Supervisor Actual */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="currentSupervisorName">Nombre Supervisor Actual</Label>
-                <Input
-                  id="currentSupervisorName"
-                  value={formData.currentSupervisorName}
-                  onChange={(e) => handleInputChange('currentSupervisorName', e.target.value)}
-                  placeholder="Nombre Supervisor Actual"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="currentSupervisorLastName">Apellidos Supervisor Actual</Label>
-                <Input
-                  id="currentSupervisorLastName"
-                  value={formData.currentSupervisorLastName}
-                  onChange={(e) => handleInputChange('currentSupervisorLastName', e.target.value)}
-                  placeholder="Apellidos Supervisor Actual"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="newPosition">{t('newPosition')} *</Label>
-                <Input
-                  id="newPosition"
-                  value={formData.newPosition}
-                  onChange={(e) => handleInputChange('newPosition', e.target.value)}
-                  placeholder={t('newPosition')}
-                  required
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="startDate">Fecha de Inicio</Label>
-                <Input
-                  id="startDate"
-                  type="date"
-                  value={formData.startDate ? formData.startDate.toISOString().split('T')[0] : ''}
-                  onChange={(e) => handleInputChange('startDate', e.target.value ? new Date(e.target.value) : undefined)}
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="newSupervisorName">{t('newSupervisorName')}</Label>
-                <Input
-                  id="newSupervisorName"
-                  value={formData.newSupervisorName}
-                  onChange={(e) => handleInputChange('newSupervisorName', e.target.value)}
-                  placeholder={t('newSupervisorName')}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="newSupervisorLastName">{t('newSupervisorLastName')}</Label>
-                <Input
-                  id="newSupervisorLastName"
-                  value={formData.newSupervisorLastName}
-                  onChange={(e) => handleInputChange('newSupervisorLastName', e.target.value)}
-                  placeholder={t('newSupervisorLastName')}
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="changeType">Tipo de Cambio</Label>
-              <Select value={formData.changeType} onValueChange={(value) => handleInputChange('changeType', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar tipo de cambio" />
-                </SelectTrigger>
-                <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg z-50">
-                  <SelectItem value="permanent">Permanente</SelectItem>
-                  <SelectItem value="temporary">Temporal</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-4">
-              <Label>Necesidades de Formación</Label>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {availableNeeds.map((need) => (
-                  <div key={need} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={need}
-                      checked={formData.needs.includes(need)}
-                      onCheckedChange={(checked) => handleNeedsChange(need, checked as boolean)}
-                    />
-                    <Label htmlFor={need} className="text-sm">{need}</Label>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="currentCompany">Empresa Actual</Label>
-                <Input
-                  id="currentCompany"
-                  value={formData.currentCompany}
-                  onChange={(e) => handleInputChange('currentCompany', e.target.value)}
-                  placeholder="Empresa Actual"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="companyChange">¿Cambio de Empresa?</Label>
-                <Select value={formData.companyChange} onValueChange={(value) => handleInputChange('companyChange', value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar opción" />
+            <div>
+              <Label htmlFor="contract" className="text-gray-700 dark:text-gray-300">
+                Contratos que Administra *
+              </Label>
+              <div className="flex items-center space-x-2 mt-1">
+                <Select value={formData.contractsManaged} onValueChange={(value) => setFormData(prev => ({ ...prev, contractsManaged: value }))}>
+                  <SelectTrigger className="flex-1">
+                    <SelectValue placeholder="Seleccione un contrato" />
                   </SelectTrigger>
-                  <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg z-50">
-                    <SelectItem value="yes">Sí</SelectItem>
-                    <SelectItem value="no">No</SelectItem>
+                  <SelectContent>
+                    {contracts.map((contract) => (
+                      <SelectItem key={contract.id} value={contract.id}>
+                        {contract.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
+                <AddButton 
+                  onClick={openContractModal}
+                  label="Añadir"
+                />
               </div>
             </div>
+          </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="observations">Observaciones</Label>
-              <Textarea
-                id="observations"
-                value={formData.observations}
-                onChange={(e) => handleInputChange('observations', e.target.value)}
-                placeholder="Observaciones adicionales"
-                rows={4}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <Label htmlFor="newPosition" className="text-gray-700 dark:text-gray-300">
+                Nueva Posición
+              </Label>
+              <Input
+                type="text"
+                id="newPosition"
+                name="newPosition"
+                value={formData.newPosition}
+                onChange={handleChange}
+                placeholder="Nueva posición del empleado"
               />
             </div>
 
-            <div className="flex justify-end space-x-4 pt-6">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={onBack}
-                disabled={loading}
-              >
-                Cancelar
-              </Button>
-              <Button
-                type="submit"
-                disabled={loading}
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                {loading ? (
-                  <div className="flex items-center space-x-2">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    <span>{editingSheet ? 'Actualizando...' : 'Guardando...'}</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center space-x-2">
-                    <Save className="h-4 w-4" />
-                    <span>{editingSheet ? 'Actualizar Hoja de Cambio' : 'Guardar Hoja de Cambio'}</span>
-                  </div>
-                )}
-              </Button>
+            <div>
+              <Label htmlFor="newSalary" className="text-gray-700 dark:text-gray-300">
+                Nuevo Salario
+              </Label>
+              <Input
+                type="text"
+                id="newSalary"
+                name="newSalary"
+                value={formData.newSalary}
+                onChange={handleChange}
+                placeholder="Nuevo salario del empleado"
+              />
             </div>
-          </form>
+          </div>
+
+          <div>
+            <Label htmlFor="newSchedule" className="text-gray-700 dark:text-gray-300">
+              Nuevo Horario
+            </Label>
+            <Input
+              type="text"
+              id="newSchedule"
+              name="newSchedule"
+              value={formData.newSchedule}
+              onChange={handleChange}
+              placeholder="Nuevo horario del empleado"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="newBenefits" className="text-gray-700 dark:text-gray-300">
+              Nuevos Beneficios
+            </Label>
+            <Textarea
+              id="newBenefits"
+              name="newBenefits"
+              value={formData.newBenefits}
+              onChange={handleChange}
+              placeholder="Nuevos beneficios del empleado"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="employeeFeedback" className="text-gray-700 dark:text-gray-300">
+              Feedback del Empleado
+            </Label>
+            <Textarea
+              id="employeeFeedback"
+              name="employeeFeedback"
+              value={formData.employeeFeedback}
+              onChange={handleChange}
+              placeholder="Comentarios o feedback del empleado"
+            />
+          </div>
+
+          <Button
+            onClick={handleSubmit}
+            disabled={isLoading}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            {isLoading ? (
+              <>
+                <Save className="w-4 h-4 mr-2 animate-spin" />
+                Guardando...
+              </>
+            ) : (
+              <>
+                <Save className="w-4 h-4 mr-2" />
+                Guardar
+              </>
+            )}
+          </Button>
         </CardContent>
       </Card>
+
+      {/* Modales */}
+      <CreateWorkCenterModal
+        isOpen={isWorkCenterModalOpen}
+        onClose={closeWorkCenterModal}
+        onSuccess={handleWorkCenterSuccess}
+      />
+
+      <CreateContractModal
+        isOpen={isContractModalOpen}
+        onClose={closeContractModal}
+        onSuccess={handleContractSuccess}
+      />
     </div>
   );
 };

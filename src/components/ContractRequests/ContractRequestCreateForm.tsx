@@ -1,541 +1,499 @@
-
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { Textarea } from '../ui/textarea';
-import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
-import { ArrowLeft, Save, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ArrowLeft, Save } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import { Language } from '../../utils/translations';
 import { useTranslation } from '../../hooks/useTranslation';
-import { useWorkCenters } from '../../hooks/useWorkCenters';
-import { saveContractRequest, updateContractRequest, ContractRequestData } from '../../services/contractRequestsService';
+import { createContractRequest, ContractRequestFormData } from '../../services/contractRequestsService';
+import { getWorkCenters, getContracts } from '../../services/workCentersService';
+import AddButton from '../Common/AddButton';
+import CreateWorkCenterModal from '../Modals/CreateWorkCenterModal';
+import CreateContractModal from '../Modals/CreateContractModal';
+import { useWorkCenterModals } from '../../hooks/useWorkCenterModals';
 
 interface ContractRequestCreateFormProps {
   language: Language;
-  editingRequest?: ContractRequestData | null;
   onBack: () => void;
   onSave: () => void;
 }
 
 const ContractRequestCreateForm: React.FC<ContractRequestCreateFormProps> = ({
   language,
-  editingRequest,
   onBack,
   onSave
 }) => {
   const { t } = useTranslation(language);
-  const { workCenters, isLoading: workCentersLoading } = useWorkCenters();
-  const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState<Partial<ContractRequestData>>({
-    applicantName: '',
-    applicantLastName: '',
-    contractType: '',
-    salary: '',
-    observations: '',
-    incorporationDate: undefined,
-    company: '',
-    position: '',
-    professionalCategory: '',
-    city: '',
-    province: '',
-    autonomousCommunity: '',
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+  const [workCenters, setWorkCenters] = useState<Array<{id: string, name: string}>>([]);
+  const [contracts, setContracts] = useState<Array<{id: string, name: string}>>([]);
+  
+  const {
+    isWorkCenterModalOpen,
+    isContractModalOpen,
+    openWorkCenterModal,
+    closeWorkCenterModal,
+    openContractModal,
+    closeContractModal
+  } = useWorkCenterModals();
+
+  const [formData, setFormData] = useState<ContractRequestFormData>({
+    nombreSolicitante: '',
+    puestoSolicitante: '',
+    departamento: '',
+    fechaSolicitud: new Date().toISOString().split('T')[0],
+    tipoContrato: '',
+    numeroVacantes: 1,
+    descripcion: '',
     workCenter: '',
-    directResponsible: '',
-    directSupervisorLastName: '',
-    companyFloor: '',
-    language: '',
-    languageLevel: '',
-    language2: '',
-    languageLevel2: '',
-    electromedicalExperience: '',
-    installationExperience: '',
-    hiringReason: '',
-    commitmentsObservations: '',
-    status: 'Pendiente',
-    requestDate: new Date()
+    contractsManaged: '',
+    salarioPropuesto: 0,
+    rangoSalarial: '',
+    nivelAcademico: '',
+    experienciaRequerida: '',
+    habilidadesRequeridas: '',
+    idiomasRequeridos: '',
+    softwareRequerido: '',
+    otrosRequisitos: '',
+    aprobacionGerente: false,
+    aprobacionRH: false,
+    fechaAprobacionGerente: new Date().toISOString().split('T')[0],
+    fechaAprobacionRH: new Date().toISOString().split('T')[0],
+    comentarios: ''
   });
 
-  // Cargar datos si estamos editando
-  useEffect(() => {
-    if (editingRequest) {
-      setFormData(editingRequest);
+  const loadWorkCentersAndContracts = async () => {
+    try {
+      const [workCentersData, contractsData] = await Promise.all([
+        getWorkCenters(),
+        getContracts()
+      ]);
+      setWorkCenters(workCentersData);
+      setContracts(contractsData);
+    } catch (error) {
+      console.error('Error loading work centers and contracts:', error);
     }
-  }, [editingRequest]);
-
-  const handleInputChange = (field: keyof ContractRequestData, value: any) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Validación de campos obligatorios
-    if (!formData.applicantName || !formData.applicantLastName || !formData.contractType || 
-        !formData.incorporationDate || !formData.company || !formData.position || 
-        !formData.professionalCategory || !formData.workCenter || !formData.companyFloor) {
-      alert('Por favor, complete todos los campos obligatorios');
-      return;
-    }
+  useEffect(() => {
+    loadWorkCentersAndContracts();
+  }, []);
 
+  const handleWorkCenterSuccess = () => {
+    loadWorkCentersAndContracts();
+  };
+
+  const handleContractSuccess = () => {
+    loadWorkCentersAndContracts();
+  };
+
+  const handleSubmit = async () => {
+    setIsLoading(true);
     try {
-      setLoading(true);
-      
-      if (editingRequest && editingRequest.id) {
-        await updateContractRequest(editingRequest.id, formData);
-        console.log('Solicitud actualizada correctamente');
-      } else {
-        await saveContractRequest(formData as ContractRequestData);
-        console.log('Nueva solicitud creada correctamente');
-      }
-      
+      await createContractRequest(formData);
+      toast({
+        title: "Éxito",
+        description: "Solicitud de contratación creada correctamente",
+      });
       onSave();
-      onBack();
     } catch (error) {
-      console.error('Error saving contract request:', error);
-      alert(editingRequest ? 'Error al actualizar la solicitud' : 'Error al guardar la solicitud');
+      toast({
+        title: "Error",
+        description: "Error al crear la solicitud de contratación",
+        variant: "destructive",
+      });
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
   return (
     <div className="space-y-6">
-      <Card>
+      <div className="flex items-center space-x-4">
+        <Button
+          variant="outline"
+          onClick={onBack}
+          className="border-blue-300 text-blue-700 hover:bg-blue-50"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Volver
+        </Button>
+        <h1 className="text-2xl font-semibold text-blue-800 dark:text-blue-200">
+          Crear Nueva Solicitud de Contratación
+        </h1>
+      </div>
+
+      <Card className="border-blue-200 dark:border-blue-800">
         <CardHeader>
-          <div className="flex items-center space-x-4">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={onBack}
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-            <CardTitle className="text-2xl font-bold text-blue-900 dark:text-blue-100">
-              {t('contractRequestTitle')}
-            </CardTitle>
-          </div>
+          <CardTitle className="text-blue-800 dark:text-blue-200">
+            Información de la Solicitud
+          </CardTitle>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Información del Candidato */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="applicantName">{t('selectedCandidateName')} *</Label>
-                <Input
-                  id="applicantName"
-                  value={formData.applicantName || ''}
-                  onChange={(e) => handleInputChange('applicantName', e.target.value)}
-                  placeholder={t('selectedCandidateName')}
-                  required
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="applicantLastName">{t('selectedCandidateLastName')} *</Label>
-                <Input
-                  id="applicantLastName"
-                  value={formData.applicantLastName || ''}
-                  onChange={(e) => handleInputChange('applicantLastName', e.target.value)}
-                  placeholder={t('selectedCandidateLastName')}
-                  required
-                />
-              </div>
+        <CardContent className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <Label htmlFor="nombreSolicitante" className="text-gray-700 dark:text-gray-300">
+                Nombre del Solicitante *
+              </Label>
+              <Input
+                id="nombreSolicitante"
+                type="text"
+                value={formData.nombreSolicitante}
+                onChange={(e) => setFormData(prev => ({ ...prev, nombreSolicitante: e.target.value }))}
+                placeholder="Ingrese el nombre del solicitante"
+              />
             </div>
 
-            {/* Tipo de Contrato y Salario */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="contractType">{t('contractType')} *</Label>
-                <Input
-                  id="contractType"
-                  value={formData.contractType || ''}
-                  onChange={(e) => handleInputChange('contractType', e.target.value)}
-                  placeholder={t('contractType')}
-                  required
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="salary">{t('salary')}</Label>
-                <Input
-                  id="salary"
-                  type="number"
-                  value={formData.salary || ''}
-                  onChange={(e) => handleInputChange('salary', e.target.value)}
-                  placeholder={t('salary')}
-                />
-              </div>
+            <div>
+              <Label htmlFor="puestoSolicitante" className="text-gray-700 dark:text-gray-300">
+                Puesto del Solicitante *
+              </Label>
+              <Input
+                id="puestoSolicitante"
+                type="text"
+                value={formData.puestoSolicitante}
+                onChange={(e) => setFormData(prev => ({ ...prev, puestoSolicitante: e.target.value }))}
+                placeholder="Ingrese el puesto del solicitante"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <Label htmlFor="departamento" className="text-gray-700 dark:text-gray-300">
+                Departamento *
+              </Label>
+              <Input
+                id="departamento"
+                type="text"
+                value={formData.departamento}
+                onChange={(e) => setFormData(prev => ({ ...prev, departamento: e.target.value }))}
+                placeholder="Ingrese el departamento"
+              />
             </div>
 
-            {/* Observaciones y Fecha de Incorporación */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="observations">{t('observations')}</Label>
-                <Textarea
-                  id="observations"
-                  value={formData.observations || ''}
-                  onChange={(e) => handleInputChange('observations', e.target.value)}
-                  placeholder={t('observations')}
-                  rows={3}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="incorporationDate">{t('incorporationDate')} *</Label>
-                <Input
-                  id="incorporationDate"
-                  type="date"
-                  value={formData.incorporationDate ? formData.incorporationDate.toISOString().split('T')[0] : ''}
-                  onChange={(e) => handleInputChange('incorporationDate', new Date(e.target.value))}
-                  required
-                />
-              </div>
+            <div>
+              <Label htmlFor="fechaSolicitud" className="text-gray-700 dark:text-gray-300">
+                Fecha de Solicitud *
+              </Label>
+              <Input
+                id="fechaSolicitud"
+                type="date"
+                value={formData.fechaSolicitud}
+                onChange={(e) => setFormData(prev => ({ ...prev, fechaSolicitud: e.target.value }))}
+              />
             </div>
+          </div>
 
-            {/* Empresa */}
-            <div className="space-y-2">
-              <Label htmlFor="company">{t('company')} *</Label>
-              <Select 
-                value={formData.company || ''} 
-                onValueChange={(value) => handleInputChange('company', value)}
-              >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <Label htmlFor="tipoContrato" className="text-gray-700 dark:text-gray-300">
+                Tipo de Contrato *
+              </Label>
+              <Select value={formData.tipoContrato} onValueChange={(value) => setFormData(prev => ({ ...prev, tipoContrato: value }))}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar" />
+                  <SelectValue placeholder="Seleccione un tipo de contrato" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="IBERMAN SA">IBERMAN SA</SelectItem>
-                  <SelectItem value="ASIME SA">ASIME SA</SelectItem>
-                  <SelectItem value="MANTELEC SA">MANTELEC SA</SelectItem>
-                  <SelectItem value="INSANEX SL">INSANEX SL</SelectItem>
-                  <SelectItem value="SSM">SSM</SelectItem>
-                  <SelectItem value="RD HEALING">RD HEALING</SelectItem>
-                  <SelectItem value="AINATEC">AINATEC</SelectItem>
-                  <SelectItem value="INDEL FACILITIES">INDEL FACILITIES</SelectItem>
-                  <SelectItem value="OTRA">OTRA</SelectItem>
+                  <SelectItem value="Indefinido">Indefinido</SelectItem>
+                  <SelectItem value="Temporal">Temporal</SelectItem>
+                  <SelectItem value="Por Obra o Servicio">Por Obra o Servicio</SelectItem>
+                  <SelectItem value="Prácticas">Prácticas</SelectItem>
+                  <SelectItem value="Formación">Formación</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            {/* Puesto de Trabajo y Categoría Profesional */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="position">{t('position')} *</Label>
-                <Select 
-                  value={formData.position || ''} 
-                  onValueChange={(value) => handleInputChange('position', value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar puesto" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="TÉCNICO/A DE ELECTROMEDICINA">TÉCNICO/A DE ELECTROMEDICINA</SelectItem>
-                    <SelectItem value="RC">RC</SelectItem>
-                    <SelectItem value="INGENIERO/A ELECTRÓNICO">INGENIERO/A ELECTRÓNICO</SelectItem>
-                    <SelectItem value="INGENIERO/A MECÁNICO">INGENIERO/A MECÁNICO</SelectItem>
-                    <SelectItem value="INGENIERO/A DESARROLLO HW Y SW">INGENIERO/A DESARROLLO HW Y SW</SelectItem>
-                    <SelectItem value="ELECTRICISTA">ELECTRICISTA</SelectItem>
-                    <SelectItem value="FRIGORISTA">FRIGORISTA</SelectItem>
-                    <SelectItem value="TÉCNICO/A DE INSTALACIONES">TÉCNICO/A DE INSTALACIONES</SelectItem>
-                    <SelectItem value="ALBAÑIL">ALBAÑIL</SelectItem>
-                    <SelectItem value="OTRO">OTRO</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="professionalCategory">{t('professionalCategory')} *</Label>
-                <Select 
-                  value={formData.professionalCategory || ''} 
-                  onValueChange={(value) => handleInputChange('professionalCategory', value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar categoría" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="TÉCNICO/A">TÉCNICO/A</SelectItem>
-                    <SelectItem value="INGENIERO/A">INGENIERO/A</SelectItem>
-                    <SelectItem value="OFICIAL 1º">OFICIAL 1º</SelectItem>
-                    <SelectItem value="OFICIAL 2º">OFICIAL 2º</SelectItem>
-                    <SelectItem value="OFICIAL 3º">OFICIAL 3º</SelectItem>
-                    <SelectItem value="OTRA">OTRA</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            <div>
+              <Label htmlFor="numeroVacantes" className="text-gray-700 dark:text-gray-300">
+                Número de Vacantes *
+              </Label>
+              <Input
+                id="numeroVacantes"
+                type="number"
+                value={formData.numeroVacantes}
+                onChange={(e) => setFormData(prev => ({ ...prev, numeroVacantes: parseInt(e.target.value) }))}
+                placeholder="Ingrese el número de vacantes"
+              />
             </div>
+          </div>
 
-            {/* Ubicación */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="city">{t('city')}</Label>
-                <Input
-                  id="city"
-                  value={formData.city || ''}
-                  onChange={(e) => handleInputChange('city', e.target.value)}
-                  placeholder={t('city')}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="province">{t('province')}</Label>
-                <Input
-                  id="province"
-                  value={formData.province || ''}
-                  onChange={(e) => handleInputChange('province', e.target.value)}
-                  placeholder={t('province')}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="autonomousCommunity">{t('autonomousCommunity')}</Label>
-                <Input
-                  id="autonomousCommunity"
-                  value={formData.autonomousCommunity || ''}
-                  onChange={(e) => handleInputChange('autonomousCommunity', e.target.value)}
-                  placeholder={t('autonomousCommunity')}
+          <div>
+            <Label htmlFor="descripcion" className="text-gray-700 dark:text-gray-300">
+              Descripción del Puesto *
+            </Label>
+            <Textarea
+              id="descripcion"
+              value={formData.descripcion}
+              onChange={(e) => setFormData(prev => ({ ...prev, descripcion: e.target.value }))}
+              placeholder="Ingrese la descripción del puesto"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <Label htmlFor="workCenter" className="text-gray-700 dark:text-gray-300">
+                Centro de Trabajo *
+              </Label>
+              <div className="flex items-center space-x-2 mt-1">
+                <Select value={formData.workCenter} onValueChange={(value) => setFormData(prev => ({ ...prev, workCenter: value }))}>
+                  <SelectTrigger className="flex-1">
+                    <SelectValue placeholder="Seleccione un centro de trabajo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {workCenters.map((center) => (
+                      <SelectItem key={center.id} value={center.id}>
+                        {center.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <AddButton 
+                  onClick={openWorkCenterModal}
+                  label="Añadir"
                 />
               </div>
             </div>
 
-            {/* Centro de Trabajo */}
-            <div className="space-y-2">
-              <Label htmlFor="workCenter">{t('workCenter')} *</Label>
-              <Select 
-                value={formData.workCenter || ''} 
-                onValueChange={(value) => handleInputChange('workCenter', value)}
-                disabled={workCentersLoading}
-              >
+            <div>
+              <Label htmlFor="contractsManaged" className="text-gray-700 dark:text-gray-300">
+                Contratos que Administra *
+              </Label>
+              <div className="flex items-center space-x-2 mt-1">
+                <Select value={formData.contractsManaged} onValueChange={(value) => setFormData(prev => ({ ...prev, contractsManaged: value }))}>
+                  <SelectTrigger className="flex-1">
+                    <SelectValue placeholder="Seleccione un contrato" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {contracts.map((contract) => (
+                      <SelectItem key={contract.id} value={contract.id}>
+                        {contract.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <AddButton 
+                  onClick={openContractModal}
+                  label="Añadir"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <Label htmlFor="salarioPropuesto" className="text-gray-700 dark:text-gray-300">
+                Salario Propuesto *
+              </Label>
+              <Input
+                id="salarioPropuesto"
+                type="number"
+                value={formData.salarioPropuesto}
+                onChange={(e) => setFormData(prev => ({ ...prev, salarioPropuesto: parseFloat(e.target.value) }))}
+                placeholder="Ingrese el salario propuesto"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="rangoSalarial" className="text-gray-700 dark:text-gray-300">
+                Rango Salarial
+              </Label>
+              <Input
+                id="rangoSalarial"
+                type="text"
+                value={formData.rangoSalarial}
+                onChange={(e) => setFormData(prev => ({ ...prev, rangoSalarial: e.target.value }))}
+                placeholder="Ingrese el rango salarial"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <Label htmlFor="nivelAcademico" className="text-gray-700 dark:text-gray-300">
+                Nivel Académico
+              </Label>
+              <Input
+                id="nivelAcademico"
+                type="text"
+                value={formData.nivelAcademico}
+                onChange={(e) => setFormData(prev => ({ ...prev, nivelAcademico: e.target.value }))}
+                placeholder="Ingrese el nivel académico"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="experienciaRequerida" className="text-gray-700 dark:text-gray-300">
+                Experiencia Requerida
+              </Label>
+              <Input
+                id="experienciaRequerida"
+                type="text"
+                value={formData.experienciaRequerida}
+                onChange={(e) => setFormData(prev => ({ ...prev, experienciaRequerida: e.target.value }))}
+                placeholder="Ingrese la experiencia requerida"
+              />
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor="habilidadesRequeridas" className="text-gray-700 dark:text-gray-300">
+              Habilidades Requeridas
+            </Label>
+            <Input
+              id="habilidadesRequeridas"
+              type="text"
+              value={formData.habilidadesRequeridas}
+              onChange={(e) => setFormData(prev => ({ ...prev, habilidadesRequeridas: e.target.value }))}
+              placeholder="Ingrese las habilidades requeridas"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="idiomasRequeridos" className="text-gray-700 dark:text-gray-300">
+              Idiomas Requeridos
+            </Label>
+            <Input
+              id="idiomasRequeridos"
+              type="text"
+              value={formData.idiomasRequeridos}
+              onChange={(e) => setFormData(prev => ({ ...prev, idiomasRequeridos: e.target.value }))}
+              placeholder="Ingrese los idiomas requeridos"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="softwareRequerido" className="text-gray-700 dark:text-gray-300">
+              Software Requerido
+            </Label>
+            <Input
+              id="softwareRequerido"
+              type="text"
+              value={formData.softwareRequerido}
+              onChange={(e) => setFormData(prev => ({ ...prev, softwareRequerido: e.target.value }))}
+              placeholder="Ingrese el software requerido"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="otrosRequisitos" className="text-gray-700 dark:text-gray-300">
+              Otros Requisitos
+            </Label>
+            <Textarea
+              id="otrosRequisitos"
+              value={formData.otrosRequisitos}
+              onChange={(e) => setFormData(prev => ({ ...prev, otrosRequisitos: e.target.value }))}
+              placeholder="Ingrese otros requisitos"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <Label htmlFor="aprobacionGerente" className="text-gray-700 dark:text-gray-300">
+                Aprobación del Gerente
+              </Label>
+              <Select value={formData.aprobacionGerente.toString()} onValueChange={(value) => setFormData(prev => ({ ...prev, aprobacionGerente: value === 'true' }))}>
                 <SelectTrigger>
-                  <SelectValue placeholder={workCentersLoading ? "Cargando..." : "Seleccionar centro de trabajo"} />
+                  <SelectValue placeholder="Seleccione una opción" />
                 </SelectTrigger>
                 <SelectContent>
-                  {workCenters.map((center) => (
-                    <SelectItem key={center.id} value={center.displayText}>
-                      {center.displayText}
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="true">Aprobado</SelectItem>
+                  <SelectItem value="false">No Aprobado</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            {/* Responsable Directo */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="directResponsible">{t('directSupervisorName')}</Label>
-                <Input
-                  id="directResponsible"
-                  value={formData.directResponsible || ''}
-                  onChange={(e) => handleInputChange('directResponsible', e.target.value)}
-                  placeholder={t('directSupervisorName')}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="directSupervisorLastName">{t('directSupervisorLastName')}</Label>
-                <Input
-                  id="directSupervisorLastName"
-                  value={formData.directSupervisorLastName || ''}
-                  onChange={(e) => handleInputChange('directSupervisorLastName', e.target.value)}
-                  placeholder={t('directSupervisorLastName')}
-                />
-              </div>
+            <div>
+              <Label htmlFor="fechaAprobacionGerente" className="text-gray-700 dark:text-gray-300">
+                Fecha de Aprobación del Gerente
+              </Label>
+              <Input
+                id="fechaAprobacionGerente"
+                type="date"
+                value={formData.fechaAprobacionGerente}
+                onChange={(e) => setFormData(prev => ({ ...prev, fechaAprobacionGerente: e.target.value }))}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <Label htmlFor="aprobacionRH" className="text-gray-700 dark:text-gray-300">
+                Aprobación de Recursos Humanos
+              </Label>
+              <Select value={formData.aprobacionRH.toString()} onValueChange={(value) => setFormData(prev => ({ ...prev, aprobacionRH: value === 'true' }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccione una opción" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="true">Aprobado</SelectItem>
+                  <SelectItem value="false">No Aprobado</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
-            {/* Piso de Empresa */}
-            <div className="space-y-2">
-              <Label>{t('companyFloor')} *</Label>
-              <RadioGroup 
-                value={formData.companyFloor || ''} 
-                onValueChange={(value) => handleInputChange('companyFloor', value)}
-                className="flex flex-row space-x-6"
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Si" id="floor-yes" />
-                  <Label htmlFor="floor-yes">{t('yes')}</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="No" id="floor-no" />
-                  <Label htmlFor="floor-no">{t('no')}</Label>
-                </div>
-              </RadioGroup>
+            <div>
+              <Label htmlFor="fechaAprobacionRH" className="text-gray-700 dark:text-gray-300">
+                Fecha de Aprobación de Recursos Humanos
+              </Label>
+              <Input
+                id="fechaAprobacionRH"
+                type="date"
+                value={formData.fechaAprobacionRH}
+                onChange={(e) => setFormData(prev => ({ ...prev, fechaAprobacionRH: e.target.value }))}
+              />
             </div>
+          </div>
 
-            {/* Título: Otros Datos de Interés */}
-            <div className="border-t pt-6">
-              <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-4">
-                {t('otherDataTitle')}
-              </h3>
+          <div>
+            <Label htmlFor="comentarios" className="text-gray-700 dark:text-gray-300">
+              Comentarios Adicionales
+            </Label>
+            <Textarea
+              id="comentarios"
+              value={formData.comentarios}
+              onChange={(e) => setFormData(prev => ({ ...prev, comentarios: e.target.value }))}
+              placeholder="Ingrese comentarios adicionales"
+            />
+          </div>
 
-              {/* Idiomas */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div className="space-y-2">
-                  <Label htmlFor="language1">{t('language1')}</Label>
-                  <Select 
-                    value={formData.language || ''} 
-                    onValueChange={(value) => handleInputChange('language', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar idioma" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="INGLÉS">INGLÉS</SelectItem>
-                      <SelectItem value="FRANCÉS">FRANCÉS</SelectItem>
-                      <SelectItem value="PORTUGUÉS">PORTUGUÉS</SelectItem>
-                      <SelectItem value="OTRO">OTRO</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="level1">{t('level1')}</Label>
-                  <Select 
-                    value={formData.languageLevel || ''} 
-                    onValueChange={(value) => handleInputChange('languageLevel', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar nivel" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="A1-A2 (BÁSICO)">A1-A2 (BÁSICO)</SelectItem>
-                      <SelectItem value="B1(INTERMEDIO-BAJO)">B1(INTERMEDIO-BAJO)</SelectItem>
-                      <SelectItem value="B1-B2">B1-B2</SelectItem>
-                      <SelectItem value="B2(FIRST CERTIFICATE)">B2(FIRST CERTIFICATE)</SelectItem>
-                      <SelectItem value="B2-C1">B2-C1</SelectItem>
-                      <SelectItem value="C1(ADVANCED)">C1(ADVANCED)</SelectItem>
-                      <SelectItem value="C2(BILINGÜE)">C2(BILINGÜE)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              {/* Segundo Idioma */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div className="space-y-2">
-                  <Label htmlFor="language2">{t('language2')}</Label>
-                  <Select 
-                    value={formData.language2 || ''} 
-                    onValueChange={(value) => handleInputChange('language2', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar segundo idioma" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="FRANCÉS">FRANCÉS</SelectItem>
-                      <SelectItem value="PORTUGUÉS">PORTUGUÉS</SelectItem>
-                      <SelectItem value="OTRO">OTRO</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="level2">{t('level2')}</Label>
-                  <Select 
-                    value={formData.languageLevel2 || ''} 
-                    onValueChange={(value) => handleInputChange('languageLevel2', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar nivel" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="A1-A2 (BÁSICO)">A1-A2 (BÁSICO)</SelectItem>
-                      <SelectItem value="B1(INTERMEDIO-BAJO)">B1(INTERMEDIO-BAJO)</SelectItem>
-                      <SelectItem value="B1-B2">B1-B2</SelectItem>
-                      <SelectItem value="B2(FIRST CERTIFICATE)">B2(FIRST CERTIFICATE)</SelectItem>
-                      <SelectItem value="B2-C1">B2-C1</SelectItem>
-                      <SelectItem value="C1(ADVANCED)">C1(ADVANCED)</SelectItem>
-                      <SelectItem value="C2(BILINGÜE)">C2(BILINGÜE)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              {/* Experiencia */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div className="space-y-2">
-                  <Label htmlFor="electromedicalExperience">{t('electromedicalExperience')}</Label>
-                  <Textarea
-                    id="electromedicalExperience"
-                    value={formData.electromedicalExperience || ''}
-                    onChange={(e) => handleInputChange('electromedicalExperience', e.target.value)}
-                    placeholder={t('electromedicalExperience')}
-                    rows={3}
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="installationExperience">{t('installationExperience')}</Label>
-                  <Textarea
-                    id="installationExperience"
-                    value={formData.installationExperience || ''}
-                    onChange={(e) => handleInputChange('installationExperience', e.target.value)}
-                    placeholder={t('installationExperience')}
-                    rows={3}
-                  />
-                </div>
-              </div>
-
-              {/* Motivo y Observaciones */}
-              <div className="space-y-6">
-                <div className="space-y-2">
-                  <Label htmlFor="hiringReason">{t('hiringReason')}</Label>
-                  <Textarea
-                    id="hiringReason"
-                    value={formData.hiringReason || ''}
-                    onChange={(e) => handleInputChange('hiringReason', e.target.value)}
-                    placeholder={t('hiringReason')}
-                    rows={3}
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="commitmentsObservations">{t('commitmentsObservations')}</Label>
-                  <Textarea
-                    id="commitmentsObservations"
-                    value={formData.commitmentsObservations || ''}
-                    onChange={(e) => handleInputChange('commitmentsObservations', e.target.value)}
-                    placeholder={t('commitmentsObservations')}
-                    rows={4}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Botones de Acción */}
-            <div className="flex justify-end space-x-4 pt-6">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={onBack}
-                disabled={loading}
-              >
-                {t('cancel')}
-              </Button>
-              <Button
-                type="submit"
-                disabled={loading}
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                {loading ? (
-                  <div className="flex items-center space-x-2">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    <span>{editingRequest ? 'Actualizando...' : 'Guardando...'}</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center space-x-2">
-                    <Save className="h-4 w-4" />
-                    <span>{editingRequest ? 'Actualizar Solicitud' : 'Guardar Solicitud'}</span>
-                  </div>
-                )}
-              </Button>
-            </div>
-          </form>
+          <Button
+            onClick={handleSubmit}
+            disabled={isLoading}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            {isLoading ? (
+              <>
+                <Save className="w-4 h-4 mr-2 animate-spin" />
+                Creando...
+              </>
+            ) : (
+              <>
+                <Save className="w-4 h-4 mr-2" />
+                Crear Solicitud
+              </>
+            )}
+          </Button>
         </CardContent>
       </Card>
+
+      {/* Modales */}
+      <CreateWorkCenterModal
+        isOpen={isWorkCenterModalOpen}
+        onClose={closeWorkCenterModal}
+        onSuccess={handleWorkCenterSuccess}
+      />
+
+      <CreateContractModal
+        isOpen={isContractModalOpen}
+        onClose={closeContractModal}
+        onSuccess={handleContractSuccess}
+      />
     </div>
   );
 };
