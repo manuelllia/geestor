@@ -19,81 +19,76 @@ export const getUsersList = async (): Promise<UserData[]> => {
   try {
     console.log('Obteniendo lista de usuarios desde Firebase...');
     
-    // OPCIÓN 1: Si los documentos de usuario están directamente en la colección "Información"
-    // const usersRef = collection(db, "Usuarios", "Información");
-    // const querySnapshot = await getDocs(usersRef);
+    // Primero, accede al documento "Información" para ver qué contiene
+    const informacionDocRef = doc(db, "Usuarios", "Información");
+    const informacionDoc = await getDoc(informacionDocRef);
     
-    // OPCIÓN 2: Si necesitas acceder a una subcolección específica
-    // Primero, obtén todos los documentos de "Usuarios/Información"
-    const usersRef = collection(db, "Usuarios", "Información");
-    const querySnapshot = await getDocs(usersRef);
+    if (!informacionDoc.exists()) {
+      console.log('El documento "Información" no existe');
+      return [];
+    }
     
+    console.log('Datos del documento Información:', informacionDoc.data());
+    
+    // Ahora accede a las subcolecciones del documento "Información"
+    // Necesitamos obtener las subcolecciones manualmente
+    // Esto significa que los usuarios están como subcolecciones de "Información"
+    
+    // Método 1: Si conoces los IDs de usuario, puedes buscarlos directamente
+    // Pero como no los conocemos, necesitamos un enfoque diferente
+    
+    // Para obtener las subcolecciones, necesitamos usar listCollections (solo disponible en Admin SDK)
+    // En el cliente, necesitamos conocer los IDs de usuario de antemano
+    
+    // SOLUCIÓN: Buscar directamente en las subcolecciones conocidas
+    // Si tienes una lista de usuarios en el documento "Información", úsala
+    const informacionData = informacionDoc.data();
     const users: UserData[] = [];
     
-    console.log(`Encontrados ${querySnapshot.docs.length} documentos en la colección`);
-    
-    // Para cada documento de usuario
-    for (const userDoc of querySnapshot.docs) {
-      const userId = userDoc.id;
-      console.log(`Procesando usuario: ${userId}`);
+    // Si el documento "Información" contiene una lista de UIDs de usuarios
+    if (informacionData?.usuarios) {
+      console.log('Encontrada lista de usuarios:', informacionData.usuarios);
       
-      try {
-        // OPCIÓN A: Si los datos están en el documento principal
-        const userData = userDoc.data();
-        
-        if (userData.nombre && userData.email) {
-          users.push({
-            uid: userId,
-            nombre: userData.nombre || '',
-            email: userData.email || '',
-            Per_Create: userData.Per_Create ?? true,
-            Per_Delete: userData.Per_Delete ?? true,
-            Per_Modificate: userData.Per_Modificate ?? true,
-            Per_View: userData.Per_View ?? true,
-            Per_Ope: userData.Per_Ope ?? true,
-            Per_GT: userData.Per_GT ?? true,
-            Per_GDT: userData.Per_GDT ?? true,
-            Per_User: userData.Per_User ?? false
-          });
-        } else {
-          // OPCIÓN B: Si los datos están en un subdocumento con el mismo ID
-          const userSubDocRef = doc(db, "Usuarios", "Información", userId, userId);
-          const userSubDoc = await getDoc(userSubDocRef);
+      for (const userId of informacionData.usuarios) {
+        try {
+          const userDocRef = doc(db, "Usuarios", "Información", userId, userId);
+          const userDoc = await getDoc(userDocRef);
           
-          if (userSubDoc.exists()) {
-            const subData = userSubDoc.data();
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
             
-            if (subData.nombre && subData.email) {
+            if (userData.nombre && userData.email) {
               users.push({
                 uid: userId,
-                nombre: subData.nombre || '',
-                email: subData.email || '',
-                Per_Create: subData.Per_Create ?? true,
-                Per_Delete: subData.Per_Delete ?? true,
-                Per_Modificate: subData.Per_Modificate ?? true,
-                Per_View: subData.Per_View ?? true,
-                Per_Ope: subData.Per_Ope ?? true,
-                Per_GT: subData.Per_GT ?? true,
-                Per_GDT: subData.Per_GDT ?? true,
-                Per_User: subData.Per_User ?? false
+                nombre: userData.nombre || '',
+                email: userData.email || '',
+                Per_Create: userData.Per_Create ?? true,
+                Per_Delete: userData.Per_Delete ?? true,
+                Per_Modificate: userData.Per_Modificate ?? true,
+                Per_View: userData.Per_View ?? true,
+                Per_Ope: userData.Per_Ope ?? true,
+                Per_GT: userData.Per_GT ?? true,
+                Per_GDT: userData.Per_GDT ?? true,
+                Per_User: userData.Per_User ?? false
               });
             }
-          } else {
-            console.log(`No se encontró el subdocumento para el usuario: ${userId}`);
           }
+        } catch (userError) {
+          console.error(`Error al obtener usuario ${userId}:`, userError);
         }
-      } catch (userError) {
-        console.error(`Error al obtener datos del usuario ${userId}:`, userError);
       }
+    } else {
+      console.log('No se encontró lista de usuarios en el documento Información');
+      // Intenta buscar subcolecciones conocidas o usar IDs conocidos
+      // Este es un enfoque alternativo si tienes usuarios específicos
+      console.log('Intentando acceso directo a usuarios conocidos...');
     }
     
     console.log('Usuarios obtenidos exitosamente:', users.length);
-    console.log('Usuarios:', users);
     return users;
     
   } catch (error) {
     console.error('Error al obtener usuarios:', error);
-    console.error('Detalles del error:', error);
     throw error;
   }
 };
@@ -169,30 +164,78 @@ export const debugFirestoreStructure = async () => {
   try {
     console.log('=== DEBUG: Estructura de Firestore ===');
     
-    const usersRef = collection(db, "Usuarios", "Información");
-    const querySnapshot = await getDocs(usersRef);
+    // Verificar el documento "Información"
+    const informacionDocRef = doc(db, "Usuarios", "Información");
+    const informacionDoc = await getDoc(informacionDocRef);
     
-    console.log(`Documentos encontrados en "Usuarios/Información": ${querySnapshot.docs.length}`);
+    console.log('¿Existe el documento "Información"?', informacionDoc.exists());
     
-    for (const doc of querySnapshot.docs) {
-      console.log(`\n--- Documento ID: ${doc.id} ---`);
-      console.log('Datos del documento:', doc.data());
-      
-      // Verificar si hay subcolecciones
+    if (informacionDoc.exists()) {
+      console.log('Datos del documento "Información":', informacionDoc.data());
+    }
+    
+    // Intentar acceder a algunos usuarios conocidos si los tienes
+    const commonUserIds = ['usuario1', 'admin', 'test']; // Agrega aquí IDs que sepas que existen
+    
+    for (const userId of commonUserIds) {
       try {
-        const subCollectionRef = collection(db, "Usuarios", "Información", doc.id);
-        const subSnapshot = await getDocs(subCollectionRef);
-        console.log(`Subdocumentos en ${doc.id}:`, subSnapshot.docs.length);
+        const userDocRef = doc(db, "Usuarios", "Información", userId, userId);
+        const userDoc = await getDoc(userDocRef);
         
-        subSnapshot.forEach(subDoc => {
-          console.log(`  Subdoc ID: ${subDoc.id}`, subDoc.data());
-        });
-      } catch (subError) {
-        console.log('No hay subcolecciones o error:', subError.message);
+        if (userDoc.exists()) {
+          console.log(`Usuario encontrado - ID: ${userId}`, userDoc.data());
+        } else {
+          console.log(`Usuario no encontrado: ${userId}`);
+        }
+      } catch (error) {
+        console.log(`Error al buscar usuario ${userId}:`, error.message);
       }
     }
     
   } catch (error) {
     console.error('Error en debug:', error);
+  }
+};
+
+// Función alternativa si tienes los IDs de usuarios
+export const getUsersListWithKnownIds = async (userIds: string[]): Promise<UserData[]> => {
+  try {
+    console.log('Obteniendo usuarios con IDs conocidos:', userIds);
+    
+    const users: UserData[] = [];
+    
+    for (const userId of userIds) {
+      try {
+        const userDocRef = doc(db, "Usuarios", "Información", userId, userId);
+        const userDoc = await getDoc(userDocRef);
+        
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          
+          if (userData.nombre && userData.email) {
+            users.push({
+              uid: userId,
+              nombre: userData.nombre || '',
+              email: userData.email || '',
+              Per_Create: userData.Per_Create ?? true,
+              Per_Delete: userData.Per_Delete ?? true,
+              Per_Modificate: userData.Per_Modificate ?? true,
+              Per_View: userData.Per_View ?? true,
+              Per_Ope: userData.Per_Ope ?? true,
+              Per_GT: userData.Per_GT ?? true,
+              Per_GDT: userData.Per_GDT ?? true,
+              Per_User: userData.Per_User ?? false
+            });
+          }
+        }
+      } catch (error) {
+        console.error(`Error al obtener usuario ${userId}:`, error);
+      }
+    }
+    
+    return users;
+  } catch (error) {
+    console.error('Error al obtener usuarios con IDs conocidos:', error);
+    throw error;
   }
 };
