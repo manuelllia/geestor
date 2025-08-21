@@ -1,70 +1,55 @@
-
 import React, { useState } from 'react';
 import RealEstateDashboard from './RealEstateDashboard';
-import RealEstateUploadView from './RealEstateUploadView';
-import RealEstateDetailView from './RealEstateDetailView';
 import RealEstateTableManager from './RealEstateTableManager';
+import RealEstateUploadView from './RealEstateUploadView';
 import { Language } from '../../utils/translations';
+import { useTranslation } from '../../hooks/useTranslation';
 
 interface RealEstateListViewProps {
   language: Language;
 }
 
 const RealEstateListView: React.FC<RealEstateListViewProps> = ({ language }) => {
-  const [currentView, setCurrentView] = useState<'dashboard' | 'upload' | 'detail' | 'tables'>('dashboard');
-  const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
-
-  const handleImportData = () => {
-    setCurrentView('upload');
-  };
-
-  const handleViewTables = () => {
-    setCurrentView('tables');
-  };
-
-  const handleViewDetail = (propertyId: string) => {
-    setSelectedPropertyId(propertyId);
-    setCurrentView('detail');
-  };
+  const { t } = useTranslation(language);
+  const [currentView, setCurrentView] = useState<'dashboard' | 'table' | 'upload'>('dashboard');
 
   const handleBackToDashboard = () => {
     setCurrentView('dashboard');
-    setSelectedPropertyId(null);
   };
 
-  switch (currentView) {
-    case 'upload':
-      return (
-        <RealEstateUploadView 
-          language={language}
-          onUploadComplete={handleBackToDashboard}
-          onCancel={handleBackToDashboard}
-        />
-      );
-    case 'detail':
-      return (
-        <RealEstateDetailView 
-          language={language}
-          propertyId={selectedPropertyId || 'sample-id'}
-          onBack={handleBackToDashboard}
-        />
-      );
-    case 'tables':
-      return (
-        <RealEstateTableManager 
-          onBack={handleBackToDashboard}
-          onViewDetail={handleViewDetail}
-        />
-      );
-    default:
-      return (
-        <RealEstateDashboard 
-          language={language}
-          onImportData={handleImportData}
-          onViewTables={handleViewTables}
-        />
-      );
+  const handleViewTable = () => {
+    setCurrentView('table');
+  };
+
+  const handleViewUpload = () => {
+    setCurrentView('upload');
+  };
+
+  if (currentView === 'table') {
+    return (
+      <RealEstateTableManager
+        language={language}
+        onBack={handleBackToDashboard}
+      />
+    );
   }
+
+  if (currentView === 'upload') {
+    return (
+      <RealEstateUploadView
+        language={language}
+        onBack={handleBackToDashboard}
+      />
+    );
+  }
+
+  return (
+    <RealEstateDashboard
+      language={language}
+      onViewTable={handleViewTable}
+      onViewUpload={handleViewUpload}
+    />
+  );
 };
 
 export default RealEstateListView;
