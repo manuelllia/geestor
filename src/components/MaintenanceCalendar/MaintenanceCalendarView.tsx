@@ -1,19 +1,20 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Upload, Bot, FileSpreadsheet, Layers, BarChart3, AlertTriangle, Settings, Package, Calendar } from 'lucide-react';
-import { Language } from '../../utils/translations';
+
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Button } from '../ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { useTranslation } from '../../hooks/useTranslation';
+import { Language } from '../../utils/translations';
+import { useMaintenanceCalendar } from '../../hooks/useMaintenanceCalendar';
 import MaintenanceFileUploader from './MaintenanceFileUploader';
-import AICalendarGenerator from './AICalendarGenerator';
+import MaintenanceInventoryTable from './MaintenanceInventoryTable';
+import MaintenanceCalendarGrid from './MaintenanceCalendarGrid';
 import SheetSelector from './SheetSelector';
 import DataSummary from './DataSummary';
 import DenominacionAnalysis from './DenominacionAnalysis';
-import IncompleteDenominationsManager from './IncompleteDenominationsManager';
-import MaintenanceInventoryTable from './MaintenanceInventoryTable';
+import AICalendarGenerator from './AICalendarGenerator';
+import DenominacionesTable from './DenominacionesTable';
 import EditableMaintenanceCalendar from './EditableMaintenanceCalendar';
-import MaintenanceEventModal from './MaintenanceEventModal';
-import HospitalConfirmationModal from './HospitalConfirmationModal';
 
 interface MaintenanceCalendarViewProps {
   language: Language;
@@ -21,248 +22,396 @@ interface MaintenanceCalendarViewProps {
 
 const MaintenanceCalendarView: React.FC<MaintenanceCalendarViewProps> = ({ language }) => {
   const { t } = useTranslation(language);
-  const [showUploader, setShowUploader] = useState(false);
-  const [showAIGenerator, setShowAIGenerator] = useState(false);
-  const [sheets, setSheets] = useState<string[]>([]);
-  const [selectedSheet, setSelectedSheet] = useState<string | null>(null);
-  const [maintenanceData, setMaintenanceData] = useState<any[]>([]);
-  const [calendarEvents, setCalendarEvents] = useState<any[]>([]);
-  const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
-  const [isEventModalOpen, setIsEventModalOpen] = useState(false);
-  const [showHospitalModal, setShowHospitalModal] = useState(false);
+  const [activeTab, setActiveTab] = useState('upload');
+  const [inventoryFile, setInventoryFile] = useState<File | null>(null);
+  const [maintenanceFile, setMaintenanceFile] = useState<File | null>(null);
+  const [currentProcessingFile, setCurrentProcessingFile] = useState<'inventory' | 'maintenance' | null>(null);
+  const [showEditableCalendar, setShowEditableCalendar] = useState(false);
+  
+  const {
+    inventory,
+    maintenanceCalendar,
+    denominacionesData,
+    processInventoryFile,
+    processMaintenanceFile,
+    isLoading,
+    error,
+    processingStep,
+    selectedSheets,
+    processFinalSheets,
+    generateAICalendar,
+    resetProcess,
+    setSelectedSheets,
+    setProcessingStep,
+    frecTipoData
+  } = useMaintenanceCalendar();
 
-  const handleFileProcessed = useCallback((data: any, sheetNames: string[]) => {
-    setSheets(sheetNames);
-    setSelectedSheet(sheetNames[0]);
-    setMaintenanceData(data[sheetNames[0]]);
-  }, []);
+  const hasData = inventory.length > 0 || maintenanceCalendar.length > 0;
+  const bothFilesUploaded = inventoryFile && maintenanceFile;
+  const bothFilesProcessed = inventory.length > 0 && frecTipoData.length > 0;
 
-  useEffect(() => {
-    if (selectedSheet && maintenanceData.length > 0) {
-      generateCalendarEvents(maintenanceData);
+  const handleInventoryUpload = (file: File) => {
+    setInventoryFile(file);
+    console.log('Archivo de inventario cargado:', file.name);
+  };
+
+  const handleMaintenanceUpload = (file: File) => {
+    setMaintenanceFile(file);
+    console.log('Archivo de mantenimiento cargado:', file.name);
+  };
+
+  const handleProcessFiles = () => {
+    if (!bothFilesUploaded) return;
+    
+    setCurrentProcessingFile('inventory');
+    processInventoryFile(inventoryFile);
+  };
+
+  const handleSheetsSelected = (sheets: any[]) => {
+    setSelectedSheets(sheets);
+    
+    if (currentProcessingFile === 'inventory' && maintenanceFile) {
+      processFinalSheets(true);
+      setCurrentProcessingFile('maintenance');
+      processMaintenanceFile(maintenanceFile);
+    } else if (currentProcessingFile === 'maintenance') {
+      processFinalSheets(false);
+      setProcessingStep('generate-calendar');
     }
-  }, [selectedSheet, maintenanceData]);
-
-  const generateCalendarEvents = useCallback((data: any[]) => {
-    const events = data.map((item) => ({
-      title: item.Denominación,
-      start: new Date(item.Fecha),
-      end: new Date(item.Fecha),
-      allDay: true,
-      resource: item,
-    }));
-    setCalendarEvents(events);
-  }, []);
-
-  const handleAICalendarGenerated = (events: any[]) => {
-    setCalendarEvents(events);
   };
 
-  const handleEventClick = (event: any) => {
-    setSelectedEvent(event.event);
-    setIsEventModalOpen(true);
+  const handleGenerateCalendar = () => {
+    generateAICalendar();
   };
 
-  const handleEventSave = (updatedEvent: any) => {
-    const updatedEvents = calendarEvents.map((event) =>
-      event.title === updatedEvent.title ? updatedEvent : event
+  const handleBackToSheetSelection = () => {
+    setProcessingStep('select-sheets');
+  };
+
+  const handleBackToUpload = () => {
+    resetProcess();
+    setInventoryFile(null);
+    setMaintenanceFile(null);
+    setCurrentProcessingFile(null);
+  };
+
+  const handleShowEditableCalendar = () => {
+    setShowEditableCalendar(true);
+  };
+
+  const handleBackToAnalysis = () => {
+    setShowEditableCalendar(false);
+  };
+
+  // Si se está mostrando el calendario editable
+  if (showEditableCalendar) {
+    return (
+      <EditableMaintenanceCalendar
+        denominaciones={denominacionesData}
+        onBack={handleBackToAnalysis}
+      />
     );
-    setCalendarEvents(updatedEvents);
-    setIsEventModalOpen(false);
-    setSelectedEvent(null);
-  };
+  }
 
-  const handleHospitalConfirm = () => {
-    setShowHospitalModal(false);
-    // Aquí puedes implementar la lógica para enviar la confirmación al hospital
-    alert('Confirmación enviada al hospital para ' + selectedEvent.title);
-  };
-
-  return (
-    <div className="space-y-4 sm:space-y-6 p-2 sm:p-4 lg:p-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="space-y-1">
-          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-blue-900 dark:text-blue-100">
-            Calendario de Mantenimientos
-          </h1>
-          <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-            Gestiona y visualiza los mantenimientos programados
-          </p>
-        </div>
+  const renderUploadContent = () => {
+    switch (processingStep) {
+      case 'select-sheets':
+        const currentFile = currentProcessingFile === 'inventory' ? inventoryFile : maintenanceFile;
+        const fileTitle = currentProcessingFile === 'inventory' ? 'Inventario Hospitalario' : 'Calendario de Mantenimiento';
         
-        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-          <Button
-            onClick={() => setShowUploader(!showUploader)}
-            variant="outline"
-            className="border-blue-300 text-blue-700 hover:bg-blue-50 text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2"
-          >
-            <Upload className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-            <span className="hidden sm:inline">Subir Archivo</span>
-            <span className="sm:hidden">Subir</span>
-          </Button>
-          
-          <Button
-            onClick={() => setShowAIGenerator(!showAIGenerator)}
-            className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2"
-          >
-            <Bot className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-            <span className="hidden sm:inline">Generar con IA</span>
-            <span className="sm:hidden">IA</span>
-          </Button>
-        </div>
-      </div>
-
-      {/* Subida de archivos */}
-      {showUploader && (
-        <Card className="border-blue-200 dark:border-blue-800">
-          <CardHeader className="p-3 sm:p-6">
-            <CardTitle className="text-blue-800 dark:text-blue-200 flex items-center gap-2 text-sm sm:text-base">
-              <FileSpreadsheet className="w-4 h-4 sm:w-5 sm:h-5" />
-              Subir Archivo de Mantenimientos
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-3 sm:p-6">
-            <MaintenanceFileUploader onFileProcessed={handleFileProcessed} />
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Generador de IA */}
-      {showAIGenerator && (
-        <Card className="border-purple-200 dark:border-purple-800">
-          <CardHeader className="p-3 sm:p-6 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20">
-            <CardTitle className="text-purple-800 dark:text-purple-200 flex items-center gap-2 text-sm sm:text-base">
-              <Bot className="w-4 h-4 sm:w-5 sm:h-5" />
-              Generador de Calendario con IA
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-3 sm:p-6">
-            <AICalendarGenerator onCalendarGenerated={handleAICalendarGenerated} />
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Selector de hojas */}
-      {sheets.length > 0 && (
-        <Card className="border-blue-200 dark:border-blue-800">
-          <CardHeader className="p-3 sm:p-6">
-            <CardTitle className="text-blue-800 dark:text-blue-200 flex items-center gap-2 text-sm sm:text-base">
-              <Layers className="w-4 h-4 sm:w-5 sm:h-5" />
-              Seleccionar Hoja de Trabajo
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-3 sm:p-6">
-            <SheetSelector
-              sheets={sheets}
-              selectedSheet={selectedSheet}
-              onSheetSelect={setSelectedSheet}
-            />
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Resumen de datos */}
-      {maintenanceData.length > 0 && (
-        <Card className="border-green-200 dark:border-green-800">
-          <CardHeader className="p-3 sm:p-6">
-            <CardTitle className="text-green-800 dark:text-green-200 flex items-center gap-2 text-sm sm:text-base">
-              <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5" />
-              Resumen de Datos
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-3 sm:p-6">
-            <DataSummary data={maintenanceData} />
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Análisis de denominaciones */}
-      {maintenanceData.length > 0 && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-          <Card className="border-yellow-200 dark:border-yellow-800">
-            <CardHeader className="p-3 sm:p-6">
-              <CardTitle className="text-yellow-800 dark:text-yellow-200 flex items-center gap-2 text-sm sm:text-base">
-                <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5" />
-                Análisis de Denominaciones
-              </CardTitle>
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>📋 Seleccionar Hojas - {fileTitle}</CardTitle>
             </CardHeader>
-            <CardContent className="p-3 sm:p-6">
-              <DenominacionAnalysis data={maintenanceData} />
-            </CardContent>
-          </Card>
-
-          <Card className="border-orange-200 dark:border-orange-800">
-            <CardHeader className="p-3 sm:p-6">
-              <CardTitle className="text-orange-800 dark:text-orange-200 flex items-center gap-2 text-sm sm:text-base">
-                <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
-                Denominaciones Incompletas
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-3 sm:p-6">
-              <IncompleteDenominationsManager
-                data={maintenanceData}
-                onUpdateData={setMaintenanceData}
+            <CardContent>
+              <SheetSelector
+                file={currentFile!}
+                onSheetsSelected={handleSheetsSelected}
+                onBack={() => handleBackToUpload()}
               />
             </CardContent>
           </Card>
-        </div>
-      )}
+        );
 
-      {/* Tabla de inventario */}
-      {maintenanceData.length > 0 && (
-        <Card className="border-blue-200 dark:border-blue-800">
-          <CardHeader className="p-3 sm:p-6">
-            <CardTitle className="text-blue-800 dark:text-blue-200 flex items-center gap-2 text-sm sm:text-base">
-              <Package className="w-4 h-4 sm:w-5 sm:h-5" />
-              Inventario de Mantenimientos
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-2 sm:p-6">
-            <MaintenanceInventoryTable data={maintenanceData} />
-          </CardContent>
-        </Card>
-      )}
+      case 'generate-calendar':
+        return (
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  🤖 Generar Calendario de Mantenimiento
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-6 border border-blue-200 dark:border-blue-700">
+                  <p className="text-blue-800 dark:text-blue-200 font-medium mb-4">
+                    ✅ Archivos procesados correctamente
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border">
+                      <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                        {inventory.length}
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                        Equipos en Inventario
+                      </div>
+                    </div>
+                    
+                    <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border">
+                      <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                        {frecTipoData.length}
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                        Datos de Mantenimiento
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <p className="text-blue-600 dark:text-blue-300 text-sm mb-4">
+                    La IA analizará las denominaciones homogéneas y generará un calendario de mantenimiento personalizado.
+                  </p>
+                  
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={handleGenerateCalendar}
+                      disabled={isLoading}
+                      className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold"
+                      size="lg"
+                    >
+                      {isLoading ? (
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                          Generando Calendario...
+                        </div>
+                      ) : (
+                        'Generar Calendario de Mantenimiento con IA'
+                      )}
+                    </Button>
+                    
+                    <Button 
+                      onClick={handleBackToUpload}
+                      variant="outline"
+                    >
+                      Volver al Inicio
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        );
 
-      {/* Calendario de mantenimientos */}
-      {calendarEvents.length > 0 && (
-        <Card className="border-purple-200 dark:border-purple-800">
-          <CardHeader className="p-3 sm:p-6">
-            <CardTitle className="text-purple-800 dark:text-purple-200 flex items-center gap-2 text-sm sm:text-base">
-              <Calendar className="w-4 h-4 sm:w-5 sm:h-5" />
-              Calendario de Mantenimientos Generado
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-2 sm:p-6">
-            <EditableMaintenanceCalendar
-              events={calendarEvents}
-              onEventsChange={setCalendarEvents}
-              onEventClick={handleEventClick}
+      case 'processing':
+        return (
+          <Card>
+            <CardContent className="flex items-center justify-center py-12">
+              <div className="flex flex-col items-center space-y-4">
+                <div className="w-12 h-12 border-4 border-purple-500/20 border-t-purple-500 rounded-full animate-spin" />
+                <p className="text-lg font-medium">Analizando denominaciones homogéneas...</p>
+                <p className="text-gray-600 dark:text-gray-300">Esto puede tomar unos momentos</p>
+              </div>
+            </CardContent>
+          </Card>
+        );
+
+      case 'complete':
+        return (
+          <div className="space-y-6">
+            <DenominacionesTable 
+              denominaciones={denominacionesData} 
+              onGenerateCalendar={handleShowEditableCalendar}
             />
+            
+            <Card className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700">
+              <CardContent className="pt-6">
+                <div className="text-center">
+                  <div className="text-green-600 dark:text-green-400 text-lg font-medium mb-2">
+                    ¡Análisis completado exitosamente!
+                  </div>
+                  <p className="text-green-700 dark:text-green-300 mb-4">
+                    Se han detectado {denominacionesData.length} tipos de equipos en el inventario
+                  </p>
+                  <Button onClick={() => handleBackToUpload()} variant="outline">
+                    Importar Más Archivos
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        );
+
+      default:
+        return (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>📦 Inventario Hospitalario</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <MaintenanceFileUploader
+                    title="Inventario Hospitalario"
+                    description="Sube un archivo Excel o CSV con el inventario de equipos médicos"
+                    acceptedFormats=".xlsx,.xls,.csv"
+                    onFileUpload={(file) => setInventoryFile(file)}
+                    isLoading={isLoading}
+                    icon={<span>📦</span>}
+                  />
+                  {inventoryFile && (
+                    <div className="mt-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-700">
+                      <p className="text-sm text-green-700 dark:text-green-300 font-medium">
+                        ✅ Archivo cargado: {inventoryFile.name}
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>🔧 Calendario de Mantenimiento</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <MaintenanceFileUploader
+                    title="Calendario de Mantenimiento"
+                    description="Sube un archivo Excel o CSV con la programación de mantenimiento"
+                    acceptedFormats=".xlsx,.xls,.csv"
+                    onFileUpload={(file) => setMaintenanceFile(file)}
+                    isLoading={isLoading}
+                    icon={<span>🔧</span>}
+                  />
+                  {maintenanceFile && (
+                    <div className="mt-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-700">
+                      <p className="text-sm text-green-700 dark:text-green-300 font-medium">
+                        ✅ Archivo cargado: {maintenanceFile.name}
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {bothFilesUploaded && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-xl font-semibold text-blue-900 dark:text-blue-100">
+                    📈 Procesar Archivos
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-6 border border-blue-200 dark:border-blue-700">
+                    <p className="text-blue-800 dark:text-blue-200 font-medium mb-4">
+                      ✅ Ambos archivos están listos para procesar
+                    </p>
+                    <p className="text-blue-600 dark:text-blue-300 text-sm mb-4">
+                      Se analizarán las hojas de cada archivo y podrás seleccionar cuáles importar.
+                    </p>
+                    <Button
+                      onClick={() => {
+                        if (!bothFilesUploaded) return;
+                        setCurrentProcessingFile('inventory');
+                        processInventoryFile(inventoryFile);
+                      }}
+                      disabled={isLoading}
+                      className="w-full bg-emerald-600 hover:bg-emerald-700"
+                    >
+                      {isLoading ? (
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                          Procesando Archivos...
+                        </div>
+                      ) : (
+                        'Procesar Archivos'
+                      )}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {bothFilesProcessed && processingStep === 'upload' && (
+              <AICalendarGenerator
+                inventoryCount={inventory.length}
+                maintenanceDataCount={frecTipoData.length}
+                onGenerateCalendar={() => generateAICalendar()}
+                isLoading={isLoading}
+              />
+            )}
+
+            {hasData && processingStep === 'upload' && !bothFilesUploaded && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>✅ Estado de los Archivos</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="flex items-center space-x-2">
+                      <div className={`w-3 h-3 rounded-full ${inventory.length > 0 ? 'bg-green-500' : 'bg-gray-300'}`} />
+                      <span>Inventario: {inventory.length} elementos</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <div className={`w-3 h-3 rounded-full ${maintenanceCalendar.length > 0 ? 'bg-green-500' : 'bg-gray-300'}`} />
+                      <span>Mantenimiento: {maintenanceCalendar.length} programaciones</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        );
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-gradient-to-r from-emerald-500 to-emerald-700 text-white rounded-lg p-8">
+        <h1 className="text-3xl font-bold mb-4">Calendario de Mantenimiento</h1>
+        <p className="text-emerald-100 text-lg">
+          Gestiona el inventario hospitalario y programa el mantenimiento de equipos
+        </p>
+      </div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="upload">📁 Subir Archivos</TabsTrigger>
+          <TabsTrigger value="analysis" disabled={denominacionesData.length === 0}>
+            📊 Análisis ({denominacionesData.length})
+          </TabsTrigger>
+          <TabsTrigger value="inventory" disabled={inventory.length === 0}>
+            📋 Inventario ({inventory.length})
+          </TabsTrigger>
+          <TabsTrigger value="calendar" disabled={maintenanceCalendar.length === 0}>
+            📅 Calendario ({maintenanceCalendar.length})
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="upload" className="space-y-6">
+          {renderUploadContent()}
+        </TabsContent>
+
+        <TabsContent value="analysis">
+          <DenominacionesTable 
+            denominaciones={denominacionesData}
+            onGenerateCalendar={handleShowEditableCalendar}
+          />
+        </TabsContent>
+
+        <TabsContent value="inventory">
+          <MaintenanceInventoryTable inventory={inventory} language={language} />
+        </TabsContent>
+
+        <TabsContent value="calendar">
+          <MaintenanceCalendarGrid calendar={maintenanceCalendar} language={language} />
+        </TabsContent>
+      </Tabs>
+
+      {error && (
+        <Card className="border-red-200 bg-red-50 dark:bg-red-900/20">
+          <CardContent className="pt-6">
+            <p className="text-red-700 dark:text-red-300">{error}</p>
           </CardContent>
         </Card>
-      )}
-
-      {/* Modal de evento */}
-      {selectedEvent && (
-        <MaintenanceEventModal
-          event={selectedEvent}
-          isOpen={isEventModalOpen}
-          onClose={() => {
-            setIsEventModalOpen(false);
-            setSelectedEvent(null);
-          }}
-          onSave={handleEventSave}
-        />
-      )}
-
-      {/* Modal de confirmación de hospital */}
-      {showHospitalModal && selectedEvent && (
-        <HospitalConfirmationModal
-          event={selectedEvent}
-          isOpen={showHospitalModal}
-          onClose={() => setShowHospitalModal(false)}
-          onConfirm={handleHospitalConfirm}
-        />
       )}
     </div>
   );

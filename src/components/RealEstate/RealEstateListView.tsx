@@ -1,55 +1,70 @@
+
 import React, { useState } from 'react';
 import RealEstateDashboard from './RealEstateDashboard';
-import RealEstateTableManager from './RealEstateTableManager';
 import RealEstateUploadView from './RealEstateUploadView';
+import RealEstateDetailView from './RealEstateDetailView';
+import RealEstateTableManager from './RealEstateTableManager';
 import { Language } from '../../utils/translations';
-import { useTranslation } from '../../hooks/useTranslation';
 
 interface RealEstateListViewProps {
   language: Language;
 }
 
 const RealEstateListView: React.FC<RealEstateListViewProps> = ({ language }) => {
-  const { t } = useTranslation(language);
-  const [currentView, setCurrentView] = useState<'dashboard' | 'table' | 'upload'>('dashboard');
+  const [currentView, setCurrentView] = useState<'dashboard' | 'upload' | 'detail' | 'tables'>('dashboard');
+  const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
 
-  const handleBackToDashboard = () => {
-    setCurrentView('dashboard');
-  };
-
-  const handleViewTable = () => {
-    setCurrentView('table');
-  };
-
-  const handleViewUpload = () => {
+  const handleImportData = () => {
     setCurrentView('upload');
   };
 
-  if (currentView === 'table') {
-    return (
-      <RealEstateTableManager
-        language={language}
-        onBack={handleBackToDashboard}
-      />
-    );
-  }
+  const handleViewTables = () => {
+    setCurrentView('tables');
+  };
 
-  if (currentView === 'upload') {
-    return (
-      <RealEstateUploadView
-        language={language}
-        onBack={handleBackToDashboard}
-      />
-    );
-  }
+  const handleViewDetail = (propertyId: string) => {
+    setSelectedPropertyId(propertyId);
+    setCurrentView('detail');
+  };
 
-  return (
-    <RealEstateDashboard
-      language={language}
-      onViewTable={handleViewTable}
-      onViewUpload={handleViewUpload}
-    />
-  );
+  const handleBackToDashboard = () => {
+    setCurrentView('dashboard');
+    setSelectedPropertyId(null);
+  };
+
+  switch (currentView) {
+    case 'upload':
+      return (
+        <RealEstateUploadView 
+          language={language}
+          onUploadComplete={handleBackToDashboard}
+          onCancel={handleBackToDashboard}
+        />
+      );
+    case 'detail':
+      return (
+        <RealEstateDetailView 
+          language={language}
+          propertyId={selectedPropertyId || 'sample-id'}
+          onBack={handleBackToDashboard}
+        />
+      );
+    case 'tables':
+      return (
+        <RealEstateTableManager 
+          onBack={handleBackToDashboard}
+          onViewDetail={handleViewDetail}
+        />
+      );
+    default:
+      return (
+        <RealEstateDashboard 
+          language={language}
+          onImportData={handleImportData}
+          onViewTables={handleViewTables}
+        />
+      );
+  }
 };
 
 export default RealEstateListView;
