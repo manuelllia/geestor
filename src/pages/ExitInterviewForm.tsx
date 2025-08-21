@@ -197,18 +197,18 @@ const ExitInterviewForm = () => {
   if (isSubmitted) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-25 via-white to-blue-50 flex items-center justify-center p-6">
-        <Card className="w-full max-w-md animate-fade-in-scale">
+        <Card className="w-full max-w-md">
           <CardContent className="p-8 text-center">
-            <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-6 animate-gentle-bounce">
+            <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-6">
               <CheckCircle className="w-8 h-8 text-green-600" />
             </div>
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4 animate-slide-in-top">
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">
               ¡Formulario enviado correctamente!
             </h2>
-            <p className="text-gray-600 mb-6 animate-slide-in-bottom animate-stagger-1">
+            <p className="text-gray-600 mb-6">
               Gracias por completar la entrevista de salida. Tu feedback es muy valioso para nosotros.
             </p>
-            <p className="text-sm text-gray-500 animate-slide-in-bottom animate-stagger-2">
+            <p className="text-sm text-gray-500">
               Ya puedes cerrar esta ventana.
             </p>
           </CardContent>
@@ -220,12 +220,12 @@ const ExitInterviewForm = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-25 via-white to-blue-50 py-12">
       <div className="container mx-auto px-4 max-w-4xl">
-        <Card className="border-blue-200 animate-slide-in-top hover-lift">
+        <Card className="border-blue-200">
           <CardHeader className="text-center">
-            <CardTitle className="text-3xl font-bold text-blue-800 animate-slide-in-left">
+            <CardTitle className="text-3xl font-bold text-blue-800">
               Cuestionario de Salida
             </CardTitle>
-            <p className="text-gray-600 mt-4 animate-slide-in-right animate-stagger-1">
+            <p className="text-gray-600 mt-4">
               Por favor, cumplimenta este cuestionario, en él recogemos información sobre tus motivos de baja y la valoración de algunos aspectos de tu paso por el GEE. Esta información nos ayudará a proponer acciones de mejora en un futuro.
             </p>
           </CardHeader>
@@ -233,7 +233,7 @@ const ExitInterviewForm = () => {
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
                 {/* Datos personales */}
-                <div className="space-y-6 animate-slide-in-bottom animate-stagger-1">
+                <div className="space-y-6">
                   <h3 className="text-xl font-semibold text-blue-800">Datos Personales</h3>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -241,10 +241,10 @@ const ExitInterviewForm = () => {
                       control={form.control}
                       name="employeeName"
                       render={({ field }) => (
-                        <FormItem className="animate-slide-in-left animate-stagger-1">
+                        <FormItem>
                           <FormLabel>Nombre de la Persona *</FormLabel>
                           <FormControl>
-                            <Input placeholder="Nombre" className="focus-ring hover-glow" {...field} />
+                            <Input placeholder="Nombre" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -255,10 +255,10 @@ const ExitInterviewForm = () => {
                       control={form.control}
                       name="employeeLastName"
                       render={({ field }) => (
-                        <FormItem className="animate-slide-in-right animate-stagger-1">
+                        <FormItem>
                           <FormLabel>Apellidos de la Persona *</FormLabel>
                           <FormControl>
-                            <Input placeholder="Apellidos" className="focus-ring hover-glow" {...field} />
+                            <Input placeholder="Apellidos" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -271,10 +271,10 @@ const ExitInterviewForm = () => {
                       control={form.control}
                       name="supervisorName"
                       render={({ field }) => (
-                        <FormItem className="animate-slide-in-left animate-stagger-2">
+                        <FormItem>
                           <FormLabel>Nombre Responsable Directo *</FormLabel>
                           <FormControl>
-                            <Input placeholder="Nombre del responsable" className="focus-ring hover-glow" {...field} />
+                            <Input placeholder="Nombre del responsable" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -285,10 +285,10 @@ const ExitInterviewForm = () => {
                       control={form.control}
                       name="supervisorLastName"
                       render={({ field }) => (
-                        <FormItem className="animate-slide-in-right animate-stagger-2">
+                        <FormItem>
                           <FormLabel>Apellidos Responsable Directo *</FormLabel>
                           <FormControl>
-                            <Input placeholder="Apellidos del responsable" className="focus-ring hover-glow" {...field} />
+                            <Input placeholder="Apellidos del responsable" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -301,24 +301,24 @@ const ExitInterviewForm = () => {
                       control={form.control}
                       name="workCenter"
                       render={({ field }) => (
-                        <FormItem className="animate-slide-in-left animate-stagger-3">
+                        <FormItem>
                           <FormLabel>Centro de Trabajo *</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value} disabled={workCentersLoading}>
                             <FormControl>
-                              <SelectTrigger className="focus-ring hover-glow">
+                              <SelectTrigger>
                                 <SelectValue placeholder={workCentersLoading ? "Cargando centros..." : "Seleccionar centro"} />
                               </SelectTrigger>
                             </FormControl>
-                            <SelectContent className="bg-white border shadow-lg z-50">
+                            <SelectContent>
                               {workCenters.map((center) => (
-                                <SelectItem key={center.id} value={center.displayText} className="hover:bg-blue-50 cursor-pointer">
+                                <SelectItem key={center.id} value={center.displayText}>
                                   {center.displayText}
                                 </SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
                           {workCentersError && (
-                            <p className="text-sm text-red-600 animate-slide-in-bottom">{workCentersError}</p>
+                            <p className="text-sm text-red-600">{workCentersError}</p>
                           )}
                           <FormMessage />
                         </FormItem>
@@ -329,10 +329,10 @@ const ExitInterviewForm = () => {
                       control={form.control}
                       name="position"
                       render={({ field }) => (
-                        <FormItem className="animate-slide-in-right animate-stagger-3">
+                        <FormItem>
                           <FormLabel>Puesto *</FormLabel>
                           <FormControl>
-                            <Input placeholder="Puesto de trabajo" className="focus-ring hover-glow" {...field} />
+                            <Input placeholder="Puesto de trabajo" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -651,7 +651,7 @@ const ExitInterviewForm = () => {
                 <div className="flex justify-center pt-8">
                   <Button
                     type="submit"
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg hover-lift animate-pulse-glow transition-all duration-300"
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg"
                     disabled={isLoading}
                   >
                     {isLoading ? (
