@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Plus, Edit, Trash2, ArrowLeft, Loader2 } from 'lucide-react';
+import { Plus, Edit, Trash2, ArrowLeft, Loader2, Eye } from 'lucide-react';
 import { 
   getAvailableSheets, 
   getSheetData, 
@@ -22,6 +21,7 @@ import { toast } from 'sonner';
 
 interface RealEstateTableManagerProps {
   onBack: () => void;
+  onViewDetail?: (propertyId: string) => void;
 }
 
 interface FieldDefinition {
@@ -31,7 +31,7 @@ interface FieldDefinition {
   options?: string[];
 }
 
-const RealEstateTableManager: React.FC<RealEstateTableManagerProps> = ({ onBack }) => {
+const RealEstateTableManager: React.FC<RealEstateTableManagerProps> = ({ onBack, onViewDetail }) => {
   const [availableSheets, setAvailableSheets] = useState<string[]>([]);
   const [selectedSheet, setSelectedSheet] = useState<string>('');
   const [tableData, setTableData] = useState<PropertyData[]>([]);
@@ -195,6 +195,12 @@ const RealEstateTableManager: React.FC<RealEstateTableManagerProps> = ({ onBack 
     }
   };
 
+  const handleViewDetail = (recordId: string) => {
+    if (onViewDetail) {
+      onViewDetail(recordId);
+    }
+  };
+
   const renderFormField = (field: FieldDefinition) => {
     switch (field.type) {
       case 'select':
@@ -322,7 +328,7 @@ const RealEstateTableManager: React.FC<RealEstateTableManagerProps> = ({ onBack 
                       {columns.map(column => (
                         <TableHead key={column}>{column}</TableHead>
                       ))}
-                      <TableHead className="w-[120px]">Acciones</TableHead>
+                      <TableHead className="w-[150px]">Acciones</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -335,11 +341,23 @@ const RealEstateTableManager: React.FC<RealEstateTableManagerProps> = ({ onBack 
                         ))}
                         <TableCell>
                           <div className="flex gap-2">
+                            {onViewDetail && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleViewDetail(record.id)}
+                                disabled={deleteLoading === record.id}
+                                title="Ver detalles"
+                              >
+                                <Eye className="w-3 h-3" />
+                              </Button>
+                            )}
                             <Button
                               size="sm"
                               variant="outline"
                               onClick={() => handleEdit(record)}
                               disabled={deleteLoading === record.id}
+                              title="Editar"
                             >
                               <Edit className="w-3 h-3" />
                             </Button>
@@ -349,6 +367,7 @@ const RealEstateTableManager: React.FC<RealEstateTableManagerProps> = ({ onBack 
                                   size="sm" 
                                   variant="outline"
                                   disabled={deleteLoading === record.id}
+                                  title="Eliminar"
                                 >
                                   {deleteLoading === record.id ? (
                                     <Loader2 className="w-3 h-3 animate-spin" />

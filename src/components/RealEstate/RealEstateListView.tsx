@@ -12,6 +12,7 @@ interface RealEstateListViewProps {
 
 const RealEstateListView: React.FC<RealEstateListViewProps> = ({ language }) => {
   const [currentView, setCurrentView] = useState<'dashboard' | 'upload' | 'detail' | 'tables'>('dashboard');
+  const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
 
   const handleImportData = () => {
     setCurrentView('upload');
@@ -21,8 +22,14 @@ const RealEstateListView: React.FC<RealEstateListViewProps> = ({ language }) => 
     setCurrentView('tables');
   };
 
+  const handleViewDetail = (propertyId: string) => {
+    setSelectedPropertyId(propertyId);
+    setCurrentView('detail');
+  };
+
   const handleBackToDashboard = () => {
     setCurrentView('dashboard');
+    setSelectedPropertyId(null);
   };
 
   switch (currentView) {
@@ -38,7 +45,7 @@ const RealEstateListView: React.FC<RealEstateListViewProps> = ({ language }) => 
       return (
         <RealEstateDetailView 
           language={language}
-          propertyId="sample-id"
+          propertyId={selectedPropertyId || 'sample-id'}
           onBack={handleBackToDashboard}
         />
       );
@@ -46,6 +53,7 @@ const RealEstateListView: React.FC<RealEstateListViewProps> = ({ language }) => 
       return (
         <RealEstateTableManager 
           onBack={handleBackToDashboard}
+          onViewDetail={handleViewDetail}
         />
       );
     default:
@@ -54,6 +62,7 @@ const RealEstateListView: React.FC<RealEstateListViewProps> = ({ language }) => 
           language={language}
           onImportData={handleImportData}
           onViewTables={handleViewTables}
+          onViewDetail={handleViewDetail}
         />
       );
   }
