@@ -6,25 +6,13 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { User, Settings, Shield, Eye, Edit, Trash2, Plus } from 'lucide-react';
-
-interface User {
-  id: string;
-  nombre: string;
-  email: string;
-  Per_Create: boolean;
-  Per_Delete: boolean;
-  Per_Modificate: boolean;
-  Per_View: boolean;
-  Per_Ope: boolean;
-  Per_GT: boolean;
-  Per_GDT: boolean;
-}
+import { UserData } from '../../services/usersService';
 
 interface UserPermissionsModalProps {
-  user: User;
+  user: UserData;
   isOpen: boolean;
   onClose: () => void;
-  onSave: (user: User) => void;
+  onSave: (user: UserData) => void;
 }
 
 const UserPermissionsModal: React.FC<UserPermissionsModalProps> = ({
@@ -33,13 +21,13 @@ const UserPermissionsModal: React.FC<UserPermissionsModalProps> = ({
   onClose,
   onSave,
 }) => {
-  const [formData, setFormData] = useState<User>(user);
+  const [formData, setFormData] = useState<UserData>(user);
 
   useEffect(() => {
     setFormData(user);
   }, [user]);
 
-  const handleSwitchChange = (field: keyof User, value: boolean) => {
+  const handleSwitchChange = (field: keyof UserData, value: boolean) => {
     setFormData(prev => ({
       ...prev,
       [field]: value

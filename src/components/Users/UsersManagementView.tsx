@@ -8,22 +8,9 @@ import { MoreHorizontal, Eye, Users, Loader2, RefreshCw } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Language } from '../../utils/translations';
 import { useTranslation } from '../../hooks/useTranslation';
-import { getUsersList, updateUserPermissions } from '../../services/usersService';
+import { getUsersList, updateUserPermissions, UserData } from '../../services/usersService';
 import UserPermissionsModal from './UserPermissionsModal';
 import { toast } from 'sonner';
-
-interface User {
-  uid: string;
-  nombre: string;
-  email: string;
-  Per_Create: boolean;
-  Per_Delete: boolean;
-  Per_Modificate: boolean;
-  Per_View: boolean;
-  Per_Ope: boolean;
-  Per_GT: boolean;
-  Per_GDT: boolean;
-}
 
 interface UsersManagementViewProps {
   language: Language;
@@ -31,9 +18,9 @@ interface UsersManagementViewProps {
 
 const UsersManagementView: React.FC<UsersManagementViewProps> = ({ language }) => {
   const { t } = useTranslation(language);
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<UserData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -60,16 +47,16 @@ const UsersManagementView: React.FC<UsersManagementViewProps> = ({ language }) =
     setRefreshing(false);
   };
 
-  const handleEditUser = (user: User) => {
+  const handleEditUser = (user: UserData) => {
     setSelectedUser(user);
     setIsModalOpen(true);
   };
 
-  const handleSaveUser = async (updatedUser: User) => {
+  const handleSaveUser = async (updatedUser: UserData) => {
     try {
-      await updateUserPermissions(updatedUser.id, updatedUser);
+      await updateUserPermissions(updatedUser.uid, updatedUser);
       setUsers(prev => prev.map(user => 
-        user.id === updatedUser.id ? updatedUser : user
+        user.uid === updatedUser.uid ? updatedUser : user
       ));
       setIsModalOpen(false);
       setSelectedUser(null);
@@ -171,7 +158,7 @@ const UsersManagementView: React.FC<UsersManagementViewProps> = ({ language }) =
               </TableHeader>
               <TableBody>
                 {users.map((user) => (
-                  <TableRow key={user.id}>
+                  <TableRow key={user.uid}>
                     <TableCell className="font-medium">{user.nombre}</TableCell>
                     <TableCell>{user.email}</TableCell>
                     <TableCell className="hidden sm:table-cell">

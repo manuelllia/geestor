@@ -3,7 +3,7 @@ import { collection, getDocs, doc, updateDoc } from "firebase/firestore";
 import { db } from "../lib/firebase";
 
 export interface UserData {
-  id: string;
+  uid: string;
   nombre: string;
   email: string;
   Per_Create: boolean;
@@ -39,7 +39,7 @@ export const getUsersList = async (): Promise<UserData[]> => {
         // Solo agregar si tiene los campos necesarios
         if (data.nombre && data.email) {
           users.push({
-            id: doc.id,
+            uid: doc.id,
             nombre: data.nombre || '',
             email: data.email || '',
             Per_Create: data.Per_Create ?? true,
