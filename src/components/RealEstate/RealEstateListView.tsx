@@ -62,7 +62,6 @@ const RealEstateListView: React.FC<RealEstateListViewProps> = ({ language }) => 
           language={language}
           onImportData={handleImportData}
           onViewTables={handleViewTables}
-          onViewDetail={handleViewDetail}
         />
       );
   }

@@ -20,9 +20,9 @@ export const useEnhancedPDFExport = () => {
     const doc = new jsPDF();
     
     // Configuración de fuentes y colores
-    const primaryColor = [41, 98, 168]; // Azul corporativo
-    const secondaryColor = [107, 114, 128]; // Gris
-    const backgroundColor = [249, 250, 251]; // Gris claro
+    const primaryColor: [number, number, number] = [41, 98, 168]; // Azul corporativo
+    const secondaryColor: [number, number, number] = [107, 114, 128]; // Gris
+    const backgroundColor: [number, number, number] = [249, 250, 251]; // Gris claro
     
     let yPosition = 20;
     const margin = 20;
