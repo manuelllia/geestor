@@ -1,10 +1,9 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { toast } from 'react-hot-toast';
-import { useNavigate } from 'react-router-dom';
+import { format } from 'date-fns'; // Importamos format para el calendario
+import { CalendarIcon, Send, CheckCircle } from 'lucide-react'; // Iconos de lucide-react
 
 import {
   Form,
@@ -22,9 +21,12 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'; // Importamos Card components
+import { cn } from '@/lib/utils'; // Importamos cn para combinar clases condicionalmente
 
 import { savePracticeEvaluation, PracticeEvaluationData } from '../services/practiceEvaluationService';
 
+// Esquema de validación (sin cambios, ya es correcto)
 const formSchema = z.object({
   tutorName: z.string().min(2, {
     message: "El nombre del tutor debe tener al menos 2 caracteres.",
@@ -86,14 +88,16 @@ const formSchema = z.object({
   evaluatorName: z.string().min(2, {
     message: "El nombre del evaluador debe tener al menos 2 caracteres.",
   }),
-  evaluationDate: z.date(),
+  evaluationDate: z.date({
+    required_error: 'La fecha de evaluación es obligatoria', // Añadir mensaje de error para fecha
+  }),
 });
 
 type FormData = z.infer<typeof formSchema>;
 
 const PracticeEvaluationForm = () => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false); // Cambiado a isLoading para consistencia
+  const [isSubmitted, setIsSubmitted] = useState(false); // Nuevo estado para la pantalla de éxito
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -144,9 +148,9 @@ const PracticeEvaluationForm = () => {
 
   const onSubmit = async (data: FormData) => {
     try {
-      setIsSubmitting(true);
-      
-      // Construct the evaluation data with nested structure for service
+      setIsLoading(true);
+
+      // Construye los datos de la evaluación con la estructura anidada para el servicio
       const evaluationData: PracticeEvaluationData = {
         tutorName: data.tutorName,
         tutorLastName: data.tutorLastName,
@@ -197,22 +201,22 @@ const PracticeEvaluationForm = () => {
         evaluationDate: data.evaluationDate
       };
 
-      const docId = await savePracticeEvaluation(evaluationData);
-      
-      toast.success('Evaluación guardada exitosamente');
-      console.log('Evaluación guardada con ID:', docId);
-      
-      // Reset form after successful submission
-      form.reset();
+      await savePracticeEvaluation(evaluationData);
+
+      setIsSubmitted(true); // Cambiar a la pantalla de éxito
+      // console.log('Evaluación guardada con ID:', docId); // No es necesario si no se usa el ID
+      // form.reset(); // No es necesario resetear si se muestra una pantalla de éxito
       
     } catch (error) {
       console.error('Error al guardar la evaluación:', error);
-      toast.error('Error al guardar la evaluación');
+      // Aquí podrías añadir un toast si decides no usar la pantalla de éxito
+      // toast.error('Error al guardar la evaluación');
     } finally {
-      setIsSubmitting(false);
+      setIsLoading(false);
     }
   };
 
+  // Datos para los campos de competencias
   const competencyFields = [
     { key: 'meticulousness', label: 'Meticulosidad' },
     { key: 'teamwork', label: 'Trabajo en Equipo' },
@@ -228,6 +232,7 @@ const PracticeEvaluationForm = () => {
     { key: 'taskCommitment', label: 'Compromiso con la Tarea' },
   ];
 
+  // Datos para los campos de aptitudes organizativas
   const organizationalFields = [
     { key: 'organized', label: 'Organizado' },
     { key: 'newChallenges', label: 'Nuevos Retos' },
@@ -236,6 +241,7 @@ const PracticeEvaluationForm = () => {
     { key: 'punctuality', label: 'Puntualidad' },
   ];
 
+  // Datos para los campos de aptitudes técnicas
   const technicalFields = [
     { key: 'serviceImprovements', label: 'Mejoras del Servicio' },
     { key: 'diagnosticSkills', label: 'Habilidades de Diagnóstico' },
@@ -244,496 +250,556 @@ const PracticeEvaluationForm = () => {
     { key: 'toolUsage', label: 'Uso de Herramientas' },
   ];
 
+  // Si el formulario ha sido enviado, muestra la pantalla de éxito
+  if (isSubmitted) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-25 via-white to-blue-50 flex items-center justify-center p-6">
+        <Card className="w-full max-w-md border-blue-200">
+          <CardContent className="p-8 text-center">
+            <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-6">
+              <CheckCircle className="w-8 h-8 text-green-600" />
+            </div>
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+              ¡Evaluación enviada correctamente!
+            </h2>
+            <p className="text-gray-600 mb-6">
+              Gracias por completar la evaluación de prácticas.
+            </p>
+            <p className="text-sm text-gray-500">
+              Ya puedes cerrar esta ventana.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
-    <div className="container mx-auto py-10">
-      <h1 className="text-2xl font-bold mb-4">Formulario de Evaluación de Prácticas</h1>
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          {/* Datos básicos */}
-          <div>
-            <h2 className="text-xl font-semibold mb-2">Datos básicos</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="tutorName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nombre del tutor</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Nombre del tutor" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="tutorLastName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Apellido del tutor</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Apellido del tutor" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="workCenter"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Centro de trabajo</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Centro de trabajo" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="studentName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nombre del estudiante</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Nombre del estudiante" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="studentLastName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Apellido del estudiante</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Apellido del estudiante" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="formation"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Formación</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Formación" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="institution"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Institución</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Institución" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="practices"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Prácticas</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Prácticas" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-          </div>
-
-          {/* Competencias */}
-          <div>
-            <h2 className="text-xl font-semibold mb-2">Competencias (1-10)</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {competencyFields.map(({ key, label }) => (
-                <FormField
-                  key={key}
-                  control={form.control}
-                  name={key as keyof FormData}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{label}</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          min="1"
-                          max="10"
-                          placeholder={label}
-                          value={field.value as number}
-                          onChange={(e) => field.onChange(parseInt(e.target.value) || 5)}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* Aptitudes Organizativas */}
-          <div>
-            <h2 className="text-xl font-semibold mb-2">Aptitudes Organizativas (1-10)</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {organizationalFields.map(({ key, label }) => (
-                <FormField
-                  key={key}
-                  control={form.control}
-                  name={key as keyof FormData}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{label}</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          min="1"
-                          max="10"
-                          placeholder={label}
-                          value={field.value as number}
-                          onChange={(e) => field.onChange(parseInt(e.target.value) || 5)}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* Aptitudes Técnicas */}
-          <div>
-            <h2 className="text-xl font-semibold mb-2">Aptitudes Técnicas (1-10)</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {technicalFields.map(({ key, label }) => (
-                <FormField
-                  key={key}
-                  control={form.control}
-                  name={key as keyof FormData}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{label}</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          min="1"
-                          max="10"
-                          placeholder={label}
-                          value={field.value as number}
-                          onChange={(e) => field.onChange(parseInt(e.target.value) || 5)}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* Otros datos de interés */}
-          <div>
-            <h2 className="text-xl font-semibold mb-2">Otros datos de interés</h2>
-            <FormField
-              control={form.control}
-              name="travelAvailability"
-              render={({ field }) => (
-                <FormItem className="flex flex-col space-y-3">
-                  <FormLabel className="text-base font-semibold">
-                    Disponibilidad para viajar
-                  </FormLabel>
-                  <div className="flex flex-col space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="national"
-                        checked={field.value?.includes("national")}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            field.onChange([...(field.value || []), "national"])
-                          } else {
-                            field.onChange(field.value?.filter((v) => v !== "national"))
-                          }
-                        }}
-                      />
-                      <label
-                        htmlFor="national"
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                      >
-                        Nacional
-                      </label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="international"
-                        checked={field.value?.includes("international")}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            field.onChange([...(field.value || []), "international"])
-                          } else {
-                            field.onChange(field.value?.filter((v) => v !== "international"))
-                          }
-                        }}
-                      />
-                      <label
-                        htmlFor="international"
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                      >
-                        Internacional
-                      </label>
-                    </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-25 via-white to-blue-50 py-12">
+      <div className="container mx-auto px-4 max-w-4xl">
+        <Card className="border-blue-200">
+          <CardHeader className="text-center">
+            <CardTitle className="text-3xl font-bold text-blue-800">
+              Formulario de Evaluación de Prácticas
+            </CardTitle>
+            <p className="text-gray-600 mt-4">
+              Por favor, completa este formulario para evaluar el desempeño del estudiante en sus prácticas.
+            </p>
+          </CardHeader>
+          <CardContent>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                {/* Datos básicos */}
+                <div className="space-y-6">
+                  <h3 className="text-xl font-semibold text-blue-800">Datos Básicos</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="tutorName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Nombre del Tutor</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Nombre del tutor" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="tutorLastName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Apellido del Tutor</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Apellido del tutor" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="workCenter"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Centro de Trabajo</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Centro de trabajo" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="studentName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Nombre del Estudiante</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Nombre del estudiante" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="studentLastName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Apellido del Estudiante</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Apellido del estudiante" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="formation"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Formación</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Formación" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="institution"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Institución</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Institución" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="practices"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Prácticas</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Prácticas" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                </div>
 
-            <FormField
-              control={form.control}
-              name="residenceChange"
-              render={({ field }) => (
-                <FormItem className="space-y-3">
-                  <FormLabel>Cambio de residencia</FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      className="flex flex-col space-y-1"
-                    >
-                      <FormItem className="flex items-center space-x-3">
-                        <FormControl>
-                          <RadioGroupItem value="Si" />
-                        </FormControl>
-                        <FormLabel>Si</FormLabel>
-                      </FormItem>
-                      <FormItem className="flex items-center space-x-3">
-                        <FormControl>
-                          <RadioGroupItem value="No" />
-                        </FormControl>
-                        <FormLabel>No</FormLabel>
-                      </FormItem>
-                    </RadioGroup>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="englishLevel"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nivel de inglés</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecciona un nivel" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="A1">A1</SelectItem>
-                      <SelectItem value="A2">A2</SelectItem>
-                      <SelectItem value="B1">B1</SelectItem>
-                      <SelectItem value="B2">B2</SelectItem>
-                      <SelectItem value="C1">C1</SelectItem>
-                      <SelectItem value="C2">C2</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="performanceRating"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Valoración del rendimiento (1-10)</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        min="1"
-                        max="10"
-                        placeholder="Valoración del rendimiento"
-                        value={field.value}
-                        onChange={(e) => field.onChange(parseInt(e.target.value) || 5)}
+                {/* Competencias */}
+                <div className="space-y-6">
+                  <h3 className="text-xl font-semibold text-blue-800">Competencias (1-10)</h3>
+                  <p className="text-gray-600">
+                    Puntúa las siguientes competencias en una escala del 1 al 10 (1: muy deficiente, 10: excelente).
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {competencyFields.map(({ key, label }) => (
+                      <FormField
+                        key={key}
+                        control={form.control}
+                        name={key as keyof FormData}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>{label}</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                min="1"
+                                max="10"
+                                placeholder={label}
+                                // Asegúrate de que el valor sea un string para el input y se parsea a number para el hook-form
+                                value={typeof field.value === 'number' ? field.value.toString() : ''}
+                                onChange={(e) => field.onChange(parseInt(e.target.value) || 5)}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
                       />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="performanceJustification"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Justificación del rendimiento</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Justificación del rendimiento"
-                        {...field}
+                    ))}
+                  </div>
+                </div>
+
+                {/* Aptitudes Organizativas */}
+                <div className="space-y-6">
+                  <h3 className="text-xl font-semibold text-blue-800">Aptitudes Organizativas (1-10)</h3>
+                  <p className="text-gray-600">
+                    Puntúa las siguientes aptitudes organizativas en una escala del 1 al 10.
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {organizationalFields.map(({ key, label }) => (
+                      <FormField
+                        key={key}
+                        control={form.control}
+                        name={key as keyof FormData}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>{label}</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                min="1"
+                                max="10"
+                                placeholder={label}
+                                value={typeof field.value === 'number' ? field.value.toString() : ''}
+                                onChange={(e) => field.onChange(parseInt(e.target.value) || 5)}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
                       />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+                    ))}
+                  </div>
+                </div>
 
-            <FormField
-              control={form.control}
-              name="finalEvaluation"
-              render={({ field }) => (
-                <FormItem className="space-y-3">
-                  <FormLabel>Evaluación final</FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      className="flex flex-col space-y-1"
-                    >
-                      <FormItem className="flex items-center space-x-3">
-                        <FormControl>
-                          <RadioGroupItem value="Apto" />
-                        </FormControl>
-                        <FormLabel>Apto</FormLabel>
+                {/* Aptitudes Técnicas */}
+                <div className="space-y-6">
+                  <h3 className="text-xl font-semibold text-blue-800">Aptitudes Técnicas (1-10)</h3>
+                  <p className="text-gray-600">
+                    Puntúa las siguientes aptitudes técnicas en una escala del 1 al 10.
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {technicalFields.map(({ key, label }) => (
+                      <FormField
+                        key={key}
+                        control={form.control}
+                        name={key as keyof FormData}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>{label}</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                min="1"
+                                max="10"
+                                placeholder={label}
+                                value={typeof field.value === 'number' ? field.value.toString() : ''}
+                                onChange={(e) => field.onChange(parseInt(e.target.value) || 5)}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Otros datos de interés */}
+                <div className="space-y-6">
+                  <h3 className="text-xl font-semibold text-blue-800">Otros Datos de Interés</h3>
+                  <FormField
+                    control={form.control}
+                    name="travelAvailability"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-col space-y-3">
+                        <FormLabel className="text-base font-semibold">
+                          Disponibilidad para viajar
+                        </FormLabel>
+                        <div className="flex flex-col space-y-2">
+                          <FormItem className="flex items-center space-x-2">
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value?.includes("national")}
+                                onCheckedChange={(checked) => {
+                                  return checked
+                                    ? field.onChange([...(field.value || []), "national"])
+                                    : field.onChange(field.value?.filter((v) => v !== "national"))
+                                }}
+                              />
+                            </FormControl>
+                            <FormLabel className="text-sm font-normal">
+                              Nacional
+                            </FormLabel>
+                          </FormItem>
+                          <FormItem className="flex items-center space-x-2">
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value?.includes("international")}
+                                onCheckedChange={(checked) => {
+                                  return checked
+                                    ? field.onChange([...(field.value || []), "international"])
+                                    : field.onChange(field.value?.filter((v) => v !== "international"))
+                                }}
+                              />
+                            </FormControl>
+                            <FormLabel className="text-sm font-normal">
+                              Internacional
+                            </FormLabel>
+                          </FormItem>
+                        </div>
+                        <FormMessage />
                       </FormItem>
-                      <FormItem className="flex items-center space-x-3">
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="residenceChange"
+                    render={({ field }) => (
+                      <FormItem className="space-y-3">
+                        <FormLabel>Cambio de Residencia</FormLabel>
                         <FormControl>
-                          <RadioGroupItem value="No Apto" />
-                        </FormControl>
-                        <FormLabel>No Apto</FormLabel>
-                      </FormItem>
-                    </RadioGroup>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="futureInterest"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Interés futuro</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Interés futuro" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="practicalTraining"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Formación práctica</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Formación práctica" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="observations"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Observaciones</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="Observaciones" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="evaluatorName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nombre del evaluador</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Nombre del evaluador" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="evaluationDate"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>Fecha de evaluación</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant={"outline"}
-                            className="w-[240px] pl-3 text-left font-normal"
+                          <RadioGroup
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                            className="flex flex-col space-y-2" // Ajustado el espacio
                           >
-                            {field.value ? (
-                              field.value?.toLocaleDateString()
-                            ) : (
-                              <span>Pick a date</span>
-                            )}
-                          </Button>
+                            <FormItem className="flex items-center space-x-2">
+                              <FormControl>
+                                <RadioGroupItem value="Si" />
+                              </FormControl>
+                              <FormLabel className="text-sm font-normal">Si</FormLabel>
+                            </FormItem>
+                            <FormItem className="flex items-center space-x-2">
+                              <FormControl>
+                                <RadioGroupItem value="No" />
+                              </FormControl>
+                              <FormLabel className="text-sm font-normal">No</FormLabel>
+                            </FormItem>
+                          </RadioGroup>
                         </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={field.onChange}
-                          disabled={(date) =>
-                            date > new Date()
-                          }
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-          </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Enviando..." : "Enviar"}
-          </Button>
-        </form>
-      </Form>
+                  <FormField
+                    control={form.control}
+                    name="englishLevel"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nivel de Inglés</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecciona un nivel" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="A1">A1</SelectItem>
+                            <SelectItem value="A2">A2</SelectItem>
+                            <SelectItem value="B1">B1</SelectItem>
+                            <SelectItem value="B2">B2</SelectItem>
+                            <SelectItem value="C1">C1</SelectItem>
+                            <SelectItem value="C2">C2</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="performanceRating"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Valoración del Rendimiento (1-10)</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              min="1"
+                              max="10"
+                              placeholder="Valoración del rendimiento"
+                              value={typeof field.value === 'number' ? field.value.toString() : ''}
+                              onChange={(e) => field.onChange(parseInt(e.target.value) || 5)}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="performanceJustification"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Justificación del Rendimiento</FormLabel>
+                          <FormControl>
+                            <Textarea
+                              placeholder="Justificación del rendimiento"
+                              className="min-h-[100px]" // Añadido min-height
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <FormField
+                    control={form.control}
+                    name="finalEvaluation"
+                    render={({ field }) => (
+                      <FormItem className="space-y-3">
+                        <FormLabel>Evaluación Final</FormLabel>
+                        <FormControl>
+                          <RadioGroup
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                            className="flex flex-col space-y-2" // Ajustado el espacio
+                          >
+                            <FormItem className="flex items-center space-x-2">
+                              <FormControl>
+                                <RadioGroupItem value="Apto" />
+                              </FormControl>
+                              <FormLabel className="text-sm font-normal">Apto</FormLabel>
+                            </FormItem>
+                            <FormItem className="flex items-center space-x-2">
+                              <FormControl>
+                                <RadioGroupItem value="No Apto" />
+                              </FormControl>
+                              <FormLabel className="text-sm font-normal">No Apto</FormLabel>
+                            </FormItem>
+                          </RadioGroup>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="futureInterest"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Interés Futuro</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Interés futuro" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="practicalTraining"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Formación Práctica</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Formación práctica" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="observations"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Observaciones</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Observaciones"
+                            className="min-h-[100px]" // Añadido min-height
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="evaluatorName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Nombre del Evaluador</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Nombre del evaluador" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="evaluationDate"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                          <FormLabel>Fecha de Evaluación</FormLabel>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  variant="outline"
+                                  className={cn(
+                                    "pl-3 text-left font-normal",
+                                    !field.value && "text-muted-foreground"
+                                  )}
+                                >
+                                  {field.value ? (
+                                    format(field.value, "PPP") // Usamos format para mostrar la fecha
+                                  ) : (
+                                    <span>Seleccionar fecha</span>
+                                  )}
+                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={field.value}
+                                onSelect={field.onChange}
+                                disabled={(date) =>
+                                  date > new Date()
+                                }
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
+
+                {/* Botón de envío */}
+                <div className="flex justify-center pt-8">
+                  <Button
+                    type="submit"
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin mr-2" />
+                    ) : (
+                      <Send className="w-5 h-5 mr-2" />
+                    )}
+                    {isLoading ? "Enviando..." : "Enviar Evaluación"}
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
