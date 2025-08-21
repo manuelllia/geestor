@@ -21,7 +21,7 @@ if (!db) {
 
 export const getWorkCenters = async (): Promise<WorkCenter[]> => {
   try {
-    const workCentersRef = collection(db, 'Centros de Trabajo', 'Centros', 'CENTROS');
+    const workCentersRef = collection(db, 'Centros De Trabajo', 'Centros', 'CENTROS');
     console.log("Intentando obtener centros de trabajo desde:", workCentersRef.path);
     const snapshot = await getDocs(workCentersRef);
     
@@ -39,7 +39,7 @@ export const getWorkCenters = async (): Promise<WorkCenter[]> => {
 
 export const getContracts = async (): Promise<Contract[]> => {
   try {
-    const contractsRef = collection(db, 'Centros de Trabajo', 'Contratos', 'CONTRATOS');
+    const contractsRef = collection(db, 'Centros De Trabajo', 'Contratos', 'CONTRATOS');
     const snapshot = await getDocs(contractsRef);
     
     return snapshot.docs.map(doc => ({
