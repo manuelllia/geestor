@@ -14,7 +14,7 @@ const Index = () => {
   const { user, isAuthenticated, isLoading, isVerifying, loginWithMicrosoft, logout } = useAuth();
   const { preferences, setLanguage, setTheme } = usePreferences();
   const { refreshPermissions } = useUserPermissions();
-  const [activeSection, setActiveSection] = useState('inicio');
+  const [activeSection, setActiveSection] = useState('dashboard');
   const [userState, setUserState] = useState(user);
   const [permissionsUpdateKey, setPermissionsUpdateKey] = useState(0);
 
@@ -43,7 +43,7 @@ const Index = () => {
 
   // Show verification screen during account verification
   if (isVerifying) {
-    return <VerificationScreen language={preferences.language} />;
+    return <VerificationScreen />;
   }
 
   // Show login screen if not authenticated

@@ -28,19 +28,19 @@ const MainContent: React.FC<MainContentProps> = ({ activeSection, language }) =>
       case 'maintenance-calendar':
         return <MaintenanceCalendarView />;
       case 'bid-analyzer':
-        return <BidAnalyzerView />;
+        return <BidAnalyzerView language={language} />;
       case 'cost-analysis':
-        return <CostAnalysisView />;
+        return <CostAnalysisView language={language} />;
       case 'contract-requests':
-        return <ContractRequestsListView />;
+        return <ContractRequestsListView language={language} />;
       case 'change-sheets':
-        return <ChangeSheetsListView />;
+        return <ChangeSheetsListView language={language} onViewDetails={() => {}} onCreateNew={() => {}} />;
       case 'employee-agreements':
-        return <EmployeeAgreementsListView />;
+        return <EmployeeAgreementsListView language={language} />;
       case 'exit-interviews':
-        return <ExitInterviewsListView />;
+        return <ExitInterviewsListView language={language} />;
       case 'real-estate':
-        return <RealEstateListView />;
+        return <RealEstateListView onBack={() => {}} />;
       default:
         return <Dashboard />;
     }
