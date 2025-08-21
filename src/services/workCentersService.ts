@@ -14,6 +14,11 @@ export interface Contract {
   name: string;
 }
 
+console.log('Firebase db object:', db); 
+if (!db) {
+    console.error('ERROR: db (Firestore) no está inicializado en workCentersService.ts');
+}
+
 export const getWorkCenters = async (): Promise<WorkCenter[]> => {
   try {
     const workCentersRef = collection(db, 'Centros de Trabajo', 'Centros', 'CENTROS');
