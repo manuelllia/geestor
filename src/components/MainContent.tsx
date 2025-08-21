@@ -9,11 +9,7 @@ import ChangeSheetsListView from './ChangeSheets/ChangeSheetsListView';
 import EmployeeAgreementsListView from './EmployeeAgreements/EmployeeAgreementsListView';
 import ExitInterviewsListView from './ExitInterviews/ExitInterviewsListView';
 import RealEstateListView from './RealEstate/RealEstateListView';
-
-interface Language {
-  code: string;
-  name: string;
-}
+import { Language } from '../utils/translations';
 
 interface MainContentProps {
   activeSection: string;

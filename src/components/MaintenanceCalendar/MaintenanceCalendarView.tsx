@@ -55,12 +55,15 @@ const MaintenanceCalendarView: React.FC = () => {
     setCurrentView('analysis');
   };
 
+  const handleSheetsChange = (sheets: any[]) => {
+    setSelectedSheets(sheets);
+  };
+
   const renderCurrentView = () => {
     switch (currentView) {
       case 'upload':
         return (
           <AICalendarGenerator
-            inventory={inventory}
             isLoading={isLoading}
             error={error}
             processingStep={processingStep}
@@ -70,7 +73,7 @@ const MaintenanceCalendarView: React.FC = () => {
             onProcessSheets={processFinalSheets}
             onGenerateCalendar={generateAICalendar}
             onReset={resetProcess}
-            onSheetsChange={setSelectedSheets}
+            onSheetsChange={handleSheetsChange}
             onStepChange={setProcessingStep}
           />
         );

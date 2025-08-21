@@ -9,6 +9,7 @@ import VerificationScreen from '../components/VerificationScreen';
 import { Header } from '../components/Header';
 import { AppSidebar } from '../components/AppSidebar';
 import MainContent from '../components/MainContent';
+import { Language } from '../utils/translations';
 
 const Index = () => {
   const { user, isAuthenticated, isLoading, isVerifying, loginWithMicrosoft, logout } = useAuth();
@@ -52,7 +53,7 @@ const Index = () => {
       <LoginScreen
         onLogin={loginWithMicrosoft}
         isLoading={isLoading}
-        language={preferences.language}
+        language={preferences.language as Language}
       />
     );
   }
@@ -62,7 +63,7 @@ const Index = () => {
     <SidebarProvider defaultOpen={true}>
       <div className="min-h-screen flex w-full bg-gray-50 dark:bg-gray-900">
         <AppSidebar
-          language={preferences.language}
+          language={preferences.language as Language}
           activeSection={activeSection}
           onSectionChange={setActiveSection}
           key={permissionsUpdateKey}
@@ -72,7 +73,7 @@ const Index = () => {
           <Header
             user={userState}
             onLogout={logout}
-            language={preferences.language}
+            language={preferences.language as Language}
             theme={preferences.theme}
             onLanguageChange={setLanguage}
             onThemeChange={setTheme}
@@ -82,7 +83,7 @@ const Index = () => {
           
           <MainContent
             activeSection={activeSection}
-            language={preferences.language}
+            language={preferences.language as Language}
           />
         </div>
       </div>
