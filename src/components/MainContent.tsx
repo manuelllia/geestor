@@ -86,7 +86,7 @@ const MainContent: React.FC<MainContentProps> = ({ activeSection, language }) =>
       case 'acuerdo-empleado':
         return <EmployeeAgreementsListView language={language} />;
       case 'gestion-inmuebles':
-        return <RealEstateListView language={language} />;
+        return <RealEstateListView onBack={() => {}} />;
       case 'valoracion-practicas':
         return <PracticeEvaluationsListView language={language} />;
       case 'entrevista-salida':
