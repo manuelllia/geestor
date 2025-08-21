@@ -52,8 +52,8 @@ const RealEstateListView: React.FC<RealEstateListViewProps> = ({ language }) => 
     case 'tables':
       return (
         <RealEstateTableManager 
+          language={language}
           onBack={handleBackToDashboard}
-          onViewDetail={handleViewDetail}
         />
       );
     default:
