@@ -1,5 +1,8 @@
-
 import { geminiAI, safeJsonParse } from './geminiService';
+import * as pdfjsLib from 'pdfjs-dist';
+
+// Configurar el worker de PDF.js
+pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
 interface ReportData {
   presupuestoGeneral: string;
@@ -15,8 +18,49 @@ interface ReportData {
   costesDetalladosRecomendados: any[];
 }
 
+// Función real para extraer texto de archivos PDF
+export const extractTextFromPDF = async (file: File): Promise<string> => {
+  try {
+    console.log(`📄 Extrayendo texto real del PDF: ${file.name}`);
+    
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    
+    let fullText = '';
+    const numPages = pdf.numPages;
+    
+    console.log(`📖 PDF tiene ${numPages} páginas`);
+    
+    for (let pageNum = 1; pageNum <= numPages; pageNum++) {
+      try {
+        const page = await pdf.getPage(pageNum);
+        const textContent = await page.getTextContent();
+        const pageText = textContent.items
+          .map((item: any) => item.str)
+          .join(' ');
+        
+        fullText += pageText + '\n';
+        
+        if (pageNum % 10 === 0) {
+          console.log(`📄 Procesadas ${pageNum}/${numPages} páginas`);
+        }
+      } catch (pageError) {
+        console.error(`❌ Error procesando página ${pageNum}:`, pageError);
+        continue;
+      }
+    }
+    
+    console.log(`✅ Texto extraído: ${fullText.length} caracteres del archivo ${file.name}`);
+    return fullText.trim();
+    
+  } catch (error) {
+    console.error('❌ Error extrayendo texto del PDF:', error);
+    throw new Error(`Error al procesar el archivo PDF ${file.name}: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+  }
+};
+
 // Dividir el contenido del documento en chunks más pequeños
-const splitDocumentContent = (content: string, maxLength: number = 3000): string[] => {
+const splitDocumentContent = (content: string, maxLength: number = 4000): string[] => {
   const chunks: string[] = [];
   let currentChunk = '';
   
@@ -38,10 +82,14 @@ const splitDocumentContent = (content: string, maxLength: number = 3000): string
   return chunks;
 };
 
-const generatePromptForStep = (stepNumber: number, totalSteps: number, documentChunk?: string): string => {
-  const basePrompt = `Eres un experto consultor en licitaciones públicas de electromedicina en España. 
+const generatePromptForStep = (stepNumber: number, totalSteps: number, documentChunk: string): string => {
+  const basePrompt = `Eres un experto consultor en licitaciones públicas de electromedicina en España.
 
-CRÍTICO: Responde ÚNICAMENTE con JSON válido y bien formateado. No añadas texto antes ni después del JSON.
+INSTRUCCIONES CRÍTICAS:
+- Analiza ÚNICAMENTE el contenido del documento proporcionado
+- Responde ÚNICAMENTE con JSON válido, sin texto adicional
+- Si no encuentras información específica, usa valores por defecto como "No especificado" o arrays vacíos
+- NO inventes datos que no estén en el documento
 
 ANÁLISIS PASO ${stepNumber} de ${totalSteps}:`;
 
@@ -49,16 +97,18 @@ ANÁLISIS PASO ${stepNumber} de ${totalSteps}:`;
     case 1:
       return `${basePrompt}
 
-PASO 1: Extrae información básica del presupuesto y estructura:
-- presupuestoGeneral: Busca el presupuesto base de licitación (números con €, sin IVA)
-- esPorLotes: Determina si se divide en lotes (busca "lote", "lot", secciones numeradas)
-- formulaEconomica: Encuentra fórmula principal de evaluación económica
+PASO 1: Extrae información básica del presupuesto y estructura del siguiente documento:
 
-${documentChunk ? `FRAGMENTO DOCUMENTO:\n${documentChunk}` : ''}
+${documentChunk}
 
-Responde con este JSON:
+Busca específicamente:
+- presupuestoGeneral: Presupuesto base de licitación (busca cantidades con € o "euros")
+- esPorLotes: Si se menciona "lotes", "lot", divisiones numeradas
+- formulaEconomica: Fórmula de evaluación económica o criterios de puntuación
+
+Responde ÚNICAMENTE con este JSON:
 {
-  "presupuestoGeneral": "string con el presupuesto encontrado o 'No especificado'",
+  "presupuestoGeneral": "cantidad encontrada o 'No especificado'",
   "esPorLotes": true/false,
   "formulaEconomica": "fórmula encontrada o 'No especificada'"
 }`;
@@ -66,21 +116,23 @@ Responde con este JSON:
     case 2:
       return `${basePrompt}
 
-PASO 2: Extrae información de lotes (si existen):
-- lotes: Array con información de cada lote
-- umbralBajaTemeraria: Criterios para ofertas temerarias (porcentajes, fórmulas)
+PASO 2: Extrae información de lotes del siguiente documento:
 
-${documentChunk ? `FRAGMENTO DOCUMENTO:\n${documentChunk}` : ''}
+${documentChunk}
 
-Responde con este JSON:
+Busca específicamente:
+- lotes: Información detallada de cada lote si existen
+- umbralBajaTemeraria: Criterios para ofertas anormalmente bajas
+
+Responde ÚNICAMENTE con este JSON:
 {
   "lotes": [
     {
-      "nombre": "string",
-      "centroAsociado": "string", 
-      "descripcion": "string",
-      "presupuesto": "string",
-      "requisitosClave": ["string1", "string2"]
+      "nombre": "nombre del lote",
+      "centroAsociado": "centro o ubicación",
+      "descripcion": "descripción del lote",
+      "presupuesto": "presupuesto del lote",
+      "requisitosClave": ["requisito1", "requisito2"]
     }
   ],
   "umbralBajaTemeraria": "criterio encontrado o 'No especificado'"
@@ -89,26 +141,28 @@ Responde con este JSON:
     case 3:
       return `${basePrompt}
 
-PASO 3: Extrae variables y fórmulas matemáticas:
-- variablesDinamicas: Variables que cambian según ofertas
-- formulasDetectadas: Fórmulas con notación matemática
+PASO 3: Extrae variables y fórmulas matemáticas del siguiente documento:
 
-${documentChunk ? `FRAGMENTO DOCUMENTO:\n${documentChunk}` : ''}
+${documentChunk}
 
-Responde con este JSON:
+Busca específicamente:
+- variablesDinamicas: Variables que cambian según las ofertas
+- formulasDetectadas: Fórmulas matemáticas de evaluación
+
+Responde ÚNICAMENTE con este JSON:
 {
   "variablesDinamicas": [
     {
-      "nombre": "string",
-      "descripcion": "string", 
-      "mapeo": "price|tenderBudget|maxScore|lowestPrice|averagePrice"
+      "nombre": "nombre de la variable",
+      "descripcion": "descripción de la variable",
+      "mapeo": "price"
     }
   ],
   "formulasDetectadas": [
     {
-      "formulaOriginal": "string",
-      "representacionLatex": "string",
-      "descripcionVariables": "string"
+      "formulaOriginal": "fórmula tal como aparece en el documento",
+      "representacionLatex": "representación matemática",
+      "descripcionVariables": "explicación de las variables"
     }
   ]
 }`;
@@ -116,18 +170,20 @@ Responde con este JSON:
     case 4:
       return `${basePrompt}
 
-PASO 4: Extrae criterios automáticos de evaluación:
-- criteriosAutomaticos: Criterios evaluados automáticamente (precio, económicos)
+PASO 4: Extrae criterios automáticos del siguiente documento:
 
-${documentChunk ? `FRAGMENTO DOCUMENTO:\n${documentChunk}` : ''}
+${documentChunk}
 
-Responde con este JSON:
+Busca específicamente:
+- criteriosAutomaticos: Criterios evaluados automáticamente (precio, aspectos económicos)
+
+Responde ÚNICAMENTE con este JSON:
 {
   "criteriosAutomaticos": [
     {
-      "nombre": "string",
-      "descripcion": "string",
-      "puntuacionMaxima": number
+      "nombre": "nombre del criterio",
+      "descripcion": "descripción del criterio",
+      "puntuacionMaxima": número
     }
   ]
 }`;
@@ -135,26 +191,28 @@ Responde con este JSON:
     case 5:
       return `${basePrompt}
 
-PASO 5: Extrae criterios subjetivos y otros:
+PASO 5: Extrae criterios subjetivos del siguiente documento:
+
+${documentChunk}
+
+Busca específicamente:
 - criteriosSubjetivos: Criterios evaluados manualmente
 - otrosCriterios: Otros criterios de evaluación
 
-${documentChunk ? `FRAGMENTO DOCUMENTO:\n${documentChunk}` : ''}
-
-Responde con este JSON:
+Responde ÚNICAMENTE con este JSON:
 {
   "criteriosSubjetivos": [
     {
-      "nombre": "string",
-      "descripcion": "string", 
-      "puntuacionMaxima": number
+      "nombre": "nombre del criterio",
+      "descripcion": "descripción del criterio",
+      "puntuacionMaxima": número
     }
   ],
   "otrosCriterios": [
     {
-      "nombre": "string",
-      "descripcion": "string",
-      "puntuacionMaxima": number
+      "nombre": "nombre del criterio",
+      "descripcion": "descripción del criterio", 
+      "puntuacionMaxima": número
     }
   ]
 }`;
@@ -162,19 +220,21 @@ Responde con este JSON:
     case 6:
       return `${basePrompt}
 
-PASO 6: Extrae costes detallados recomendados:
-- costesDetalladosRecomendados: Análisis de costes por categorías
+PASO 6: Extrae costes detallados del siguiente documento:
 
-${documentChunk ? `FRAGMENTO DOCUMENTO:\n${documentChunk}` : ''}
+${documentChunk}
 
-Responde con este JSON:
+Busca específicamente:
+- costesDetalladosRecomendados: Análisis de costes por categorías o conceptos
+
+Responde ÚNICAMENTE con este JSON:
 {
   "costesDetalladosRecomendados": [
     {
-      "categoria": "string",
-      "concepto": "string", 
-      "costeEstimado": number,
-      "justificacion": "string"
+      "categoria": "categoría del coste",
+      "concepto": "concepto específico",
+      "costeEstimado": número,
+      "justificacion": "justificación del coste"
     }
   ]
 }`;
@@ -191,25 +251,25 @@ export const analyzeDocumentsStep = async (
   totalSteps: number
 ): Promise<any> => {
   try {
-    console.log(`🤖 Analizando paso ${step}/${totalSteps} con Gemini 2.5 Flash...`);
+    console.log(`🤖 Llamando realmente a Gemini AI para paso ${step}/${totalSteps}...`);
     
-    // Combinar documentos y dividir en chunks más pequeños
+    // Combinar documentos
     const fullContent = `DOCUMENTO PCAP:\n${pcapText}\n\nDOCUMENTO PPT:\n${pptText}`;
-    const chunks = splitDocumentContent(fullContent, 2500);
+    const chunks = splitDocumentContent(fullContent, 4000);
     
-    console.log(`📄 Documento dividido en ${chunks.length} fragmentos para análisis optimizado`);
+    console.log(`📄 Documento real dividido en ${chunks.length} fragmentos`);
     
     let bestResult = null;
-    let attempts = 0;
-    const maxAttempts = Math.min(chunks.length, 3); // Máximo 3 intentos por paso
+    const maxAttempts = Math.min(chunks.length, 2);
     
-    // Intentar con diferentes chunks hasta obtener un resultado válido
     for (let chunkIndex = 0; chunkIndex < maxAttempts; chunkIndex++) {
       try {
         const prompt = generatePromptForStep(step, totalSteps, chunks[chunkIndex]);
         
-        console.log(`🔍 Intento ${chunkIndex + 1} con fragmento ${chunkIndex + 1} (${chunks[chunkIndex].length} caracteres)`);
+        console.log(`🔍 Llamada real a Gemini AI - Paso ${step}, Fragmento ${chunkIndex + 1}`);
+        console.log(`📝 Prompt length: ${prompt.length} caracteres`);
         
+        // LLAMADA REAL A LA API DE GEMINI
         const response = await geminiAI.models.generateContent({
           model: 'gemini-2.0-flash-exp',
           contents: prompt,
@@ -219,52 +279,53 @@ export const analyzeDocumentsStep = async (
           }
         });
 
+        console.log(`✅ Respuesta recibida de Gemini AI para paso ${step}, fragmento ${chunkIndex + 1}`);
+        console.log(`📄 Respuesta raw:`, response.text.substring(0, 500) + '...');
+
         const parsedData = safeJsonParse(
           response.text, 
-          `Error al parsear la respuesta del paso ${step}, intento ${chunkIndex + 1}`
+          `Error al parsear respuesta de Gemini AI - paso ${step}, fragmento ${chunkIndex + 1}`
         );
+
+        console.log(`🔍 Datos parseados paso ${step}:`, parsedData);
 
         // Verificar si el resultado tiene datos útiles
         const hasUsefulData = Object.values(parsedData).some(value => {
           if (Array.isArray(value)) return value.length > 0;
-          if (typeof value === 'string') return value !== 'No especificado' && value !== 'No especificada';
+          if (typeof value === 'string') return value !== 'No especificado' && value !== 'No especificada' && value.trim() !== '';
           if (typeof value === 'boolean') return true;
           return false;
         });
 
         if (hasUsefulData) {
-          console.log(`✅ Paso ${step} completado exitosamente con fragmento ${chunkIndex + 1}`);
+          console.log(`✅ Paso ${step} completado exitosamente con datos útiles de Gemini AI`);
           bestResult = parsedData;
           break;
         } else {
           console.log(`⚠️ Fragmento ${chunkIndex + 1} no proporcionó datos útiles, intentando siguiente...`);
         }
         
-        attempts++;
-        
-        // Esperar entre intentos para evitar rate limiting
+        // Esperar entre intentos
         if (chunkIndex < maxAttempts - 1) {
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          await new Promise(resolve => setTimeout(resolve, 2000));
         }
         
       } catch (chunkError) {
-        console.error(`❌ Error en fragmento ${chunkIndex + 1}:`, chunkError);
-        attempts++;
+        console.error(`❌ Error en llamada a Gemini AI - fragmento ${chunkIndex + 1}:`, chunkError);
         continue;
       }
     }
 
-    // Si no obtuvimos datos útiles, devolver estructura vacía válida
+    // Si no obtuvimos datos útiles, devolver estructura vacía
     if (!bestResult) {
-      console.log(`⚠️ Paso ${step}: No se obtuvieron datos útiles, devolviendo estructura vacía`);
+      console.log(`⚠️ Paso ${step}: No se obtuvieron datos útiles de Gemini AI, devolviendo estructura vacía`);
       bestResult = getEmptyStructureForStep(step);
     }
 
     return bestResult;
 
   } catch (error) {
-    console.error(`❌ Error en paso ${step}:`, error);
-    // Devolver estructura vacía en caso de error total
+    console.error(`❌ Error en paso ${step} con Gemini AI:`, error);
     return getEmptyStructureForStep(step);
   }
 };
@@ -307,7 +368,7 @@ const getEmptyStructureForStep = (step: number): any => {
 };
 
 export const mergeStepResults = (...stepResults: any[]): ReportData => {
-  console.log('🔧 Combinando resultados de todos los pasos...');
+  console.log('🔧 Combinando resultados reales de Gemini AI...');
   
   const merged: ReportData = {
     presupuestoGeneral: "No especificado",
@@ -325,21 +386,19 @@ export const mergeStepResults = (...stepResults: any[]): ReportData => {
 
   stepResults.forEach((stepData, index) => {
     if (stepData && typeof stepData === 'object') {
-      console.log(`📊 Procesando datos del paso ${index + 1}:`, stepData);
+      console.log(`📊 Procesando datos reales del paso ${index + 1}:`, stepData);
       
       Object.keys(stepData).forEach(key => {
         if (stepData[key] !== undefined && stepData[key] !== null) {
           const typedKey = key as keyof ReportData;
           
           if (Array.isArray(stepData[key])) {
-            // Para arrays, concatenar con los existentes
             if (Array.isArray(merged[typedKey])) {
               (merged[typedKey] as any) = [...(merged[typedKey] as any), ...stepData[key]];
             } else {
               (merged[typedKey] as any) = stepData[key];
             }
           } else {
-            // Para valores primitivos, sobrescribir solo si no es valor por defecto
             const currentValue = stepData[key];
             if (currentValue !== 'No especificado' && currentValue !== 'No especificada' && currentValue !== false) {
               (merged[typedKey] as any) = currentValue;
@@ -350,6 +409,6 @@ export const mergeStepResults = (...stepResults: any[]): ReportData => {
     }
   });
 
-  console.log('✅ Resultados combinados correctamente:', merged);
+  console.log('✅ Resultados reales de Gemini AI combinados correctamente:', merged);
   return merged;
 };

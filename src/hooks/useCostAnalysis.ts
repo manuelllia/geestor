@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { analyzeDocumentsStep, mergeStepResults } from '../services/costAnalysisService';
+import { analyzeDocumentsStep, mergeStepResults, extractTextFromPDF } from '../services/costAnalysisService';
 
 interface ReportData {
   presupuestoGeneral: string;
@@ -24,19 +24,6 @@ export const useCostAnalysis = () => {
   const [totalSteps, setTotalSteps] = useState(0);
   const [currentProgress, setCurrentProgress] = useState('');
 
-  const convertFileToText = async (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        // Para simplificar, retornamos el nombre del archivo como placeholder
-        // En una implementación real, usarías una librería como pdf-parse
-        resolve(`Contenido del archivo: ${file.name} (${file.size} bytes)`);
-      };
-      reader.onerror = reject;
-      reader.readAsText(file);
-    });
-  };
-
   const wait = (seconds: number): Promise<void> => {
     return new Promise(resolve => setTimeout(resolve, seconds * 1000));
   };
@@ -46,65 +33,78 @@ export const useCostAnalysis = () => {
     setError(null);
     setAnalysisResult(null);
     setCurrentStep(0);
-    setTotalSteps(6); // Aumentamos a 6 pasos para mayor granularidad
-    setCurrentProgress('Iniciando análisis optimizado con Gemini 2.0 Flash...');
+    setTotalSteps(6);
+    setCurrentProgress('Iniciando análisis con Gemini AI...');
     
     try {
-      console.log('🔍 Iniciando análisis de costes optimizado con Gemini 2.0 Flash...');
+      console.log('🔍 Iniciando análisis real de costes con Gemini AI...');
       console.log('📄 Archivos:', {
         pcap: `${pcapFile.name} (${(pcapFile.size / 1024 / 1024).toFixed(2)} MB)`,
         ppt: `${pptFile.name} (${(pptFile.size / 1024 / 1024).toFixed(2)} MB)`
       });
 
-      // Convertir archivos a texto
-      setCurrentProgress('Procesando archivos PDF...');
-      const pcapText = await convertFileToText(pcapFile);
-      const pptText = await convertFileToText(pptFile);
+      // Extraer texto real de los archivos PDF
+      setCurrentProgress('Extrayendo texto de los archivos PDF...');
+      console.log('📄 Extrayendo texto real de los PDFs...');
+      
+      const pcapText = await extractTextFromPDF(pcapFile);
+      const pptText = await extractTextFromPDF(pptFile);
+
+      console.log('✅ Texto extraído:', {
+        pcapLength: pcapText.length,
+        pptLength: pptText.length,
+        pcapPreview: pcapText.substring(0, 200) + '...',
+        pptPreview: pptText.substring(0, 200) + '...'
+      });
+
+      if (!pcapText.trim() || !pptText.trim()) {
+        throw new Error('No se pudo extraer texto de los archivos PDF. Verifica que los archivos no estén corruptos.');
+      }
 
       const stepResults: any[] = [];
 
-      // Ejecutar análisis paso a paso optimizado
+      // Ejecutar análisis paso a paso con la API real de Gemini
       for (let step = 1; step <= totalSteps; step++) {
         try {
           setCurrentStep(step);
-          setCurrentProgress(`Analizando paso ${step}/${totalSteps} con IA optimizada...`);
-          console.log(`🔄 Ejecutando paso optimizado ${step}/${totalSteps}...`);
+          setCurrentProgress(`Analizando paso ${step}/${totalSteps} con Gemini AI...`);
+          console.log(`🔄 Ejecutando paso real ${step}/${totalSteps} con Gemini AI...`);
           
           const stepResult = await analyzeDocumentsStep(pcapText, pptText, step, totalSteps);
           stepResults.push(stepResult);
           
-          console.log(`✅ Paso ${step} completado:`, stepResult);
+          console.log(`✅ Paso ${step} completado con Gemini AI:`, stepResult);
           
-          // Esperar entre pasos para evitar rate limiting (tiempo reducido)
+          // Esperar entre pasos para evitar rate limiting
           if (step < totalSteps) {
-            const waitTime = Math.floor(Math.random() * 2) + 2; // Entre 2 y 3 segundos
+            const waitTime = Math.floor(Math.random() * 3) + 3; // Entre 3 y 5 segundos
             console.log(`⏳ Esperando ${waitTime}s antes del siguiente paso...`);
             setCurrentProgress(`Esperando ${waitTime}s antes del paso ${step + 1}...`);
             await wait(waitTime);
           }
           
         } catch (stepError) {
-          console.error(`❌ Error en paso ${step}:`, stepError);
+          console.error(`❌ Error en paso ${step} con Gemini AI:`, stepError);
           // Continuar con estructura vacía en caso de error
           stepResults.push({});
         }
       }
 
       // Combinar todos los resultados
-      console.log('🔧 Combinando resultados optimizados...');
-      setCurrentProgress('Generando informe final optimizado...');
+      console.log('🔧 Combinando resultados de Gemini AI...');
+      setCurrentProgress('Generando informe final...');
       
       const finalResult = mergeStepResults(...stepResults);
       
-      console.log('✅ Análisis optimizado completado exitosamente');
+      console.log('✅ Análisis con Gemini AI completado exitosamente');
       console.log('📊 Resultado final:', finalResult);
       
       setAnalysisResult(finalResult);
       setCurrentProgress('Análisis completado con éxito');
       
     } catch (err) {
-      console.error('❌ Error final en análisis:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Error desconocido en el análisis';
+      console.error('❌ Error final en análisis con Gemini AI:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Error desconocido en el análisis con Gemini AI';
       setError(errorMessage);
       setCurrentProgress('Error en el análisis');
     } finally {
