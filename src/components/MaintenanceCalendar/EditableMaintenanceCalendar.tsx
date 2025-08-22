@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
@@ -10,6 +9,7 @@ import MaintenanceEventModal from './MaintenanceEventModal';
 import HospitalConfirmationModal from './HospitalConfirmationModal';
 import IncompleteDenominationsManager from './IncompleteDenominationsManager';
 import { useEnhancedMaintenanceCalendar } from '../../hooks/useEnhancedMaintenanceCalendar';
+import EditableDenominationsForm from './EditableDenominationsForm';
 
 interface DenominacionHomogeneaData {
   codigo: string;
@@ -35,21 +35,25 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
   const [draggedEvent, setDraggedEvent] = useState<any>(null);
   const [isHospitalModalOpen, setIsHospitalModalOpen] = useState(false);
   const [showConstraintsConfig, setShowConstraintsConfig] = useState(false);
+  const [updatedDenominaciones, setUpdatedDenominaciones] = useState(denominaciones);
+  const [showLoadingScreen, setShowLoadingScreen] = useState(false);
 
   const {
     events,
     setEvents,
     incompleteDenominaciones,
+    frecuenciaOptions,
+    tipoOptions,
     isGenerating,
     selectedEvent,
     setSelectedEvent,
     constraints,
     setConstraints,
     generateEnhancedCalendar,
-    addIncompleteToCalendar,
     isCalendarComplete,
+    exportCalendarToCSV,
     stats
-  } = useEnhancedMaintenanceCalendar(denominaciones);
+  } = useEnhancedMaintenanceCalendar(updatedDenominaciones);
 
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
@@ -178,7 +182,32 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
     }
   };
 
+  const handleUpdateDenominaciones = (updated: DenominacionHomogeneaData[]) => {
+    setUpdatedDenominaciones(updated);
+  };
+
+  const handleGenerateCalendar = async () => {
+    setShowLoadingScreen(true);
+    
+    // Simular tiempo de carga para mostrar el mensaje al usuario
+    setTimeout(async () => {
+      await generateEnhancedCalendar();
+      setShowLoadingScreen(false);
+    }, 1000);
+  };
+
+  const handleExportCSV = () => {
+    const result = exportCalendarToCSV();
+    if (result) {
+      console.log('✅ Plan anual exportado correctamente');
+      // Aquí podrías agregar una notificación de éxito
+    }
+  };
+
   const handleConfirmCalendar = (hospitalName: string) => {
+    // Exportar automáticamente al confirmar
+    handleExportCSV();
+    
     console.log(`✅ Calendario profesional confirmado para: ${hospitalName}`);
     console.log(`📅 Eventos totales: ${events.length}`);
     console.log(`⏱️ Total horas anuales: ${stats.totalHours}h`);
@@ -191,330 +220,336 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
     setShowConstraintsConfig(false);
   };
 
-  return (
-    <div className="space-y-6">
-      {/* Denominaciones incompletas */}
-      <IncompleteDenominationsManager
-        incompleteDenominaciones={incompleteDenominaciones}
-        onAddToCalendar={addIncompleteToCalendar}
-      />
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
-              🏥 Calendario Profesional de Mantenimiento - Gestión Técnica
-            </CardTitle>
-            <p className="text-sm text-gray-600 dark:text-gray-300 mt-2">
-              📋 Programación L-V • {constraints.tecnicos} técnicos • {constraints.horasPorDia}h/día • 
-              {stats.totalEvents} mantenimientos programados • {stats.completionPercentage}% completo
-            </p>
-            {incompleteDenominaciones.length > 0 && (
-              <div className="flex items-center gap-2 mt-2 text-amber-600 dark:text-amber-400">
-                <AlertTriangle className="h-4 w-4" />
-                <span className="text-sm">
-                  {incompleteDenominaciones.length} denominaciones pendientes de completar
-                </span>
-              </div>
-            )}
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="text-right">
-              <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                {getTotalHoursForCurrentMonth()}h
-              </div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">
-                Este mes
+  // Pantalla de carga
+  if (showLoadingScreen || isGenerating) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+        <Card className="w-full max-w-2xl mx-4">
+          <CardContent className="p-8 text-center">
+            <div className="mb-6">
+              <div className="w-20 h-20 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin mx-auto mb-6" />
+              <h2 className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-2">
+                🔄 Generando Calendario Profesional
+              </h2>
+              <p className="text-gray-600 dark:text-gray-300 mb-4">
+                Nuestro sistema está creando un calendario optimizado para tu hospital
+              </p>
+            </div>
+            
+            <div className="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-6 mb-6">
+              <h3 className="font-semibold mb-4 text-blue-800 dark:text-blue-200">
+                🧠 Proceso de Optimización en Curso:
+              </h3>
+              <div className="space-y-3 text-left text-sm">
+                <div className="flex items-center gap-3">
+                  <div className="w-4 h-4 bg-green-500 rounded-full animate-pulse" />
+                  <span>Analizando {updatedDenominaciones.length} tipos de equipos</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-4 h-4 bg-green-500 rounded-full animate-pulse" />
+                  <span>Aplicando lógica estacional (quirófanos, refrigeración, etc.)</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-4 h-4 bg-blue-500 rounded-full animate-pulse" />
+                  <span>Optimizando distribución de carga laboral</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-4 h-4 bg-blue-500 rounded-full animate-pulse" />
+                  <span>Balanceando recursos técnicos disponibles</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-4 h-4 bg-yellow-500 rounded-full animate-pulse" />
+                  <span>Generando calendario final y plan CSV</span>
+                </div>
               </div>
             </div>
-            <div className="text-right">
-              <div className="text-xl font-bold text-green-600 dark:text-green-400">
-                {stats.totalHours}h
-              </div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">
-                Total año
-              </div>
-            </div>
-            <Button 
-              onClick={() => setShowConstraintsConfig(!showConstraintsConfig)}
-              variant="outline"
-              className="flex items-center gap-2"
-            >
-              <Settings className="h-4 w-4" />
-              Configurar
-            </Button>
-            <Button 
-              onClick={() => setIsHospitalModalOpen(true)}
-              className={`text-white ${
-                isCalendarComplete()
-                  ? 'bg-green-600 hover:bg-green-700'
-                  : 'bg-gray-400 cursor-not-allowed'
-              }`}
-              disabled={!isCalendarComplete() || isGenerating}
-            >
-              <CheckCircle className="h-4 w-4 mr-2" />
-              {isCalendarComplete() ? 'Confirmar Calendario' : `Faltan ${incompleteDenominaciones.length} denominaciones`}
-            </Button>
-            <Button onClick={onBack} variant="outline">
-              Volver al Análisis
-            </Button>
-          </div>
-        </CardHeader>
-        
-        {/* Panel de configuración */}
-        {showConstraintsConfig && (
-          <CardContent className="border-t bg-gray-50 dark:bg-gray-800/50">
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
-              <div>
-                <label className="text-sm font-medium">Horas/día</label>
-                <input
-                  type="number"
-                  value={constraints.horasPorDia}
-                  onChange={(e) => setConstraints(prev => ({ ...prev, horasPorDia: Number(e.target.value) }))}
-                  className="w-full p-2 border rounded"
-                  min="4"
-                  max="8"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Técnicos</label>
-                <input
-                  type="number"
-                  value={constraints.tecnicos}
-                  onChange={(e) => setConstraints(prev => ({ ...prev, tecnicos: Number(e.target.value) }))}
-                  className="w-full p-2 border rounded"
-                  min="2"
-                  max="5"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Max eventos/día</label>
-                <input
-                  type="number"
-                  value={constraints.eventosMaxPorDia}
-                  onChange={(e) => setConstraints(prev => ({ ...prev, eventosMaxPorDia: Number(e.target.value) }))}
-                  className="w-full p-2 border rounded"
-                  min="2"
-                  max="6"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={constraints.trabajarSabados}
-                    onChange={(e) => setConstraints(prev => ({ ...prev, trabajarSabados: e.target.checked }))}
-                  />
-                  Sábados
-                </label>
-              </div>
-              <div>
-                <Button 
-                  onClick={handleRegenerateCalendar} 
-                  className="w-full" 
-                  disabled={isGenerating}
-                >
-                  {isGenerating ? 'Generando...' : 'Regenerar'}
-                </Button>
-              </div>
+            
+            <div className="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-4 border border-amber-200 dark:border-amber-700">
+              <p className="text-amber-800 dark:text-amber-200 text-sm">
+                ⏱️ <strong>Este proceso puede tomar entre 30 segundos y 2 minutos</strong><br />
+                Estamos procesando cada denominación de forma inteligente para garantizar 
+                una distribución óptima del mantenimiento a lo largo del año.
+              </p>
             </div>
           </CardContent>
-        )}
+        </Card>
+      </div>
+    );
+  }
 
-        <CardContent>
-          {/* Estado de carga */}
-          {isGenerating && (
-            <div className="text-center py-12">
-              <div className="w-16 h-16 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin mx-auto mb-6" />
-              <p className="text-xl font-semibold text-blue-600 mb-2">Generando calendario profesional...</p>
-              <p className="text-gray-600 dark:text-gray-300">Aplicando algoritmos de distribución óptima</p>
+  return (
+    <div className="space-y-6">
+      {/* Formulario editable de denominaciones */}
+      <EditableDenominationsForm
+        denominaciones={updatedDenominaciones}
+        frecuenciaOptions={frecuenciaOptions}
+        tipoOptions={tipoOptions}
+        onUpdate={handleUpdateDenominaciones}
+        onGenerate={handleGenerateCalendar}
+        isGenerating={isGenerating}
+      />
+
+      {/* Calendario principal */}
+      {events.length > 0 && (
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="h-5 w-5" />
+                🏥 Calendario Profesional de Mantenimiento - Gestión Técnica
+              </CardTitle>
+              <p className="text-sm text-gray-600 dark:text-gray-300 mt-2">
+                📋 Programación L-V • {constraints.tecnicos} técnicos • {constraints.horasPorDia}h/día • 
+                {stats.totalEvents} mantenimientos programados • {stats.completionPercentage}% completo
+              </p>
             </div>
+            <div className="flex items-center gap-4">
+              <div className="text-right">
+                <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                  {getTotalHoursForCurrentMonth()}h
+                </div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">
+                  Este mes
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-xl font-bold text-green-600 dark:text-green-400">
+                  {stats.totalHours}h
+                </div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">
+                  Total año
+                </div>
+              </div>
+              <Button onClick={handleExportCSV} variant="outline">
+                📊 Exportar Plan CSV
+              </Button>
+              <Button 
+                onClick={() => setShowConstraintsConfig(!showConstraintsConfig)}
+                variant="outline"
+                className="flex items-center gap-2"
+              >
+                <Settings className="h-4 w-4" />
+                Configurar
+              </Button>
+              <Button 
+                onClick={() => setIsHospitalModalOpen(true)}
+                className="bg-green-600 hover:bg-green-700 text-white"
+                disabled={!isCalendarComplete() || isGenerating}
+              >
+                <CheckCircle className="h-4 w-4 mr-2" />
+                Confirmar Calendario
+              </Button>
+              <Button onClick={onBack} variant="outline">
+                Volver al Análisis
+              </Button>
+            </div>
+          </CardHeader>
+          
+          {showConstraintsConfig && (
+            <CardContent className="border-t bg-gray-50 dark:bg-gray-800/50">
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
+                <div>
+                  <label className="text-sm font-medium">Horas/día</label>
+                  <input
+                    type="number"
+                    value={constraints.horasPorDia}
+                    onChange={(e) => setConstraints(prev => ({ ...prev, horasPorDia: Number(e.target.value) }))}
+                    className="w-full p-2 border rounded"
+                    min="4"
+                    max="8"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Técnicos</label>
+                  <input
+                    type="number"
+                    value={constraints.tecnicos}
+                    onChange={(e) => setConstraints(prev => ({ ...prev, tecnicos: Number(e.target.value) }))}
+                    className="w-full p-2 border rounded"
+                    min="2"
+                    max="5"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Max eventos/día</label>
+                  <input
+                    type="number"
+                    value={constraints.eventosMaxPorDia}
+                    onChange={(e) => setConstraints(prev => ({ ...prev, eventosMaxPorDia: Number(e.target.value) }))}
+                    className="w-full p-2 border rounded"
+                    min="2"
+                    max="6"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={constraints.trabajarSabados}
+                      onChange={(e) => setConstraints(prev => ({ ...prev, trabajarSabados: e.target.checked }))}
+                    />
+                    Sábados
+                  </label>
+                </div>
+                <div>
+                  <Button 
+                    onClick={handleRegenerateCalendar} 
+                    className="w-full" 
+                    disabled={isGenerating}
+                  >
+                    {isGenerating ? 'Generando...' : 'Regenerar'}
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
           )}
 
-          {/* Calendario principal */}
-          {!isGenerating && events.length > 0 && (
-            <>
-              <div className="flex items-center justify-between mb-6">
-                <Button
-                  variant="outline"
-                  onClick={() => setCurrentDate(subMonths(currentDate, 1))}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <h2 className="text-xl font-semibold">
-                  {format(currentDate, 'MMMM yyyy', { locale: es })}
-                </h2>
-                <Button
-                  variant="outline"
-                  onClick={() => setCurrentDate(addMonths(currentDate, 1))}
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
+          <CardContent>
+            <div className="flex items-center justify-between mb-6">
+              <Button
+                variant="outline"
+                onClick={() => setCurrentDate(subMonths(currentDate, 1))}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <h2 className="text-xl font-semibold">
+                {format(currentDate, 'MMMM yyyy', { locale: es })}
+              </h2>
+              <Button
+                variant="outline"
+                onClick={() => setCurrentDate(addMonths(currentDate, 1))}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+
+            <div className="flex items-center gap-6 mb-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-green-100 border border-green-200 rounded"></div>
+                <span className="text-sm">Carga baja (≤50%)</span>
               </div>
-
-              {/* Leyenda */}
-              <div className="flex items-center gap-6 mb-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-green-100 border border-green-200 rounded"></div>
-                  <span className="text-sm">Carga baja (≤50%)</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-yellow-100 border border-yellow-200 rounded"></div>
-                  <span className="text-sm">Carga media (≤80%)</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-red-100 border border-red-200 rounded"></div>
-                  <span className="text-sm">Carga alta (&gt;80%)</span>
-                </div>
-                <div className="flex items-center gap-2 ml-auto">
-                  <Users className="h-4 w-4 text-gray-500" />
-                  <span className="text-sm text-gray-600">Recursos optimizados</span>
-                </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-yellow-100 border border-yellow-200 rounded"></div>
+                <span className="text-sm">Carga media (≤80%)</span>
               </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-red-100 border border-red-200 rounded"></div>
+                <span className="text-sm">Carga alta (&gt;80%)</span>
+              </div>
+              <div className="flex items-center gap-2 ml-auto">
+                <Users className="h-4 w-4 text-gray-500" />
+                <span className="text-sm text-gray-600">Recursos optimizados</span>
+              </div>
+            </div>
 
-              <div className="grid grid-cols-7 gap-2">
-                {['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'].map(day => (
-                  <div key={day} className="p-2 text-center font-semibold text-gray-600 dark:text-gray-300">
-                    {day}
-                  </div>
-                ))}
+            <div className="grid grid-cols-7 gap-2">
+              {['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'].map(day => (
+                <div key={day} className="p-2 text-center font-semibold text-gray-600 dark:text-gray-300">
+                  {day}
+                </div>
+              ))}
 
-                {monthDays.map(day => {
-                  const dayEvents = getEventsForDay(day);
-                  const totalHours = getTotalHoursForDay(day);
-                  const isToday = format(day, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
-                  const dayColor = getDayWorkloadColor(day);
-                  const isWeekend = day.getDay() === 0 || day.getDay() === 6;
-                  const utilization = totalHours / constraints.horasPorDia;
+              {monthDays.map(day => {
+                const dayEvents = getEventsForDay(day);
+                const totalHours = getTotalHoursForDay(day);
+                const isToday = format(day, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
+                const dayColor = getDayWorkloadColor(day);
+                const isWeekend = day.getDay() === 0 || day.getDay() === 6;
+                const utilization = totalHours / constraints.horasPorDia;
 
-                  return (
-                    <div
-                      key={day.toISOString()}
-                      className={`min-h-32 p-2 border rounded-lg relative transition-colors group
-                        ${isToday ? 'ring-2 ring-blue-500 dark:ring-blue-400' : ''}
-                        ${!isSameMonth(day, currentDate) ? 'opacity-50' : ''}
-                        ${dayColor}
-                        hover:shadow-md transition-shadow cursor-pointer
-                      `}
-                      onDragOver={handleDragOver}
-                      onDrop={(e) => handleDrop(e, day)}
-                      onClick={() => dayEvents.length > 0 && handleEventClick(dayEvents[0])}
-                    >
-                      <div className="flex items-center justify-between mb-1">
-                        <span className={`text-sm font-medium ${isToday ? 'text-blue-600 dark:text-blue-400' : ''}`}>
-                          {format(day, 'd')}
-                        </span>
-                        {!isWeekend && (
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleAddEvent(day);
-                            }}
-                          >
-                            <Plus className="h-3 w-3" />
-                          </Button>
-                        )}
-                      </div>
+                return (
+                  <div
+                    key={day.toISOString()}
+                    className={`min-h-32 p-2 border rounded-lg relative transition-colors group
+                      ${isToday ? 'ring-2 ring-blue-500 dark:ring-blue-400' : ''}
+                      ${!isSameMonth(day, currentDate) ? 'opacity-50' : ''}
+                      ${dayColor}
+                      hover:shadow-md transition-shadow cursor-pointer
+                    `}
+                    onDragOver={handleDragOver}
+                    onDrop={(e) => handleDrop(e, day)}
+                    onClick={() => dayEvents.length > 0 && handleEventClick(dayEvents[0])}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className={`text-sm font-medium ${isToday ? 'text-blue-600 dark:text-blue-400' : ''}`}>
+                        {format(day, 'd')}
+                      </span>
+                      {!isWeekend && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleAddEvent(day);
+                          }}
+                        >
+                          <Plus className="h-3 w-3" />
+                        </Button>
+                      )}
+                    </div>
 
-                      {totalHours > 0 && (
-                        <div className="flex items-center justify-between gap-1 mb-2">
-                          <div className="flex items-center gap-1">
-                            <Clock className="h-3 w-3 text-gray-500" />
-                            <span className="text-xs text-gray-600 dark:text-gray-400">
-                              {totalHours.toFixed(1)}h
-                            </span>
-                          </div>
-                          <span className={`text-xs px-1 py-0.5 rounded ${
-                            utilization <= 0.5 ? 'bg-green-200 text-green-800' :
-                            utilization <= 0.8 ? 'bg-yellow-200 text-yellow-800' :
-                            'bg-red-200 text-red-800'
-                          }`}>
-                            {Math.round(utilization * 100)}%
+                    {totalHours > 0 && (
+                      <div className="flex items-center justify-between gap-1 mb-2">
+                        <div className="flex items-center gap-1">
+                          <Clock className="h-3 w-3 text-gray-500" />
+                          <span className="text-xs text-gray-600 dark:text-gray-400">
+                            {totalHours.toFixed(1)}h
                           </span>
                         </div>
-                      )}
-
-                      <div className="space-y-1">
-                        {dayEvents.slice(0, 2).map(event => (
-                          <div
-                            key={event.id}
-                            className="p-1 rounded text-xs cursor-pointer bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 transition-all"
-                            draggable
-                            onDragStart={() => handleDragStart(event)}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleEventClick(event);
-                            }}
-                          >
-                            <div className="flex items-center gap-1">
-                              <div className={`w-2 h-2 rounded-full ${getPriorityColor(event.prioridad)}`} />
-                              <span className="truncate flex-1">{event.denominacion}</span>
-                            </div>
-                            <div className="flex items-center justify-between mt-1">
-                              <span className="text-xs opacity-80">{event.tiempo}h × {event.cantidad}</span>
-                              <Badge className={`text-xs px-1 py-0 ${getStatusColor(event.estado)}`}>
-                                {event.estado}
-                              </Badge>
-                            </div>
-                          </div>
-                        ))}
-                        {dayEvents.length > 2 && (
-                          <div className="text-xs text-gray-500 text-center cursor-pointer hover:text-blue-600">
-                            +{dayEvents.length - 2} más
-                          </div>
-                        )}
+                        <span className={`text-xs px-1 py-0.5 rounded ${
+                          utilization <= 0.5 ? 'bg-green-200 text-green-800' :
+                          utilization <= 0.8 ? 'bg-yellow-200 text-yellow-800' :
+                          'bg-red-200 text-red-800'
+                        }`}>
+                          {Math.round(utilization * 100)}%
+                        </span>
                       </div>
+                    )}
 
-                      {isWeekend && !constraints.trabajarSabados && (
-                        <div className="absolute bottom-1 right-1">
-                          <div className="text-xs text-gray-400">🏖️</div>
+                    <div className="space-y-1">
+                      {dayEvents.slice(0, 2).map(event => (
+                        <div
+                          key={event.id}
+                          className="p-1 rounded text-xs cursor-pointer bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 transition-all"
+                          draggable
+                          onDragStart={() => handleDragStart(event)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEventClick(event);
+                          }}
+                        >
+                          <div className="flex items-center gap-1">
+                            <div className={`w-2 h-2 rounded-full ${getPriorityColor(event.prioridad)}`} />
+                            <span className="truncate flex-1">{event.denominacion}</span>
+                          </div>
+                          <div className="flex items-center justify-between mt-1">
+                            <span className="text-xs opacity-80">{event.tiempo}h × {event.cantidad}</span>
+                            <Badge className={`text-xs px-1 py-0 ${getStatusColor(event.estado)}`}>
+                              {event.estado}
+                            </Badge>
+                          </div>
+                        </div>
+                      ))}
+                      {dayEvents.length > 2 && (
+                        <div className="text-xs text-gray-500 text-center cursor-pointer hover:text-blue-600">
+                          +{dayEvents.length - 2} más
                         </div>
                       )}
                     </div>
-                  );
-                })}
-              </div>
-            </>
-          )}
 
-          {/* Estado vacío */}
-          {!isGenerating && events.length === 0 && (
-            <div className="text-center py-12">
-              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-6 max-w-lg mx-auto">
-                <p className="text-xl font-semibold text-blue-800 dark:text-blue-200 mb-4">
-                  📅 Preparando tu calendario profesional
-                </p>
-                <div className="text-left bg-white dark:bg-gray-800 rounded p-4 mb-4">
-                  <p className="font-medium mb-2">Estado del sistema:</p>
-                  <ul className="text-sm space-y-1">
-                    <li>📋 Denominaciones válidas: {denominaciones.length - incompleteDenominaciones.length}</li>
-                    <li>⚠️ Denominaciones pendientes: {incompleteDenominaciones.length}</li>
-                    <li>🔧 Técnicos disponibles: {constraints.tecnicos}</li>
-                    <li>📅 Días laborables: {constraints.trabajarSabados ? 'L-S' : 'L-V'}</li>
-                  </ul>
-                </div>
-                {incompleteDenominaciones.length > 0 ? (
-                  <p className="text-sm text-blue-700 dark:text-blue-300">
-                    Completa la información de las denominaciones pendientes para generar el calendario completo
-                  </p>
-                ) : (
-                  <Button 
-                    onClick={handleRegenerateCalendar} 
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3"
-                    size="lg"
-                  >
-                    🚀 Generar Calendario
-                  </Button>
-                )}
-              </div>
+                    {isWeekend && !constraints.trabajarSabados && (
+                      <div className="absolute bottom-1 right-1">
+                        <div className="text-xs text-gray-400">🏖️</div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
 
       <MaintenanceEventModal
         isOpen={isModalOpen}
