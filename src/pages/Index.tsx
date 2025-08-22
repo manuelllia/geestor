@@ -1,89 +1,100 @@
-
-import React, { useState } from 'react';
-import { SidebarProvider } from '@/components/ui/sidebar';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { usePreferences } from '../hooks/usePreferences';
-import { useUserPermissions } from '../hooks/useUserPermissions';
 import LoginScreen from '../components/LoginScreen';
 import VerificationScreen from '../components/VerificationScreen';
-import { Header } from '../components/Header';
+import Header from '../components/Header';
+import { SidebarProvider } from '@/components/ui/sidebar';
 import { AppSidebar } from '../components/AppSidebar';
 import MainContent from '../components/MainContent';
+import RealEstateMainView from '../components/RealEstate/RealEstateMainView';
+import BidAnalyzerView from '../components/BidAnalyzer/BidAnalyzerView';
+import MaintenanceCalendarView from '../components/MaintenanceCalendar/MaintenanceCalendarView';
+import CostAnalysisView from '../components/CostAnalysis/CostAnalysisView';
+import ChangeSheetsListView from '../components/ChangeSheets/ChangeSheetsListView';
+import ContractRequestsListView from '../components/ContractRequests/ContractRequestsListView';
+import EmployeeAgreementsListView from '../components/EmployeeAgreements/EmployeeAgreementsListView';
+import ExitInterviewsListView from '../components/ExitInterviews/ExitInterviewsListView';
+import PracticeEvaluationsListView from '../components/PracticeEvaluations/PracticeEvaluationsListView';
+import UsersManagementView from '../components/Users/UsersManagementView';
 
-const Index = () => {
-  const { user, isAuthenticated, isLoading, isVerifying, loginWithMicrosoft, logout } = useAuth();
-  const { preferences, setLanguage, setTheme } = usePreferences();
-  const { refreshPermissions } = useUserPermissions();
-  const [activeSection, setActiveSection] = useState('inicio');
-  const [userState, setUserState] = useState(user);
-  const [permissionsUpdateKey, setPermissionsUpdateKey] = useState(0);
+export type ActiveView = 
+  | 'home' 
+  | 'users' 
+  | 'realEstate' 
+  | 'bidAnalyzer' 
+  | 'costAnalysis' 
+  | 'maintenanceCalendar'
+  | 'changeSheets'
+  | 'contractRequests' 
+  | 'employeeAgreements'
+  | 'exitInterviews'
+  | 'practiceEvaluations';
 
-  // Update user state when user prop changes
-  React.useEffect(() => {
-    setUserState(user);
-  }, [user]);
+const Index: React.FC = () => {
+  const { user, logout, isAuthenticated, isVerified } = useAuth();
+  const { language } = usePreferences();
+  const [activeView, setActiveView] = useState<ActiveView>('home');
 
-  const handleUserUpdate = (updatedUser: typeof user) => {
-    setUserState(updatedUser);
+  useEffect(() => {
+    const storedView = localStorage.getItem('activeView');
+    if (storedView) {
+      setActiveView(storedView as ActiveView);
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('activeView', activeView);
+  }, [activeView]);
+
+  if (!isAuthenticated) {
+    return <LoginScreen />;
+  }
+
+  if (!isVerified) {
+    return <VerificationScreen />;
+  }
+
+  const renderActiveView = () => {
+    switch (activeView) {
+      case 'users':
+        return <UsersManagementView language={language} />;
+      case 'realEstate':
+        return <RealEstateMainView language={language} />;
+      case 'bidAnalyzer':
+        return <BidAnalyzerView language={language} />;
+      case 'costAnalysis':
+        return <CostAnalysisView language={language} />;
+      case 'maintenanceCalendar':
+        return <MaintenanceCalendarView language={language} />;
+      case 'changeSheets':
+        return <ChangeSheetsListView language={language} />;
+      case 'contractRequests':
+        return <ContractRequestsListView language={language} />;
+      case 'employeeAgreements':
+        return <EmployeeAgreementsListView language={language} />;
+      case 'exitInterviews':
+        return <ExitInterviewsListView language={language} />;
+      case 'practiceEvaluations':
+        return <PracticeEvaluationsListView language={language} />;
+      default:
+        return <MainContent language={language} />;
+    }
   };
 
-  const handlePermissionsUpdate = () => {
-    setPermissionsUpdateKey(prev => prev + 1);
-    refreshPermissions(); // Actualizar permisos cuando sea necesario
-  };
-
-  // Show loading screen while checking authentication
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
-      </div>
-    );
-  }
-
-  // Show verification screen during account verification
-  if (isVerifying) {
-    return <VerificationScreen language={preferences.language} />;
-  }
-
-  // Show login screen if not authenticated
-  if (!isAuthenticated || !userState) {
-    return (
-      <LoginScreen
-        onLogin={loginWithMicrosoft}
-        isLoading={isLoading}
-        language={preferences.language}
-      />
-    );
-  }
-
-  // Main application interface
   return (
-    <SidebarProvider defaultOpen={true}>
-      <div className="min-h-screen flex w-full bg-gray-50 dark:bg-gray-900">
-        <AppSidebar
-          language={preferences.language}
-          activeSection={activeSection}
-          onSectionChange={setActiveSection}
-          key={permissionsUpdateKey}
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-blue-950">
+        <AppSidebar 
+          activeView={activeView} 
+          setActiveView={setActiveView}
+          language={language}
         />
-        
-        <div className="flex flex-col flex-1 min-w-0">
-          <Header
-            user={userState}
-            onLogout={logout}
-            language={preferences.language}
-            theme={preferences.theme}
-            onLanguageChange={setLanguage}
-            onThemeChange={setTheme}
-            onUserUpdate={handleUserUpdate}
-            onPermissionsUpdate={handlePermissionsUpdate}
-          />
-          
-          <MainContent
-            activeSection={activeSection}
-            language={preferences.language}
-          />
+        <div className="flex-1 flex flex-col">
+          <Header user={user} onLogout={logout} />
+          <main className="flex-1 overflow-auto">
+            {renderActiveView()}
+          </main>
         </div>
       </div>
     </SidebarProvider>
