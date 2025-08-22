@@ -1,8 +1,5 @@
 import { geminiAI, safeJsonParse } from './geminiService';
-import * as pdfjsLib from 'pdfjs-dist';
-
-// Configurar el worker de PDF.js
-pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+import { extractPDFText } from '../utils/pdfUtils';
 
 interface ReportData {
   presupuestoGeneral: string;
@@ -18,46 +15,8 @@ interface ReportData {
   costesDetalladosRecomendados: any[];
 }
 
-// Función real para extraer texto de archivos PDF
-export const extractTextFromPDF = async (file: File): Promise<string> => {
-  try {
-    console.log(`📄 Extrayendo texto real del PDF: ${file.name}`);
-    
-    const arrayBuffer = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-    
-    let fullText = '';
-    const numPages = pdf.numPages;
-    
-    console.log(`📖 PDF tiene ${numPages} páginas`);
-    
-    for (let pageNum = 1; pageNum <= numPages; pageNum++) {
-      try {
-        const page = await pdf.getPage(pageNum);
-        const textContent = await page.getTextContent();
-        const pageText = textContent.items
-          .map((item: any) => item.str)
-          .join(' ');
-        
-        fullText += pageText + '\n';
-        
-        if (pageNum % 10 === 0) {
-          console.log(`📄 Procesadas ${pageNum}/${numPages} páginas`);
-        }
-      } catch (pageError) {
-        console.error(`❌ Error procesando página ${pageNum}:`, pageError);
-        continue;
-      }
-    }
-    
-    console.log(`✅ Texto extraído: ${fullText.length} caracteres del archivo ${file.name}`);
-    return fullText.trim();
-    
-  } catch (error) {
-    console.error('❌ Error extrayendo texto del PDF:', error);
-    throw new Error(`Error al procesar el archivo PDF ${file.name}: ${error instanceof Error ? error.message : 'Error desconocido'}`);
-  }
-};
+// Usar la función optimizada de utilidades
+export const extractTextFromPDF = extractPDFText;
 
 // Dividir el contenido del documento en chunks más pequeños
 const splitDocumentContent = (content: string, maxLength: number = 4000): string[] => {
@@ -70,7 +29,9 @@ const splitDocumentContent = (content: string, maxLength: number = 4000): string
     if (currentChunk.length + line.length > maxLength && currentChunk.length > 0) {
       chunks.push(currentChunk.trim());
       currentChunk = line;
-    } else {
+      currentChunk = ''; // Reset currentChunk after pushing
+    }
+     else {
       currentChunk += (currentChunk ? '\n' : '') + line;
     }
   }
