@@ -1,8 +1,7 @@
-
 import { useState, useEffect } from 'react';
 import { MaintenanceTaskProcessor } from '../utils/maintenance/MaintenanceTaskProcessor';
 import { OptimizedSchedulingEngine } from '../utils/maintenance/OptimizedSchedulingEngine';
-import { CSVExporter } from '../utils/maintenance/CSVExporter';
+import { MaintenanceCSVExporter } from '../utils/maintenance/CSVExporter';
 
 interface DenominacionHomogeneaData {
   codigo: string;
@@ -145,7 +144,7 @@ export const useEnhancedMaintenanceCalendar = (denominaciones: DenominacionHomog
 
   const exportCalendarToCSV = () => {
     try {
-      const result = CSVExporter.exportToCSV(denominaciones);
+      const result = MaintenanceCSVExporter.exportToCSV(denominaciones);
       console.log('📊 CSV exportado exitosamente:', result);
       return result;
     } catch (error) {
