@@ -30,7 +30,13 @@ const RealEstateMainView: React.FC<RealEstateMainViewProps> = ({ language }) => 
     case 'list':
       return <RealEstateListView onBack={handleBackToDashboard} />;
     case 'upload':
-      return <RealEstateUploadView onBack={handleBackToDashboard} />;
+      return (
+        <RealEstateUploadView
+          language={language}
+          onUploadComplete={handleBackToDashboard}
+          onCancel={handleBackToDashboard}
+        />
+      );
     default:
       return (
         <RealEstateDashboard
