@@ -19,13 +19,13 @@ interface MaintenanceCSVRow {
   dic: number;
 }
 
-interface DenominacionData {
+interface DenominacionHomogeneaData {
   codigo: string;
   denominacion: string;
   cantidad: number;
   frecuencia: string;
   tipoMantenimiento: string;
-  tiempo: string;
+  tiempo?: string;
 }
 
 export class MaintenanceCSVExporter {
@@ -156,7 +156,7 @@ export class MaintenanceCSVExporter {
   /**
    * Genera los datos para el CSV
    */
-  static generateCSVData(denominaciones: DenominacionData[]): MaintenanceCSVRow[] {
+  static generateCSVData(denominaciones: DenominacionHomogeneaData[]): MaintenanceCSVRow[] {
     console.log('🔄 Generando datos CSV optimizados...');
     
     return denominaciones
@@ -164,7 +164,7 @@ export class MaintenanceCSVExporter {
                    d.tipoMantenimiento && d.tipoMantenimiento !== 'No especificado' &&
                    d.tiempo && d.tiempo !== 'No especificado')
       .map(denominacion => {
-        const horasPorMantenimiento = parseFloat(denominacion.tiempo) || 2;
+        const horasPorMantenimiento = parseFloat(denominacion.tiempo || '2') || 2;
         const totalHoras = denominacion.cantidad * horasPorMantenimiento;
         
         const monthlyDistribution = this.getSeasonalDistribution(
@@ -199,7 +199,7 @@ export class MaintenanceCSVExporter {
   /**
    * Convierte datos a CSV y descarga el archivo
    */
-  static exportToCSV(denominaciones: DenominacionData[], filename: string = 'plan-mantenimiento-anual.csv') {
+  static exportToCSV(denominaciones: DenominacionHomogeneaData[], filename: string = 'plan-mantenimiento-anual.csv') {
     const csvData = this.generateCSVData(denominaciones);
     
     if (csvData.length === 0) {
