@@ -35,6 +35,8 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({ language, onI
           getProvinceActivityData()
         ]);
 
+        console.log('📊 Datos cargados del dashboard:', { counts, costs, activity });
+
         setPropertyCounts(counts);
         setCostData(costs);
         setProvinceActivity(activity);
@@ -70,11 +72,11 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({ language, onI
 
   const formatCurrencyCompact = (value: number) => {
     if (value >= 1000000) {
-      return `${(value / 1000000).toFixed(1)}M`;
+      return `${(value / 1000000).toFixed(1)}M€`;
     } else if (value >= 1000) {
-      return `${(value / 1000).toFixed(0)}k`;
+      return `${(value / 1000).toFixed(0)}k€`;
     }
-    return value.toString();
+    return `${value}€`;
   };
 
   if (isLoading) {
@@ -222,7 +224,7 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({ language, onI
                   Coste Anual Total
                 </p>
                 <div className="text-base sm:text-lg lg:text-xl xl:text-2xl font-bold leading-tight break-words">
-                  €{formatCurrencyCompact(costData.totalCost)}
+                  {formatCurrencyCompact(costData.totalCost)}
                 </div>
                 <p className="text-purple-200 text-xs mt-1 truncate">
                   Gastos operativos
@@ -244,7 +246,7 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({ language, onI
                   Coste Promedio
                 </p>
                 <div className="text-base sm:text-lg lg:text-xl xl:text-2xl font-bold leading-tight break-words">
-                  €{propertyCounts.total > 0 ? formatCurrencyCompact(costData.totalCost / propertyCounts.total) : '0'}
+                  {propertyCounts.total > 0 ? formatCurrencyCompact(costData.totalCost / propertyCounts.total) : '0€'}
                 </div>
                 <p className="text-teal-200 text-xs mt-1 truncate">
                   Por propiedad
@@ -285,10 +287,10 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({ language, onI
                   <YAxis 
                     fontSize={10}
                     stroke="#666"
-                    tickFormatter={(value) => `€${formatCurrencyCompact(value)}`}
+                    tickFormatter={(value) => formatCurrencyCompact(value)}
                   />
                   <Tooltip 
-                    formatter={(value: number) => [`€${value.toLocaleString()}`, 'Coste Anual']}
+                    formatter={(value: number) => [formatCurrency(value), 'Coste Anual']}
                     labelStyle={{ color: '#1f2937', fontWeight: 'bold' }}
                     contentStyle={{ 
                       backgroundColor: 'white', 
