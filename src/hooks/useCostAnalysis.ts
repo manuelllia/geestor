@@ -46,57 +46,57 @@ export const useCostAnalysis = () => {
     setError(null);
     setAnalysisResult(null);
     setCurrentStep(0);
-    setTotalSteps(5);
-    setCurrentProgress('Iniciando análisis con Gemini 2.5 Flash...');
+    setTotalSteps(6); // Aumentamos a 6 pasos para mayor granularidad
+    setCurrentProgress('Iniciando análisis optimizado con Gemini 2.0 Flash...');
     
     try {
-      console.log('🔍 Iniciando análisis de costes con Gemini 2.5 Flash...');
+      console.log('🔍 Iniciando análisis de costes optimizado con Gemini 2.0 Flash...');
       console.log('📄 Archivos:', {
         pcap: `${pcapFile.name} (${(pcapFile.size / 1024 / 1024).toFixed(2)} MB)`,
         ppt: `${pptFile.name} (${(pptFile.size / 1024 / 1024).toFixed(2)} MB)`
       });
 
-      // Convertir archivos a texto (placeholder - en producción usarías pdf-parse)
+      // Convertir archivos a texto
       setCurrentProgress('Procesando archivos PDF...');
       const pcapText = await convertFileToText(pcapFile);
       const pptText = await convertFileToText(pptFile);
 
       const stepResults: any[] = [];
 
-      // Ejecutar análisis paso a paso
+      // Ejecutar análisis paso a paso optimizado
       for (let step = 1; step <= totalSteps; step++) {
         try {
           setCurrentStep(step);
-          setCurrentProgress(`Analizando paso ${step}/${totalSteps} con Gemini...`);
-          console.log(`🔄 Ejecutando paso ${step}/${totalSteps} con Gemini 2.5 Flash...`);
+          setCurrentProgress(`Analizando paso ${step}/${totalSteps} con IA optimizada...`);
+          console.log(`🔄 Ejecutando paso optimizado ${step}/${totalSteps}...`);
           
           const stepResult = await analyzeDocumentsStep(pcapText, pptText, step, totalSteps);
           stepResults.push(stepResult);
           
-          console.log(`✅ Paso ${step} completado exitosamente:`, stepResult);
+          console.log(`✅ Paso ${step} completado:`, stepResult);
           
-          // Esperar entre 3-5 segundos entre llamadas (excepto en el último paso)
+          // Esperar entre pasos para evitar rate limiting (tiempo reducido)
           if (step < totalSteps) {
-            const waitTime = Math.floor(Math.random() * 3) + 3; // Entre 3 y 5 segundos
-            console.log(`⏳ Esperando ${waitTime} segundos antes del siguiente paso...`);
+            const waitTime = Math.floor(Math.random() * 2) + 2; // Entre 2 y 3 segundos
+            console.log(`⏳ Esperando ${waitTime}s antes del siguiente paso...`);
             setCurrentProgress(`Esperando ${waitTime}s antes del paso ${step + 1}...`);
             await wait(waitTime);
           }
           
         } catch (stepError) {
           console.error(`❌ Error en paso ${step}:`, stepError);
-          // Continuar con el siguiente paso en caso de error
-          stepResults.push(null);
+          // Continuar con estructura vacía en caso de error
+          stepResults.push({});
         }
       }
 
       // Combinar todos los resultados
-      console.log('🔧 Combinando resultados de todos los pasos...');
-      setCurrentProgress('Generando informe final...');
+      console.log('🔧 Combinando resultados optimizados...');
+      setCurrentProgress('Generando informe final optimizado...');
       
       const finalResult = mergeStepResults(...stepResults);
       
-      console.log('✅ Análisis completado exitosamente');
+      console.log('✅ Análisis optimizado completado exitosamente');
       console.log('📊 Resultado final:', finalResult);
       
       setAnalysisResult(finalResult);
