@@ -21,27 +21,32 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({ language, onI
   const [costData, setCostData] = useState({ totalCost: 0, byProvince: {} });
   const [provinceActivity, setProvinceActivity] = useState<ProvinceActivityData>({});
   const [hasData, setHasData] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchCounts = async () => {
-      const counts = await getPropertyCounts();
-      setPropertyCounts(counts);
+    const fetchAllData = async () => {
+      try {
+        setIsLoading(true);
+        
+        // Cargar datos en paralelo
+        const [counts, costs, activity] = await Promise.all([
+          getPropertyCounts(),
+          getAnnualCostData(),
+          getProvinceActivityData()
+        ]);
+
+        setPropertyCounts(counts);
+        setCostData(costs);
+        setProvinceActivity(activity);
+        setHasData(Object.keys(activity).length > 0 || counts.total > 0);
+      } catch (error) {
+        console.error('Error cargando datos del dashboard:', error);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
-    const fetchCostData = async () => {
-      const data = await getAnnualCostData();
-      setCostData(data);
-    };
-
-    const fetchProvinceActivity = async () => {
-      const data = await getProvinceActivityData();
-      setProvinceActivity(data);
-      setHasData(Object.keys(data).length > 0);
-    };
-
-    fetchCounts();
-    fetchCostData();
-    fetchProvinceActivity();
+    fetchAllData();
   }, []);
 
   const costChartData = Object.entries(costData.byProvince).map(([provincia, coste]) => ({
@@ -71,6 +76,26 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({ language, onI
     }
     return value.toString();
   };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6 bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-blue-950 min-h-screen p-4 sm:p-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          {[...Array(6)].map((_, i) => (
+            <Card key={i} className="border-0 shadow-lg">
+              <CardContent className="p-4 sm:p-6">
+                <div className="animate-pulse">
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
+                  <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-2"></div>
+                  <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-2/3"></div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-blue-950 min-h-screen p-4 sm:p-6">

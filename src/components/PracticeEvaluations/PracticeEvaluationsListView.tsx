@@ -1,30 +1,35 @@
-
 import React, { useState, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { FileUp, Download, RefreshCw, Plus, Calendar, ArrowUp, ArrowDown } from 'lucide-react'; 
-import { getPracticeEvaluations, generatePracticeEvaluationToken, PracticeEvaluationRecord } from '../../services/practiceEvaluationService';
+import { FileUp, Download, RefreshCw, Plus, Calendar, ArrowUp, ArrowDown, Eye, Trash2 } from 'lucide-react'; 
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { getPracticeEvaluations, deletePracticeEvaluation, generatePracticeEvaluationToken, PracticeEvaluationRecord } from '../../services/practiceEvaluationService';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Language } from '../../utils/translations';
+import PracticeEvaluationDetailView from './PracticeEvaluationDetailView';
 
 interface PracticeEvaluationsListViewProps {
   language?: Language;
 }
 
 export default function PracticeEvaluationsListView({ language = 'es' }: PracticeEvaluationsListViewProps) {
+  const queryClient = useQueryClient();
   const { data: evaluations = [], isLoading, refetch } = useQuery({
     queryKey: ['practice-evaluations'],
     queryFn: getPracticeEvaluations,
   });
 
-  // NUEVOS ESTADOS DE ORDENACIÓN
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [selectedEvaluation, setSelectedEvaluation] = useState<PracticeEvaluationRecord | null>(null);
+  const [isDetailViewOpen, setIsDetailViewOpen] = useState(false);
+  const [evaluationToDelete, setEvaluationToDelete] = useState<string | null>(null);
 
   // LÓGICA DE ORDENACIÓN
   const handleSort = (column: string) => {
@@ -103,6 +108,26 @@ export default function PracticeEvaluationsListView({ language = 'es' }: Practic
     toast.success('Enlace copiado al portapapeles', {
       description: 'Comparte este enlace para que se complete la valoración de prácticas',
     });
+  };
+
+  const handleViewEvaluation = (evaluation: PracticeEvaluationRecord) => {
+    setSelectedEvaluation(evaluation);
+    setIsDetailViewOpen(true);
+  };
+
+  const handleDeleteEvaluation = async (id: string) => {
+    try {
+      await deletePracticeEvaluation(id);
+      toast.success('Valoración eliminada', {
+        description: 'La valoración de prácticas ha sido eliminada correctamente',
+      });
+      queryClient.invalidateQueries({ queryKey: ['practice-evaluations'] });
+      setEvaluationToDelete(null);
+    } catch (error) {
+      toast.error('Error al eliminar', {
+        description: 'No se pudo eliminar la valoración de prácticas',
+      });
+    }
   };
 
   const handleExport = () => {
@@ -257,6 +282,7 @@ export default function PracticeEvaluationsListView({ language = 'es' }: Practic
                         )}
                       </div>
                     </TableHead>
+                    <TableHead className="w-[120px]">Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -294,6 +320,43 @@ export default function PracticeEvaluationsListView({ language = 'es' }: Practic
                           </div>
                         </div>
                       </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleViewEvaluation(evaluation)}
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                          
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700">
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>¿Eliminar valoración?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Esta acción no se puede deshacer. Se eliminará permanentemente la valoración 
+                                  de {evaluation.studentName} {evaluation.studentLastName}.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleDeleteEvaluation(evaluation.id)}
+                                  className="bg-red-600 hover:bg-red-700"
+                                >
+                                  Eliminar
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -302,6 +365,17 @@ export default function PracticeEvaluationsListView({ language = 'es' }: Practic
           )}
         </CardContent>
       </Card>
+
+      {/* Modal de detalle */}
+      {isDetailViewOpen && selectedEvaluation && (
+        <PracticeEvaluationDetailView
+          evaluation={selectedEvaluation}
+          onClose={() => {
+            setIsDetailViewOpen(false);
+            setSelectedEvaluation(null);
+          }}
+        />
+      )}
     </div>
   );
 }

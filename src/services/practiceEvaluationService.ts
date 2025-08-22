@@ -1,4 +1,4 @@
-import { collection, addDoc, getDocs, doc, getDoc, updateDoc, Timestamp, query, orderBy } from "firebase/firestore";
+import { collection, addDoc, getDocs, doc, getDoc, updateDoc, deleteDoc, Timestamp, query, orderBy } from "firebase/firestore";
 import { db } from "../lib/firebase";
 
 // INTERFAZ AJUSTADA PARA COINCIDIR CON ZOD SCHEMA Y JSX
@@ -68,6 +68,49 @@ export interface PracticeEvaluationRecord extends PracticeEvaluationData {
   updatedAt: Date;
   response?: any; // Esto sugiere que puedes tener una respuesta guardada aparte.
 }
+
+/**
+ * Elimina una valoración de prácticas de Firestore.
+ */
+export const deletePracticeEvaluation = async (id: string): Promise<void> => {
+  try {
+    console.log('Eliminando valoración de prácticas con ID:', id);
+    
+    const evaluationDocRef = doc(db, "Gestión de Talento", "valoracion-practicas", "Valoración Prácticas", id);
+    await deleteDoc(evaluationDocRef);
+    
+    console.log('Valoración de prácticas eliminada exitosamente');
+  } catch (error) {
+    console.error('Error al eliminar la valoración de prácticas:', error);
+    throw error;
+  }
+};
+
+/**
+ * Obtiene una valoración de prácticas por ID.
+ */
+export const getPracticeEvaluationById = async (id: string): Promise<PracticeEvaluationRecord | null> => {
+  try {
+    const evaluationDocRef = doc(db, "Gestión de Talento", "valoracion-practicas", "Valoración Prácticas", id);
+    const docSnap = await getDoc(evaluationDocRef);
+    
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      return {
+        id: docSnap.id,
+        ...data,
+        evaluationDate: data.evaluationDate?.toDate() || new Date(),
+        createdAt: data.createdAt?.toDate() || new Date(),
+        updatedAt: data.updatedAt?.toDate() || new Date(),
+      } as PracticeEvaluationRecord;
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Error al obtener valoración de prácticas por ID:', error);
+    throw error;
+  }
+};
 
 /**
  * Guarda una NUEVA valoración de prácticas en Firestore.
