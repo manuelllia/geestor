@@ -1,4 +1,3 @@
-
 import OpenAI from 'openai';
 
 // Configuración de OpenRouter con modelo que soporte visión
@@ -30,19 +29,19 @@ export const convertPDFToBase64 = async (file: File): Promise<string> => {
   }
 };
 
-// Función mejorada para analizar PDF con OpenRouter usando modelo con visión
+// Función mejorada para analizar PDF con OpenRouter usando modelo con visión (Qwen-Long)
 export const analyzePDFWithQwen = async (
   file: File,
-  analysisPrompt: string
+  analysisPrompt: string // Este prompt ahora será más específico
 ): Promise<string> => {
   try {
-    console.log(`🤖 Analizando PDF con modelo de visión: ${file.name}`);
+    console.log(`🤖 Analizando PDF con modelo de Qwen: ${file.name}`);
     
     const base64Data = await convertPDFToBase64(file);
     
-    // Usar un modelo que soporte análisis de documentos/imágenes
+    // Usar un modelo de Qwen que soporte análisis de documentos/imágenes
     const completion = await openai.chat.completions.create({
-      model: "google/gemini-flash-1.5", // Modelo que soporta documentos
+      model: "qwen/qwen-long", // <-- ¡CAMBIO CLAVE AQUÍ! Usamos Qwen-Long
       messages: [
         {
           role: "user",
@@ -51,9 +50,9 @@ export const analyzePDFWithQwen = async (
               type: "text",
               text: `${analysisPrompt}
 
-IMPORTANTE: Este es un documento PDF que contiene información de licitación pública española. Necesito que analices el contenido del documento y extraigas la información solicitada.
+IMPORTANTE: Este es un documento PDF que contiene información de licitación pública española. Analiza el contenido del documento, prestando especial atención a la sección de electromedicina, y extrae la información solicitada con la mayor precisión posible.
 
-Por favor, responde ÚNICAMENTE con JSON válido, sin texto adicional antes o después. Si no encuentras información específica, usa "No especificado" o arrays vacíos []`
+Por favor, responde ÚNICAMENTE con JSON válido, sin texto adicional antes o después. Si no encuentras información específica, usa "No especificado" o arrays vacíos [] para las listas.`
             },
             {
               type: "image_url",
@@ -64,11 +63,11 @@ Por favor, responde ÚNICAMENTE con JSON válido, sin texto adicional antes o de
           ]
         }
       ],
-      temperature: 0.1,
-      max_tokens: 4096,
+      temperature: 0.1, // Baja temperatura para respuestas más concisas y menos creativas
+      max_tokens: 4096, // Suficientes tokens para una respuesta JSON detallada
     });
 
-    console.log(`✅ Respuesta recibida del modelo de visión para ${file.name}`);
+    console.log(`✅ Respuesta recibida del modelo de Qwen para ${file.name}`);
     
     if (!completion.choices[0]?.message?.content) {
       console.error(`❌ Respuesta inválida del modelo para ${file.name}:`, completion);
@@ -81,9 +80,9 @@ Por favor, responde ÚNICAMENTE con JSON válido, sin texto adicional antes o de
     return responseText;
     
   } catch (error) {
-    console.error(`❌ Error en análisis con modelo de visión para ${file.name}:`, error);
+    console.error(`❌ Error en análisis con Qwen para ${file.name}:`, error);
     
-    // Si el modelo falla, intentar con análisis de texto puro
+    // Si el modelo falla, intentar con análisis de texto puro (útil si la lectura del PDF falla pero el modelo puede responder un JSON por defecto)
     try {
       console.log(`🔄 Intentando análisis alternativo para ${file.name}...`);
       return await fallbackTextAnalysis(analysisPrompt);
@@ -104,7 +103,7 @@ const fallbackTextAnalysis = async (prompt: string): Promise<string> => {
           role: "user",
           content: `${prompt}
 
-NOTA: No se pudo procesar el documento PDF. Por favor, proporciona una estructura JSON válida con valores por defecto para los campos solicitados. Usa "No especificado" para strings y arrays vacíos [] donde corresponda.`
+NOTA: No se pudo procesar el documento PDF. Por favor, proporciona una estructura JSON válida con valores por defecto para los campos solicitados, asumiendo una licitación de electromedicina genérica. Usa "No especificado" para strings y arrays vacíos [] donde corresponda.`
         }
       ],
       temperature: 0.1,
@@ -138,7 +137,7 @@ export const safeJsonParse = (jsonString: string, context: string = ''): any => 
     return parsed;
   } catch (error) {
     console.error(`❌ Error parseando JSON: ${context}`, error);
-    console.error(`❌ String original:`, jsonString.substring(0, 500));
+    console.error(`❌ String original (primeros 500 chars):`, jsonString.substring(0, 500));
     return {};
   }
 };
