@@ -41,51 +41,79 @@ const MaintenanceInventoryTable: React.FC<MaintenanceInventoryTableProps> = ({
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-blue-900 dark:text-blue-100">
-          Inventario de Equipos ({inventory.length} elementos)
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Equipo</TableHead>
-                <TableHead>Modelo</TableHead>
-                <TableHead>Nº Serie</TableHead>
-                <TableHead>Ubicación</TableHead>
-                <TableHead>Departamento</TableHead>
-                <TableHead>Adquisición</TableHead>
-                <TableHead>Último Mant.</TableHead>
-                <TableHead>Próximo Mant.</TableHead>
-                <TableHead>Estado</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {inventory.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell className="font-medium">{item.equipment}</TableCell>
-                  <TableCell>{item.model}</TableCell>
-                  <TableCell className="font-mono text-sm">{item.serialNumber}</TableCell>
-                  <TableCell>{item.location}</TableCell>
-                  <TableCell>{item.department}</TableCell>
-                  <TableCell>{item.acquisitionDate}</TableCell>
-                  <TableCell>{item.lastMaintenance}</TableCell>
-                  <TableCell>{item.nextMaintenance}</TableCell>
-                  <TableCell>
-                    <Badge className={getStatusColor(item.status)}>
-                      {item.status}
-                    </Badge>
-                  </TableCell>
+    <div className="p-2 sm:p-4 lg:p-6">
+      <Card>
+        <CardHeader className="p-3 sm:p-4 lg:p-6">
+          <CardTitle className="text-sm sm:text-base lg:text-lg text-blue-900 dark:text-blue-100">
+            Inventario de Equipos ({inventory.length} elementos)
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-3 sm:p-4 lg:p-6">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-xs sm:text-sm min-w-[100px]">Equipo</TableHead>
+                  <TableHead className="text-xs sm:text-sm min-w-[80px] hidden sm:table-cell">Modelo</TableHead>
+                  <TableHead className="text-xs sm:text-sm min-w-[100px] hidden lg:table-cell">Nº Serie</TableHead>
+                  <TableHead className="text-xs sm:text-sm min-w-[80px] hidden md:table-cell">Ubicación</TableHead>
+                  <TableHead className="text-xs sm:text-sm min-w-[80px] hidden lg:table-cell">Departamento</TableHead>
+                  <TableHead className="text-xs sm:text-sm min-w-[80px] hidden xl:table-cell">Adquisición</TableHead>
+                  <TableHead className="text-xs sm:text-sm min-w-[80px] hidden lg:table-cell">Último Mant.</TableHead>
+                  <TableHead className="text-xs sm:text-sm min-w-[80px]">Próximo Mant.</TableHead>
+                  <TableHead className="text-xs sm:text-sm min-w-[80px]">Estado</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </CardContent>
-    </Card>
+              </TableHeader>
+              <TableBody>
+                {inventory.map((item) => (
+                  <TableRow key={item.id}>
+                    <TableCell className="font-medium text-xs sm:text-sm">
+                      <div className="truncate max-w-[100px] sm:max-w-[150px]">
+                        {item.equipment}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-xs sm:text-sm hidden sm:table-cell">
+                      <div className="truncate max-w-[80px]">
+                        {item.model}
+                      </div>
+                    </TableCell>
+                    <TableCell className="font-mono text-xs hidden lg:table-cell">
+                      <div className="truncate max-w-[100px]">
+                        {item.serialNumber}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-xs sm:text-sm hidden md:table-cell">
+                      <div className="truncate max-w-[80px]">
+                        {item.location}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-xs sm:text-sm hidden lg:table-cell">
+                      <div className="truncate max-w-[80px]">
+                        {item.department}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-xs sm:text-sm hidden xl:table-cell">
+                      {item.acquisitionDate}
+                    </TableCell>
+                    <TableCell className="text-xs sm:text-sm hidden lg:table-cell">
+                      {item.lastMaintenance}
+                    </TableCell>
+                    <TableCell className="text-xs sm:text-sm">
+                      {item.nextMaintenance}
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={`${getStatusColor(item.status)} text-xs`}>
+                        {item.status}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

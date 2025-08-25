@@ -76,87 +76,112 @@ const RealEstateTableManager: React.FC<RealEstateTableManagerProps> = ({ onBack 
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 sm:space-y-6 p-2 sm:p-4 lg:p-6">
+      <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
         <div>
-          <Button variant="ghost" onClick={onBack} className="hover:bg-blue-50 dark:hover:bg-blue-900/20">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Volver
+          <Button 
+            variant="ghost" 
+            onClick={onBack} 
+            className="hover:bg-blue-50 dark:hover:bg-blue-900/20 mb-2 sm:mb-3"
+            size="sm"
+          >
+            <ArrowLeft className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+            <span className="text-xs sm:text-sm">Volver</span>
           </Button>
-          <h1 className="text-3xl font-bold text-blue-900 dark:text-blue-100">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-blue-900 dark:text-blue-100">
             Gestión de Inmuebles
           </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">
+          <p className="text-xs sm:text-sm lg:text-base text-gray-600 dark:text-gray-400 mt-1">
             Administra los inmuebles de la empresa
           </p>
         </div>
         <Button
           onClick={handleRefresh}
           variant="outline"
-          className="border-blue-300 text-blue-700 hover:bg-blue-50"
+          className="border-blue-300 text-blue-700 hover:bg-blue-50 text-xs sm:text-sm"
           disabled={refreshing}
+          size="sm"
         >
-          <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+          <RefreshCw className={`w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 ${refreshing ? 'animate-spin' : ''}`} />
           Actualizar
         </Button>
       </div>
 
       <Card className="border-blue-200 dark:border-blue-800">
-        <CardHeader>
-          <CardTitle className="text-blue-800 dark:text-blue-200 flex items-center justify-between">
+        <CardHeader className="p-3 sm:p-4 lg:p-6">
+          <CardTitle className="text-sm sm:text-base lg:text-lg text-blue-800 dark:text-blue-200 flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
             <span className="flex items-center gap-2">
-              <Building2 className="w-5 h-5" />
+              <Building2 className="w-4 h-4 sm:w-5 sm:h-5" />
               Gestión de Inmuebles
             </span>
-            <Badge variant="secondary">
+            <Badge variant="secondary" className="text-xs sm:text-sm w-fit">
               {properties.length} inmuebles
             </Badge>
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-3 sm:p-4 lg:p-6">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Nombre/Descripción</TableHead>
-                  <TableHead>Tipo</TableHead>
-                  <TableHead>Ciudad</TableHead>
-                  <TableHead>Provincia</TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead>Precio</TableHead>
-                  <TableHead className="w-[50px]">Acciones</TableHead>
+                  <TableHead className="text-xs sm:text-sm min-w-[120px]">Nombre/Descripción</TableHead>
+                  <TableHead className="text-xs sm:text-sm min-w-[80px]">Tipo</TableHead>
+                  <TableHead className="text-xs sm:text-sm min-w-[80px] hidden sm:table-cell">Ciudad</TableHead>
+                  <TableHead className="text-xs sm:text-sm min-w-[80px] hidden lg:table-cell">Provincia</TableHead>
+                  <TableHead className="text-xs sm:text-sm min-w-[70px]">Estado</TableHead>
+                  <TableHead className="text-xs sm:text-sm min-w-[80px] hidden sm:table-cell">Precio</TableHead>
+                  <TableHead className="w-[50px] text-xs sm:text-sm">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {properties.map((property, index) => (
                   <TableRow key={property.id || index}>
-                    <TableCell className="font-medium">
-                      {property.nombre || property.description || 'Sin nombre'}
+                    <TableCell className="font-medium text-xs sm:text-sm">
+                      <div className="truncate max-w-[120px] sm:max-w-[200px]">
+                        {property.nombre || property.description || 'Sin nombre'}
+                      </div>
                     </TableCell>
-                    <TableCell>{property.tipo || property.type || 'No especificado'}</TableCell>
-                    <TableCell>{property.ciudad || property.city || 'No especificado'}</TableCell>
-                    <TableCell>{property.provincia || property.province || 'No especificado'}</TableCell>
+                    <TableCell className="text-xs sm:text-sm">
+                      <div className="truncate max-w-[80px]">
+                        {property.tipo || property.type || 'No especificado'}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-xs sm:text-sm hidden sm:table-cell">
+                      <div className="truncate max-w-[80px]">
+                        {property.ciudad || property.city || 'No especificado'}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-xs sm:text-sm hidden lg:table-cell">
+                      <div className="truncate max-w-[80px]">
+                        {property.provincia || property.province || 'No especificado'}
+                      </div>
+                    </TableCell>
                     <TableCell>
-                      <Badge variant={property.status === 'Activo' ? 'default' : 'secondary'}>
+                      <Badge 
+                        variant={property.status === 'Activo' ? 'default' : 'secondary'}
+                        className="text-xs"
+                      >
                         {property.status || 'No especificado'}
                       </Badge>
                     </TableCell>
-                    <TableCell>
-                      {property.precio || property.price 
-                        ? `${(property.precio || property.price).toLocaleString('es-ES')} €`
-                        : 'No especificado'
-                      }
+                    <TableCell className="text-xs sm:text-sm hidden sm:table-cell">
+                      <div className="truncate max-w-[100px]">
+                        {property.precio || property.price 
+                          ? `${(property.precio || property.price).toLocaleString('es-ES')} €`
+                          : 'No especificado'
+                        }
+                      </div>
                     </TableCell>
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <MoreHorizontal className="h-4 w-4" />
+                          <Button variant="ghost" className="h-6 w-6 sm:h-8 sm:w-8 p-0">
+                            <MoreHorizontal className="h-3 w-3 sm:h-4 sm:w-4" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="bg-white dark:bg-gray-800 border border-blue-200 dark:border-blue-700">
-                          <DropdownMenuItem onClick={() => handleViewProperty(property)} className="cursor-pointer">
-                            <Eye className="mr-2 h-4 w-4" />
+                          <DropdownMenuItem onClick={() => handleViewProperty(property)} className="cursor-pointer text-xs sm:text-sm">
+                            <Eye className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                             Ver detalles
                           </DropdownMenuItem>
                         </DropdownMenuContent>

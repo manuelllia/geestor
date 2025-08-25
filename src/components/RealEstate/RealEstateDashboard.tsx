@@ -81,15 +81,15 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({ language, onI
 
   if (isLoading) {
     return (
-      <div className="space-y-6 bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-blue-950 min-h-screen p-4 sm:p-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+      <div className="space-y-4 sm:space-y-6 bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-blue-950 min-h-screen p-2 sm:p-4 lg:p-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
           {[...Array(6)].map((_, i) => (
             <Card key={i} className="border-0 shadow-lg">
-              <CardContent className="p-4 sm:p-6">
+              <CardContent className="p-3 sm:p-4 lg:p-6">
                 <div className="animate-pulse">
-                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
-                  <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-2"></div>
-                  <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-2/3"></div>
+                  <div className="h-3 sm:h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
+                  <div className="h-6 sm:h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-2"></div>
+                  <div className="h-2 sm:h-3 bg-gray-200 dark:bg-gray-700 rounded w-2/3"></div>
                 </div>
               </CardContent>
             </Card>
@@ -100,159 +100,158 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({ language, onI
   }
 
   return (
-    <div className="space-y-6 bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-blue-950 min-h-screen p-4 sm:p-6">
-      {/* Header con estilo Power BI */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">
+    <div className="space-y-4 sm:space-y-6 bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-blue-950 min-h-screen p-2 sm:p-4 lg:p-6">
+      {/* Header responsive */}
+      <div className="flex flex-col space-y-4 sm:flex-row sm:justify-between sm:items-center sm:space-y-0 mb-6 sm:mb-8">
+        <div className="text-center sm:text-left">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white mb-1 sm:mb-2">
             {t('realEstateDashboard')}
           </h1>
-          <p className="text-gray-600 dark:text-gray-300">
+          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
             Panel de control de gestión inmobiliaria
           </p>
         </div>
-        <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 w-full sm:w-auto">
+        <div className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-3">
           <Button 
             onClick={onImportData} 
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 sm:px-6 py-2 rounded-lg shadow-lg w-full sm:w-auto"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-3 sm:px-4 lg:px-6 py-2 rounded-lg shadow-lg text-sm sm:text-base"
           >
             Importar Datos
           </Button>
           <Button 
             onClick={onViewTables}
             variant="outline"
-            className="border-blue-200 text-blue-700 hover:bg-blue-50 px-4 sm:px-6 py-2 rounded-lg w-full sm:w-auto"
+            className="border-blue-200 text-blue-700 hover:bg-blue-50 px-3 sm:px-4 lg:px-6 py-2 rounded-lg text-sm sm:text-base"
           >
             Ver Tablas
           </Button>
         </div>
       </div>
 
-      {/* KPI Cards con iconos - 2 filas de 3 columnas */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8">
+      {/* KPI Cards responsive - 2x3 en mobile, 2x3 en tablet, 3x2 en desktop */}
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 lg:gap-6 mb-6 sm:mb-8">
         {/* Primera fila */}
         <Card className="border-0 shadow-lg bg-gradient-to-r from-blue-500 to-blue-600 text-white">
-          <CardContent className="p-4 sm:p-6">
+          <CardContent className="p-3 sm:p-4 lg:p-6">
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1">
                 <p className="text-blue-100 text-xs sm:text-sm font-medium mb-1 truncate">
                   {t('activeProperties')}
                 </p>
-                <div className="text-xl sm:text-2xl lg:text-3xl font-bold">
+                <div className="text-lg sm:text-xl lg:text-2xl xl:text-3xl font-bold">
                   {propertyCounts.active.toLocaleString()}
                 </div>
                 <p className="text-blue-200 text-xs mt-1 truncate">
                   Propiedades operativas
                 </p>
               </div>
-              <div className="bg-white/20 p-2 sm:p-3 rounded-full ml-2 flex-shrink-0">
-                <Home className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 text-white" />
+              <div className="bg-white/20 p-1.5 sm:p-2 lg:p-3 rounded-full ml-2 flex-shrink-0">
+                <Home className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 xl:w-8 xl:h-8 text-white" />
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card className="border-0 shadow-lg bg-gradient-to-r from-red-500 to-red-600 text-white">
-          <CardContent className="p-4 sm:p-6">
+          <CardContent className="p-3 sm:p-4 lg:p-6">
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1">
                 <p className="text-red-100 text-xs sm:text-sm font-medium mb-1 truncate">
                   {t('inactiveProperties')}
                 </p>
-                <div className="text-xl sm:text-2xl lg:text-3xl font-bold">
+                <div className="text-lg sm:text-xl lg:text-2xl xl:text-3xl font-bold">
                   {propertyCounts.inactive.toLocaleString()}
                 </div>
                 <p className="text-red-200 text-xs mt-1 truncate">
                   Propiedades en pausa
                 </p>
               </div>
-              <div className="bg-white/20 p-2 sm:p-3 rounded-full ml-2 flex-shrink-0">
-                <Building2 className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 text-white" />
+              <div className="bg-white/20 p-1.5 sm:p-2 lg:p-3 rounded-full ml-2 flex-shrink-0">
+                <Building2 className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 xl:w-8 xl:h-8 text-white" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-lg bg-gradient-to-r from-green-500 to-green-600 text-white">
-          <CardContent className="p-4 sm:p-6">
+        <Card className="border-0 shadow-lg bg-gradient-to-r from-green-500 to-green-600 text-white col-span-2 sm:col-span-2 lg:col-span-1">
+          <CardContent className="p-3 sm:p-4 lg:p-6">
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1">
                 <p className="text-green-100 text-xs sm:text-sm font-medium mb-1 truncate">
                   {t('totalProperties')}
                 </p>
-                <div className="text-xl sm:text-2xl lg:text-3xl font-bold">
+                <div className="text-lg sm:text-xl lg:text-2xl xl:text-3xl font-bold">
                   {propertyCounts.total.toLocaleString()}
                 </div>
                 <p className="text-green-200 text-xs mt-1 truncate">
                   Total del portafolio
                 </p>
               </div>
-              <div className="bg-white/20 p-2 sm:p-3 rounded-full ml-2 flex-shrink-0">
-                <Activity className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 text-white" />
+              <div className="bg-white/20 p-1.5 sm:p-2 lg:p-3 rounded-full ml-2 flex-shrink-0">
+                <Activity className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 xl:w-8 xl:h-8 text-white" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Segunda fila */} 
+        {/* Segunda fila */ 
         <Card className="border-0 shadow-lg bg-gradient-to-r from-orange-500 to-orange-600 text-white">
-          <CardContent className="p-4 sm:p-6">
+          <CardContent className="p-3 sm:p-4 lg:p-6">
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1">
                 <p className="text-orange-100 text-xs sm:text-sm font-medium mb-1 truncate">
                   Total Habitaciones
                 </p>
-                <div className="text-xl sm:text-2xl lg:text-3xl font-bold">
+                <div className="text-lg sm:text-xl lg:text-2xl xl:text-3xl font-bold">
                   {propertyCounts.totalRooms.toLocaleString()}
                 </div>
                 <p className="text-orange-200 text-xs mt-1 truncate">
                   Habitaciones disponibles
                 </p>
               </div>
-              <div className="bg-white/20 p-2 sm:p-3 rounded-full ml-2 flex-shrink-0">
-                <Bed className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 text-white" />
+              <div className="bg-white/20 p-1.5 sm:p-2 lg:p-3 rounded-full ml-2 flex-shrink-0">
+                <Bed className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 xl:w-8 xl:h-8 text-white" />
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card className="border-0 shadow-lg bg-gradient-to-r from-purple-500 to-purple-600 text-white">
-          <CardContent className="p-4 sm:p-6">
+          <CardContent className="p-3 sm:p-4 lg:p-6">
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1">
                 <p className="text-purple-100 text-xs sm:text-sm font-medium mb-1 truncate">
                   Coste Anual Total
                 </p>
-                <div className="text-base sm:text-lg lg:text-xl xl:text-2xl font-bold leading-tight break-words">
+                <div className="text-sm sm:text-base lg:text-lg xl:text-xl font-bold leading-tight break-words">
                   {formatCurrencyCompact(costData.totalCost)}
                 </div>
                 <p className="text-purple-200 text-xs mt-1 truncate">
                   Gastos operativos
                 </p>
               </div>
-              <div className="bg-white/20 p-2 sm:p-3 rounded-full ml-2 flex-shrink-0">
+              <div className="bg-white/20 p-1.5 sm:p-2 lg:p-3 rounded-full ml-2 flex-shrink-0">
                 <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-white" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Tercer KPI para completar la fila - Promedio por propiedad */}
         <Card className="border-0 shadow-lg bg-gradient-to-r from-teal-500 to-teal-600 text-white">
-          <CardContent className="p-4 sm:p-6">
+          <CardContent className="p-3 sm:p-4 lg:p-6">
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1">
                 <p className="text-teal-100 text-xs sm:text-sm font-medium mb-1 truncate">
                   Coste Promedio
                 </p>
-                <div className="text-base sm:text-lg lg:text-xl xl:text-2xl font-bold leading-tight break-words">
+                <div className="text-sm sm:text-base lg:text-lg xl:text-xl font-bold leading-tight break-words">
                   {propertyCounts.total > 0 ? formatCurrencyCompact(costData.totalCost / propertyCounts.total) : '0€'}
                 </div>
                 <p className="text-teal-200 text-xs mt-1 truncate">
                   Por propiedad
                 </p>
               </div>
-              <div className="bg-white/20 p-2 sm:p-3 rounded-full ml-2 flex-shrink-0">
+              <div className="bg-white/20 p-1.5 sm:p-2 lg:p-3 rounded-full ml-2 flex-shrink-0">
                 <Activity className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-white" />
               </div>
             </div>
@@ -260,32 +259,32 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({ language, onI
         </Card>
       </div>
 
-      {/* Gráficos principales */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      {/* Gráficos principales responsive */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
         {/* Coste Anual por Provincia */}
         <Card className="border-0 shadow-lg bg-white dark:bg-gray-800">
           <CardHeader className="border-b border-gray-100 dark:border-gray-700">
-            <CardTitle className="text-gray-900 dark:text-white flex items-center gap-2">
-              <BarChartIcon className="w-5 h-5 text-blue-600" />
+            <CardTitle className="text-sm sm:text-base lg:text-lg text-gray-900 dark:text-white flex items-center gap-2">
+              <BarChartIcon className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
               Coste Anual por Provincia
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-4 sm:p-6">
-            <div className="h-[350px]">
+          <CardContent className="p-3 sm:p-4 lg:p-6">
+            <div className="h-[250px] sm:h-[300px] lg:h-[350px]">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={costChartData} margin={{ top: 20, right: 30, left: 20, bottom: 80 }}>
+                <BarChart data={costChartData} margin={{ top: 20, right: 10, left: 10, bottom: 60 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                   <XAxis 
                     dataKey="provincia" 
                     angle={-45}
                     textAnchor="end"
-                    height={80}
-                    fontSize={10}
+                    height={60}
+                    fontSize={8}
                     stroke="#666"
                     interval={0}
                   />
                   <YAxis 
-                    fontSize={10}
+                    fontSize={8}
                     stroke="#666"
                     tickFormatter={(value) => formatCurrencyCompact(value)}
                   />
@@ -296,7 +295,8 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({ language, onI
                       backgroundColor: 'white', 
                       border: '1px solid #e5e7eb',
                       borderRadius: '8px',
-                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                      fontSize: '12px'
                     }}
                   />
                   <Bar 
@@ -321,21 +321,21 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({ language, onI
         {/* Estado de Propiedades */}
         <Card className="border-0 shadow-lg bg-white dark:bg-gray-800">
           <CardHeader className="border-b border-gray-100 dark:border-gray-700">
-            <CardTitle className="text-gray-900 dark:text-white flex items-center gap-2">
-              <Activity className="w-5 h-5 text-green-600" />
+            <CardTitle className="text-sm sm:text-base lg:text-lg text-gray-900 dark:text-white flex items-center gap-2">
+              <Activity className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
               Estado de Propiedades
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-4 sm:p-6">
-            <div className="h-[350px] flex items-center justify-center">
+          <CardContent className="p-3 sm:p-4 lg:p-6">
+            <div className="h-[250px] sm:h-[300px] lg:h-[350px] flex items-center justify-center">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
                     data={propertyStatusData}
                     cx="50%"
                     cy="50%"
-                    innerRadius={60}
-                    outerRadius={120}
+                    innerRadius={40}
+                    outerRadius={80}
                     paddingAngle={5}
                     dataKey="value"
                   >
@@ -349,20 +349,21 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({ language, onI
                       backgroundColor: 'white', 
                       border: '1px solid #e5e7eb',
                       borderRadius: '8px',
-                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                      fontSize: '12px'
                     }}
                   />
                 </PieChart>
               </ResponsiveContainer>
             </div>
-            <div className="flex justify-center space-x-6 mt-4">
+            <div className="flex justify-center space-x-3 sm:space-x-6 mt-4">
               {propertyStatusData.map((item, index) => (
                 <div key={index} className="flex items-center space-x-2">
                   <div 
-                    className="w-3 h-3 rounded-full" 
+                    className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full" 
                     style={{ backgroundColor: item.color }}
                   ></div>
-                  <span className="text-sm text-gray-600 dark:text-gray-300">
+                  <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">
                     {item.name}: {item.value.toLocaleString()}
                   </span>
                 </div>
