@@ -4,7 +4,7 @@ import OpenAI from 'openai';
 const openai = new OpenAI({
   baseURL: "https://openrouter.ai/api/v1",
   apiKey: "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",
-  dangerouslyAllowBrowser: true, // Permitir uso en navegador. ¡CUIDADO! Tu clave API es visible en el frontend.
+  dangerouslyAllowBrowser: true, // Permitir uso en navegador. ¡CUIDADO! Tu clave API es visible en el frontend!
                               // Para producción, se recomienda una arquitectura backend para manejar las llamadas a la API.
   defaultHeaders: {
     "HTTP-Referer": "https://geestor.lovable.app",
@@ -30,22 +30,21 @@ export const convertPDFToBase64 = async (file: File): Promise<string> => {
   }
 };
 
-// Función para analizar PDF con OpenRouter usando un modelo multimodal (por defecto Gemini Pro Vision)
-export const analyzePDFWithQwen = async ( // El nombre de la función sigue siendo "WithQwen" pero usaremos otro modelo para fiabilidad
+// Función para analizar PDF con OpenRouter usando un modelo multimodal
+export const analyzePDFWithQwen = async ( 
   file: File,
   analysisPrompt: string
 ): Promise<string> => {
   try {
-    console.log(`🤖 Analizando PDF con modelo multimodal (intentando Qwen, o Gemini Pro Vision si Qwen falla): ${file.name}`);
+    // Para analizar PDFs, necesitamos un modelo multimodal.
+    // "google/gemini-pro-vision" es fiable y a menudo el más económico/gratuito en OpenRouter para esta tarea.
+    // No hay modelos Qwen multimodales gratuitos en OpenRouter.
+    const primaryModel = "google/gemini-pro-vision"; // Modelo verificado para PDF en OpenRouter
+
+    console.log(`🤖 Analizando PDF con modelo multimodal (${primaryModel}): ${file.name}`);
     
     const base64Data = await convertPDFToBase64(file);
     
-    // NOTA IMPORTANTE: Si necesitas Qwen SÍ o SÍ, revisa OpenRouter.ai/models para el identificador exacto.
-    // "qwen/qwen-long" o "qwen/qwen-vl-plus" son candidatos, pero el error indica que no son válidos para tu setup/OpenRouter.
-    // Usamos "google/gemini-pro-vision" como alternativa robusta que soporta PDF.
-    const primaryModel = "01-ai/qwen-2-72b-instruct:free"; // Modelo robusto para PDFs en OpenRouter
-    // const primaryModel = "qwen/qwen-long"; // <--- Si quieres intentar de nuevo con Qwen-Long, descomenta esta línea y comenta la anterior.
-
     const completion = await openai.chat.completions.create({
       model: primaryModel, 
       messages: [
@@ -69,8 +68,8 @@ Por favor, responde ÚNICAMENTE con JSON válido, sin texto adicional antes o de
           ]
         }
       ],
-      temperature: 0.1, // Baja temperatura para respuestas más concisas y menos creativas
-      max_tokens: 4096, // Suficientes tokens para una respuesta JSON detallada
+      temperature: 0.1, 
+      max_tokens: 4096, 
     });
 
     console.log(`✅ Respuesta recibida del modelo ${primaryModel} para ${file.name}`);
@@ -86,15 +85,13 @@ Por favor, responde ÚNICAMENTE con JSON válido, sin texto adicional antes o de
     return responseText;
     
   } catch (error) {
-    console.error(`❌ Error en análisis con modelo principal para ${file.name}:`, error);
+    console.error(`❌ Error en análisis con modelo principal (${(error as any).message || 'desconocido'}) para ${file.name}. Intentando análisis alternativo (solo texto)...`, error);
     
-    // Si el modelo principal falla (ej. por ID de modelo inválido o error de procesamiento de PDF), intentar con análisis de texto puro
+    // Si el modelo principal (multimodal) falla, intentar con análisis de texto puro
     try {
-      console.log(`🔄 Intentando análisis alternativo (solo texto) para ${file.name}...`);
       return await fallbackTextAnalysis(analysisPrompt);
     } catch (fallbackError) {
       console.error(`❌ Error en análisis alternativo (fallback):`, fallbackError);
-      // Propagar el error final si ambos fallan
       throw new Error(`Falló el análisis del documento ${file.name}. Error principal: ${error instanceof Error ? error.message : String(error)}. Error de fallback: ${fallbackError instanceof Error ? fallbackError.message : String(fallbackError)}`);
     }
   }
@@ -103,17 +100,21 @@ Por favor, responde ÚNICAMENTE con JSON válido, sin texto adicional antes o de
 // Función de fallback para análisis cuando falla el modelo principal (solo texto)
 const fallbackTextAnalysis = async (prompt: string): Promise<string> => {
   try {
-    console.log('🌐 Usando modelo de fallback para análisis de texto.');
+    // Este modelo es de solo texto y es gratis y robusto para generar JSON.
+    // No puede leer el PDF, solo responderá al prompt general.
+    const fallbackModel = "mistralai/mixtral-8x7b-instruct"; 
+    // Otra opción gratuita de texto robusta es "01-ai/qwen-2-72b-instruct:free"
+    // Pero para evitar más confusiones con IDs de Qwen, usaremos Mixtral.
+
+    console.log(`🌐 Usando modelo de fallback (${fallbackModel}) para proporcionar JSON por defecto.`);
     const completion = await openai.chat.completions.create({
-      // CAMBIO CLAVE AQUÍ: Usar un modelo disponible y robusto para texto.
-      // mistralai/mixtral-8x7b-instruct es una excelente opción general y suele ser gratuita/barata en OpenRouter.
-      model: "mistralai/mixtral-8x7b-instruct", 
+      model: fallbackModel, 
       messages: [
         {
           role: "user",
           content: `${prompt}
 
-NOTA: No se pudo procesar el documento PDF. Por favor, proporciona una estructura JSON válida con valores por defecto para los campos solicitados, asumiendo una licitación de electromedicina genérica. Usa "No especificado" para strings y arrays vacíos [] donde corresponda. No incluyas un "resumen_ejecutivo" si no hay datos del documento.`
+NOTA IMPORTANTE: El documento PDF no pudo ser procesado por el modelo multimodal. Esta respuesta de fallback contiene una estructura JSON con valores por defecto para los campos solicitados, asumiendo una licitación de electromedicina genérica. **No se ha extraído información real del documento.** Usa "No especificado" para strings, "0" para números, "false" para booleanos y arrays vacíos [] donde corresponda. No incluyas un "resumen_ejecutivo" con contenido si no hay datos del documento.`
         }
       ],
       temperature: 0.1,
@@ -126,7 +127,7 @@ NOTA: No se pudo procesar el documento PDF. Por favor, proporciona una estructur
     return completion.choices[0].message.content;
   } catch (error) {
     console.error('❌ Error en análisis de fallback:', error);
-    throw new Error(`El análisis de fallback falló: ${error instanceof Error ? error.message : String(error)}. Asegúrate de que el modelo "mistralai/mixtral-8x7b-instruct" esté disponible en tu cuenta de OpenRouter.`);
+    throw new Error(`El análisis de fallback falló: ${error instanceof Error ? error.message : String(error)}. Asegúrate de que el modelo "mistralai/mixtral-8x7b-instruct" esté disponible en tu cuenta de OpenRouter y que el prompt no sea demasiado largo.`);
   }
 };
 
@@ -232,7 +233,6 @@ Necesito la siguiente información estructurada en formato JSON. Para cada campo
 // Función de ejemplo para procesar un documento (simula un archivo cargado)
 async function processTenderDocument(tenderFile: File) {
   try {
-    // Si necesitas asegurarte de que el prompt se pasa correctamente:
     console.log("Iniciando procesamiento con prompt:", electromedicinaAnalysisPrompt.substring(0, 100) + "...");
 
     const jsonResponse = await analyzePDFWithQwen(tenderFile, electromedicinaAnalysisPrompt);
