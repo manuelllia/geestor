@@ -20,7 +20,11 @@ export const useAuth = () => {
   });
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser: FirebaseAuthUser | null) => {
+    console.log('🔐 Inicializando listener de autenticación...');
+    
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: FirebaseAuthUser | null) => {
+      console.log('🔐 Estado de autenticación cambió:', firebaseUser?.uid || 'No usuario');
+      
       if (firebaseUser) {
         const user: User = {
           uid: firebaseUser.uid,
@@ -37,7 +41,13 @@ export const useAuth = () => {
           isLoading: false,
           isVerifying: false
         });
-        console.log("Usuario autenticado y cargado:", user.uid);
+        
+        console.log('🔐 Usuario autenticado y cargado:', user.uid);
+        console.log('📊 Disparando evento para cargar permisos...');
+        
+        // Disparar evento personalizado para que useUserPermissions se actualice
+        window.dispatchEvent(new CustomEvent('user-authenticated', { detail: { uid: user.uid } }));
+        
       } else {
         localStorage.removeItem('geestor-user');
         localStorage.removeItem('userPermissions'); 
@@ -50,15 +60,19 @@ export const useAuth = () => {
           isLoading: false,
           isVerifying: false
         });
-        console.log("No hay usuario autenticado.");
+        console.log('🔐 No hay usuario autenticado, limpiando datos...');
       }
     });
 
-    return () => unsubscribe();
+    return () => {
+      console.log('🔐 Limpiando listener de autenticación...');
+      unsubscribe();
+    };
   }, []);
 
   const loginWithMicrosoft = async () => {
     try {
+      console.log('🔐 Iniciando login con Microsoft...');
       setAuthState(prev => ({ ...prev, isLoading: true }));
       
       await new Promise(resolve => setTimeout(resolve, 2000));
@@ -80,9 +94,15 @@ export const useAuth = () => {
         isLoading: false,
         isVerifying: false
       });
-      console.log("Login de Microsoft simulado exitosamente para UID:", mockUser.uid);
+      
+      console.log('🔐 Login de Microsoft simulado exitosamente para UID:', mockUser.uid);
+      console.log('📊 Disparando evento para cargar permisos después del login...');
+      
+      // Disparar evento para cargar permisos
+      window.dispatchEvent(new CustomEvent('user-authenticated', { detail: { uid: mockUser.uid } }));
+      
     } catch (error) {
-      console.error('Login failed:', error);
+      console.error('❌ Error en login:', error);
       setAuthState(prev => ({ 
         ...prev, 
         isLoading: false, 
@@ -93,6 +113,7 @@ export const useAuth = () => {
 
   const logout = async () => {
     try {
+      console.log('🔐 Cerrando sesión...');
       await signOut(auth);
       
       localStorage.removeItem('geestor-user');
@@ -107,9 +128,9 @@ export const useAuth = () => {
         isVerifying: false
       });
       
-      console.log('Sesión cerrada correctamente');
+      console.log('🔐 Sesión cerrada correctamente');
     } catch (error) {
-      console.error('Error al cerrar sesión:', error);
+      console.error('❌ Error al cerrar sesión:', error);
       localStorage.removeItem('geestor-user');
       localStorage.removeItem('userPermissions');
       localStorage.removeItem('userData');

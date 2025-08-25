@@ -1,210 +1,182 @@
-
-import React, { useState, useRef, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { Send, Bot, User, Loader2, X } from 'lucide-react';
-import { ScrollArea } from '../ui/scroll-area';
-
-interface Message {
-  id: string;
-  text: string;
-  sender: 'user' | 'bot';
-  timestamp: Date;
-}
+import React, { useState, useEffect, useRef } from 'react';
+import { Avatar } from "@/components/ui/avatar"
+import { AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Send } from 'lucide-react';
 
 interface GeenioChatbotProps {
+  isOpen: boolean;
+  onToggle: () => void;
   context?: any;
-  isOpen?: boolean;
-  onToggle?: () => void;
 }
 
-const GeenioChatbot: React.FC<GeenioChatbotProps> = ({ context, isOpen = false, onToggle }) => {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      text: '¡Hola! Soy Genie, tu asistente inteligente para análisis de licitaciones. ¿En qué puedo ayudarte hoy?',
-      sender: 'bot',
-      timestamp: new Date()
-    }
-  ]);
-  const [inputText, setInputText] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+interface Message {
+  sender: 'user' | 'bot';
+  text: string;
+}
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+const GeenioChatbot: React.FC<GeenioChatbotProps> = ({ isOpen, onToggle, context }) => {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [newMessage, setNewMessage] = useState('');
+  const chatContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    if (isOpen && chatContainerRef.current) {
+      scrollToBottom();
+    }
+  }, [isOpen, messages]);
 
-  const sendMessage = async () => {
-    if (!inputText.trim() || isLoading) return;
+  const scrollToBottom = () => {
+    chatContainerRef.current?.scroll({
+      top: chatContainerRef.current.scrollHeight,
+      behavior: 'smooth'
+    });
+  };
 
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      text: inputText.trim(),
-      sender: 'user',
-      timestamp: new Date()
-    };
+  const handleSendMessage = async () => {
+    if (newMessage.trim() === '') return;
 
-    setMessages(prev => [...prev, userMessage]);
-    setInputText('');
-    setIsLoading(true);
+    const userMessage = newMessage.trim();
+    setMessages(prevMessages => [...prevMessages, { sender: 'user', text: userMessage }]);
+    setNewMessage('');
 
     try {
-      // Simular respuesta del bot (aquí iría la integración con IA real)
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      const botResponse: Message = {
-        id: (Date.now() + 1).toString(),
-        text: `He analizado tu consulta sobre "${userMessage.text}". Basándome en la información disponible, te recomiendo revisar los criterios técnicos y económicos. ¿Te gustaría que profundice en algún aspecto específico?`,
-        sender: 'bot',
-        timestamp: new Date()
-      };
-
-      setMessages(prev => [...prev, botResponse]);
+      const botResponse = await generateResponse(userMessage);
+      setMessages(prevMessages => [...prevMessages, { sender: 'bot', text: botResponse }]);
     } catch (error) {
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        text: 'Lo siento, hubo un error al procesar tu consulta. Por favor, inténtalo de nuevo.',
-        sender: 'bot',
-        timestamp: new Date()
+      console.error('Error generating response:', error);
+      setMessages(prevMessages => [...prevMessages, { sender: 'bot', text: 'Lo siento, no pude generar una respuesta.' }]);
+    }
+  };
+
+  const generateResponse = async (userMessage: string): Promise<string> => {
+    try {
+      console.log('🤖 Generando respuesta para:', userMessage);
+      
+      // Respuestas a saludos y mensajes básicos
+      const basicResponses: { [key: string]: string } = {
+        'hola': '¡Hola! 👋 Soy Geenio, tu asistente de análisis de licitaciones. ¿En qué puedo ayudarte hoy?',
+        'hello': 'Hello! 👋 I\'m Geenio, your tender analysis assistant. How can I help you today?',
+        'buenos días': '¡Buenos días! 🌅 ¿Cómo puedo asistirte con el análisis de licitaciones?',
+        'buenas tardes': '¡Buenas tardes! 🌇 ¿En qué puedo ayudarte con tu análisis?',
+        'buenas noches': '¡Buenas noches! 🌙 ¿Necesitas ayuda con algún análisis?',
+        'que tal': '¡Todo bien por aquí! 😊 Listo para ayudarte con cualquier análisis de licitaciones.',
+        'como estas': '¡Muy bien, gracias! 🤖 Preparado para analizar documentos y responder tus preguntas.',
+        'gracias': '¡De nada! 😊 Siempre estoy aquí para ayudarte con tus análisis.',
+        'thank you': 'You\'re welcome! 😊 I\'m always here to help with your analysis.',
+        'ayuda': '¡Por supuesto! 🆘 Puedo ayudarte a:\n• Analizar documentos de licitación\n• Explicar criterios de evaluación\n• Calcular puntuaciones\n• Interpretar resultados\n\n¿Qué necesitas específicamente?'
       };
-      setMessages(prev => [...prev, errorMessage]);
-    } finally {
-      setIsLoading(false);
+
+      // Verificar si es un saludo o mensaje básico
+      const lowerMessage = userMessage.toLowerCase().trim();
+      for (const [key, response] of Object.entries(basicResponses)) {
+        if (lowerMessage.includes(key)) {
+          console.log('✅ Respuesta básica encontrada para:', key);
+          return response;
+        }
+      }
+
+      // Si no es un saludo, proceder con el análisis normal
+      let systemPrompt = `Eres Geenio, un asistente especializado en análisis de licitaciones públicas españolas. 
+      
+      Características:
+      - Eres amigable, profesional y experto en licitaciones
+      - Puedes responder saludos de manera cordial
+      - Tu especialidad es analizar documentos PCAP y PPT
+      - Ayudas a interpretar criterios de evaluación, calcular puntuaciones y entender resultados
+      - Siempre respondes en español, de manera clara y concisa
+      - Puedes mantener conversaciones casuales pero siempre volviendo al tema de licitaciones`;
+
+      if (context) {
+        systemPrompt += `\n\nTienes acceso al siguiente contexto de análisis:
+        - Presupuesto: ${context.presupuestoGeneral}
+        - Por lotes: ${context.esPorLotes ? 'Sí' : 'No'}
+        - Fórmula económica: ${context.formulaEconomica}
+        - Criterios automáticos: ${context.criteriosAutomaticos?.length || 0}
+        - Criterios subjetivos: ${context.criteriosSubjetivos?.length || 0}
+        - Lotes: ${context.lotes?.length || 0}`;
+      }
+
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=AIzaSyANIWvIMRvCW7f0meHRk4SobRz4s0pnxtg`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{ text: `${systemPrompt}\n\nUsuario: ${userMessage}` }]
+          }],
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 1000,
+            topK: 20,
+            topP: 0.8
+          }
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error en la API: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const botResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Lo siento, no pude generar una respuesta.';
+      
+      console.log('✅ Respuesta generada exitosamente');
+      return botResponse;
+
+    } catch (error) {
+      console.error('❌ Error generando respuesta:', error);
+      return 'Lo siento, hubo un error al procesar tu mensaje. ¿Podrías intentarlo de nuevo?';
     }
   };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
-    }
-  };
-
-  if (!isOpen) {
-    return (
-      <div className="fixed bottom-4 right-4 z-50">
-        <Button
-          onClick={onToggle}
-          className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-full w-14 h-14 shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center"
-        >
-          <Bot className="w-6 h-6" />
-        </Button>
-      </div>
-    );
-  }
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 w-80 sm:w-96">
-      <Card className="h-96 sm:h-[500px] flex flex-col rounded-2xl shadow-2xl border-2 border-blue-200 dark:border-blue-700 bg-white dark:bg-gray-900 overflow-hidden">
-        <CardHeader className="pb-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-t-2xl flex flex-row items-center justify-between flex-shrink-0">
-          <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
-            <div className="w-6 h-6 sm:w-8 sm:h-8 bg-white/20 rounded-full flex items-center justify-center">
-              <Bot className="w-3 h-3 sm:w-4 sm:h-4" />
-            </div>
-            <span className="font-semibold">Genie - Asistente IA</span>
-            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-          </CardTitle>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onToggle}
-            className="text-white hover:bg-white/20 rounded-full w-8 h-8 p-0 flex-shrink-0"
-          >
-            <X className="w-4 h-4" />
+    <div className={`fixed bottom-6 right-6 z-50 transition-transform transform ${isOpen ? 'translate-y-0' : 'translate-y-full'}`}>
+      <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden w-80 flex flex-col">
+        <div className="bg-blue-600 dark:bg-blue-900 text-white p-4 flex items-center justify-between">
+          <h5 className="text-sm font-semibold">Geenio Chatbot</h5>
+          <Button variant="ghost" size="icon" className="text-white hover:bg-blue-500 dark:hover:bg-blue-700" onClick={onToggle}>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
           </Button>
-        </CardHeader>
-        
-        <CardContent className="flex-1 flex flex-col p-0 bg-gradient-to-b from-blue-50/30 to-white dark:from-blue-900/20 dark:to-gray-900 min-h-0">
-          <ScrollArea className="flex-1 p-3 sm:p-4 min-h-0">
-            <div className="space-y-3 sm:space-y-4">
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex gap-2 sm:gap-3 ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-                >
-                  {message.sender === 'bot' && (
-                    <div className="w-6 h-6 sm:w-8 sm:h-8 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                      <Bot className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
-                    </div>
-                  )}
-                  
-                  <div
-                    className={`max-w-[85%] sm:max-w-[80%] p-2 sm:p-3 rounded-2xl shadow-sm ${
-                      message.sender === 'user'
-                        ? 'bg-blue-500 text-white rounded-br-md'
-                        : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-700 rounded-bl-md'
-                    }`}
-                  >
-                    <p className="text-xs sm:text-sm leading-relaxed break-words">{message.text}</p>
-                    <p className={`text-xs mt-1 ${
-                      message.sender === 'user' 
-                        ? 'text-blue-100' 
-                        : 'text-gray-500 dark:text-gray-400'
-                    }`}>
-                      {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </p>
-                  </div>
-                  
-                  {message.sender === 'user' && (
-                    <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gray-500 dark:bg-gray-600 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                      <User className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
-                    </div>
-                  )}
-                </div>
-              ))}
-              
-              {isLoading && (
-                <div className="flex gap-2 sm:gap-3 justify-start">
-                  <div className="w-6 h-6 sm:w-8 sm:h-8 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                    <Bot className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
-                  </div>
-                  <div className="bg-white dark:bg-gray-800 p-2 sm:p-3 rounded-2xl rounded-bl-md shadow-sm border border-gray-200 dark:border-gray-700">
-                    <div className="flex items-center gap-1 sm:gap-2">
-                      <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 animate-spin text-blue-500" />
-                      <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Escribiendo...</span>
-                    </div>
-                  </div>
-                </div>
+        </div>
+
+        <div ref={chatContainerRef} className="p-4 h-64 overflow-y-auto flex-grow">
+          {messages.map((message, index) => (
+            <div key={index} className={`mb-2 flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+              {message.sender === 'bot' && (
+                <Avatar className="mr-2 w-6 h-6">
+                  <AvatarImage src="/geenio-logo.png" alt="Geenio" />
+                  <AvatarFallback>GE</AvatarFallback>
+                </Avatar>
               )}
-              <div ref={messagesEndRef} />
+              <div className={`rounded-lg p-2 text-xs max-w-[70%] ${message.sender === 'user' ? 'bg-blue-100 dark:bg-blue-700 text-gray-800 dark:text-gray-200' : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'}`}>
+                {message.text}
+              </div>
             </div>
-          </ScrollArea>
-          
-          <div className="p-3 sm:p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-b-2xl flex-shrink-0">
-            <div className="flex gap-2">
-              <Input
-                value={inputText}
-                onChange={(e) => setInputText(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Escribe tu consulta sobre la licitación..."
-                disabled={isLoading}
-                className="flex-1 rounded-xl border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-blue-500 text-xs sm:text-sm"
-              />
-              <Button
-                onClick={sendMessage}
-                disabled={!inputText.trim() || isLoading}
-                size="sm"
-                className="bg-blue-500 hover:bg-blue-600 text-white rounded-xl px-3 sm:px-4 shadow-md flex-shrink-0"
-              >
-                {isLoading ? (
-                  <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" />
-                ) : (
-                  <Send className="w-3 h-3 sm:w-4 sm:h-4" />
-                )}
-              </Button>
-            </div>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center">
-              Genie puede cometer errores. Verifica la información importante.
-            </p>
+          ))}
+        </div>
+
+        <div className="p-2 border-t dark:border-gray-700">
+          <div className="flex items-center">
+            <Input
+              type="text"
+              placeholder="Escribe tu mensaje..."
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleSendMessage();
+                }
+              }}
+              className="mr-2 text-xs"
+            />
+            <Button size="sm" onClick={handleSendMessage} className="h-8 w-8 p-0">
+              <Send className="h-4 w-4" />
+              <span className="sr-only">Enviar</span>
+            </Button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 };

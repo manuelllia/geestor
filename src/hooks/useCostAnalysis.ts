@@ -29,6 +29,12 @@ export const useCostAnalysis = () => {
   };
 
   const analyzeCosts = async (pcapFile: File, pptFile: File): Promise<void> => {
+    console.log('🚀 INICIO: Análisis completo de costes con Gemini AI');
+    console.log('📁 Archivos recibidos:', {
+      pcap: `${pcapFile.name} (${(pcapFile.size / 1024 / 1024).toFixed(2)} MB)`,
+      ppt: `${pptFile.name} (${(pptFile.size / 1024 / 1024).toFixed(2)} MB)`
+    });
+
     setIsLoading(true);
     setError(null);
     setAnalysisResult(null);
@@ -37,79 +43,89 @@ export const useCostAnalysis = () => {
     setCurrentProgress('Iniciando análisis con Gemini AI...');
     
     try {
-      console.log('🔍 Iniciando análisis real de costes con Gemini AI...');
-      console.log('📄 Archivos:', {
-        pcap: `${pcapFile.name} (${(pcapFile.size / 1024 / 1024).toFixed(2)} MB)`,
-        ppt: `${pptFile.name} (${(pptFile.size / 1024 / 1024).toFixed(2)} MB)`
-      });
-
-      // Extraer texto real de los archivos PDF
-      setCurrentProgress('Extrayendo texto de los archivos PDF...');
-      console.log('📄 Extrayendo texto real de los PDFs...');
+      // PASO 1: Extraer texto real de los archivos PDF
+      setCurrentProgress('📄 Extrayendo texto de los archivos PDF...');
+      console.log('📄 EXTRACCIÓN: Iniciando extracción de texto de PDFs...');
       
       const pcapText = await extractTextFromPDF(pcapFile);
       const pptText = await extractTextFromPDF(pptFile);
 
-      console.log('✅ Texto extraído:', {
+      console.log('✅ EXTRACCIÓN: Texto extraído exitosamente:', {
         pcapLength: pcapText.length,
         pptLength: pptText.length,
-        pcapPreview: pcapText.substring(0, 200) + '...',
-        pptPreview: pptText.substring(0, 200) + '...'
+        pcapPreview: pcapText.substring(0, 150) + '...',
+        pptPreview: pptText.substring(0, 150) + '...'
       });
 
       if (!pcapText.trim() || !pptText.trim()) {
-        throw new Error('No se pudo extraer texto de los archivos PDF. Verifica que los archivos no estén corruptos.');
+        throw new Error('❌ No se pudo extraer texto de los archivos PDF. Verifica que los archivos no estén corruptos o protegidos.');
       }
 
+      console.log('🤖 ANÁLISIS: Iniciando análisis paso a paso con Gemini AI');
       const stepResults: any[] = [];
 
-      // Ejecutar análisis paso a paso con la API real de Gemini
+      // EJECUTAR ANÁLISIS PASO A PASO CON GEMINI AI
       for (let step = 1; step <= totalSteps; step++) {
         try {
           setCurrentStep(step);
-          setCurrentProgress(`Analizando paso ${step}/${totalSteps} con Gemini AI...`);
-          console.log(`🔄 Ejecutando paso real ${step}/${totalSteps} con Gemini AI...`);
+          setCurrentProgress(`🤖 Analizando paso ${step}/${totalSteps} con Gemini AI...`);
+          console.log(`\n🔄 PASO ${step}/${totalSteps}: Iniciando análisis con Gemini AI...`);
           
           const stepResult = await analyzeDocumentsStep(pcapText, pptText, step, totalSteps);
           stepResults.push(stepResult);
           
-          console.log(`✅ Paso ${step} completado con Gemini AI:`, stepResult);
+          console.log(`✅ PASO ${step}/${totalSteps}: Completado exitosamente`);
+          console.log(`📊 PASO ${step} - Resultado:`, stepResult);
           
-          // Esperar entre pasos para evitar rate limiting
+          // Pausa entre pasos para evitar rate limiting de la API
           if (step < totalSteps) {
-            const waitTime = Math.floor(Math.random() * 3) + 3; // Entre 3 y 5 segundos
-            console.log(`⏳ Esperando ${waitTime}s antes del siguiente paso...`);
-            setCurrentProgress(`Esperando ${waitTime}s antes del paso ${step + 1}...`);
+            const waitTime = Math.floor(Math.random() * 2) + 2; // Entre 2 y 3 segundos
+            console.log(`⏳ PAUSA: Esperando ${waitTime}s antes del siguiente paso...`);
+            setCurrentProgress(`⏳ Esperando ${waitTime}s antes del paso ${step + 1}...`);
             await wait(waitTime);
           }
           
         } catch (stepError) {
-          console.error(`❌ Error en paso ${step} con Gemini AI:`, stepError);
-          // Continuar con estructura vacía en caso de error
+          console.error(`❌ ERROR PASO ${step}:`, stepError);
+          // Continuar con estructura vacía para este paso
           stepResults.push({});
+          
+          // Mostrar error específico en el progreso
+          setCurrentProgress(`⚠️ Error en paso ${step}, continuando...`);
+          await wait(1); // Breve pausa antes de continuar
         }
       }
 
-      // Combinar todos los resultados
-      console.log('🔧 Combinando resultados de Gemini AI...');
-      setCurrentProgress('Generando informe final...');
+      console.log('🔧 MERGE: Iniciando combinación de todos los resultados...');
+      setCurrentProgress('🔧 Generando informe final...');
       
       const finalResult = mergeStepResults(...stepResults);
       
-      console.log('✅ Análisis con Gemini AI completado exitosamente');
-      console.log('📊 Resultado final:', finalResult);
+      console.log('✅ ANÁLISIS COMPLETADO: Resultado final generado');
+      console.log('📊 RESULTADO FINAL:', finalResult);
       
       setAnalysisResult(finalResult);
-      setCurrentProgress('Análisis completado con éxito');
+      setCurrentProgress('✅ Análisis completado con éxito');
       
     } catch (err) {
-      console.error('❌ Error final en análisis con Gemini AI:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Error desconocido en el análisis con Gemini AI';
+      console.error('❌ ERROR CRÍTICO en análisis:', err);
+      
+      let errorMessage = 'Error desconocido en el análisis';
+      if (err instanceof Error) {
+        errorMessage = err.message;
+        console.error('❌ Detalles del error:', {
+          message: err.message,
+          stack: err.stack
+        });
+      }
+      
       setError(errorMessage);
-      setCurrentProgress('Error en el análisis');
+      setCurrentProgress('❌ Error en el análisis');
+      
     } finally {
       setIsLoading(false);
       setCurrentStep(0);
+      console.log('🏁 FINALIZADO: Proceso de análisis terminado');
     }
   };
 
