@@ -4,7 +4,7 @@ import OpenAI from 'openai';
 const openai = new OpenAI({
   baseURL: "https://openrouter.ai/api/v1",
   apiKey: "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",
-  dangerouslyAllowBrowser: true, // Permitir uso en navegador
+  dangerouslyAllowBrowser: true, // Permitir uso en navegador (¡Precaución con claves API en frontend!)
   defaultHeaders: {
     "HTTP-Referer": "https://geestor.lovable.app",
     "X-Title": "Geestor - Análisis de Licitaciones",
@@ -32,16 +32,15 @@ export const convertPDFToBase64 = async (file: File): Promise<string> => {
 // Función mejorada para analizar PDF con OpenRouter usando modelo con visión (Qwen-Long)
 export const analyzePDFWithQwen = async (
   file: File,
-  analysisPrompt: string // Este prompt ahora será más específico
+  analysisPrompt: string
 ): Promise<string> => {
   try {
     console.log(`🤖 Analizando PDF con modelo de Qwen: ${file.name}`);
     
     const base64Data = await convertPDFToBase64(file);
     
-    // Usar un modelo de Qwen que soporte análisis de documentos/imágenes
     const completion = await openai.chat.completions.create({
-      model: "qwen/qwen-long", // <-- ¡CAMBIO CLAVE AQUÍ! Usamos Qwen-Long
+      model: "qwen/qwen-long", // Usamos Qwen-Long como modelo principal
       messages: [
         {
           role: "user",
@@ -56,6 +55,7 @@ Por favor, responde ÚNICAMENTE con JSON válido, sin texto adicional antes o de
             },
             {
               type: "image_url",
+              // Asegúrate de que el PDF no esté corrupto o encriptado si persiste el error "Failed to extract 1 image(s)"
               image_url: {
                 url: `data:application/pdf;base64,${base64Data}`
               }
@@ -63,8 +63,8 @@ Por favor, responde ÚNICAMENTE con JSON válido, sin texto adicional antes o de
           ]
         }
       ],
-      temperature: 0.1, // Baja temperatura para respuestas más concisas y menos creativas
-      max_tokens: 4096, // Suficientes tokens para una respuesta JSON detallada
+      temperature: 0.1,
+      max_tokens: 4096,
     });
 
     console.log(`✅ Respuesta recibida del modelo de Qwen para ${file.name}`);
@@ -82,13 +82,13 @@ Por favor, responde ÚNICAMENTE con JSON válido, sin texto adicional antes o de
   } catch (error) {
     console.error(`❌ Error en análisis con Qwen para ${file.name}:`, error);
     
-    // Si el modelo falla, intentar con análisis de texto puro (útil si la lectura del PDF falla pero el modelo puede responder un JSON por defecto)
+    // Si el modelo principal falla, intentar con análisis de texto puro
     try {
       console.log(`🔄 Intentando análisis alternativo para ${file.name}...`);
       return await fallbackTextAnalysis(analysisPrompt);
     } catch (fallbackError) {
       console.error(`❌ Error en análisis alternativo:`, fallbackError);
-      throw error;
+      throw fallbackError; // Propagar el error final si ambos fallan
     }
   }
 };
@@ -96,14 +96,18 @@ Por favor, responde ÚNICAMENTE con JSON válido, sin texto adicional antes o de
 // Función de fallback para análisis cuando falla el modelo principal
 const fallbackTextAnalysis = async (prompt: string): Promise<string> => {
   try {
+    console.log('🌐 Usando modelo de fallback para análisis de texto.');
     const completion = await openai.chat.completions.create({
-      model: "meta-llama/llama-3.1-8b-instruct:free", // Modelo de texto gratuito
+      // CAMBIO CLAVE AQUÍ: Usar un modelo disponible como fallback.
+      // mistralai/mixtral-8x7b-instruct es una buena opción general y suele ser gratuita/barata en OpenRouter.
+      // O podrías probar "google/gemma-7b-it" o "nousresearch/nous-hermes-2-mixtral-8x7b-dpo"
+      model: "mistralai/mixtral-8x7b-instruct", 
       messages: [
         {
           role: "user",
           content: `${prompt}
 
-NOTA: No se pudo procesar el documento PDF. Por favor, proporciona una estructura JSON válida con valores por defecto para los campos solicitados, asumiendo una licitación de electromedicina genérica. Usa "No especificado" para strings y arrays vacíos [] donde corresponda.`
+NOTA: No se pudo procesar el documento PDF. Por favor, proporciona una estructura JSON válida con valores por defecto para los campos solicitados, asumiendo una licitación de electromedicina genérica. Usa "No especificado" para strings y arrays vacíos [] donde corresponda. No incluyas un "resumen_ejecutivo" si no hay datos del documento.`
         }
       ],
       temperature: 0.1,
@@ -113,7 +117,8 @@ NOTA: No se pudo procesar el documento PDF. Por favor, proporciona una estructur
     return completion.choices[0]?.message?.content || '{}';
   } catch (error) {
     console.error('❌ Error en análisis de fallback:', error);
-    return '{}';
+    // Asegurarse de que el error de fallback se maneje y no oculte el original si falla
+    throw new Error(`Fallback analysis failed: ${error instanceof Error ? error.message : String(error)}`);
   }
 };
 
@@ -126,17 +131,17 @@ export const safeJsonParse = (jsonString: string, context: string = ''): any => 
     let jsonEnd = cleanedString.lastIndexOf('}');
     
     if (jsonStart === -1 || jsonEnd === -1) {
-      console.warn(`⚠️ No se encontró JSON válido en: ${context}`);
+      console.warn(`⚠️ No se encontró JSON válido en la respuesta del modelo para: ${context}`);
       return {};
     }
     
     const jsonOnly = cleanedString.substring(jsonStart, jsonEnd + 1);
     const parsed = JSON.parse(jsonOnly);
     
-    console.log(`✅ JSON parseado exitosamente: ${context}`);
+    console.log(`✅ JSON parseado exitosamente para: ${context}`);
     return parsed;
   } catch (error) {
-    console.error(`❌ Error parseando JSON: ${context}`, error);
+    console.error(`❌ Error parseando JSON para: ${context}`, error);
     console.error(`❌ String original (primeros 500 chars):`, jsonString.substring(0, 500));
     return {};
   }
