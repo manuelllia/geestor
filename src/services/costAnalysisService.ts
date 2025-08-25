@@ -1,5 +1,6 @@
 
-import { analyzePDFWithQwen, safeJsonParse } from './openRouterService';
+import { geminiAI, safeJsonParse } from './geminiService';
+import { analyzePDFWithGeminiVision } from './pdfVisionService';
 
 interface ReportData {
   presupuestoGeneral: string;
@@ -15,28 +16,28 @@ interface ReportData {
   costesDetalladosRecomendados: any[];
 }
 
-// Nueva función de análisis usando Qwen 3 a través de OpenRouter
-export const analyzeDocumentsWithQwen = async (
+// Nueva función de análisis usando Gemini Vision API directamente
+export const analyzeDocumentsWithVision = async (
   pcapFile: File, 
   pptFile: File, 
   step: number, 
   totalSteps: number
 ): Promise<any> => {
   try {
-    console.log(`🤖 PASO ${step}/${totalSteps}: Analizando documentos con Qwen 3...`);
+    console.log(`🤖 PASO ${step}/${totalSteps}: Analizando documentos con Gemini Vision...`);
     
     // Obtener el prompt específico para este paso
-    const prompt = generateQwenPromptForStep(step, totalSteps);
+    const prompt = generateVisionPromptForStep(step, totalSteps);
     
-    console.log(`📝 Generando análisis para paso ${step} con Qwen 3...`);
+    console.log(`📝 Generando análisis para paso ${step} con Gemini Vision...`);
     
-    // Analizar ambos documentos con Qwen 3
+    // Analizar ambos documentos con Gemini Vision
     let pcapResponse: string;
     let pptResponse: string;
     
     try {
-      console.log(`📄 Analizando PCAP con Qwen 3...`);
-      pcapResponse = await analyzePDFWithQwen(pcapFile, `${prompt}\n\nEste es el documento PCAP (Pliego de Cláusulas Administrativas Particulares). Analiza específicamente este documento:`);
+      console.log(`📄 Analizando PCAP con Gemini Vision...`);
+      pcapResponse = await analyzePDFWithGeminiVision(pcapFile, `${prompt}\n\nEste es el documento PCAP (Pliego de Cláusulas Administrativas Particulares). Analiza específicamente este documento:`);
       console.log(`✅ PCAP analizado exitosamente`);
     } catch (error) {
       console.warn(`⚠️ Error analizando PCAP, usando estructura vacía:`, error);
@@ -47,8 +48,8 @@ export const analyzeDocumentsWithQwen = async (
     await new Promise(resolve => setTimeout(resolve, 2000));
     
     try {
-      console.log(`📄 Analizando PPT con Qwen 3...`);
-      pptResponse = await analyzePDFWithQwen(pptFile, `${prompt}\n\nEste es el documento PPT (Pliego de Prescripciones Técnicas). Analiza específicamente este documento:`);
+      console.log(`📄 Analizando PPT con Gemini Vision...`);
+      pptResponse = await analyzePDFWithGeminiVision(pptFile, `${prompt}\n\nEste es el documento PPT (Pliego de Prescripciones Técnicas). Analiza específicamente este documento:`);
       console.log(`✅ PPT analizado exitosamente`);
     } catch (error) {
       console.warn(`⚠️ Error analizando PPT, usando estructura vacía:`, error);
@@ -62,13 +63,13 @@ export const analyzeDocumentsWithQwen = async (
     // Fusionar los datos de ambos documentos
     const mergedData = mergeDocumentData(pcapData, pptData, step);
     
-    console.log(`✅ PASO ${step} completado exitosamente con Qwen 3`);
+    console.log(`✅ PASO ${step} completado exitosamente con Gemini Vision`);
     console.log(`📊 PASO ${step} - Resultado fusionado:`, mergedData);
     
     return mergedData;
 
   } catch (error) {
-    console.error(`❌ ERROR en paso ${step} con Qwen 3:`, error);
+    console.error(`❌ ERROR en paso ${step} con Gemini Vision:`, error);
     
     if (error instanceof Error) {
       console.error(`❌ Mensaje de error: ${error.message}`);
@@ -97,17 +98,16 @@ const mergeDocumentData = (pcapData: any, pptData: any, step: number): any => {
   return merged;
 };
 
-// Generar prompts optimizados para Qwen 3
-const generateQwenPromptForStep = (stepNumber: number, totalSteps: number): string => {
+// Generar prompts optimizados para Gemini Vision
+const generateVisionPromptForStep = (stepNumber: number, totalSteps: number): string => {
   const basePrompt = `Eres un experto consultor especializado en análisis de licitaciones públicas españolas de equipamiento electromédico.
 
 INSTRUCCIONES CRÍTICAS:
-- Analiza ÚNICAMENTE el contenido del documento PDF proporcionado
+- Analiza ÚNICAMENTE el contenido visual y textual del documento PDF proporcionado
 - Responde SOLO con JSON válido, sin texto adicional antes o después
 - Si no encuentras información específica, usa "No especificado" o arrays vacíos
 - NO inventes datos que no estén explícitamente en el documento
 - Lee cuidadosamente todo el contenido del PDF
-- Extrae información exacta tal como aparece en el documento
 
 ANÁLISIS PASO ${stepNumber} de ${totalSteps}:
 `;
@@ -293,7 +293,7 @@ const getEmptyStructureForStep = (step: number): any => {
 };
 
 export const mergeStepResults = (...stepResults: any[]): ReportData => {
-  console.log('🔧 MERGE: Iniciando combinación de resultados de Qwen 3...');
+  console.log('🔧 MERGE: Iniciando combinación de resultados de Gemini Vision...');
   console.log('🔧 MERGE: Número de pasos a combinar:', stepResults.length);
   
   const merged: ReportData = {
