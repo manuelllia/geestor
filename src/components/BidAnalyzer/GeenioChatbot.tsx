@@ -1,9 +1,10 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Avatar } from "@/components/ui/avatar"
 import { AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Send } from 'lucide-react';
+import { Send, MessageCircle, X } from 'lucide-react';
 
 interface GeenioChatbotProps {
   isOpen: boolean;
@@ -28,10 +29,9 @@ const GeenioChatbot: React.FC<GeenioChatbotProps> = ({ isOpen, onToggle, context
   }, [isOpen, messages]);
 
   const scrollToBottom = () => {
-    chatContainerRef.current?.scroll({
-      top: chatContainerRef.current.scrollHeight,
-      behavior: 'smooth'
-    });
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
   };
 
   const handleSendMessage = async () => {
@@ -130,47 +130,100 @@ const GeenioChatbot: React.FC<GeenioChatbotProps> = ({ isOpen, onToggle, context
     }
   };
 
+  if (!isOpen) {
+    return (
+      <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50">
+        <Button
+          onClick={onToggle}
+          className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg transition-all duration-200 hover:scale-110"
+          size="icon"
+        >
+          <MessageCircle className="h-5 w-5 sm:h-6 sm:w-6" />
+          <span className="sr-only">Abrir Geenio Chatbot</span>
+        </Button>
+      </div>
+    );
+  }
+
   return (
-    <div className={`fixed bottom-6 right-6 z-50 transition-transform transform ${isOpen ? 'translate-y-0' : 'translate-y-full'}`}>
-      <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden w-80 flex flex-col">
-        <div className="bg-blue-600 dark:bg-blue-900 text-white p-4 flex items-center justify-between">
-          <h5 className="text-sm font-semibold">Geenio Chatbot</h5>
-          <Button variant="ghost" size="icon" className="text-white hover:bg-blue-500 dark:hover:bg-blue-700" onClick={onToggle}>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+    <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50">
+      <div className="bg-white dark:bg-gray-800 shadow-xl rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden w-80 sm:w-96 max-w-[calc(100vw-2rem)] flex flex-col max-h-[80vh]">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-800 dark:to-blue-900 text-white p-3 sm:p-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+              <span className="text-sm font-bold">G</span>
+            </div>
+            <div>
+              <h5 className="text-sm font-semibold">Geenio</h5>
+              <p className="text-xs text-blue-100">Asistente de Análisis</p>
+            </div>
+          </div>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="text-white hover:bg-white/20 w-8 h-8" 
+            onClick={onToggle}
+          >
+            <X className="h-4 w-4" />
           </Button>
         </div>
 
-        <div ref={chatContainerRef} className="p-4 h-64 overflow-y-auto flex-grow">
+        {/* Chat Messages */}
+        <div 
+          ref={chatContainerRef} 
+          className="p-3 sm:p-4 h-64 sm:h-80 overflow-y-auto flex-grow bg-gray-50 dark:bg-gray-900 space-y-3"
+        >
+          {messages.length === 0 && (
+            <div className="text-center text-gray-500 dark:text-gray-400 text-sm">
+              <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-2">
+                <span className="text-blue-600 dark:text-blue-400 font-bold">G</span>
+              </div>
+              <p>¡Hola! Soy Geenio, tu asistente para análisis de licitaciones.</p>
+              <p className="mt-1">¿En qué puedo ayudarte?</p>
+            </div>
+          )}
+          
           {messages.map((message, index) => (
-            <div key={index} className={`mb-2 flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+            <div key={index} className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
               {message.sender === 'bot' && (
-                <Avatar className="mr-2 w-6 h-6">
-                  <AvatarImage src="/geenio-logo.png" alt="Geenio" />
-                  <AvatarFallback>GE</AvatarFallback>
-                </Avatar>
+                <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center mr-2 mt-1 flex-shrink-0">
+                  <span className="text-white text-xs font-bold">G</span>
+                </div>
               )}
-              <div className={`rounded-lg p-2 text-xs max-w-[70%] ${message.sender === 'user' ? 'bg-blue-100 dark:bg-blue-700 text-gray-800 dark:text-gray-200' : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'}`}>
-                {message.text}
+              <div className={`rounded-2xl px-3 py-2 text-sm max-w-[85%] ${
+                message.sender === 'user' 
+                  ? 'bg-blue-600 text-white ml-auto' 
+                  : 'bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 shadow-sm border border-gray-200 dark:border-gray-700'
+              }`}>
+                <div className="whitespace-pre-wrap break-words">{message.text}</div>
               </div>
             </div>
           ))}
         </div>
 
-        <div className="p-2 border-t dark:border-gray-700">
-          <div className="flex items-center">
+        {/* Input Area */}
+        <div className="p-3 sm:p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+          <div className="flex items-center gap-2">
             <Input
               type="text"
               placeholder="Escribe tu mensaje..."
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter') {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
                   handleSendMessage();
                 }
               }}
-              className="mr-2 text-xs"
+              className="flex-1 text-sm border-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400"
             />
-            <Button size="sm" onClick={handleSendMessage} className="h-8 w-8 p-0">
+            <Button 
+              size="sm" 
+              onClick={handleSendMessage}
+              disabled={!newMessage.trim()}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2"
+            >
               <Send className="h-4 w-4" />
               <span className="sr-only">Enviar</span>
             </Button>

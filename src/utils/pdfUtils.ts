@@ -1,22 +1,19 @@
 
 import * as pdfjsLib from 'pdfjs-dist';
 
-// Configurar PDF.js para funcionar sin worker externo
+// Configurar PDF.js para usar CDN público
 let pdfWorkerInitialized = false;
 
 export const initializePDFWorker = () => {
   if (!pdfWorkerInitialized) {
     try {
-      // Intentar usar el worker del paquete local
-      pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-        'pdfjs-dist/build/pdf.worker.min.js',
-        import.meta.url
-      ).toString();
+      // Usar CDN público de Mozilla para el worker
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.worker.min.js';
       
-      console.log('📄 PDF.js worker configurado desde paquete local');
+      console.log('📄 PDF.js worker configurado desde CDN público');
       pdfWorkerInitialized = true;
     } catch (error) {
-      console.warn('⚠️ No se pudo configurar worker local, usando modo compatible');
+      console.warn('⚠️ No se pudo configurar worker, usando modo compatible');
       // Fallback: desactivar worker completamente
       pdfjsLib.GlobalWorkerOptions.workerSrc = '';
       pdfWorkerInitialized = true;

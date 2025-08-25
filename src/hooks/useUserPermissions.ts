@@ -48,7 +48,7 @@ export const useUserPermissions = () => {
       const unsubscribe = onSnapshot(
         userPermissionsDocRef,
         (doc) => {
-          console.log('📊 Documento de permisos actualizado para UID:', uid);
+          console.log('📊 Documento de permisos consultado para UID:', uid);
           
           if (doc.exists()) {
             const data = doc.data();
@@ -70,10 +70,10 @@ export const useUserPermissions = () => {
             
             setPermissions(userPermissions);
             localStorage.setItem('userPermissions', JSON.stringify(userPermissions));
-            console.log('📊 Permisos cargados y guardados:', userPermissions);
+            console.log('📊 Permisos específicos cargados:', userPermissions);
             
           } else {
-            console.log('📊 No se encontraron permisos específicos para UID:', uid, '- usando valores por defecto');
+            console.log('📊 Usuario sin permisos específicos configurados, usando valores por defecto para UID:', uid);
             setPermissions(defaultPermissions);
             localStorage.setItem('userPermissions', JSON.stringify(defaultPermissions));
           }
