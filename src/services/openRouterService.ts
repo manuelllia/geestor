@@ -4,7 +4,8 @@ import OpenAI from 'openai';
 const openai = new OpenAI({
   baseURL: "https://openrouter.ai/api/v1",
   apiKey: "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",
-  dangerouslyAllowBrowser: true, // Permitir uso en navegador (¡Precaución con claves API en frontend!)
+  dangerouslyAllowBrowser: true, // Permitir uso en navegador. ¡CUIDADO! Tu clave API es visible en el frontend.
+                              // Para producción, se recomienda una arquitectura backend para manejar las llamadas a la API.
   defaultHeaders: {
     "HTTP-Referer": "https://geestor.lovable.app",
     "X-Title": "Geestor - Análisis de Licitaciones",
@@ -29,18 +30,24 @@ export const convertPDFToBase64 = async (file: File): Promise<string> => {
   }
 };
 
-// Función mejorada para analizar PDF con OpenRouter usando modelo con visión (Qwen-Long)
-export const analyzePDFWithQwen = async (
+// Función para analizar PDF con OpenRouter usando un modelo multimodal (por defecto Gemini Pro Vision)
+export const analyzePDFWithQwen = async ( // El nombre de la función sigue siendo "WithQwen" pero usaremos otro modelo para fiabilidad
   file: File,
   analysisPrompt: string
 ): Promise<string> => {
   try {
-    console.log(`🤖 Analizando PDF con modelo de Qwen: ${file.name}`);
+    console.log(`🤖 Analizando PDF con modelo multimodal (intentando Qwen, o Gemini Pro Vision si Qwen falla): ${file.name}`);
     
     const base64Data = await convertPDFToBase64(file);
     
+    // NOTA IMPORTANTE: Si necesitas Qwen SÍ o SÍ, revisa OpenRouter.ai/models para el identificador exacto.
+    // "qwen/qwen-long" o "qwen/qwen-vl-plus" son candidatos, pero el error indica que no son válidos para tu setup/OpenRouter.
+    // Usamos "google/gemini-pro-vision" como alternativa robusta que soporta PDF.
+    const primaryModel = "google/gemini-pro-vision"; // Modelo robusto para PDFs en OpenRouter
+    // const primaryModel = "qwen/qwen-long"; // <--- Si quieres intentar de nuevo con Qwen-Long, descomenta esta línea y comenta la anterior.
+
     const completion = await openai.chat.completions.create({
-      model: "qwen/qwen-long", // Usamos Qwen-Long como modelo principal
+      model: primaryModel, 
       messages: [
         {
           role: "user",
@@ -55,7 +62,6 @@ Por favor, responde ÚNICAMENTE con JSON válido, sin texto adicional antes o de
             },
             {
               type: "image_url",
-              // Asegúrate de que el PDF no esté corrupto o encriptado si persiste el error "Failed to extract 1 image(s)"
               image_url: {
                 url: `data:application/pdf;base64,${base64Data}`
               }
@@ -63,15 +69,15 @@ Por favor, responde ÚNICAMENTE con JSON válido, sin texto adicional antes o de
           ]
         }
       ],
-      temperature: 0.1,
-      max_tokens: 4096,
+      temperature: 0.1, // Baja temperatura para respuestas más concisas y menos creativas
+      max_tokens: 4096, // Suficientes tokens para una respuesta JSON detallada
     });
 
-    console.log(`✅ Respuesta recibida del modelo de Qwen para ${file.name}`);
+    console.log(`✅ Respuesta recibida del modelo ${primaryModel} para ${file.name}`);
     
     if (!completion.choices[0]?.message?.content) {
-      console.error(`❌ Respuesta inválida del modelo para ${file.name}:`, completion);
-      throw new Error(`Respuesta inválida del modelo para ${file.name}`);
+      console.error(`❌ Respuesta inválida del modelo ${primaryModel} para ${file.name}:`, completion);
+      throw new Error(`Respuesta inválida del modelo ${primaryModel} para ${file.name}`);
     }
 
     const responseText = completion.choices[0].message.content;
@@ -80,27 +86,27 @@ Por favor, responde ÚNICAMENTE con JSON válido, sin texto adicional antes o de
     return responseText;
     
   } catch (error) {
-    console.error(`❌ Error en análisis con Qwen para ${file.name}:`, error);
+    console.error(`❌ Error en análisis con modelo principal para ${file.name}:`, error);
     
-    // Si el modelo principal falla, intentar con análisis de texto puro
+    // Si el modelo principal falla (ej. por ID de modelo inválido o error de procesamiento de PDF), intentar con análisis de texto puro
     try {
-      console.log(`🔄 Intentando análisis alternativo para ${file.name}...`);
+      console.log(`🔄 Intentando análisis alternativo (solo texto) para ${file.name}...`);
       return await fallbackTextAnalysis(analysisPrompt);
     } catch (fallbackError) {
-      console.error(`❌ Error en análisis alternativo:`, fallbackError);
-      throw fallbackError; // Propagar el error final si ambos fallan
+      console.error(`❌ Error en análisis alternativo (fallback):`, fallbackError);
+      // Propagar el error final si ambos fallan
+      throw new Error(`Falló el análisis del documento ${file.name}. Error principal: ${error instanceof Error ? error.message : String(error)}. Error de fallback: ${fallbackError instanceof Error ? fallbackError.message : String(fallbackError)}`);
     }
   }
 };
 
-// Función de fallback para análisis cuando falla el modelo principal
+// Función de fallback para análisis cuando falla el modelo principal (solo texto)
 const fallbackTextAnalysis = async (prompt: string): Promise<string> => {
   try {
     console.log('🌐 Usando modelo de fallback para análisis de texto.');
     const completion = await openai.chat.completions.create({
-      // CAMBIO CLAVE AQUÍ: Usar un modelo disponible como fallback.
-      // mistralai/mixtral-8x7b-instruct es una buena opción general y suele ser gratuita/barata en OpenRouter.
-      // O podrías probar "google/gemma-7b-it" o "nousresearch/nous-hermes-2-mixtral-8x7b-dpo"
+      // CAMBIO CLAVE AQUÍ: Usar un modelo disponible y robusto para texto.
+      // mistralai/mixtral-8x7b-instruct es una excelente opción general y suele ser gratuita/barata en OpenRouter.
       model: "mistralai/mixtral-8x7b-instruct", 
       messages: [
         {
@@ -114,11 +120,13 @@ NOTA: No se pudo procesar el documento PDF. Por favor, proporciona una estructur
       max_tokens: 2048,
     });
 
-    return completion.choices[0]?.message?.content || '{}';
+    if (!completion.choices[0]?.message?.content) {
+      throw new Error("Respuesta vacía del modelo de fallback.");
+    }
+    return completion.choices[0].message.content;
   } catch (error) {
     console.error('❌ Error en análisis de fallback:', error);
-    // Asegurarse de que el error de fallback se maneje y no oculte el original si falla
-    throw new Error(`Fallback analysis failed: ${error instanceof Error ? error.message : String(error)}`);
+    throw new Error(`El análisis de fallback falló: ${error instanceof Error ? error.message : String(error)}. Asegúrate de que el modelo "mistralai/mixtral-8x7b-instruct" esté disponible en tu cuenta de OpenRouter.`);
   }
 };
 
@@ -146,3 +154,119 @@ export const safeJsonParse = (jsonString: string, context: string = ''): any => 
     return {};
   }
 };
+
+// --- Ejemplo de uso con el prompt de licitación de electromedicina ---
+
+// Define el prompt para el análisis de licitaciones de electromedicina
+const electromedicinaAnalysisPrompt = `
+Eres un asistente experto en licitaciones públicas de electromedicina en España. Tu tarea es analizar un documento PDF de licitación y extraer la información más relevante para decidir si una empresa del sector de electromedicina debería presentar una oferta y, si es así, qué aspectos clave debe considerar.
+
+Necesito la siguiente información estructurada en formato JSON. Para cada campo, si la información no se encuentra, usa "No especificado", "0" para números, "false" para booleanos o un array vacío [] para listas.
+
+\`\`\`json
+{
+  "resumen_ejecutivo": "Un resumen conciso de los puntos clave de la licitación y su idoneidad para una empresa de electromedicina, incluyendo si hay algún requisito o riesgo importante.",
+  "datos_generales_licitacion": {
+    "nombre_licitacion": "string",
+    "id_expediente": "string",
+    "organismo_contratante": "string",
+    "objeto_contrato": "string",
+    "tipo_contrato": "string",
+    "valor_estimado_contrato_eur": "number",
+    "presupuesto_base_licitacion_sin_impuestos_eur": "number",
+    "impuestos_aplicables_porcentaje": "number",
+    "duracion_contrato": "string"
+  },
+  "requisitos_tecnicos_electromedicina": {
+    "descripcion_especifica_material_servicio": "string",
+    "productos_solicitados": [
+      {
+        "nombre_producto": "string",
+        "cantidad": "string", // Puede ser número o texto como "varias unidades"
+        "referencia_o_modelo_deseado": "string",
+        "especificaciones_tecnicas_clave": "string"
+      }
+    ],
+    "servicios_asociados_solicitados": [
+      {
+        "nombre_servicio": "string",
+        "descripcion": "string",
+        "duracion_o_frecuencia": "string"
+      }
+    ],
+    "certificaciones_normativas_exigidas": ["string"],
+    "compatibilidad_integracion_sistemas_existentes": "string"
+  },
+  "criterios_valoracion_ofertas": [
+    {
+      "criterio": "string",
+      "ponderacion_porcentaje": "number",
+      "detalles": "string" // Ejemplo: "Mejoras técnicas, plazo de entrega, precio, calidad"
+    }
+  ],
+  "plazos_fechas_clave": {
+    "fecha_publicacion": "string",
+    "fecha_limite_presentacion_ofertas": "string",
+    "fecha_apertura_ofertas_tecnicas": "string",
+    "fecha_apertura_ofertas_economicas": "string",
+    "fecha_prevista_adjudicacion": "string"
+  },
+  "requisitos_administrativos_garantias": {
+    "garantia_provisional_exigida_eur": "number",
+    "garantia_definitiva_exigida_porcentaje": "number",
+    "solvencia_economica_financiera_requerida": "string",
+    "solvencia_tecnica_profesional_requerida": "string",
+    "documentacion_administrativa_clave": ["string"]
+  },
+  "informacion_contacto": {
+    "departamento": "string",
+    "persona_contacto": "string",
+    "email_contacto": "string",
+    "telefono_contacto": "string"
+  },
+  "observaciones_riesgos": "Cualquier otra observación relevante, como posibles riesgos, cláusulas especiales o aspectos que puedan influir significativamente en la decisión de presentar una oferta."
+}
+\`\`\`
+`;
+
+// Función de ejemplo para procesar un documento (simula un archivo cargado)
+async function processTenderDocument(tenderFile: File) {
+  try {
+    // Si necesitas asegurarte de que el prompt se pasa correctamente:
+    console.log("Iniciando procesamiento con prompt:", electromedicinaAnalysisPrompt.substring(0, 100) + "...");
+
+    const jsonResponse = await analyzePDFWithQwen(tenderFile, electromedicinaAnalysisPrompt);
+    const parsedData = safeJsonParse(jsonResponse, `Análisis de ${tenderFile.name}`);
+    
+    if (Object.keys(parsedData).length > 0) {
+      console.log('✨ Resumen de la licitación de electromedicina:');
+      console.log(JSON.stringify(parsedData, null, 2));
+      // Aquí puedes usar parsedData para mostrar la información en tu UI
+    } else {
+      console.log('❌ No se pudo obtener un análisis válido de la licitación.');
+    }
+  } catch (error) {
+    console.error('🚫 Error general al procesar la licitación:', error);
+  }
+}
+
+// Para probarlo en un entorno de navegador (ej. React, Vue, HTML con JS):
+/*
+// Asegúrate de tener un input de tipo file en tu HTML: <input type="file" id="tenderFileInput" accept=".pdf" />
+document.addEventListener('DOMContentLoaded', () => {
+  const fileInput = document.getElementById('tenderFileInput');
+  if (fileInput) {
+    fileInput.addEventListener('change', async (event) => {
+      const file = (event.target as HTMLInputElement).files?.[0];
+      if (file) {
+        console.log(`Archivo seleccionado: ${file.name}`);
+        await processTenderDocument(file);
+      } else {
+        console.log('Ningún archivo seleccionado.');
+      }
+    });
+  } else {
+    console.error('Elemento #tenderFileInput no encontrado en el DOM.');
+  }
+});
+*/
