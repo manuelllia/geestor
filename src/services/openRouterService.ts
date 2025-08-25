@@ -39,7 +39,7 @@ export const analyzePDFWithQwen = async (
     // Para analizar PDFs, necesitamos un modelo multimodal.
     // "google/gemini-pro-vision" es fiable y a menudo el más económico/gratuito en OpenRouter para esta tarea.
     // No hay modelos Qwen multimodales gratuitos en OpenRouter.
-    const primaryModel = "qwen/qwen3-235b-a22b:free"; // Modelo verificado para PDF en OpenRouter
+    const primaryModel = "qwen/qwen3-235b-a22b"; // Modelo verificado para PDF en OpenRouter
 
     console.log(`🤖 Analizando PDF con modelo multimodal (${primaryModel}): ${file.name}`);
     
