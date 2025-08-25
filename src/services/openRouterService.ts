@@ -5,6 +5,7 @@ import OpenAI from 'openai';
 const openai = new OpenAI({
   baseURL: "https://openrouter.ai/api/v1",
   apiKey: "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",
+  dangerouslyAllowBrowser: true, // Permitir uso en navegador
   defaultHeaders: {
     "HTTP-Referer": "https://geestor.lovable.app",
     "X-Title": "Geestor - Análisis de Licitaciones",
