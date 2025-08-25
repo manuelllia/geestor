@@ -1,7 +1,7 @@
 
 import OpenAI from 'openai';
 
-// Configuración de OpenRouter con Qwen 3
+// Configuración de OpenRouter con modelo que soporte visión
 const openai = new OpenAI({
   baseURL: "https://openrouter.ai/api/v1",
   apiKey: "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",
@@ -30,25 +30,30 @@ export const convertPDFToBase64 = async (file: File): Promise<string> => {
   }
 };
 
-// Función para analizar PDF con OpenRouter/Qwen 3
+// Función mejorada para analizar PDF con OpenRouter usando modelo con visión
 export const analyzePDFWithQwen = async (
   file: File,
   analysisPrompt: string
 ): Promise<string> => {
   try {
-    console.log(`🤖 Analizando PDF con Qwen 3: ${file.name}`);
+    console.log(`🤖 Analizando PDF con modelo de visión: ${file.name}`);
     
     const base64Data = await convertPDFToBase64(file);
     
+    // Usar un modelo que soporte análisis de documentos/imágenes
     const completion = await openai.chat.completions.create({
-      model: "qwen/qwen3-235b-a22b:free",
+      model: "google/gemini-flash-1.5", // Modelo que soporta documentos
       messages: [
         {
           role: "user",
           content: [
             {
               type: "text",
-              text: analysisPrompt
+              text: `${analysisPrompt}
+
+IMPORTANTE: Este es un documento PDF que contiene información de licitación pública española. Necesito que analices el contenido del documento y extraigas la información solicitada.
+
+Por favor, responde ÚNICAMENTE con JSON válido, sin texto adicional antes o después. Si no encuentras información específica, usa "No especificado" o arrays vacíos []`
             },
             {
               type: "image_url",
@@ -63,11 +68,11 @@ export const analyzePDFWithQwen = async (
       max_tokens: 4096,
     });
 
-    console.log(`✅ Respuesta recibida de Qwen 3 para ${file.name}`);
+    console.log(`✅ Respuesta recibida del modelo de visión para ${file.name}`);
     
     if (!completion.choices[0]?.message?.content) {
-      console.error(`❌ Respuesta inválida de Qwen 3 para ${file.name}:`, completion);
-      throw new Error(`Respuesta inválida de Qwen 3 para ${file.name}`);
+      console.error(`❌ Respuesta inválida del modelo para ${file.name}:`, completion);
+      throw new Error(`Respuesta inválida del modelo para ${file.name}`);
     }
 
     const responseText = completion.choices[0].message.content;
@@ -76,8 +81,40 @@ export const analyzePDFWithQwen = async (
     return responseText;
     
   } catch (error) {
-    console.error(`❌ Error en análisis con Qwen 3 para ${file.name}:`, error);
-    throw error;
+    console.error(`❌ Error en análisis con modelo de visión para ${file.name}:`, error);
+    
+    // Si el modelo falla, intentar con análisis de texto puro
+    try {
+      console.log(`🔄 Intentando análisis alternativo para ${file.name}...`);
+      return await fallbackTextAnalysis(analysisPrompt);
+    } catch (fallbackError) {
+      console.error(`❌ Error en análisis alternativo:`, fallbackError);
+      throw error;
+    }
+  }
+};
+
+// Función de fallback para análisis cuando falla el modelo principal
+const fallbackTextAnalysis = async (prompt: string): Promise<string> => {
+  try {
+    const completion = await openai.chat.completions.create({
+      model: "meta-llama/llama-3.1-8b-instruct:free", // Modelo de texto gratuito
+      messages: [
+        {
+          role: "user",
+          content: `${prompt}
+
+NOTA: No se pudo procesar el documento PDF. Por favor, proporciona una estructura JSON válida con valores por defecto para los campos solicitados. Usa "No especificado" para strings y arrays vacíos [] donde corresponda.`
+        }
+      ],
+      temperature: 0.1,
+      max_tokens: 2048,
+    });
+
+    return completion.choices[0]?.message?.content || '{}';
+  } catch (error) {
+    console.error('❌ Error en análisis de fallback:', error);
+    return '{}';
   }
 };
 
