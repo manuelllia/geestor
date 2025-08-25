@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { analyzeDocumentsWithQwen, mergeStepResults } from '../services/costAnalysisService';
 
@@ -46,20 +47,20 @@ export const useCostAnalysis = () => {
       const stepResults: any[] = [];
 
       // EJECUTAR ANÁLISIS PASO A PASO CON QWEN 3
-      for (let step = 1; step <= totalSteps; step++) {
+      for (let step = 1; step <= 6; step++) {
         try {
           setCurrentStep(step);
-          setCurrentProgress(`🤖 Analizando paso ${step}/${totalSteps} con Qwen 3...`);
-          console.log(`\n🔄 PASO ${step}/${totalSteps}: Iniciando análisis con Qwen 3...`);
+          setCurrentProgress(`🤖 Analizando paso ${step}/6 con Qwen 3...`);
+          console.log(`\n🔄 PASO ${step}/6: Iniciando análisis con Qwen 3...`);
           
-          const stepResult = await analyzeDocumentsWithQwen(pcapFile, pptFile, step, totalSteps);
+          const stepResult = await analyzeDocumentsWithQwen(pcapFile, pptFile, step, 6);
           stepResults.push(stepResult);
           
-          console.log(`✅ PASO ${step}/${totalSteps}: Completado exitosamente`);
+          console.log(`✅ PASO ${step}/6: Completado exitosamente`);
           console.log(`📊 PASO ${step} - Resultado:`, stepResult);
           
           // Pausa entre pasos para evitar rate limiting de la API
-          if (step < totalSteps) {
+          if (step < 6) {
             const waitTime = Math.floor(Math.random() * 2) + 3; // Entre 3 y 4 segundos
             console.log(`⏳ PAUSA: Esperando ${waitTime}s antes del siguiente paso...`);
             setCurrentProgress(`⏳ Esperando ${waitTime}s antes del paso ${step + 1}...`);
