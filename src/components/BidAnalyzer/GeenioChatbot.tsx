@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Avatar } from "@/components/ui/avatar"
 import { AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -20,13 +19,16 @@ interface Message {
 const GeenioChatbot: React.FC<GeenioChatbotProps> = ({ isOpen, onToggle, context }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
+  const [showThinkingIndicator, setShowThinkingIndicator] = useState(false); // Nuevo estado para el indicador
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // Scroll to bottom whenever messages or thinking indicator changes
+    // This ensures the thinking indicator is visible as it appears
     if (isOpen && chatContainerRef.current) {
       scrollToBottom();
     }
-  }, [isOpen, messages]);
+  }, [isOpen, messages, showThinkingIndicator]); // Añadir showThinkingIndicator a las dependencias
 
   const scrollToBottom = () => {
     if (chatContainerRef.current) {
@@ -41,12 +43,16 @@ const GeenioChatbot: React.FC<GeenioChatbotProps> = ({ isOpen, onToggle, context
     setMessages(prevMessages => [...prevMessages, { sender: 'user', text: userMessage }]);
     setNewMessage('');
 
+    setShowThinkingIndicator(true); // Mostrar el indicador de "pensando"
+
     try {
       const botResponse = await generateResponse(userMessage);
       setMessages(prevMessages => [...prevMessages, { sender: 'bot', text: botResponse }]);
     } catch (error) {
       console.error('Error generating response:', error);
       setMessages(prevMessages => [...prevMessages, { sender: 'bot', text: 'Lo siento, no pude generar una respuesta.' }]);
+    } finally {
+      setShowThinkingIndicator(false); // Ocultar el indicador de "pensando"
     }
   };
 
@@ -73,6 +79,8 @@ const GeenioChatbot: React.FC<GeenioChatbotProps> = ({ isOpen, onToggle, context
       for (const [key, response] of Object.entries(basicResponses)) {
         if (lowerMessage.includes(key)) {
           console.log('✅ Respuesta básica encontrada para:', key);
+          // Opcional: añade un pequeño delay para que el indicador sea visible
+          await new Promise(resolve => setTimeout(resolve, 500)); 
           return response;
         }
       }
@@ -174,7 +182,7 @@ const GeenioChatbot: React.FC<GeenioChatbotProps> = ({ isOpen, onToggle, context
           ref={chatContainerRef} 
           className="p-3 sm:p-4 h-64 sm:h-80 overflow-y-auto flex-grow bg-gray-50 dark:bg-gray-900 space-y-3"
         >
-          {messages.length === 0 && (
+          {messages.length === 0 && !showThinkingIndicator && ( // Añadido !showThinkingIndicator
             <div className="text-center text-gray-500 dark:text-gray-400 text-sm">
               <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-2">
                 <span className="text-blue-600 dark:text-blue-400 font-bold">G</span>
@@ -200,6 +208,20 @@ const GeenioChatbot: React.FC<GeenioChatbotProps> = ({ isOpen, onToggle, context
               </div>
             </div>
           ))}
+
+          {/* Indicador de "Pensando..." */}
+          {showThinkingIndicator && (
+            <div className="flex justify-start">
+              <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center mr-2 mt-1 flex-shrink-0">
+                <span className="text-white text-xs font-bold">G</span>
+              </div>
+              <div className={`rounded-2xl px-3 py-2 text-sm max-w-[85%] bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 shadow-sm border border-gray-200 dark:border-gray-700`}>
+                <div className="whitespace-pre-wrap break-words">
+                  Pensando<span className="typing-dots"></span>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Input Area */}
@@ -217,11 +239,12 @@ const GeenioChatbot: React.FC<GeenioChatbotProps> = ({ isOpen, onToggle, context
                 }
               }}
               className="flex-1 text-sm border-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400"
+              disabled={showThinkingIndicator} // Deshabilitar input mientras el bot piensa
             />
             <Button 
               size="sm" 
               onClick={handleSendMessage}
-              disabled={!newMessage.trim()}
+              disabled={!newMessage.trim() || showThinkingIndicator} // Deshabilitar botón
               className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2"
             >
               <Send className="h-4 w-4" />

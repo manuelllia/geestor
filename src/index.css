@@ -293,3 +293,22 @@
 .hover-glow:hover {
   box-shadow: 0 0 20px hsl(var(--primary) / 0.5);
 }
+
+/* globals.css o archivo CSS similar */
+
+@keyframes dots {
+  0%, 20% {
+    content: '.';
+  }
+  40% {
+    content: '..';
+  }
+  60%, 100% {
+    content: '...';
+  }
+}
+
+.typing-dots::after {
+  content: ''; /* Estado inicial vacío */
+  animation: dots 1.5s infinite steps(1, start);
+}
