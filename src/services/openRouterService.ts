@@ -43,7 +43,7 @@ export const analyzePDFWithQwen = async ( // El nombre de la función sigue sien
     // NOTA IMPORTANTE: Si necesitas Qwen SÍ o SÍ, revisa OpenRouter.ai/models para el identificador exacto.
     // "qwen/qwen-long" o "qwen/qwen-vl-plus" son candidatos, pero el error indica que no son válidos para tu setup/OpenRouter.
     // Usamos "google/gemini-pro-vision" como alternativa robusta que soporta PDF.
-    const primaryModel = "google/gemini-pro-vision"; // Modelo robusto para PDFs en OpenRouter
+    const primaryModel = "01-ai/qwen-long"; // Modelo robusto para PDFs en OpenRouter
     // const primaryModel = "qwen/qwen-long"; // <--- Si quieres intentar de nuevo con Qwen-Long, descomenta esta línea y comenta la anterior.
 
     const completion = await openai.chat.completions.create({
