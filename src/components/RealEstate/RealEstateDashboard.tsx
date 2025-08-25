@@ -130,7 +130,6 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({ language, onI
 
       {/* KPI Cards responsive - 2x3 en mobile, 2x3 en tablet, 3x2 en desktop */}
       <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 lg:gap-6 mb-6 sm:mb-8">
-        {/* Primera fila */}
         <Card className="border-0 shadow-lg bg-gradient-to-r from-blue-500 to-blue-600 text-white">
           <CardContent className="p-3 sm:p-4 lg:p-6">
             <div className="flex items-center justify-between">
@@ -194,7 +193,6 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({ language, onI
           </CardContent>
         </Card>
 
-        {/* Segunda fila */ 
         <Card className="border-0 shadow-lg bg-gradient-to-r from-orange-500 to-orange-600 text-white">
           <CardContent className="p-3 sm:p-4 lg:p-6">
             <div className="flex items-center justify-between">
