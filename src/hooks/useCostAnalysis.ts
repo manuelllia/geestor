@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { analyzeDocumentsStep, mergeStepResults, extractTextFromPDF } from '../services/costAnalysisService';
+import { analyzeDocumentsWithVision, mergeStepResults } from '../services/costAnalysisService';
 
 interface ReportData {
   presupuestoGeneral: string;
@@ -29,7 +29,7 @@ export const useCostAnalysis = () => {
   };
 
   const analyzeCosts = async (pcapFile: File, pptFile: File): Promise<void> => {
-    console.log('🚀 INICIO: Análisis completo de costes con Gemini AI');
+    console.log('🚀 INICIO: Análisis completo de costes con Gemini Vision AI');
     console.log('📁 Archivos recibidos:', {
       pcap: `${pcapFile.name} (${(pcapFile.size / 1024 / 1024).toFixed(2)} MB)`,
       ppt: `${pptFile.name} (${(pptFile.size / 1024 / 1024).toFixed(2)} MB)`
@@ -40,38 +40,20 @@ export const useCostAnalysis = () => {
     setAnalysisResult(null);
     setCurrentStep(0);
     setTotalSteps(6);
-    setCurrentProgress('Iniciando análisis con Gemini AI...');
+    setCurrentProgress('Iniciando análisis con Gemini Vision AI...');
     
     try {
-      // PASO 1: Extraer texto real de los archivos PDF
-      setCurrentProgress('📄 Extrayendo texto de los archivos PDF...');
-      console.log('📄 EXTRACCIÓN: Iniciando extracción de texto de PDFs...');
-      
-      const pcapText = await extractTextFromPDF(pcapFile);
-      const pptText = await extractTextFromPDF(pptFile);
-
-      console.log('✅ EXTRACCIÓN: Texto extraído exitosamente:', {
-        pcapLength: pcapText.length,
-        pptLength: pptText.length,
-        pcapPreview: pcapText.substring(0, 150) + '...',
-        pptPreview: pptText.substring(0, 150) + '...'
-      });
-
-      if (!pcapText.trim() || !pptText.trim()) {
-        throw new Error('❌ No se pudo extraer texto de los archivos PDF. Verifica que los archivos no estén corruptos o protegidos.');
-      }
-
-      console.log('🤖 ANÁLISIS: Iniciando análisis paso a paso con Gemini AI');
+      console.log('🤖 ANÁLISIS: Iniciando análisis paso a paso con Gemini Vision AI');
       const stepResults: any[] = [];
 
-      // EJECUTAR ANÁLISIS PASO A PASO CON GEMINI AI
+      // EJECUTAR ANÁLISIS PASO A PASO CON GEMINI VISION
       for (let step = 1; step <= totalSteps; step++) {
         try {
           setCurrentStep(step);
-          setCurrentProgress(`🤖 Analizando paso ${step}/${totalSteps} con Gemini AI...`);
-          console.log(`\n🔄 PASO ${step}/${totalSteps}: Iniciando análisis con Gemini AI...`);
+          setCurrentProgress(`🤖 Analizando paso ${step}/${totalSteps} con Gemini Vision...`);
+          console.log(`\n🔄 PASO ${step}/${totalSteps}: Iniciando análisis con Gemini Vision...`);
           
-          const stepResult = await analyzeDocumentsStep(pcapText, pptText, step, totalSteps);
+          const stepResult = await analyzeDocumentsWithVision(pcapFile, pptFile, step, totalSteps);
           stepResults.push(stepResult);
           
           console.log(`✅ PASO ${step}/${totalSteps}: Completado exitosamente`);
@@ -79,7 +61,7 @@ export const useCostAnalysis = () => {
           
           // Pausa entre pasos para evitar rate limiting de la API
           if (step < totalSteps) {
-            const waitTime = Math.floor(Math.random() * 2) + 2; // Entre 2 y 3 segundos
+            const waitTime = Math.floor(Math.random() * 2) + 3; // Entre 3 y 4 segundos
             console.log(`⏳ PAUSA: Esperando ${waitTime}s antes del siguiente paso...`);
             setCurrentProgress(`⏳ Esperando ${waitTime}s antes del paso ${step + 1}...`);
             await wait(waitTime);
@@ -92,7 +74,7 @@ export const useCostAnalysis = () => {
           
           // Mostrar error específico en el progreso
           setCurrentProgress(`⚠️ Error en paso ${step}, continuando...`);
-          await wait(1); // Breve pausa antes de continuar
+          await wait(2); // Pausa antes de continuar
         }
       }
 
