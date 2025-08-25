@@ -1,6 +1,5 @@
-
 import { useState } from 'react';
-import { analyzeDocumentsWithVision, mergeStepResults } from '../services/costAnalysisService';
+import { analyzeDocumentsWithQwen, mergeStepResults } from '../services/costAnalysisService';
 
 interface ReportData {
   presupuestoGeneral: string;
@@ -29,7 +28,7 @@ export const useCostAnalysis = () => {
   };
 
   const analyzeCosts = async (pcapFile: File, pptFile: File): Promise<void> => {
-    console.log('🚀 INICIO: Análisis completo de costes con Gemini Vision AI');
+    console.log('🚀 INICIO: Análisis completo de costes con Qwen 3');
     console.log('📁 Archivos recibidos:', {
       pcap: `${pcapFile.name} (${(pcapFile.size / 1024 / 1024).toFixed(2)} MB)`,
       ppt: `${pptFile.name} (${(pptFile.size / 1024 / 1024).toFixed(2)} MB)`
@@ -40,20 +39,20 @@ export const useCostAnalysis = () => {
     setAnalysisResult(null);
     setCurrentStep(0);
     setTotalSteps(6);
-    setCurrentProgress('Iniciando análisis con Gemini Vision AI...');
+    setCurrentProgress('Iniciando análisis con Qwen 3...');
     
     try {
-      console.log('🤖 ANÁLISIS: Iniciando análisis paso a paso con Gemini Vision AI');
+      console.log('🤖 ANÁLISIS: Iniciando análisis paso a paso con Qwen 3');
       const stepResults: any[] = [];
 
-      // EJECUTAR ANÁLISIS PASO A PASO CON GEMINI VISION
+      // EJECUTAR ANÁLISIS PASO A PASO CON QWEN 3
       for (let step = 1; step <= totalSteps; step++) {
         try {
           setCurrentStep(step);
-          setCurrentProgress(`🤖 Analizando paso ${step}/${totalSteps} con Gemini Vision...`);
-          console.log(`\n🔄 PASO ${step}/${totalSteps}: Iniciando análisis con Gemini Vision...`);
+          setCurrentProgress(`🤖 Analizando paso ${step}/${totalSteps} con Qwen 3...`);
+          console.log(`\n🔄 PASO ${step}/${totalSteps}: Iniciando análisis con Qwen 3...`);
           
-          const stepResult = await analyzeDocumentsWithVision(pcapFile, pptFile, step, totalSteps);
+          const stepResult = await analyzeDocumentsWithQwen(pcapFile, pptFile, step, totalSteps);
           stepResults.push(stepResult);
           
           console.log(`✅ PASO ${step}/${totalSteps}: Completado exitosamente`);
