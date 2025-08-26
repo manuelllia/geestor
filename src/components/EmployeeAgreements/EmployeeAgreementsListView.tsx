@@ -15,6 +15,8 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import ImportEmployeeAgreementsModal from './ImportEmployeeAgreementsModal';
 import EmployeeAgreementCreateForm from './EmployeeAgreementCreateForm';
+import EmployeeAgreementDetailView from './EmployeeAgreementDetailView';
+import EmployeeAgreementEditForm from './EmployeeAgreementEditForm';
 
 interface EmployeeAgreementsListViewProps {
   language: Language;
@@ -29,7 +31,7 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedAgreementId, setSelectedAgreementId] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<'list' | 'detail' | 'create'>('list');
+  const [viewMode, setViewMode] = useState<'list' | 'detail' | 'create' | 'edit'>('list');
   const itemsPerPage = 30;
 
   const loadAgreements = async () => {
@@ -59,6 +61,11 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
   const handleViewDetails = (agreementId: string) => {
     setSelectedAgreementId(agreementId);
     setViewMode('detail');
+  };
+
+  const handleEdit = (agreementId: string) => {
+    setSelectedAgreementId(agreementId);
+    setViewMode('edit');
   };
 
   const handleCreateNew = () => {
@@ -186,6 +193,27 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
     return (
       <EmployeeAgreementCreateForm
         language={language}
+        onBack={handleBackToList}
+        onSave={handleSave}
+      />
+    );
+  }
+
+  if (viewMode === 'detail' && selectedAgreementId) {
+    return (
+      <EmployeeAgreementDetailView
+        language={language}
+        agreementId={selectedAgreementId}
+        onBack={handleBackToList}
+      />
+    );
+  }
+
+  if (viewMode === 'edit' && selectedAgreementId) {
+    return (
+      <EmployeeAgreementEditForm
+        language={language}
+        agreementId={selectedAgreementId}
         onBack={handleBackToList}
         onSave={handleSave}
       />
@@ -349,6 +377,14 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
                             <Button
                               variant="ghost"
                               size="sm"
+                              onClick={() => handleEdit(agreement.id)}
+                              title="Editar"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
                               onClick={() => handleDuplicate(agreement.id)}
                               title="Duplicar"
                             >
@@ -379,7 +415,6 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
                 </Table>
               </div>
 
-              {/* Paginación */}
               {agreements.length > itemsPerPage && (
                 <div className="flex flex-col sm:flex-row justify-between items-center mt-4 gap-4">
                   <div className="text-sm text-gray-600 dark:text-gray-400">
@@ -439,7 +474,6 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
         </CardContent>
       </Card>
 
-      {/* Modal de importación */}
       <ImportEmployeeAgreementsModal
         open={showImportModal}
         onClose={() => setShowImportModal(false)}

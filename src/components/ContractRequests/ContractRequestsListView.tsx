@@ -16,6 +16,8 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import ImportContractRequestsModal from './ImportContractRequestsModal';
 import ContractRequestCreateForm from './ContractRequestCreateForm';
+import ContractRequestDetailView from './ContractRequestDetailView';
+import ContractRequestEditForm from './ContractRequestEditForm';
 
 interface ContractRequestsListViewProps {
   language: Language;
@@ -30,7 +32,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<'list' | 'detail' | 'create'>('list');
+  const [viewMode, setViewMode] = useState<'list' | 'detail' | 'create' | 'edit'>('list');
   const itemsPerPage = 30;
 
   const loadRequests = async () => {
@@ -60,6 +62,11 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
   const handleViewDetails = (requestId: string) => {
     setSelectedRequestId(requestId);
     setViewMode('detail');
+  };
+
+  const handleEdit = (requestId: string) => {
+    setSelectedRequestId(requestId);
+    setViewMode('edit');
   };
 
   const handleCreateNew = () => {
@@ -211,6 +218,27 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
     return (
       <ContractRequestCreateForm
         language={language}
+        onBack={handleBackToList}
+        onSave={handleSave}
+      />
+    );
+  }
+
+  if (viewMode === 'detail' && selectedRequestId) {
+    return (
+      <ContractRequestDetailView
+        language={language}
+        requestId={selectedRequestId}
+        onBack={handleBackToList}
+      />
+    );
+  }
+
+  if (viewMode === 'edit' && selectedRequestId) {
+    return (
+      <ContractRequestEditForm
+        language={language}
+        requestId={selectedRequestId}
         onBack={handleBackToList}
         onSave={handleSave}
       />
@@ -376,6 +404,14 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
                             <Button
                               variant="ghost"
                               size="sm"
+                              onClick={() => handleEdit(request.id)}
+                              title="Editar"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
                               onClick={() => handleDuplicate(request.id)}
                               title="Duplicar"
                             >
@@ -406,7 +442,6 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
                 </Table>
               </div>
 
-              {/* Paginación */}
               {requests.length > itemsPerPage && (
                 <div className="flex flex-col sm:flex-row justify-between items-center mt-4 gap-4">
                   <div className="text-sm text-gray-600 dark:text-gray-400">
