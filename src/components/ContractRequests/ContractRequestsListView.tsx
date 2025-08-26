@@ -168,7 +168,6 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
       <ContractRequestCreateForm
         language={language}
         onBack={() => setShowCreateForm(false)}
-        onSuccess={handleRequestCreated}
       />
     );
   }
@@ -195,7 +194,6 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
           setShowEditForm(false);
           setSelectedRequest(null);
         }}
-        onSuccess={handleRequestUpdated}
       />
     );
   }
@@ -425,7 +423,6 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
           <ImportContractRequestsModal
             open={showImportModal}
             onClose={() => setShowImportModal(false)}
-            onSuccess={handleImportSuccess}
             language={language}
           />
         )}
