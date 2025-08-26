@@ -42,7 +42,7 @@ const EmployeeAgreementDetailView: React.FC<EmployeeAgreementDetailViewProps> = 
   useEffect(() => {
     const fetchAgreementData = async () => {
       try {
-        const docRef = doc(db, "Gestión de Talento", "acuerdos-empleados", "Acuerdos con empleados", agreementId);
+        const docRef = doc(db, "Gestión de Talento", "Acuerdos de Empleados", "acuerdos", agreementId);
         const docSnap = await getDoc(docRef);
         
         if (docSnap.exists()) {
