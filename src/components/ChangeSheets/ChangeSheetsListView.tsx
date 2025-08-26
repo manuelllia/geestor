@@ -95,9 +95,9 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({ language })
         sheetId={selectedSheetId}
         language={language}
         onBack={handleBack}
-        onDelete={(id: string) => {
-          handleDelete(id);
+        onDelete={() => {
           handleBack();
+          loadSheets();
         }}
       />
     );
@@ -236,6 +236,7 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({ language })
         <ImportChangeSheetsModal
           open={isImportModalOpen}
           onClose={() => setIsImportModalOpen(false)}
+          language={language}
         />
       </div>
     </div>

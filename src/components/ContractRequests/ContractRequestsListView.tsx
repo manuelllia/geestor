@@ -181,7 +181,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="text-xs sm:text-sm min-w-[120px]">{t('employee')}</TableHead>
+                      <TableHead className="text-xs sm:text-sm min-w-[120px]">Empleado</TableHead>
                       <TableHead className="text-xs sm:text-sm min-w-[100px] hidden sm:table-cell">{t('workCenter')}</TableHead>
                       <TableHead className="text-xs sm:text-sm min-w-[100px] hidden lg:table-cell">Fecha solicitud</TableHead>
                       <TableHead className="text-xs sm:text-sm min-w-[80px]">{t('status')}</TableHead>
@@ -194,7 +194,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
                       <TableRow key={request.id}>
                         <TableCell className="font-medium text-xs sm:text-sm">
                           <div className="truncate max-w-[120px] sm:max-w-[200px]">
-                            {request.employee || 'Sin datos'}
+                            {request.employeeName || 'Sin datos'}
                           </div>
                         </TableCell>
                         <TableCell className="text-xs sm:text-sm hidden sm:table-cell">
@@ -203,7 +203,9 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
                           </div>
                         </TableCell>
                         <TableCell className="text-xs sm:text-sm hidden lg:table-cell">
-                          {request.requestDate || 'Sin datos'}
+                          {request.requestDate instanceof Date 
+                            ? request.requestDate.toLocaleDateString() 
+                            : request.requestDate || 'Sin datos'}
                         </TableCell>
                         <TableCell>
                           <Badge variant="secondary" className="text-xs">
@@ -212,7 +214,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
                         </TableCell>
                         <TableCell className="text-xs sm:text-sm hidden md:table-cell">
                           <div className="truncate max-w-[100px]">
-                            {request.requestType || 'Sin datos'}
+                            {request.requestDate || 'Sin datos'}
                           </div>
                         </TableCell>
                         <TableCell>
@@ -253,6 +255,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
         <ImportContractRequestsModal
           open={isImportModalOpen}
           onClose={() => setIsImportModalOpen(false)}
+          language={language}
         />
       </div>
     </div>

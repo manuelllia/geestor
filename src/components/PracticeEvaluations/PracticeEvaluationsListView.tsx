@@ -8,7 +8,7 @@ import { MoreHorizontal, Eye, GraduationCap, RefreshCw } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Language } from '../../utils/translations';
 import { useTranslation } from '../../hooks/useTranslation';
-import { getPracticeEvaluations, PracticeEvaluation } from '../../services/practiceEvaluationService';
+import { getPracticeEvaluations, PracticeEvaluationData } from '../../services/practiceEvaluationService';
 import PracticeEvaluationDetailView from './PracticeEvaluationDetailView';
 import { toast } from 'sonner';
 
@@ -18,7 +18,7 @@ interface PracticeEvaluationsListViewProps {
 
 const PracticeEvaluationsListView: React.FC<PracticeEvaluationsListViewProps> = ({ language }) => {
   const { t } = useTranslation(language);
-  const [evaluations, setEvaluations] = useState<PracticeEvaluation[]>([]);
+  const [evaluations, setEvaluations] = useState<PracticeEvaluationData[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentView, setCurrentView] = useState<'list' | 'detail'>('list');
   const [selectedEvaluationId, setSelectedEvaluationId] = useState<string | null>(null);
@@ -35,7 +35,7 @@ const PracticeEvaluationsListView: React.FC<PracticeEvaluationsListViewProps> = 
       setEvaluations(data);
     } catch (error) {
       console.error('Error loading practice evaluations:', error);
-      toast.error(t('errorLoadingData'));
+      toast.error('Error cargando datos');
     } finally {
       setLoading(false);
     }
@@ -58,13 +58,16 @@ const PracticeEvaluationsListView: React.FC<PracticeEvaluationsListViewProps> = 
   };
 
   if (currentView === 'detail' && selectedEvaluationId) {
-    return (
-      <PracticeEvaluationDetailView
-        evaluationId={selectedEvaluationId}
-        language={language}
-        onBack={handleBack}
-      />
-    );
+    const selectedEvaluation = evaluations.find(e => e.id === selectedEvaluationId);
+    if (selectedEvaluation) {
+      return (
+        <PracticeEvaluationDetailView
+          evaluation={selectedEvaluation}
+          language={language}
+          onBack={handleBack}
+        />
+      );
+    }
   }
 
   return (
@@ -76,7 +79,7 @@ const PracticeEvaluationsListView: React.FC<PracticeEvaluationsListViewProps> = 
               {t('practiceEvaluations')}
             </h1>
             <p className="text-xs sm:text-sm lg:text-base text-gray-600 dark:text-gray-400 mt-1">
-              {t('managePracticeEvaluations')}
+              Gestionar evaluaciones de prácticas
             </p>
           </div>
           
@@ -88,7 +91,7 @@ const PracticeEvaluationsListView: React.FC<PracticeEvaluationsListViewProps> = 
             size="sm"
           >
             <RefreshCw className={`w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-            {t('refresh')}
+            Actualizar
           </Button>
         </div>
 
@@ -97,10 +100,10 @@ const PracticeEvaluationsListView: React.FC<PracticeEvaluationsListViewProps> = 
             <CardTitle className="text-sm sm:text-base lg:text-lg text-blue-800 dark:text-blue-200 flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
               <span className="flex items-center gap-2">
                 <GraduationCap className="w-4 h-4 sm:w-5 sm:h-5" />
-                {t('evaluationsList')}
+                Lista de evaluaciones
               </span>
               <Badge variant="secondary" className="text-xs sm:text-sm w-fit">
-                {evaluations.length} {t('evaluations')}
+                {evaluations.length} evaluaciones
               </Badge>
             </CardTitle>
           </CardHeader>
@@ -111,11 +114,11 @@ const PracticeEvaluationsListView: React.FC<PracticeEvaluationsListViewProps> = 
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="text-xs sm:text-sm min-w-[150px]">{t('studentName')}</TableHead>
-                      <TableHead className="text-xs sm:text-sm min-w-[120px] hidden sm:table-cell">{t('practiceCenter')}</TableHead>
-                      <TableHead className="text-xs sm:text-sm min-w-[100px] hidden lg:table-cell">{t('evaluationDate')}</TableHead>
-                      <TableHead className="text-xs sm:text-sm min-w-[80px] hidden md:table-cell">{t('overallScore')}</TableHead>
-                      <TableHead className="text-xs sm:text-sm min-w-[100px]">{t('supervisor')}</TableHead>
+                      <TableHead className="text-xs sm:text-sm min-w-[150px]">{t('name')}</TableHead>
+                      <TableHead className="text-xs sm:text-sm min-w-[120px] hidden sm:table-cell">Centro práctica</TableHead>
+                      <TableHead className="text-xs sm:text-sm min-w-[100px] hidden lg:table-cell">Fecha evaluación</TableHead>
+                      <TableHead className="text-xs sm:text-sm min-w-[80px] hidden md:table-cell">Puntuación</TableHead>
+                      <TableHead className="text-xs sm:text-sm min-w-[100px]">Supervisor</TableHead>
                       <TableHead className="text-xs sm:text-sm min-w-[80px]">{t('status')}</TableHead>
                       <TableHead className="w-[50px] text-xs sm:text-sm">{t('actions')}</TableHead>
                     </TableRow>
@@ -125,16 +128,16 @@ const PracticeEvaluationsListView: React.FC<PracticeEvaluationsListViewProps> = 
                       <TableRow key={evaluation.id}>
                         <TableCell className="font-medium text-xs sm:text-sm">
                           <div className="truncate max-w-[150px] sm:max-w-[200px]">
-                            {evaluation.studentName || t('noData')}
+                            {evaluation.studentName || 'Sin datos'}
                           </div>
                         </TableCell>
                         <TableCell className="text-xs sm:text-sm hidden sm:table-cell">
                           <div className="truncate max-w-[120px]">
-                            {evaluation.practiceCenter || t('noData')}
+                            {evaluation.practiceCenter || 'Sin datos'}
                           </div>
                         </TableCell>
                         <TableCell className="text-xs sm:text-sm hidden lg:table-cell">
-                          {evaluation.evaluationDate || t('noData')}
+                          {evaluation.evaluationDate || 'Sin datos'}
                         </TableCell>
                         <TableCell className="text-xs sm:text-sm hidden md:table-cell">
                           <Badge variant="outline" className="text-xs">
@@ -143,7 +146,7 @@ const PracticeEvaluationsListView: React.FC<PracticeEvaluationsListViewProps> = 
                         </TableCell>
                         <TableCell className="text-xs sm:text-sm">
                           <div className="truncate max-w-[100px]">
-                            {evaluation.supervisor || t('noData')}
+                            {evaluation.supervisor || 'Sin datos'}
                           </div>
                         </TableCell>
                         <TableCell>
