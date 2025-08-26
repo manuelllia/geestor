@@ -203,180 +203,154 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
 
   return (
     <div className="w-full min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="w-full max-w-full p-2 sm:p-4 md:p-6 space-y-3 sm:space-y-4 md:space-y-6">
-        {/* Header responsive */}
-        <div className="flex flex-col space-y-3 sm:space-y-4">
-          <div className="flex flex-col space-y-2 sm:space-y-0">
-            <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-blue-900 dark:text-blue-100 leading-tight">
+      <div className="w-full p-4 md:p-6 space-y-6">
+        {/* Header */}
+        <div className="flex flex-col space-y-4">
+          <div className="flex flex-col space-y-2">
+            <h1 className="text-2xl md:text-3xl font-bold text-blue-900 dark:text-blue-100">
               {t('contractRequests')}
             </h1>
-            <p className="text-xs sm:text-sm md:text-base text-gray-600 dark:text-gray-400">
+            <p className="text-sm md:text-base text-gray-600 dark:text-gray-400">
               Gestiona las solicitudes de contratación
             </p>
           </div>
           
-          {/* Botones responsive */}
-          <div className="flex flex-col sm:flex-row gap-2 w-full">
+          {/* Botones */}
+          <div className="flex flex-wrap gap-3">
             <Button
               onClick={handleRefresh}
               variant="outline"
-              className="border-blue-300 text-blue-700 hover:bg-blue-50 text-xs sm:text-sm h-8 sm:h-9 px-2 sm:px-3"
+              className="border-blue-300 text-blue-700 hover:bg-blue-50"
               disabled={refreshing}
-              size="sm"
             >
-              <RefreshCw className={`w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-              <span className="truncate">Actualizar</span>
+              <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+              Actualizar
             </Button>
             
             <Button
               onClick={() => setShowImportModal(true)}
               variant="outline"
-              className="border-green-300 text-green-700 hover:bg-green-50 text-xs sm:text-sm h-8 sm:h-9 px-2 sm:px-3"
-              size="sm"
+              className="border-green-300 text-green-700 hover:bg-green-50"
             >
-              <Upload className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-              <span className="truncate">Importar</span>
+              <Upload className="w-4 h-4 mr-2" />
+              Importar
             </Button>
             
             <Button
               onClick={() => setShowCreateForm(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm h-8 sm:h-9 px-2 sm:px-3"
-              size="sm"
+              className="bg-blue-600 hover:bg-blue-700 text-white"
             >
-              <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-              <span className="truncate">Nueva Solicitud</span>
+              <Plus className="w-4 h-4 mr-2" />
+              Nueva Solicitud
             </Button>
           </div>
         </div>
 
-        {/* Card responsive */}
-        <Card className="border-blue-200 dark:border-blue-800 w-full">
-          <CardHeader className="p-3 sm:p-4 md:p-6">
-            <CardTitle className="text-sm sm:text-base md:text-lg text-blue-800 dark:text-blue-200 flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
+        {/* Card */}
+        <Card className="border-blue-200 dark:border-blue-800">
+          <CardHeader>
+            <CardTitle className="text-lg text-blue-800 dark:text-blue-200 flex items-center justify-between">
               <span className="flex items-center gap-2">
-                <FileText className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
-                <span className="truncate">Lista de Solicitudes</span>
+                <FileText className="w-5 h-5" />
+                Lista de Solicitudes
               </span>
-              <Badge variant="secondary" className="text-xs sm:text-sm w-fit">
+              <Badge variant="secondary">
                 {requests.length} solicitudes
               </Badge>
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            {/* Información de paginación responsive */}
-            <div className="px-3 sm:px-4 md:px-6 pb-2 sm:pb-3">
-              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+            {/* Información de paginación */}
+            <div className="px-6 pb-3">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 Mostrando del {startIndex + 1} al {Math.min(endIndex, totalItems)} de {totalItems} solicitudes
               </p>
             </div>
 
             {/* Contenedor con scroll horizontal para tablas */}
-            <div className="w-full overflow-x-auto">
-              <div className="min-w-[800px]">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="text-xs sm:text-sm min-w-[120px]">Empleado</TableHead>
-                      <TableHead className="text-xs sm:text-sm min-w-[100px]">Centro de Trabajo</TableHead>
-                      <TableHead className="text-xs sm:text-sm min-w-[80px] hidden sm:table-cell">Ciudad</TableHead>
-                      <TableHead className="text-xs sm:text-sm min-w-[100px] hidden lg:table-cell">Puesto</TableHead>
-                      <TableHead className="text-xs sm:text-sm min-w-[100px] hidden lg:table-cell">Departamento</TableHead>
-                      <TableHead className="text-xs sm:text-sm min-w-[90px] hidden sm:table-cell">Fecha Inicio</TableHead>
-                      <TableHead className="text-xs sm:text-sm min-w-[80px]">Estado</TableHead>
-                      <TableHead className="w-[50px] text-xs sm:text-sm">Acciones</TableHead>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="min-w-[150px]">Empleado</TableHead>
+                    <TableHead className="min-w-[120px]">Centro de Trabajo</TableHead>
+                    <TableHead className="min-w-[100px]">Ciudad</TableHead>
+                    <TableHead className="min-w-[120px]">Puesto</TableHead>
+                    <TableHead className="min-w-[120px]">Departamento</TableHead>
+                    <TableHead className="min-w-[120px]">Fecha Inicio</TableHead>
+                    <TableHead className="min-w-[100px]">Estado</TableHead>
+                    <TableHead className="w-[80px]">Acciones</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {requests.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((request) => (
+                    <TableRow key={request.id}>
+                      <TableCell className="font-medium">
+                        {request.requesterName} {request.requesterLastName}
+                      </TableCell>
+                      <TableCell>{request.workCenter}</TableCell>
+                      <TableCell>{request.city}</TableCell>
+                      <TableCell>{request.jobPosition}</TableCell>
+                      <TableCell>{request.professionalCategory}</TableCell>
+                      <TableCell>
+                        {new Date(request.incorporationDate).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary">
+                          Activa
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="bg-white dark:bg-gray-800 border border-blue-200 dark:border-blue-700">
+                            <DropdownMenuItem onClick={() => handleViewRequest(request)} className="cursor-pointer">
+                              <Eye className="mr-2 h-4 w-4" />
+                              Ver detalles
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleEditRequest(request)} className="cursor-pointer">
+                              <Edit className="mr-2 h-4 w-4" />
+                              Editar
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleDuplicateRequest(request)} className="cursor-pointer">
+                              <Copy className="mr-2 h-4 w-4" />
+                              Duplicar
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleDeleteRequest(request)} className="cursor-pointer text-red-600">
+                              <Trash className="mr-2 h-4 w-4" />
+                              Eliminar
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
                     </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {requests.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((request) => (
-                      <TableRow key={request.id}>
-                        <TableCell className="font-medium text-xs sm:text-sm">
-                          <div className="truncate max-w-[120px]">
-                            {request.requesterName} {request.requesterLastName}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-xs sm:text-sm">
-                          <div className="truncate max-w-[100px]">
-                            {request.workCenter}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-xs sm:text-sm hidden sm:table-cell">
-                          <div className="truncate max-w-[80px]">
-                            {request.city}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-xs sm:text-sm hidden lg:table-cell">
-                          <div className="truncate max-w-[100px]">
-                            {request.jobPosition}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-xs sm:text-sm hidden lg:table-cell">
-                          <div className="truncate max-w-[100px]">
-                            {request.professionalCategory}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-xs sm:text-sm hidden sm:table-cell">
-                          <div className="truncate max-w-[90px]">
-                            {new Date(request.incorporationDate).toLocaleDateString()}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="secondary" className="text-xs">
-                            Activa
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" className="h-6 w-6 sm:h-8 sm:w-8 p-0">
-                                <MoreHorizontal className="h-3 w-3 sm:h-4 sm:w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="bg-white dark:bg-gray-800 border border-blue-200 dark:border-blue-700">
-                              <DropdownMenuItem onClick={() => handleViewRequest(request)} className="cursor-pointer text-xs sm:text-sm">
-                                <Eye className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                                Ver detalles
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleEditRequest(request)} className="cursor-pointer text-xs sm:text-sm">
-                                <Edit className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                                Editar
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleDuplicateRequest(request)} className="cursor-pointer text-xs sm:text-sm">
-                                <Copy className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                                Duplicar
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleDeleteRequest(request)} className="cursor-pointer text-red-600 text-xs sm:text-sm">
-                                <Trash className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                                Eliminar
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
 
-            {/* Paginación responsive */}
+            {/* Paginación */}
             {totalPages > 1 && (
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-2 p-3 sm:p-4 border-t">
-                <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 order-2 sm:order-1">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 border-t">
+                <div className="text-sm text-gray-600 dark:text-gray-400">
                   <span>Página {currentPage} de {totalPages}</span>
                 </div>
                 
-                <div className="flex items-center gap-1 order-1 sm:order-2">
+                <div className="flex items-center gap-2">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 1}
-                    className="text-xs h-7 px-2"
                   >
                     Anterior
                   </Button>
                   
-                  <div className="flex items-center gap-1 max-w-[200px] overflow-x-auto">
+                  <div className="flex items-center gap-1">
                     {getPageNumbers().map((page, index) => (
                       <Button
                         key={index}
@@ -384,7 +358,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
                         size="sm"
                         onClick={() => typeof page === 'number' ? handlePageChange(page) : undefined}
                         disabled={page === '...'}
-                        className="text-xs h-7 min-w-[28px] px-1"
+                        className="min-w-[32px]"
                       >
                         {page}
                       </Button>
@@ -396,7 +370,6 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
                     size="sm"
                     onClick={() => handlePageChange(currentPage + 1)}
                     disabled={currentPage === totalPages}
-                    className="text-xs h-7 px-2"
                   >
                     Siguiente
                   </Button>
@@ -408,16 +381,16 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
 
         {/* Modal de confirmación para eliminar */}
         <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-          <AlertDialogContent className="w-[90vw] max-w-md">
+          <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle className="text-sm sm:text-base">¿Estás seguro?</AlertDialogTitle>
-              <AlertDialogDescription className="text-xs sm:text-sm">
+              <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+              <AlertDialogDescription>
                 Esta acción no se puede deshacer. Se eliminará permanentemente la solicitud de contratación.
               </AlertDialogDescription>
             </AlertDialogHeader>
-            <AlertDialogFooter className="flex-col sm:flex-row gap-2">
-              <AlertDialogCancel className="text-xs sm:text-sm h-8">Cancelar</AlertDialogCancel>
-              <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700 text-xs sm:text-sm h-8">
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">
                 Eliminar
               </AlertDialogAction>
             </AlertDialogFooter>
