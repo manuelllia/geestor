@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -71,7 +72,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
 
   const handleDuplicateRequest = async (request: ContractRequestRecord) => {
     try {
-      await duplicateContractRequest(request);
+      await duplicateContractRequest(request.id);
       await loadRequests();
       toast.success('Solicitud duplicada correctamente');
     } catch (error) {
@@ -168,7 +169,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
       <ContractRequestCreateForm
         language={language}
         onBack={() => setShowCreateForm(false)}
-        onSuccess={handleRequestCreated}
+        onRequestCreated={handleRequestCreated}
       />
     );
   }
@@ -195,7 +196,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
           setShowEditForm(false);
           setSelectedRequest(null);
         }}
-        onSuccess={handleRequestUpdated}
+        onRequestUpdated={handleRequestUpdated}
       />
     );
   }
@@ -240,7 +241,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
               className="bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm"
               size="sm"
             >
-              <Plus className="w-3 h-3 sm:w-4 sm:w-4 mr-1 sm:mr-2" />
+              <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
               Nueva Solicitud
             </Button>
           </div>
@@ -287,7 +288,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
                       <TableRow key={request.id}>
                         <TableCell className="font-medium text-xs sm:text-sm">
                           <div className="truncate max-w-[120px]">
-                            {request.employeeName} {request.employeeLastName}
+                            {request.candidateName} {request.candidateLastName}
                           </div>
                         </TableCell>
                         <TableCell className="text-xs sm:text-sm">
@@ -307,12 +308,12 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
                         </TableCell>
                         <TableCell className="text-xs sm:text-sm hidden lg:table-cell">
                           <div className="truncate max-w-[100px]">
-                            {request.department}
+                            {request.departmentRequesting}
                           </div>
                         </TableCell>
                         <TableCell className="text-xs sm:text-sm hidden sm:table-cell">
                           <div className="truncate max-w-[90px]">
-                            {new Date(request.startDate).toLocaleDateString()}
+                            {new Date(request.incorporationDate).toLocaleDateString()}
                           </div>
                         </TableCell>
                         <TableCell>
@@ -425,7 +426,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
           <ImportContractRequestsModal
             open={showImportModal}
             onClose={() => setShowImportModal(false)}
-            onImportSuccess={handleImportSuccess}
+            onSuccess={handleImportSuccess}
           />
         )}
       </div>

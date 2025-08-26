@@ -185,8 +185,6 @@ export const getEmployeeAgreements = async (): Promise<EmployeeAgreementRecord[]
   }
 };
 
-// --- FUNCIÓN para guardar un nuevo Acuerdo con Empleado ---
-// Recibe los datos del formulario (donde las fechas aún son strings 'YYYY-MM-DD').
 export const saveEmployeeAgreement = async (
   agreementDataFromForm: Omit<EmployeeAgreementRecord, 'id' | 'createdAt' | 'updatedAt' | 'status' | 'activationDate' | 'endDate' | 'startDate'> & {
     activationDate: string; // La fecha de activación viene como string del formulario
@@ -205,6 +203,7 @@ export const saveEmployeeAgreement = async (
       activationDate: activationDateTimestamp,
       endDate: endDateTimestamp,
       startDate: startDateTimestamp,
+      status: 'Activo', // Add default status
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     };
@@ -218,18 +217,46 @@ export const saveEmployeeAgreement = async (
   }
 };
 
-// --- FUNCIÓN para duplicar un Acuerdo con Empleado ---
-export const duplicateEmployeeAgreement = async (originalAgreement: EmployeeAgreementRecord): Promise<string> => {
+export const duplicateEmployeeAgreement = async (agreementId: string): Promise<string> => {
   try {
-    const duplicatedData = {
-      ...originalAgreement,
-      id: undefined, // Remove the ID so it gets a new one
+    const originalAgreement = await getEmployeeAgreementById(agreementId);
+    if (!originalAgreement) {
+      throw new Error('Acuerdo no encontrado');
+    }
+
+    const duplicatedData: EmployeeAgreementFirestorePayload = {
       employeeName: originalAgreement.employeeName + ' (Copia)',
+      employeeLastName: originalAgreement.employeeLastName,
+      workCenter: originalAgreement.workCenter,
+      city: originalAgreement.city,
+      province: originalAgreement.province,
+      autonomousCommunity: originalAgreement.autonomousCommunity,
+      responsibleName: originalAgreement.responsibleName,
+      responsibleLastName: originalAgreement.responsibleLastName,
+      agreementConcepts: originalAgreement.agreementConcepts,
+      economicAgreement1: originalAgreement.economicAgreement1,
+      concept1: originalAgreement.concept1,
+      economicAgreement2: originalAgreement.economicAgreement2,
+      concept2: originalAgreement.concept2,
+      economicAgreement3: originalAgreement.economicAgreement3,
+      concept3: originalAgreement.concept3,
+      activationDate: Timestamp.fromDate(originalAgreement.activationDate),
+      endDate: originalAgreement.endDate ? Timestamp.fromDate(originalAgreement.endDate) : null,
+      observationsAndCommitment: originalAgreement.observationsAndCommitment,
+      jobPosition: originalAgreement.jobPosition,
+      department: originalAgreement.department,
+      agreementType: originalAgreement.agreementType,
+      startDate: Timestamp.fromDate(originalAgreement.startDate),
+      salary: originalAgreement.salary,
+      status: originalAgreement.status,
+      observations: originalAgreement.observations,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
+      createdByUserId: originalAgreement.createdByUserId,
+      pdfAgreement: originalAgreement.pdfAgreement,
+      notes: originalAgreement.notes,
+      approved: originalAgreement.approved,
     };
-
-    delete duplicatedData.id; // Ensure no ID is passed
     
     const docRef = await addDoc(getEmployeeAgreementsCollectionRef(), duplicatedData);
     console.log('Acuerdo con empleado duplicado exitosamente con ID:', docRef.id);
@@ -240,8 +267,6 @@ export const duplicateEmployeeAgreement = async (originalAgreement: EmployeeAgre
   }
 };
 
-// --- FUNCIÓN para actualizar un Acuerdo con Empleado existente ---
-// Permite actualizaciones parciales.
 export const updateEmployeeAgreement = async (
   id: string,
   agreementUpdates: Partial<Omit<EmployeeAgreementRecord, 'id' | 'createdAt' | 'updatedAt' | 'activationDate' | 'endDate' | 'startDate'>> & {
@@ -282,7 +307,6 @@ export const updateEmployeeAgreement = async (
   }
 };
 
-// --- FUNCIÓN para eliminar un Acuerdo con Empleado ---
 export const deleteEmployeeAgreement = async (id: string): Promise<void> => {
   try {
     await deleteDoc(doc(getEmployeeAgreementsCollectionRef(), id));
@@ -293,7 +317,6 @@ export const deleteEmployeeAgreement = async (id: string): Promise<void> => {
   }
 };
 
-// --- FUNCIÓN para importar Acuerdos con Empleados (ej. desde CSV/Excel) ---
 export const importEmployeeAgreements = async (agreements: Partial<EmployeeAgreementRecord>[]): Promise<{ success: number; errors: string[] }> => {
   const results = { success: 0, errors: [] as string[] };
 
