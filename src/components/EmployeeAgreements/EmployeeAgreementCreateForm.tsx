@@ -14,6 +14,7 @@ import CreateWorkCenterModal from '../Modals/CreateWorkCenterModal';
 import CreateContractModal from '../Modals/CreateContractModal'; // Mantenido si se usa en otro contexto
 import { useWorkCenterModals } from '../../hooks/useWorkCenterModals';
 import { getWorkCenters, getContracts } from '../../services/workCentersService'; // getContracts se mantiene si el modal aún se usa
+import { saveEmployeeAgreement } from '../../services/employeeAgreementsService'; // IMPORTANTE: Importa la función de guardado
 
 // --- NUEVA INTERFAZ EmployeeAgreementFormData ---
 interface EmployeeAgreementFormData {
@@ -148,19 +149,30 @@ const EmployeeAgreementCreateForm: React.FC<EmployeeAgreementCreateFormProps> = 
 
     // 1. Pre-procesar los datos para la validación y el envío
     const processedData = {
-      ...formData,
+      employeeName: formData.employeeName,
+      employeeLastName: formData.employeeLastName,
+      workCenter: formData.workCenter,
+      city: formData.city,
+      province: formData.province,
+      autonomousCommunity: formData.autonomousCommunity,
+      responsibleName: formData.responsibleName,
+      responsibleLastName: formData.responsibleLastName,
       agreementConcepts: formData.agreementConcepts === 'Otro' ? formData.agreementConceptsOther : formData.agreementConcepts,
-      // Aquí podrías parsear los campos económicos a números si tu backend los espera así
-      // economicAgreement1: parseFloat(formData.economicAgreement1) || 0,
-      // economicAgreement2: parseFloat(formData.economicAgreement2) || 0,
-      // economicAgreement3: parseFloat(formData.economicAgreement3) || 0,
+      economicAgreement1: formData.economicAgreement1,
+      concept1: formData.concept1,
+      economicAgreement2: formData.economicAgreement2,
+      concept2: formData.concept2,
+      economicAgreement3: formData.economicAgreement3,
+      concept3: formData.concept3,
+      activationDate: formData.activationDate, // Se envía como string al servicio, que lo convertirá a Timestamp
+      endDate: formData.endDate,             // Se envía como string al servicio, que lo convertirá a Timestamp
+      observationsAndCommitment: formData.observationsAndCommitment,
     };
 
     // 2. Validación de campos obligatorios
     const requiredFields: Array<keyof typeof processedData> = [
       'employeeName', 'employeeLastName', 'workCenter', 'responsibleName', 'responsibleLastName',
       'agreementConcepts', 'activationDate', 'observationsAndCommitment'
-      // economicAgreement1 y concept1 no son obligatorios si no hay un acuerdo específico
     ];
 
     let isValid = true;
@@ -208,9 +220,8 @@ const EmployeeAgreementCreateForm: React.FC<EmployeeAgreementCreateFormProps> = 
     }
 
     try {
-      // Simulate creating employee agreement - REEMPLAZAR CON TU LLAMADA REAL AL SERVICIO/API/FIREBASE
-      console.log('Creando acuerdo con empleado:', processedData);
-      // Ejemplo: await saveEmployeeAgreement(processedData);
+      // *** ESTA ES LA LÍNEA CRÍTICA: LLAMADA REAL AL SERVICIO DE FIRESTORE ***
+      await saveEmployeeAgreement(processedData);
 
       toast({
         title: "Éxito",
@@ -313,6 +324,7 @@ const EmployeeAgreementCreateForm: React.FC<EmployeeAgreementCreateFormProps> = 
                 />
               </div>
             </div>
+            {/* Ubicación (Población, Provincia, Comunidad Autónoma) como una sub-grid dentro de la segunda columna */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
                 <Label htmlFor="city" className="text-gray-700 dark:text-gray-300">
