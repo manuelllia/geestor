@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,16 +6,14 @@ import { Badge } from '@/components/ui/badge';
 import { Eye, Copy, Download, Plus, Upload, FileDown, RefreshCw, AlertCircle, Edit, Trash2 } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Language } from '../../utils/translations';
-import { 
-  getEmployeeAgreements, 
+import {
+  getEmployeeAgreements,
   EmployeeAgreementRecord,
-  duplicateEmployeeAgreement,
   deleteEmployeeAgreement,
-  exportEmployeeAgreementsToCSV
+  duplicateEmployeeAgreement,
 } from '../../services/employeeAgreementsService';
 import { useToast } from '@/hooks/use-toast';
 import ImportEmployeeAgreementsModal from './ImportEmployeeAgreementsModal';
-import EmployeeAgreementDetailView from './EmployeeAgreementDetailView';
 import EmployeeAgreementCreateForm from './EmployeeAgreementCreateForm';
 
 interface EmployeeAgreementsListViewProps {
@@ -83,31 +80,31 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
       await duplicateEmployeeAgreement(id);
       toast({
         title: 'Acuerdo duplicado',
-        description: 'El acuerdo con empleado ha sido duplicado exitosamente.',
+        description: 'El acuerdo con el empleado ha sido duplicado exitosamente.',
       });
       loadAgreements();
     } catch (error) {
       toast({
         title: 'Error al duplicar',
-        description: 'No se pudo duplicar el acuerdo con empleado.',
+        description: 'No se pudo duplicar el acuerdo con el empleado.',
         variant: 'destructive',
       });
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm('¿Estás seguro de que deseas eliminar este acuerdo con empleado?')) {
+    if (confirm('¿Estás seguro de que deseas eliminar este acuerdo con el empleado?')) {
       try {
         await deleteEmployeeAgreement(id);
         toast({
           title: 'Acuerdo eliminado',
-          description: 'El acuerdo con empleado ha sido eliminado exitosamente.',
+          description: 'El acuerdo con el empleado ha sido eliminado exitosamente.',
         });
         loadAgreements();
       } catch (error) {
         toast({
           title: 'Error al eliminar',
-          description: 'No se pudo eliminar el acuerdo con empleado.',
+          description: 'No se pudo eliminar el acuerdo con el empleado.',
           variant: 'destructive',
         });
       }
@@ -128,10 +125,38 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
       return;
     }
 
-    const csvContent = exportEmployeeAgreementsToCSV(agreements);
+    const headers = [
+      'ID',
+      'Nombre Empleado',
+      'Apellidos Empleado',
+      'Centro de Trabajo',
+      'Nombre Responsable',
+      'Apellidos Responsable',
+      'Conceptos del Acuerdo',
+      'Fecha de Activación',
+      'Fecha Fin',
+      'Fecha de Creación'
+    ];
+
+    const csvContent = [
+      headers.join(','),
+      ...agreements.map(agreement => [
+        agreement.id || '',
+        `"${agreement.employeeName}"`,
+        `"${agreement.employeeLastName}"`,
+        `"${agreement.workCenter}"`,
+        `"${agreement.responsibleName}"`,
+        `"${agreement.responsibleLastName}"`,
+        `"${agreement.agreementConcepts}"`,
+        agreement.activationDate ? agreement.activationDate.toLocaleDateString('es-ES') : '',
+        agreement.endDate ? agreement.endDate.toLocaleDateString('es-ES') : '',
+        agreement.createdAt ? agreement.createdAt.toLocaleDateString('es-ES') : ''
+      ].join(','))
+    ].join('\n');
+
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
-    
+
     if (link.download !== undefined) {
       const url = URL.createObjectURL(blob);
       link.setAttribute('href', url);
@@ -140,7 +165,7 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      
+
       toast({
         title: 'Exportación completada',
         description: 'Los acuerdos con empleados han sido exportados exitosamente.',
@@ -152,50 +177,10 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
     loadAgreements();
   };
 
-  const getStatusBadge = (agreement: EmployeeAgreementRecord) => {
-    const now = new Date();
-    const endDate = agreement.endDate;
-    
-    if (!endDate) {
-      return 'bg-green-100 text-green-800 border-green-300';
-    }
-    
-    if (endDate < now) {
-      return 'bg-red-100 text-red-800 border-red-300';
-    }
-    
-    return 'bg-green-100 text-green-800 border-green-300';
-  };
-
-  const getStatusText = (agreement: EmployeeAgreementRecord) => {
-    const now = new Date();
-    const endDate = agreement.endDate;
-    
-    if (!endDate) {
-      return 'Activo';
-    }
-    
-    if (endDate < now) {
-      return 'Vencido';
-    }
-    
-    return 'Activo';
-  };
-
   const formatDate = (date: Date | undefined) => {
     if (!date) return '-';
     return date.toLocaleDateString(language === 'es' ? 'es-ES' : 'en-US');
   };
-
-  if (viewMode === 'detail' && selectedAgreementId) {
-    return (
-      <EmployeeAgreementDetailView
-        language={language}
-        agreementId={selectedAgreementId}
-        onBack={handleBackToList}
-      />
-    );
-  }
 
   if (viewMode === 'create') {
     return (
@@ -214,7 +199,7 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
         <h1 className="text-2xl font-semibold text-blue-800 dark:text-blue-200">
           Acuerdos con Empleados
         </h1>
-        
+
         <div className="flex flex-wrap gap-2">
           <Button
             onClick={handleRefresh}
@@ -225,7 +210,7 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
             <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
             Actualizar
           </Button>
-          
+
           <Button
             onClick={handleCreateNew}
             className="bg-blue-600 hover:bg-blue-700 text-white"
@@ -233,7 +218,7 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
             <Plus className="w-4 h-4 mr-2" />
             Crear Nuevo
           </Button>
-          
+
           <Button
             variant="outline"
             onClick={handleExport}
@@ -242,7 +227,7 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
             <FileDown className="w-4 h-4 mr-2" />
             Exportar
           </Button>
-          
+
           <Button
             variant="outline"
             onClick={() => setShowImportModal(true)}
@@ -327,12 +312,12 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Nombre Empleado</TableHead>
-                      <TableHead>Puesto</TableHead>
-                      <TableHead>Departamento</TableHead>
-                      <TableHead>Tipo de Acuerdo</TableHead>
-                      <TableHead>Fecha Inicio</TableHead>
-                      <TableHead>Estado</TableHead>
+                      <TableHead>Empleado</TableHead>
+                      <TableHead>Centro de Trabajo</TableHead>
+                      <TableHead>Responsable</TableHead>
+                      <TableHead>Conceptos del Acuerdo</TableHead>
+                      <TableHead>Fecha de Activación</TableHead>
+                      <TableHead>Fecha Fin</TableHead>
                       <TableHead className="text-center">Acciones</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -342,16 +327,14 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
                         <TableCell className="font-medium">
                           {agreement.employeeName} {agreement.employeeLastName}
                         </TableCell>
-                        <TableCell>{agreement.position}</TableCell>
-                        <TableCell>{agreement.department}</TableCell>
-                        <TableCell>{agreement.agreementType}</TableCell>
+                        <TableCell>{agreement.workCenter}</TableCell>
+                        <TableCell>{agreement.responsibleName} {agreement.responsibleLastName}</TableCell>
+                        <TableCell>{agreement.agreementConcepts}</TableCell>
                         <TableCell>
-                          {formatDate(agreement.startDate)}
+                          {formatDate(agreement.activationDate)}
                         </TableCell>
                         <TableCell>
-                          <Badge className={getStatusBadge(agreement)}>
-                            {getStatusText(agreement)}
-                          </Badge>
+                          {formatDate(agreement.endDate)}
                         </TableCell>
                         <TableCell>
                           <div className="flex justify-center space-x-1">
@@ -402,7 +385,7 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
                   <div className="text-sm text-gray-600 dark:text-gray-400">
                     Mostrando {startIndex + 1} a {endIndex} de {agreements.length} registros
                   </div>
-                  
+
                   <div className="flex items-center space-x-2">
                     <Button
                       variant="outline"
@@ -412,7 +395,7 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
                     >
                       Anterior
                     </Button>
-                    
+
                     <div className="flex space-x-1">
                       {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                         let pageNumber;
@@ -425,7 +408,7 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
                         } else {
                           pageNumber = currentPage - 2 + i;
                         }
-                        
+
                         return (
                           <Button
                             key={pageNumber}
@@ -439,7 +422,7 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
                         );
                       })}
                     </div>
-                    
+
                     <Button
                       variant="outline"
                       size="sm"

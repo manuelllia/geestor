@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -83,11 +81,11 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
       const originalRequest = requests.find(r => r.id === id);
       if (!originalRequest) return;
 
-      const { id: _, createdAt, updatedAt, status, requestDate, ...requestData } = originalRequest;
+      const { id: _, createdAt, updatedAt, status, requestDate, incorporationDate, ...requestData } = originalRequest;
       const duplicatedData = {
         ...requestData,
         requesterName: `${requestData.requesterName} (Copia)`,
-        incorporationDate: requestData.incorporationDate?.toISOString().split('T')[0] || '',
+        incorporationDate: incorporationDate?.toISOString().split('T')[0] || undefined,
       };
       
       await saveContractRequest(duplicatedData);
@@ -479,4 +477,3 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
 };
 
 export default ContractRequestsListView;
-

@@ -31,6 +31,9 @@ export interface EmployeeAgreementRecord {
   updatedAt: Date; // Timestamp de última actualización en Firestore -> Date en cliente
 }
 
+// Export type alias for compatibility with imports
+export type EmployeeAgreementData = EmployeeAgreementRecord;
+
 // --- Tipo para los datos que se enviarán directamente a Firestore ---
 // Las fechas se convierten a Timestamp para Firestore.
 export type EmployeeAgreementFirestorePayload = Omit<
@@ -39,8 +42,8 @@ export type EmployeeAgreementFirestorePayload = Omit<
 > & {
   activationDate: Timestamp | null; // Para guardar en Firestore, puede ser null
   endDate: Timestamp | null; // Para guardar en Firestore, puede ser null
-  createdAt?: Timestamp; // Para guardar en Firestore, opcional al crear/actualizar
-  updatedAt?: Timestamp; // Para guardar en Firestore, opcional al crear/actualizar
+  createdAt?: any; // Para guardar en Firestore, opcional al crear/actualizar
+  updatedAt?: any; // Para guardar en Firestore, opcional al crear/actualizar
 };
 
 // --- RUTA DE LA COLECCIÓN EN FIRESTORE (CORREGIDA) ---

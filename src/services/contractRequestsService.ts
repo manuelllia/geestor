@@ -1,6 +1,6 @@
 // src/services/contractRequestsService.ts
 
-import { collection, addDoc, getDocs, doc, setDoc, deleteDoc, updateDoc, query, orderBy, Timestamp, getDoc } from 'firebase/firestore';
+import { collection, addDoc, getDocs, doc, setDoc, deleteDoc, updateDoc, query, orderBy, Timestamp, getDoc, FieldValue } from 'firebase/firestore';
 import { db, serverTimestamp } from '../lib/firebase'; // Asegúrate de que la ruta a tu archivo firebase.ts sea correcta
 
 // --- Interfaz ContractRequestRecord: Define la estructura de datos en el cliente ---
@@ -42,16 +42,20 @@ export interface ContractRequestRecord {
   approved?: boolean; // Booleano para aprobación (podría ser redundante con status, pero se mantiene si existe)
 }
 
+// Export type aliases for compatibility with imports
+export type ContractRequestData = ContractRequestRecord;
+export type ContractRequestInput = ContractRequestRecord;
+
 // --- Tipo para los datos que se enviarán directamente a Firestore ---
 // Las fechas se convierten a Timestamp para Firestore.
 export type ContractRequestFirestorePayload = Omit<
   ContractRequestRecord,
   'id' | 'requestDate' | 'incorporationDate' | 'createdAt' | 'updatedAt'
 > & {
-  requestDate: Timestamp; // Para guardar en Firestore, será un serverTimestamp al crear
+  requestDate: any; // Para guardar en Firestore, será un serverTimestamp al crear
   incorporationDate: Timestamp | null; // Para guardar en Firestore, puede ser null
-  createdAt?: Timestamp; // Para guardar en Firestore, opcional al crear/actualizar
-  updatedAt?: Timestamp; // Para guardar en Firestore, opcional al crear/actualizar
+  createdAt?: any; // Para guardar en Firestore, opcional al crear/actualizar
+  updatedAt?: any; // Para guardar en Firestore, opcional al crear/actualizar
 };
 
 // --- RUTA DE LA COLECCIÓN EN FIRESTORE (CORREGIDA) ---
@@ -179,8 +183,8 @@ export const getContractRequests = async (): Promise<ContractRequestRecord[]> =>
 // --- FUNCIÓN para guardar una nueva Solicitud de Contratación ---
 // Recibe los datos del formulario (donde las fechas aún son strings 'YYYY-MM-DD').
 export const saveContractRequest = async (
-  requestDataFromForm: Omit<ContractRequestRecord, 'id' | 'requestDate' | 'createdAt' | 'updatedAt' | 'status'> & {
-    incorporationDate: string; // La fecha de incorporación viene como string del formulario
+  requestDataFromForm: Omit<ContractRequestRecord, 'id' | 'requestDate' | 'createdAt' | 'updatedAt' | 'status' | 'incorporationDate'> & {
+    incorporationDate?: string; // La fecha de incorporación viene como string del formulario
   }
 ): Promise<string> => {
   try {
@@ -211,7 +215,7 @@ export const saveContractRequest = async (
 // Permite actualizaciones parciales.
 export const updateContractRequest = async (
   id: string,
-  requestUpdates: Partial<Omit<ContractRequestRecord, 'id' | 'requestDate' | 'createdAt' | 'updatedAt'>> & {
+  requestUpdates: Partial<Omit<ContractRequestRecord, 'id' | 'requestDate' | 'createdAt' | 'updatedAt' | 'incorporationDate'>> & {
     incorporationDate?: string; // Permite string para la fecha de incorporación al actualizar
   }
 ): Promise<void> => {

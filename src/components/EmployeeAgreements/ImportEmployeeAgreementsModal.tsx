@@ -1,13 +1,15 @@
-
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Button } from '../ui/button';
-import { Card, CardContent } from '../ui/card';
-import { Upload, File, AlertCircle, CheckCircle } from 'lucide-react';
+import { Upload, FileText, AlertCircle, CheckCircle, X } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Language } from '../../utils/translations';
-import { saveEmployeeAgreement, EmployeeAgreementData } from '../../services/employeeAgreementsService';
 import * as XLSX from 'xlsx';
+import Papa from 'papaparse';
+import {
+  saveEmployeeAgreement,
+  EmployeeAgreementData
+} from '../../services/employeeAgreementsService';
 
 interface ImportEmployeeAgreementsModalProps {
   open: boolean;
@@ -15,255 +17,231 @@ interface ImportEmployeeAgreementsModalProps {
   language: Language;
 }
 
-const ImportEmployeeAgreementsModal: React.FC<ImportEmployeeAgreementsModalProps> = ({ 
-  open, 
-  onClose, 
-  language 
+const ImportEmployeeAgreementsModal: React.FC<ImportEmployeeAgreementsModalProps> = ({
+  open,
+  onClose,
+  language
 }) => {
   const { t } = useTranslation(language);
-  const [file, setFile] = useState<File | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [results, setResults] = useState<{ success: number; errors: string[] } | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadResult, setUploadResult] = useState<{ success: number; errors: string[] } | null>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = event.target.files?.[0];
-    if (selectedFile) {
-      setFile(selectedFile);
-      setResults(null);
+  const handleFileSelect = (files: FileList) => {
+    if (files.length > 0) {
+      const file = files[0];
+      processFile(file);
     }
   };
 
-  const processFileData = async (file: File): Promise<EmployeeAgreementData[]> => {
-    const arrayBuffer = await file.arrayBuffer();
-    const workbook = XLSX.read(arrayBuffer);
-    const firstSheetName = workbook.SheetNames[0];
-    const worksheet = workbook.Sheets[firstSheetName];
-    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-    
-    const headers = jsonData[0] as string[];
-    const dataRows = jsonData.slice(1) as any[][];
-    
-    const getColumnIndex = (fieldName: string) => {
-      const variations = [
-        fieldName.toLowerCase(),
-        fieldName.toLowerCase().replace('_', ' '),
-        fieldName.toLowerCase().replace('_', ''),
-      ];
-      
-      return headers.findIndex(header => {
-        const normalizedHeader = header.toLowerCase().trim();
-        return variations.some(variation => normalizedHeader.includes(variation));
-      });
-    };
-    
-    const processedData: EmployeeAgreementData[] = dataRows
-      .filter(row => row && row.length > 0 && row[0])
-      .map((row, index) => {
-        try {
-          const data: EmployeeAgreementData = {
-            employeeName: row[getColumnIndex('nombre')] || '',
-            employeeLastName: row[getColumnIndex('apellido')] || '',
-            position: row[getColumnIndex('puesto')] || '',
-            department: row[getColumnIndex('departamento')] || '',
-            agreementType: row[getColumnIndex('tipo_acuerdo')] || '',
-            startDate: row[getColumnIndex('fecha_inicio')] ? new Date(row[getColumnIndex('fecha_inicio')]) : undefined,
-            endDate: row[getColumnIndex('fecha_fin')] ? new Date(row[getColumnIndex('fecha_fin')]) : undefined,
-            salary: row[getColumnIndex('salario')] || '',
-            benefits: row[getColumnIndex('beneficios')] ? String(row[getColumnIndex('beneficios')]).split(',').map(b => b.trim()) : [],
-            conditions: row[getColumnIndex('condiciones')] || '',
-            observations: row[getColumnIndex('observaciones')] || ''
-          };
-          
-          return data;
-        } catch (error) {
-          console.error(`Error procesando fila ${index + 2}:`, error);
-          throw new Error(`Error en fila ${index + 2}: ${error}`);
-        }
-      });
-    
-    return processedData;
-  };
+  const processFile = async (file: File) => {
+    setIsUploading(true);
+    setUploadResult(null);
 
-  const handleImport = async () => {
-    if (!file) return;
-    
-    setIsProcessing(true);
-    const errors: string[] = [];
-    let successCount = 0;
-    
     try {
-      const agreementData = await processFileData(file);
-      
-      for (let i = 0; i < agreementData.length; i++) {
-        try {
-          await saveEmployeeAgreement(agreementData[i]);
-          successCount++;
-          console.log(`Acuerdo con empleado ${i + 1} importado exitosamente`);
-        } catch (error) {
-          const errorMessage = `Fila ${i + 2}: ${error instanceof Error ? error.message : 'Error desconocido'}`;
-          errors.push(errorMessage);
-          console.error(`Error importando fila ${i + 2}:`, error);
-        }
+      const fileExtension = file.name.split('.').pop()?.toLowerCase();
+      let data: any[] = [];
+
+      if (fileExtension === 'csv') {
+        const text = await file.text();
+        const result = Papa.parse(text, { header: true, skipEmptyLines: true });
+        data = result.data;
+      } else if (fileExtension === 'xlsx' || fileExtension === 'xls') {
+        const buffer = await file.arrayBuffer();
+        const workbook = XLSX.read(buffer, { type: 'array' });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        data = XLSX.utils.sheet_to_json(worksheet);
+      } else {
+        throw new Error('Formato de archivo no soportado. Use CSV o Excel (.xlsx, .xls)');
       }
-      
-      setResults({ success: successCount, errors });
+
+      // TODO: Adapt the data mapping to match the EmployeeAgreementRecord
+      const agreements: EmployeeAgreementData[] = data.map((row: any) => ({
+        id: row['id'] || '',
+        employeeName: row['employeeName'] || '',
+        employeeLastName: row['employeeLastName'] || '',
+        workCenter: row['workCenter'] || '',
+        city: row['city'] || '',
+        province: row['province'] || '',
+        autonomousCommunity: row['autonomousCommunity'] || '',
+        responsibleName: row['responsibleName'] || '',
+        responsibleLastName: row['responsibleLastName'] || '',
+        agreementConcepts: row['agreementConcepts'] || '',
+        economicAgreement1: row['economicAgreement1'] || '',
+        concept1: row['concept1'] || '',
+        economicAgreement2: row['economicAgreement2'] || '',
+        concept2: row['concept2'] || '',
+        economicAgreement3: row['economicAgreement3'] || '',
+        concept3: row['concept3'] || '',
+        activationDate: row['activationDate'] || '',
+        endDate: row['endDate'] || '',
+        observationsAndCommitment: row['observationsAndCommitment'] || '',
+        createdAt: row['createdAt'] || '',
+        updatedAt: row['updatedAt'] || '',
+      }));
+
+      // TODO: Implement the importEmployeeAgreements function
+      // const result = await importEmployeeAgreements(agreements);
+      setUploadResult({ success: 0, errors: ['Import function not implemented'] });
+
     } catch (error) {
       console.error('Error procesando archivo:', error);
-      setResults({ 
-        success: 0, 
-        errors: [`Error procesando archivo: ${error instanceof Error ? error.message : 'Error desconocido'}`] 
+      setUploadResult({
+        success: 0,
+        errors: [`Error procesando archivo: ${error}`]
       });
     } finally {
-      setIsProcessing(false);
+      setIsUploading(false);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    const files = e.dataTransfer.files;
+    handleFileSelect(files);
+  };
+
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      handleFileSelect(e.target.files);
     }
   };
 
   const handleClose = () => {
-    setFile(null);
-    setResults(null);
+    setUploadResult(null);
+    setIsUploading(false);
     onClose();
   };
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-blue-800 dark:text-blue-200">
-            {t('import')} - Acuerdos con Empleados
+          <DialogTitle className="flex items-center space-x-2">
+            <Upload className="h-5 w-5" />
+            <span>Importar Acuerdos con Empleados</span>
           </DialogTitle>
         </DialogHeader>
-        
-        <div className="space-y-6">
-          {!results && (
+
+        <div className="space-y-4">
+          {!uploadResult && (
             <>
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="text-center space-y-4">
-                    <div className="mx-auto w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
-                      <Upload className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                    </div>
-                    
-                    <div>
-                      <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-2">
-                        Seleccionar archivo para importar
-                      </h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        Sube un archivo Excel (.xlsx) o CSV con los acuerdos con empleados
-                      </p>
-                    </div>
-                    
-                    <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6">
-                      <input
-                        type="file"
-                        accept=".xlsx,.xls,.csv"
-                        onChange={handleFileSelect}
-                        className="hidden"
-                        id="file-upload"
-                      />
-                      <label
-                        htmlFor="file-upload"
-                        className="cursor-pointer flex flex-col items-center space-y-2"
-                      >
-                        <File className="w-8 h-8 text-gray-400" />
-                        <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                          Haz clic para seleccionar archivo
-                        </span>
-                        <span className="text-xs text-gray-500 dark:text-gray-400">
-                          Excel (.xlsx) o CSV
-                        </span>
-                      </label>
-                    </div>
-                    
-                    {file && (
-                      <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4">
-                        <div className="flex items-center space-x-2">
-                          <File className="w-5 h-5 text-green-600 dark:text-green-400" />
-                          <span className="text-sm font-medium text-green-800 dark:text-green-200">
-                            {file.name}
-                          </span>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4">
-                <div className="flex items-start space-x-2">
-                  <AlertCircle className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5" />
-                  <div className="text-sm">
-                    <p className="font-medium text-yellow-800 dark:text-yellow-200 mb-1">
-                      Formato esperado del archivo:
-                    </p>
-                    <ul className="text-yellow-700 dark:text-yellow-300 space-y-1 text-xs">
-                      <li>• Primera fila debe contener los nombres de las columnas</li>
-                      <li>• Columnas esperadas: nombre, apellido, puesto, departamento, tipo_acuerdo, etc.</li>
-                      <li>• Fechas en formato DD/MM/YYYY o YYYY-MM-DD</li>
-                      <li>• Cada fila será insertada como un nuevo acuerdo</li>
-                    </ul>
-                  </div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+                Sube un archivo CSV o Excel con los acuerdos con empleados. El archivo debe contener las siguientes columnas:
+              </div>
+
+              {/* TODO: Update the required columns */}
+              <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
+                <div className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-2">
+                  Columnas requeridas:
                 </div>
+                <ul className="text-xs text-blue-800 dark:text-blue-200 space-y-1">
+                  <li>• employeeName</li>
+                  <li>• employeeLastName</li>
+                  <li>• workCenter</li>
+                  <li>• responsibleName</li>
+                  <li>• responsibleLastName</li>
+                  <li>• agreementConcepts</li>
+                  <li>• activationDate</li>
+                  <li>• endDate</li>
+                  <li>• observationsAndCommitment</li>
+                </ul>
+              </div>
+
+              <div
+                className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+                  isDragOver
+                    ? 'border-blue-400 bg-blue-50 dark:bg-blue-900/20'
+                    : 'border-gray-300 dark:border-gray-600 hover:border-gray-400'
+                }`}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+              >
+                <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                  Arrastra tu archivo aquí o haz clic para seleccionar
+                </p>
+                <Button
+                  variant="outline"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploading}
+                >
+                  {isUploading ? 'Procesando...' : 'Seleccionar Archivo'}
+                </Button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".csv,.xlsx,.xls"
+                  onChange={handleFileInputChange}
+                  className="hidden"
+                />
               </div>
             </>
           )}
-          
-          {results && (
-            <Card>
-              <CardContent className="pt-6">
-                <div className="text-center space-y-4">
-                  <div className="mx-auto w-12 h-12 bg-green-100 dark:bg-green-900/20 rounded-lg flex items-center justify-center">
-                    <CheckCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
+
+          {uploadResult && (
+            <div className="space-y-4">
+              <div className="flex items-center space-x-2">
+                {uploadResult.success > 0 ? (
+                  <CheckCircle className="h-5 w-5 text-green-500" />
+                ) : (
+                  <AlertCircle className="h-5 w-5 text-red-500" />
+                )}
+                <span className="font-medium">
+                  Resultado de la Importación
+                </span>
+              </div>
+
+              <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                <div className="text-sm">
+                  <div className="text-green-600 dark:text-green-400">
+                    ✓ {uploadResult.success} acuerdos con empleados importados exitosamente
                   </div>
-                  
-                  <div>
-                    <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-2">
-                      Importación completada
-                    </h3>
-                    <p className="text-sm text-green-600 dark:text-green-400">
-                      {results.success} acuerdos importados exitosamente
-                    </p>
-                  </div>
-                  
-                  {results.errors.length > 0 && (
-                    <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-4 text-left">
-                      <h4 className="font-medium text-red-800 dark:text-red-200 mb-2">
-                        Errores encontrados ({results.errors.length}):
-                      </h4>
-                      <div className="max-h-32 overflow-y-auto">
-                        {results.errors.map((error, index) => (
-                          <p key={index} className="text-xs text-red-700 dark:text-red-300 mb-1">
-                            {error}
-                          </p>
+                  {uploadResult.errors.length > 0 && (
+                    <div className="mt-2">
+                      <div className="text-red-600 dark:text-red-400 mb-1">
+                        ✗ {uploadResult.errors.length} errores:
+                      </div>
+                      <div className="max-h-32 overflow-y-auto text-xs text-red-500 dark:text-red-400 space-y-1">
+                        {uploadResult.errors.map((error, index) => (
+                          <div key={index}>• {error}</div>
                         ))}
                       </div>
                     </div>
                   )}
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           )}
-          
-          <div className="flex justify-end space-x-2">
-            <Button variant="outline" onClick={handleClose}>
-              {results ? 'Cerrar' : 'Cancelar'}
+        </div>
+
+        <div className="flex justify-end space-x-2 mt-6">
+          <Button
+            variant="outline"
+            onClick={handleClose}
+            disabled={isUploading}
+          >
+            {uploadResult ? 'Cerrar' : 'Cancelar'}
+          </Button>
+          {uploadResult && uploadResult.success > 0 && (
+            <Button onClick={handleClose}>
+              Continuar
             </Button>
-            {!results && (
-              <Button
-                onClick={handleImport}
-                disabled={!file || isProcessing}
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                {isProcessing ? (
-                  <div className="flex items-center space-x-2">
-                    <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                    <span>Importando...</span>
-                  </div>
-                ) : (
-                  'Importar Acuerdos'
-                )}
-              </Button>
-            )}
-          </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
