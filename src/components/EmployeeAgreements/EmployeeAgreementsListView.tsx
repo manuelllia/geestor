@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -169,7 +168,7 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
       <EmployeeAgreementCreateForm
         language={language}
         onBack={() => setShowCreateForm(false)}
-        onSuccess={handleAgreementCreated}
+        onAgreementCreated={handleAgreementCreated}
       />
     );
   }
@@ -196,7 +195,7 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
           setShowEditForm(false);
           setSelectedAgreement(null);
         }}
-        onSuccess={handleAgreementUpdated}
+        onAgreementUpdated={handleAgreementUpdated}
       />
     );
   }
@@ -426,7 +425,7 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
           <ImportEmployeeAgreementsModal
             open={showImportModal}
             onClose={() => setShowImportModal(false)}
-            onSuccess={handleImportSuccess}
+            onImportSuccess={handleImportSuccess}
           />
         )}
       </div>
