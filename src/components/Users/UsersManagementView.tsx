@@ -81,141 +81,157 @@ const UsersManagementView: React.FC<UsersManagementViewProps> = ({ language }) =
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-blue-900 dark:text-blue-100">
-              Gestión de Usuarios
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">
-              Administra los usuarios y sus permisos en el sistema
-            </p>
+      <div className="w-full max-w-full overflow-hidden">
+        <div className="space-y-6 p-2 sm:p-4 lg:p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-blue-900 dark:text-blue-100">
+                Gestión de Usuarios
+              </h1>
+              <p className="text-xs sm:text-sm lg:text-base text-gray-600 dark:text-gray-400 mt-1">
+                Administra los usuarios y sus permisos en el sistema
+              </p>
+            </div>
           </div>
+          
+          <Card className="border-blue-200 dark:border-blue-800">
+            <CardContent className="flex items-center justify-center h-64">
+              <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+            </CardContent>
+          </Card>
         </div>
-        
-        <Card className="border-blue-200 dark:border-blue-800">
-          <CardContent className="flex items-center justify-center h-64">
-            <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-          </CardContent>
-        </Card>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-blue-900 dark:text-blue-100">
-            Gestión de Usuarios
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">
-            Administra los usuarios y sus permisos en el sistema
-          </p>
+    <div className="w-full max-w-full overflow-hidden">
+      <div className="space-y-4 sm:space-y-6 p-2 sm:p-4 lg:p-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-blue-900 dark:text-blue-100">
+              Gestión de Usuarios
+            </h1>
+            <p className="text-xs sm:text-sm lg:text-base text-gray-600 dark:text-gray-400 mt-1">
+              Administra los usuarios y sus permisos en el sistema
+            </p>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={handleRefresh}
+              variant="outline"
+              className="border-blue-300 text-blue-700 hover:bg-blue-50 text-xs sm:text-sm"
+              disabled={refreshing}
+              size="sm"
+            >
+              <RefreshCw className={`w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+              Actualizar
+            </Button>
+          </div>
         </div>
-        
-        <div className="flex items-center gap-2">
-          <Button
-            onClick={handleRefresh}
-            variant="outline"
-            className="border-blue-300 text-blue-700 hover:bg-blue-50"
-            disabled={refreshing}
-          >
-            <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-            Actualizar
-          </Button>
-        </div>
+
+        <Card className="border-blue-200 dark:border-blue-800 w-full">
+          <CardHeader className="p-3 sm:p-4 lg:p-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-2 sm:space-y-0">
+              <CardTitle className="text-sm sm:text-base lg:text-lg text-blue-800 dark:text-blue-200 flex items-center gap-2">
+                <Users className="w-4 h-4 sm:w-5 sm:h-5" />
+                Lista de Usuarios
+              </CardTitle>
+              <Badge variant="secondary" className="text-xs sm:text-sm w-fit">
+                {users.length} usuarios
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0 sm:p-3 lg:p-6">
+            {/* Contenedor con scroll horizontal solo para la tabla */}
+            <div className="w-full overflow-x-auto">
+              <div className="min-w-[1200px]">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-xs sm:text-sm min-w-[120px]">Nombre</TableHead>
+                      <TableHead className="text-xs sm:text-sm min-w-[150px]">Correo</TableHead>
+                      <TableHead className="text-xs sm:text-sm min-w-[100px] hidden sm:table-cell">Permisos Creación</TableHead>
+                      <TableHead className="text-xs sm:text-sm min-w-[100px] hidden sm:table-cell">Permisos Borrado</TableHead>
+                      <TableHead className="text-xs sm:text-sm min-w-[120px] hidden sm:table-cell">Permisos Modificación</TableHead>
+                      <TableHead className="text-xs sm:text-sm min-w-[100px] hidden sm:table-cell">Permisos Vista</TableHead>
+                      <TableHead className="text-xs sm:text-sm min-w-[120px] hidden md:table-cell">Permisos Operaciones</TableHead>
+                      <TableHead className="text-xs sm:text-sm min-w-[140px] hidden md:table-cell">Permisos Gestión Técnica</TableHead>
+                      <TableHead className="text-xs sm:text-sm min-w-[150px] hidden md:table-cell">Permisos Gestión de Talento</TableHead>
+                      <TableHead className="w-[50px] text-xs sm:text-sm">Acciones</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {users.map((user) => (
+                      <TableRow key={user.uid}>
+                        <TableCell className="font-medium text-xs sm:text-sm">
+                          <div className="truncate max-w-[120px]">
+                            {user.nombre}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-xs sm:text-sm">
+                          <div className="truncate max-w-[150px]">
+                            {user.email}
+                          </div>
+                        </TableCell>
+                        <TableCell className="hidden sm:table-cell text-xs sm:text-sm">
+                          {getBooleanBadge(user.Per_Create)}
+                        </TableCell>
+                        <TableCell className="hidden sm:table-cell text-xs sm:text-sm">
+                          {getBooleanBadge(user.Per_Delete)}
+                        </TableCell>
+                        <TableCell className="hidden sm:table-cell text-xs sm:text-sm">
+                          {getBooleanBadge(user.Per_Modificate)}
+                        </TableCell>
+                        <TableCell className="hidden sm:table-cell text-xs sm:text-sm">
+                          {getBooleanBadge(user.Per_View)}
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell text-xs sm:text-sm">
+                          {getBooleanBadge(user.Per_Ope)}
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell text-xs sm:text-sm">
+                          {getBooleanBadge(user.Per_GT)}
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell text-xs sm:text-sm">
+                          {getBooleanBadge(user.Per_GDT)}
+                        </TableCell>
+                        <TableCell>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-6 w-6 sm:h-8 sm:w-8 p-0">
+                                <MoreHorizontal className="h-3 w-3 sm:h-4 sm:w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="bg-white dark:bg-gray-800 border border-blue-200 dark:border-blue-700">
+                              <DropdownMenuItem onClick={() => handleEditUser(user)} className="cursor-pointer text-xs sm:text-sm">
+                                <Eye className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                                Editar permisos
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {selectedUser && (
+          <UserPermissionsModal
+            user={selectedUser}
+            isOpen={isModalOpen}
+            onClose={() => {
+              setIsModalOpen(false);
+              setSelectedUser(null);
+            }}
+            onSave={handleSaveUser}
+          />
+        )}
       </div>
-
-      <Card className="border-blue-200 dark:border-blue-800">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-blue-800 dark:text-blue-200 flex items-center gap-2">
-              <Users className="w-5 h-5" />
-              Lista de Usuarios
-            </CardTitle>
-            <Badge variant="secondary">
-              {users.length} usuarios
-            </Badge>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nombre</TableHead>
-                  <TableHead>Correo</TableHead>
-                  <TableHead className="hidden sm:table-cell">Permisos Creación</TableHead>
-                  <TableHead className="hidden sm:table-cell">Permisos Borrado</TableHead>
-                  <TableHead className="hidden sm:table-cell">Permisos Modificación</TableHead>
-                  <TableHead className="hidden sm:table-cell">Permisos Vista</TableHead>
-                  <TableHead className="hidden md:table-cell">Permisos Operaciones</TableHead>
-                  <TableHead className="hidden md:table-cell">Permisos Gestión Técnica</TableHead>
-                  <TableHead className="hidden md:table-cell">Permisos Gestión de Talento</TableHead>
-                  <TableHead className="w-[50px]">Acciones</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {users.map((user) => (
-                  <TableRow key={user.uid}>
-                    <TableCell className="font-medium">{user.nombre}</TableCell>
-                    <TableCell>{user.email}</TableCell>
-                    <TableCell className="hidden sm:table-cell">
-                      {getBooleanBadge(user.Per_Create)}
-                    </TableCell>
-                    <TableCell className="hidden sm:table-cell">
-                      {getBooleanBadge(user.Per_Delete)}
-                    </TableCell>
-                    <TableCell className="hidden sm:table-cell">
-                      {getBooleanBadge(user.Per_Modificate)}
-                    </TableCell>
-                    <TableCell className="hidden sm:table-cell">
-                      {getBooleanBadge(user.Per_View)}
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      {getBooleanBadge(user.Per_Ope)}
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      {getBooleanBadge(user.Per_GT)}
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      {getBooleanBadge(user.Per_GDT)}
-                    </TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="bg-white dark:bg-gray-800 border border-blue-200 dark:border-blue-700">
-                          <DropdownMenuItem onClick={() => handleEditUser(user)} className="cursor-pointer">
-                            <Eye className="mr-2 h-4 w-4" />
-                            Editar permisos
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
-
-      {selectedUser && (
-        <UserPermissionsModal
-          user={selectedUser}
-          isOpen={isModalOpen}
-          onClose={() => {
-            setIsModalOpen(false);
-            setSelectedUser(null);
-          }}
-          onSave={handleSaveUser}
-        />
-      )}
     </div>
   );
 };

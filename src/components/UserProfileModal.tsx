@@ -26,12 +26,14 @@ export interface UserFirestorePermissions {
   Per_GDT?: boolean;
   Per_Delete?: boolean;
   Per_Create?: boolean;
+  Per_User?: boolean;
 }
 
 // Función para obtener los permisos de Firestore para un UID dado
 export const getUserPermissionsFromFirestore = async (uid: string): Promise<UserFirestorePermissions | null> => {
   try {
-    const permissionsDocRef = doc(db, "Usuarios", "Información", uid, uid);
+    // Usar la ruta correcta: "Usuarios", "Información", "Users", uid
+    const permissionsDocRef = doc(db, "Usuarios", "Información", "Users", uid);
     const docSnap = await getDoc(permissionsDocRef);
 
     if (docSnap.exists()) {
@@ -82,7 +84,9 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
         setLoadingPermissions(true);
         setPermissionsError(null);
         try {
+          console.log('🔑 Cargando permisos para UID:', user.uid);
           const fetchedPermissions = await getUserPermissionsFromFirestore(user.uid);
+          console.log('🔑 Permisos obtenidos:', fetchedPermissions);
           setUserPermissions(fetchedPermissions);
         } catch (err: any) {
           console.error("Error fetching user permissions:", err);
@@ -295,6 +299,20 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
                       disabled={true}
                     />
                   </div>
+                  
+                  {/* Permiso de Usuarios si está disponible */}
+                  {userPermissions.Per_User !== undefined && (
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Shield className="w-4 h-4 text-purple-600" />
+                        <span className="text-blue-700 dark:text-blue-300">Gestión de Usuarios</span>
+                      </div>
+                      <Switch
+                        checked={userPermissions.Per_User ?? false} 
+                        disabled={true}
+                      />
+                    </div>
+                  )}
                 </>
               ) : (
                 <p className="text-gray-500 text-center py-4">No se pudieron cargar los permisos o no hay datos para mostrar.</p>

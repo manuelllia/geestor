@@ -1,22 +1,20 @@
+
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Eye, Copy, Download, Plus, Upload, FileDown, RefreshCw, AlertCircle, Edit, Trash2 } from 'lucide-react';
-import { useTranslation } from '../../hooks/useTranslation';
+import { MoreHorizontal, Eye, Copy, Edit, Trash, FileText, Plus, Upload, RefreshCw } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Language } from '../../utils/translations';
-import {
-  getEmployeeAgreements,
-  EmployeeAgreementRecord,
-  deleteEmployeeAgreement,
-  duplicateEmployeeAgreement,
-} from '../../services/employeeAgreementsService';
-import { useToast } from '@/hooks/use-toast';
-import ImportEmployeeAgreementsModal from './ImportEmployeeAgreementsModal';
+import { useTranslation } from '../../hooks/useTranslation';
+import { getEmployeeAgreements, deleteEmployeeAgreement, duplicateEmployeeAgreement, EmployeeAgreementRecord } from '../../services/employeeAgreementsService';
 import EmployeeAgreementCreateForm from './EmployeeAgreementCreateForm';
 import EmployeeAgreementDetailView from './EmployeeAgreementDetailView';
 import EmployeeAgreementEditForm from './EmployeeAgreementEditForm';
+import ImportEmployeeAgreementsModal from './ImportEmployeeAgreementsModal';
+import { toast } from 'sonner';
 
 interface EmployeeAgreementsListViewProps {
   language: Language;
@@ -24,461 +22,414 @@ interface EmployeeAgreementsListViewProps {
 
 const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({ language }) => {
   const { t } = useTranslation(language);
-  const { toast } = useToast();
-  const [showImportModal, setShowImportModal] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
   const [agreements, setAgreements] = useState<EmployeeAgreementRecord[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [selectedAgreementId, setSelectedAgreementId] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<'list' | 'detail' | 'create' | 'edit'>('list');
-  const itemsPerPage = 30;
+  const [loading, setLoading] = useState(true);
+  const [selectedAgreement, setSelectedAgreement] = useState<EmployeeAgreementRecord | null>(null);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showDetailView, setShowDetailView] = useState(false);
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [agreementToDelete, setAgreementToDelete] = useState<EmployeeAgreementRecord | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const loadAgreements = async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const agreementsData = await getEmployeeAgreements();
-      setAgreements(agreementsData);
-      console.log('Acuerdos con empleados cargados:', agreementsData.length);
-    } catch (err) {
-      console.error('Error cargando acuerdos:', err);
-      setError('Error al cargar los acuerdos con empleados');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Estados para paginación
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(30);
 
   useEffect(() => {
     loadAgreements();
   }, []);
 
-  const totalPages = Math.ceil(agreements.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = Math.min(startIndex + itemsPerPage, agreements.length);
-  const currentData = agreements.slice(startIndex, endIndex);
-
-  const handleViewDetails = (agreementId: string) => {
-    setSelectedAgreementId(agreementId);
-    setViewMode('detail');
-  };
-
-  const handleEdit = (agreementId: string) => {
-    setSelectedAgreementId(agreementId);
-    setViewMode('edit');
-  };
-
-  const handleCreateNew = () => {
-    setViewMode('create');
-  };
-
-  const handleBackToList = () => {
-    setViewMode('list');
-    setSelectedAgreementId(null);
-  };
-
-  const handleSave = () => {
-    loadAgreements();
-    handleBackToList();
-  };
-
-  const handleDuplicate = async (id: string) => {
+  const loadAgreements = async () => {
     try {
-      await duplicateEmployeeAgreement(id);
-      toast({
-        title: 'Acuerdo duplicado',
-        description: 'El acuerdo con el empleado ha sido duplicado exitosamente.',
-      });
-      loadAgreements();
+      setLoading(true);
+      const agreementsData = await getEmployeeAgreements();
+      setAgreements(agreementsData);
     } catch (error) {
-      toast({
-        title: 'Error al duplicar',
-        description: 'No se pudo duplicar el acuerdo con el empleado.',
-        variant: 'destructive',
-      });
+      console.error('Error loading employee agreements:', error);
+      toast.error('Error al cargar los acuerdos con empleados');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm('¿Estás seguro de que deseas eliminar este acuerdo con el empleado?')) {
-      try {
-        await deleteEmployeeAgreement(id);
-        toast({
-          title: 'Acuerdo eliminado',
-          description: 'El acuerdo con el empleado ha sido eliminado exitosamente.',
-        });
-        loadAgreements();
-      } catch (error) {
-        toast({
-          title: 'Error al eliminar',
-          description: 'No se pudo eliminar el acuerdo con el empleado.',
-          variant: 'destructive',
-        });
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await loadAgreements();
+    setRefreshing(false);
+  };
+
+  const handleViewAgreement = (agreement: EmployeeAgreementRecord) => {
+    setSelectedAgreement(agreement);
+    setShowDetailView(true);
+  };
+
+  const handleEditAgreement = (agreement: EmployeeAgreementRecord) => {
+    setSelectedAgreement(agreement);
+    setShowEditForm(true);
+  };
+
+  const handleDuplicateAgreement = async (agreement: EmployeeAgreementRecord) => {
+    try {
+      await duplicateEmployeeAgreement(agreement);
+      await loadAgreements();
+      toast.success('Acuerdo duplicado correctamente');
+    } catch (error) {
+      console.error('Error duplicating agreement:', error);
+      toast.error('Error al duplicar el acuerdo');
+    }
+  };
+
+  const handleDeleteAgreement = (agreement: EmployeeAgreementRecord) => {
+    setAgreementToDelete(agreement);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!agreementToDelete) return;
+
+    try {
+      await deleteEmployeeAgreement(agreementToDelete.id);
+      await loadAgreements();
+      toast.success('Acuerdo eliminado correctamente');
+    } catch (error) {
+      console.error('Error deleting agreement:', error);
+      toast.error('Error al eliminar el acuerdo');
+    } finally {
+      setDeleteDialogOpen(false);
+      setAgreementToDelete(null);
+    }
+  };
+
+  const handleAgreementCreated = () => {
+    setShowCreateForm(false);
+    loadAgreements();
+  };
+
+  const handleAgreementUpdated = () => {
+    setShowEditForm(false);
+    setSelectedAgreement(null);
+    loadAgreements();
+  };
+
+  const handleImportSuccess = () => {
+    setShowImportModal(false);
+    loadAgreements();
+  };
+
+  // Cálculos de paginación
+  const totalItems = agreements.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentItems = agreements.slice(startIndex, endIndex);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisiblePages = 5;
+    
+    if (totalPages <= maxVisiblePages) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      if (currentPage <= 3) {
+        for (let i = 1; i <= 4; i++) {
+          pages.push(i);
+        }
+        pages.push('...');
+        pages.push(totalPages);
+      } else if (currentPage >= totalPages - 2) {
+        pages.push(1);
+        pages.push('...');
+        for (let i = totalPages - 3; i <= totalPages; i++) {
+          pages.push(i);
+        }
+      } else {
+        pages.push(1);
+        pages.push('...');
+        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+          pages.push(i);
+        }
+        pages.push('...');
+        pages.push(totalPages);
       }
     }
+    
+    return pages;
   };
 
-  const handleDownloadPDF = (id: string) => {
-    handleViewDetails(id);
-  };
-
-  const handleExport = () => {
-    if (agreements.length === 0) {
-      toast({
-        title: 'Sin datos',
-        description: 'No hay acuerdos con empleados para exportar.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    const headers = [
-      'ID',
-      'Nombre Empleado',
-      'Apellidos Empleado',
-      'Centro de Trabajo',
-      'Nombre Responsable',
-      'Apellidos Responsable',
-      'Conceptos del Acuerdo',
-      'Fecha de Activación',
-      'Fecha Fin',
-      'Fecha de Creación'
-    ];
-
-    const csvContent = [
-      headers.join(','),
-      ...agreements.map(agreement => [
-        agreement.id || '',
-        `"${agreement.employeeName}"`,
-        `"${agreement.employeeLastName}"`,
-        `"${agreement.workCenter}"`,
-        `"${agreement.responsibleName}"`,
-        `"${agreement.responsibleLastName}"`,
-        `"${agreement.agreementConcepts}"`,
-        agreement.activationDate ? agreement.activationDate.toLocaleDateString('es-ES') : '',
-        agreement.endDate ? agreement.endDate.toLocaleDateString('es-ES') : '',
-        agreement.createdAt ? agreement.createdAt.toLocaleDateString('es-ES') : ''
-      ].join(','))
-    ].join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-
-    if (link.download !== undefined) {
-      const url = URL.createObjectURL(blob);
-      link.setAttribute('href', url);
-      link.setAttribute('download', `acuerdos_empleados_${new Date().toISOString().split('T')[0]}.csv`);
-      link.style.visibility = 'hidden';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      toast({
-        title: 'Exportación completada',
-        description: 'Los acuerdos con empleados han sido exportados exitosamente.',
-      });
-    }
-  };
-
-  const handleRefresh = () => {
-    loadAgreements();
-  };
-
-  const formatDate = (date: Date | undefined) => {
-    if (!date) return '-';
-    return date.toLocaleDateString(language === 'es' ? 'es-ES' : 'en-US');
-  };
-
-  if (viewMode === 'create') {
+  if (showCreateForm) {
     return (
       <EmployeeAgreementCreateForm
         language={language}
-        onBack={handleBackToList}
-        onSave={handleSave}
+        onBack={() => setShowCreateForm(false)}
+        onAgreementCreated={handleAgreementCreated}
       />
     );
   }
 
-  if (viewMode === 'detail' && selectedAgreementId) {
+  if (showDetailView && selectedAgreement) {
     return (
       <EmployeeAgreementDetailView
+        agreement={selectedAgreement}
         language={language}
-        agreementId={selectedAgreementId}
-        onBack={handleBackToList}
+        onBack={() => {
+          setShowDetailView(false);
+          setSelectedAgreement(null);
+        }}
       />
     );
   }
 
-  if (viewMode === 'edit' && selectedAgreementId) {
+  if (showEditForm && selectedAgreement) {
     return (
       <EmployeeAgreementEditForm
+        agreement={selectedAgreement}
         language={language}
-        agreementId={selectedAgreementId}
-        onBack={handleBackToList}
-        onSave={handleSave}
+        onBack={() => {
+          setShowEditForm(false);
+          setSelectedAgreement(null);
+        }}
+        onAgreementUpdated={handleAgreementUpdated}
       />
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header con botones de acción */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h1 className="text-2xl font-semibold text-blue-800 dark:text-blue-200">
-          Acuerdos con Empleados
-        </h1>
-
-        <div className="flex flex-wrap gap-2">
-          <Button
-            onClick={handleRefresh}
-            variant="outline"
-            disabled={isLoading}
-            className="border-blue-300 text-blue-700 hover:bg-blue-50"
-          >
-            <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-            Actualizar
-          </Button>
-
-          <Button
-            onClick={handleCreateNew}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Crear Nuevo
-          </Button>
-
-          <Button
-            variant="outline"
-            onClick={handleExport}
-            className="border-blue-300 text-blue-700 hover:bg-blue-50"
-          >
-            <FileDown className="w-4 h-4 mr-2" />
-            Exportar
-          </Button>
-
-          <Button
-            variant="outline"
-            onClick={() => setShowImportModal(true)}
-            className="border-blue-300 text-blue-700 hover:bg-blue-50"
-          >
-            <Upload className="w-4 h-4 mr-2" />
-            Importar
-          </Button>
+    <div className="w-full max-w-full overflow-hidden">
+      <div className="space-y-4 sm:space-y-6 p-2 sm:p-4 lg:p-6">
+        <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+          <div>
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-blue-900 dark:text-blue-100">
+              {t('employeeAgreements')}
+            </h1>
+            <p className="text-xs sm:text-sm lg:text-base text-gray-600 dark:text-gray-400 mt-1">
+              Gestiona los acuerdos con empleados
+            </p>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+            <Button
+              onClick={handleRefresh}
+              variant="outline"
+              className="border-blue-300 text-blue-700 hover:bg-blue-50 text-xs sm:text-sm"
+              disabled={refreshing}
+              size="sm"
+            >
+              <RefreshCw className={`w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+              Actualizar
+            </Button>
+            
+            <Button
+              onClick={() => setShowImportModal(true)}
+              variant="outline"
+              className="border-green-300 text-green-700 hover:bg-green-50 text-xs sm:text-sm"
+              size="sm"
+            >
+              <Upload className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+              Importar
+            </Button>
+            
+            <Button
+              onClick={() => setShowCreateForm(true)}
+              className="bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm"
+              size="sm"
+            >
+              <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+              Nuevo Acuerdo
+            </Button>
+          </div>
         </div>
-      </div>
 
-      {/* Tabla de acuerdos */}
-      <Card className="border-blue-200 dark:border-blue-800">
-        <CardHeader>
-          <CardTitle className="text-blue-800 dark:text-blue-200">
-            Acuerdos con Empleados
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {error && (
-            <div className="text-center py-8">
-              <div className="mx-auto w-16 h-16 bg-red-100 dark:bg-red-800 rounded-lg flex items-center justify-center mb-4">
-                <AlertCircle className="w-8 h-8 text-red-400" />
-              </div>
-              <h3 className="text-lg font-medium text-red-900 dark:text-red-100 mb-2">
-                Error al cargar datos
-              </h3>
-              <p className="text-red-600 dark:text-red-400 mb-4">
-                {error}
+        <Card className="border-blue-200 dark:border-blue-800 w-full">
+          <CardHeader className="p-3 sm:p-4 lg:p-6">
+            <CardTitle className="text-sm sm:text-base lg:text-lg text-blue-800 dark:text-blue-200 flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
+              <span className="flex items-center gap-2">
+                <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
+                Lista de Acuerdos
+              </span>
+              <Badge variant="secondary" className="text-xs sm:text-sm w-fit">
+                {totalItems} acuerdos
+              </Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0 sm:p-3 lg:p-6">
+            {/* Información de paginación */}
+            <div className="px-3 sm:px-0 pb-3 sm:pb-4">
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                Mostrando del {startIndex + 1} al {Math.min(endIndex, totalItems)} de {totalItems} acuerdos
               </p>
-              <Button onClick={handleRefresh} className="bg-blue-600 hover:bg-blue-700 text-white">
-                Intentar de nuevo
-              </Button>
             </div>
-          )}
 
-          {isLoading && (
-            <div className="text-center py-12">
-              <div className="mx-auto w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center mb-4">
-                <RefreshCw className="w-8 h-8 text-gray-400 animate-spin" />
-              </div>
-              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
-                Cargando acuerdos con empleados...
-              </h3>
-            </div>
-          )}
-
-          {!isLoading && !error && agreements.length === 0 && (
-            <div className="text-center py-12">
-              <div className="mx-auto w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center mb-4">
-                <Upload className="w-8 h-8 text-gray-400" />
-              </div>
-              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
-                No hay acuerdos con empleados
-              </h3>
-              <p className="text-gray-500 dark:text-gray-400 mb-4">
-                Comienza creando un nuevo acuerdo o importa datos desde un archivo.
-              </p>
-              <div className="flex justify-center space-x-2">
-                <Button
-                  onClick={handleCreateNew}
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Crear Nuevo
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => setShowImportModal(true)}
-                  className="border-blue-300 text-blue-700 hover:bg-blue-50"
-                >
-                  <Upload className="w-4 h-4 mr-2" />
-                  Importar Datos
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {!isLoading && !error && agreements.length > 0 && (
-            <>
-              <div className="overflow-x-auto">
+            {/* Contenedor con scroll horizontal solo para la tabla */}
+            <div className="w-full overflow-x-auto">
+              <div className="min-w-[800px]">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Empleado</TableHead>
-                      <TableHead>Centro de Trabajo</TableHead>
-                      <TableHead>Responsable</TableHead>
-                      <TableHead>Conceptos del Acuerdo</TableHead>
-                      <TableHead>Fecha de Activación</TableHead>
-                      <TableHead>Fecha Fin</TableHead>
-                      <TableHead className="text-center">Acciones</TableHead>
+                      <TableHead className="text-xs sm:text-sm min-w-[120px]">Empleado</TableHead>
+                      <TableHead className="text-xs sm:text-sm min-w-[100px]">Centro de Trabajo</TableHead>
+                      <TableHead className="text-xs sm:text-sm min-w-[80px] hidden sm:table-cell">Ciudad</TableHead>
+                      <TableHead className="text-xs sm:text-sm min-w-[100px] hidden lg:table-cell">Puesto</TableHead>
+                      <TableHead className="text-xs sm:text-sm min-w-[100px] hidden lg:table-cell">Departamento</TableHead>
+                      <TableHead className="text-xs sm:text-sm min-w-[90px] hidden sm:table-cell">Fecha Inicio</TableHead>
+                      <TableHead className="text-xs sm:text-sm min-w-[80px]">Estado</TableHead>
+                      <TableHead className="w-[50px] text-xs sm:text-sm">Acciones</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {currentData.map((agreement) => (
+                    {currentItems.map((agreement) => (
                       <TableRow key={agreement.id}>
-                        <TableCell className="font-medium">
-                          {agreement.employeeName} {agreement.employeeLastName}
-                        </TableCell>
-                        <TableCell>{agreement.workCenter}</TableCell>
-                        <TableCell>{agreement.responsibleName} {agreement.responsibleLastName}</TableCell>
-                        <TableCell>{agreement.agreementConcepts}</TableCell>
-                        <TableCell>
-                          {formatDate(agreement.activationDate)}
-                        </TableCell>
-                        <TableCell>
-                          {formatDate(agreement.endDate)}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex justify-center space-x-1">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleViewDetails(agreement.id)}
-                              title="Ver detalles"
-                            >
-                              <Eye className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleEdit(agreement.id)}
-                              title="Editar"
-                            >
-                              <Edit className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDuplicate(agreement.id)}
-                              title="Duplicar"
-                            >
-                              <Copy className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDownloadPDF(agreement.id)}
-                              title="Descargar PDF"
-                            >
-                              <Download className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDelete(agreement.id)}
-                              title="Eliminar"
-                              className="text-red-600 hover:text-red-800"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
+                        <TableCell className="font-medium text-xs sm:text-sm">
+                          <div className="truncate max-w-[120px]">
+                            {agreement.employeeName} {agreement.employeeLastName}
                           </div>
+                        </TableCell>
+                        <TableCell className="text-xs sm:text-sm">
+                          <div className="truncate max-w-[100px]">
+                            {agreement.workCenter}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-xs sm:text-sm hidden sm:table-cell">
+                          <div className="truncate max-w-[80px]">
+                            {agreement.city}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-xs sm:text-sm hidden lg:table-cell">
+                          <div className="truncate max-w-[100px]">
+                            {agreement.jobPosition}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-xs sm:text-sm hidden lg:table-cell">
+                          <div className="truncate max-w-[100px]">
+                            {agreement.department}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-xs sm:text-sm hidden sm:table-cell">
+                          <div className="truncate max-w-[90px]">
+                            {new Date(agreement.startDate).toLocaleDateString()}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="secondary" className="text-xs">
+                            Activo
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-6 w-6 sm:h-8 sm:w-8 p-0">
+                                <MoreHorizontal className="h-3 w-3 sm:h-4 sm:w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="bg-white dark:bg-gray-800 border border-blue-200 dark:border-blue-700">
+                              <DropdownMenuItem onClick={() => handleViewAgreement(agreement)} className="cursor-pointer text-xs sm:text-sm">
+                                <Eye className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                                Ver detalles
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleEditAgreement(agreement)} className="cursor-pointer text-xs sm:text-sm">
+                                <Edit className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                                Editar
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleDuplicateAgreement(agreement)} className="cursor-pointer text-xs sm:text-sm">
+                                <Copy className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                                Duplicar
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleDeleteAgreement(agreement)} className="cursor-pointer text-red-600 text-xs sm:text-sm">
+                                <Trash className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                                Eliminar
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
               </div>
+            </div>
 
-              {agreements.length > itemsPerPage && (
-                <div className="flex flex-col sm:flex-row justify-between items-center mt-4 gap-4">
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
-                    Mostrando {startIndex + 1} a {endIndex} de {agreements.length} registros
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                      disabled={currentPage === 1}
-                    >
-                      Anterior
-                    </Button>
-
-                    <div className="flex space-x-1">
-                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                        let pageNumber;
-                        if (totalPages <= 5) {
-                          pageNumber = i + 1;
-                        } else if (currentPage <= 3) {
-                          pageNumber = i + 1;
-                        } else if (currentPage >= totalPages - 2) {
-                          pageNumber = totalPages - 4 + i;
-                        } else {
-                          pageNumber = currentPage - 2 + i;
-                        }
-
-                        return (
-                          <Button
-                            key={pageNumber}
-                            variant={currentPage === pageNumber ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => setCurrentPage(pageNumber)}
-                            className={currentPage === pageNumber ? "bg-blue-600 text-white" : ""}
-                          >
-                            {pageNumber}
-                          </Button>
-                        );
-                      })}
-                    </div>
-
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                      disabled={currentPage === totalPages}
-                    >
-                      Siguiente
-                    </Button>
-                  </div>
+            {/* Paginación */}
+            {totalPages > 1 && (
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-2 p-3 sm:p-4 border-t">
+                <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                  <span>Página {currentPage} de {totalPages}</span>
                 </div>
-              )}
-            </>
-          )}
-        </CardContent>
-      </Card>
+                
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="text-xs sm:text-sm"
+                  >
+                    Anterior
+                  </Button>
+                  
+                  <div className="flex items-center gap-1">
+                    {getPageNumbers().map((page, index) => (
+                      <Button
+                        key={index}
+                        variant={page === currentPage ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => typeof page === 'number' ? handlePageChange(page) : undefined}
+                        disabled={page === '...'}
+                        className="text-xs sm:text-sm min-w-[32px] sm:min-w-[36px]"
+                      >
+                        {page}
+                      </Button>
+                    ))}
+                  </div>
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="text-xs sm:text-sm"
+                  >
+                    Siguiente
+                  </Button>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
-      <ImportEmployeeAgreementsModal
-        open={showImportModal}
-        onClose={() => setShowImportModal(false)}
-        language={language}
-      />
+        {/* Modal de confirmación para eliminar */}
+        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Esta acción no se puede deshacer. Se eliminará permanentemente el acuerdo con el empleado.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">
+                Eliminar
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Modal de importación */}
+        {showImportModal && (
+          <ImportEmployeeAgreementsModal
+            isOpen={showImportModal}
+            onClose={() => setShowImportModal(false)}
+            onImportSuccess={handleImportSuccess}
+          />
+        )}
+      </div>
     </div>
   );
 };
