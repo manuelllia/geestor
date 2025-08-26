@@ -63,7 +63,7 @@ export type EmployeeAgreementFirestorePayload = Omit<
 
 // --- RUTA DE LA COLECCIÓN EN FIRESTORE (CORREGIDA) ---
 // Colección "Gestión de Talento" -> Documento "Acuerdos Empleados" -> Subcolección "acuerdos"
-const getEmployeeAgreementsCollectionRef = () => collection(db, "Gestión de Talento", "Acuerdos Empleados", "acuerdos");
+const getEmployeeAgreementsCollectionRef = () => collection(db, "Gestión de Talento", "Acuerdos de Empleados", "acuerdos");
 
 // --- FUNCIÓN para obtener un Acuerdo con Empleado por ID ---
 export const getEmployeeAgreementById = async (id: string): Promise<EmployeeAgreementRecord | null> => {
