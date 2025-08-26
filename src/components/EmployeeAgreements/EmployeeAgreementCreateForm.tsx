@@ -11,9 +11,9 @@ import { Language } from '../../utils/translations';
 import { useTranslation } from '../../hooks/useTranslation';
 import AddButton from '../Common/AddButton';
 import CreateWorkCenterModal from '../Modals/CreateWorkCenterModal';
-import CreateContractModal from '../Modals/CreateContractModal'; // Mantenido si se usa en otro contexto
+import CreateContractModal from '../Modals/CreateContractModal';
 import { useWorkCenterModals } from '../../hooks/useWorkCenterModals';
-import { getWorkCenters, getContracts } from '../../services/workCentersService'; // getContracts se mantiene si el modal aún se usa
+import { getWorkCenters, getContracts } from '../../services/workCentersService';
 import { saveEmployeeAgreement } from '../../services/employeeAgreementsService'; // IMPORTANTE: Importa la función de guardado
 
 // --- NUEVA INTERFAZ EmployeeAgreementFormData ---
@@ -55,11 +55,11 @@ const EmployeeAgreementCreateForm: React.FC<EmployeeAgreementCreateFormProps> = 
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [workCenters, setWorkCenters] = useState<Array<{id: string, name: string}>>([]);
-  const [contracts, setContracts] = useState<Array<{id: string, name: string}>>([]); // Se mantiene por si el modal de contratos es útil en otro contexto
+  const [contracts, setContracts] = useState<Array<{id: string, name: string}>>([]);
   
   const {
     isWorkCenterModalOpen,
-    isContractModalOpen, // Se mantiene por si el modal de contratos es útil en otro contexto
+    isContractModalOpen,
     openWorkCenterModal,
     closeWorkCenterModal,
     openContractModal,
@@ -124,7 +124,7 @@ const EmployeeAgreementCreateForm: React.FC<EmployeeAgreementCreateFormProps> = 
         getContracts()
       ]);
       setWorkCenters(workCentersData);
-      setContracts(contractsData); // Se mantiene si el modal de contratos es útil en otro contexto
+      setContracts(contractsData);
     } catch (error) {
       console.error('Error loading work centers and contracts:', error);
     }
@@ -208,11 +208,33 @@ const EmployeeAgreementCreateForm: React.FC<EmployeeAgreementCreateFormProps> = 
         missingFieldName = 'Concepto 3 (si hay acuerdo económico)';
     }
 
+    // --- NUEVA VALIDACIÓN DE FECHAS LÓGICAS ---
+    if (isValid && processedData.activationDate && processedData.endDate) {
+      const activationDateObj = new Date(processedData.activationDate);
+      const endDateObj = new Date(processedData.endDate);
+
+      // Limpiar las horas para comparar solo las fechas
+      activationDateObj.setHours(0, 0, 0, 0);
+      endDateObj.setHours(0, 0, 0, 0);
+
+      if (endDateObj <= activationDateObj) {
+        isValid = false;
+        missingFieldName = 'La Fecha Fin debe ser posterior a la Fecha de Activación.';
+        // También puedes ajustar un toast más específico si lo prefieres
+        // toast({
+        //   title: "Error de Fecha",
+        //   description: "La Fecha Fin debe ser posterior a la Fecha de Activación.",
+        //   variant: 'destructive',
+        // });
+      }
+    }
+    // --- FIN NUEVA VALIDACIÓN DE FECHAS LÓGICAS ---
+
 
     if (!isValid) {
       toast({
         title: "Campos Incompletos",
-        description: `Por favor, complete todos los campos obligatorios. Falta: ${missingFieldName}.`,
+        description: `Por favor, complete todos los campos obligatorios. ${missingFieldName}`, // Se concatena el mensaje de la validación de fechas
         variant: 'destructive',
       });
       setIsLoading(false);
