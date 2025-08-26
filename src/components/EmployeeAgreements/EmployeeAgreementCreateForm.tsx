@@ -14,7 +14,7 @@ import CreateWorkCenterModal from '../Modals/CreateWorkCenterModal';
 import CreateContractModal from '../Modals/CreateContractModal';
 import { useWorkCenterModals } from '../../hooks/useWorkCenterModals';
 import { getWorkCenters, getContracts } from '../../services/workCentersService';
-import { saveEmployeeAgreement } from '../../services/employeeAgreementsService'; // IMPORTANTE: Importa la función de guardado
+import { saveEmployeeAgreement } from '../../services/employeeAgreementsService';
 
 // --- NUEVA INTERFAZ EmployeeAgreementFormData ---
 interface EmployeeAgreementFormData {
@@ -43,7 +43,6 @@ interface EmployeeAgreementCreateFormProps {
   language: Language;
   onBack: () => void;
   onSave: () => void;
-  // Si necesitaras editar, añadirías un prop 'editingAgreement?: EmployeeAgreementRecord | null;'
 }
 
 const EmployeeAgreementCreateForm: React.FC<EmployeeAgreementCreateFormProps> = ({
@@ -66,7 +65,6 @@ const EmployeeAgreementCreateForm: React.FC<EmployeeAgreementCreateFormProps> = 
     closeContractModal
   } = useWorkCenterModals();
 
-  // --- Opciones predefinidas para Conceptos del Acuerdo ---
   const agreementConceptsOptions = [
     'Cambio de Puesto',
     'Complemento de Responsabilidad',
@@ -77,7 +75,6 @@ const EmployeeAgreementCreateForm: React.FC<EmployeeAgreementCreateFormProps> = 
     'Otro'
   ];
 
-  // --- ESTADO DEL FORMULARIO INICIALIZADO CON LOS NUEVOS CAMPOS ---
   const [formData, setFormData] = useState<EmployeeAgreementFormData>({
     employeeName: '',
     employeeLastName: '',
@@ -95,12 +92,11 @@ const EmployeeAgreementCreateForm: React.FC<EmployeeAgreementCreateFormProps> = 
     concept2: '',
     economicAgreement3: '',
     concept3: '',
-    activationDate: '', // O puedes poner new Date().toISOString().split('T')[0]
+    activationDate: '',
     endDate: '',
     observationsAndCommitment: '',
   });
 
-  // Manejador genérico para inputs de texto, textarea y fecha
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -109,7 +105,6 @@ const EmployeeAgreementCreateForm: React.FC<EmployeeAgreementCreateFormProps> = 
     }));
   };
 
-  // Manejador para Select
   const handleSelectChange = (name: keyof EmployeeAgreementFormData, value: string) => {
     setFormData(prev => ({
       ...prev,
@@ -147,7 +142,7 @@ const EmployeeAgreementCreateForm: React.FC<EmployeeAgreementCreateFormProps> = 
   const handleSubmit = async () => {
     setIsLoading(true);
 
-    // 1. Pre-procesar los datos para la validación y el envío
+    // Procesar los datos incluyendo TODOS los campos requeridos
     const processedData = {
       employeeName: formData.employeeName,
       employeeLastName: formData.employeeLastName,
@@ -164,12 +159,19 @@ const EmployeeAgreementCreateForm: React.FC<EmployeeAgreementCreateFormProps> = 
       concept2: formData.concept2,
       economicAgreement3: formData.economicAgreement3,
       concept3: formData.concept3,
-      activationDate: formData.activationDate, // Se envía como string al servicio, que lo convertirá a Timestamp
-      endDate: formData.endDate,             // Se envía como string al servicio, que lo convertirá a Timestamp
+      activationDate: formData.activationDate,
+      endDate: formData.endDate,
       observationsAndCommitment: formData.observationsAndCommitment,
+      // Campos requeridos para compatibilidad con EmployeeAgreementRecord
+      jobPosition: formData.agreementConcepts || '',
+      department: formData.workCenter || '',
+      agreementType: formData.agreementConcepts || '',
+      startDate: formData.activationDate,
+      salary: formData.economicAgreement1 || '0',
+      status: 'Activo' as const,
+      observations: formData.observationsAndCommitment,
     };
 
-    // 2. Validación de campos obligatorios
     const requiredFields: Array<keyof typeof processedData> = [
       'employeeName', 'employeeLastName', 'workCenter', 'responsibleName', 'responsibleLastName',
       'agreementConcepts', 'activationDate', 'observationsAndCommitment'
@@ -186,7 +188,6 @@ const EmployeeAgreementCreateForm: React.FC<EmployeeAgreementCreateFormProps> = 
         missingFieldName = field;
         break;
       }
-      // Validación específica para el campo 'Otro' de Conceptos del Acuerdo
       if (field === 'agreementConcepts' && formData.agreementConcepts === 'Otro' && formData.agreementConceptsOther.trim() === '') {
         isValid = false;
         missingFieldName = 'Conceptos del Acuerdo (especificar)';
@@ -194,7 +195,6 @@ const EmployeeAgreementCreateForm: React.FC<EmployeeAgreementCreateFormProps> = 
       }
     }
     
-    // Validación de acuerdos económicos si se ha rellenado alguno
     if (formData.economicAgreement1.trim() !== '' && formData.concept1.trim() === '') {
         isValid = false;
         missingFieldName = 'Concepto 1 (si hay acuerdo económico)';
@@ -208,33 +208,23 @@ const EmployeeAgreementCreateForm: React.FC<EmployeeAgreementCreateFormProps> = 
         missingFieldName = 'Concepto 3 (si hay acuerdo económico)';
     }
 
-    // --- NUEVA VALIDACIÓN DE FECHAS LÓGICAS ---
     if (isValid && processedData.activationDate && processedData.endDate) {
       const activationDateObj = new Date(processedData.activationDate);
       const endDateObj = new Date(processedData.endDate);
 
-      // Limpiar las horas para comparar solo las fechas
       activationDateObj.setHours(0, 0, 0, 0);
       endDateObj.setHours(0, 0, 0, 0);
 
       if (endDateObj <= activationDateObj) {
         isValid = false;
         missingFieldName = 'La Fecha Fin debe ser posterior a la Fecha de Activación.';
-        // También puedes ajustar un toast más específico si lo prefieres
-        // toast({
-        //   title: "Error de Fecha",
-        //   description: "La Fecha Fin debe ser posterior a la Fecha de Activación.",
-        //   variant: 'destructive',
-        // });
       }
     }
-    // --- FIN NUEVA VALIDACIÓN DE FECHAS LÓGICAS ---
-
 
     if (!isValid) {
       toast({
         title: "Campos Incompletos",
-        description: `Por favor, complete todos los campos obligatorios. ${missingFieldName}`, // Se concatena el mensaje de la validación de fechas
+        description: `Por favor, complete todos los campos obligatorios. ${missingFieldName}`,
         variant: 'destructive',
       });
       setIsLoading(false);
@@ -242,14 +232,13 @@ const EmployeeAgreementCreateForm: React.FC<EmployeeAgreementCreateFormProps> = 
     }
 
     try {
-      // *** ESTA ES LA LÍNEA CRÍTICA: LLAMADA REAL AL SERVICIO DE FIRESTORE ***
       await saveEmployeeAgreement(processedData);
 
       toast({
         title: "Éxito",
         description: "Acuerdo con empleado creado correctamente",
       });
-      onSave(); // Vuelve a la pantalla anterior o actualiza la lista
+      onSave();
     } catch (error) {
       console.error('Error al crear el acuerdo con empleado:', error);
       toast({
@@ -285,7 +274,6 @@ const EmployeeAgreementCreateForm: React.FC<EmployeeAgreementCreateFormProps> = 
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Nombre y Apellidos Empleado */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <Label htmlFor="employeeName" className="text-gray-700 dark:text-gray-300">
@@ -317,7 +305,6 @@ const EmployeeAgreementCreateForm: React.FC<EmployeeAgreementCreateFormProps> = 
             </div>
           </div>
 
-          {/* Centro de Trabajo y Ubicación (Población, Provincia, Comunidad Autónoma) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <Label htmlFor="workCenter" className="text-gray-700 dark:text-gray-300">
@@ -346,7 +333,6 @@ const EmployeeAgreementCreateForm: React.FC<EmployeeAgreementCreateFormProps> = 
                 />
               </div>
             </div>
-            {/* Ubicación (Población, Provincia, Comunidad Autónoma) como una sub-grid dentro de la segunda columna */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
                 <Label htmlFor="city" className="text-gray-700 dark:text-gray-300">
@@ -390,8 +376,6 @@ const EmployeeAgreementCreateForm: React.FC<EmployeeAgreementCreateFormProps> = 
             </div>
           </div>
 
-
-          {/* Nombre y Apellidos Responsable */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <Label htmlFor="responsibleName" className="text-gray-700 dark:text-gray-300">
@@ -423,7 +407,6 @@ const EmployeeAgreementCreateForm: React.FC<EmployeeAgreementCreateFormProps> = 
             </div>
           </div>
 
-          {/* Conceptos del Acuerdo */}
           <div>
             <Label htmlFor="agreementConcepts" className="text-gray-700 dark:text-gray-300">
               Conceptos del Acuerdo *
@@ -458,14 +441,13 @@ const EmployeeAgreementCreateForm: React.FC<EmployeeAgreementCreateFormProps> = 
             )}
           </div>
 
-          {/* Acuerdos Económicos y Conceptos */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <Label htmlFor="economicAgreement1" className="text-gray-700 dark:text-gray-300">
                 Acuerdo Económico 1
               </Label>
               <Input
-                type="text" // Usamos text para permitir formatos de moneda o decimales
+                type="text"
                 id="economicAgreement1"
                 name="economicAgreement1"
                 value={formData.economicAgreement1}
@@ -546,7 +528,6 @@ const EmployeeAgreementCreateForm: React.FC<EmployeeAgreementCreateFormProps> = 
             </div>
           </div>
 
-          {/* Fechas de Activación y Fin */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <Label htmlFor="activationDate" className="text-gray-700 dark:text-gray-300">
@@ -575,7 +556,6 @@ const EmployeeAgreementCreateForm: React.FC<EmployeeAgreementCreateFormProps> = 
             </div>
           </div>
 
-          {/* Observaciones y Compromiso */}
           <div>
             <Label htmlFor="observationsAndCommitment" className="text-gray-700 dark:text-gray-300">
               Observaciones y Compromiso *
@@ -610,14 +590,12 @@ const EmployeeAgreementCreateForm: React.FC<EmployeeAgreementCreateFormProps> = 
         </CardContent>
       </Card>
 
-      {/* Modales */}
       <CreateWorkCenterModal
         isOpen={isWorkCenterModalOpen}
         onClose={closeWorkCenterModal}
         onSuccess={handleWorkCenterSuccess}
       />
 
-      {/* Se mantiene el modal de Contratos, aunque no se usa directamente en este formulario con los nuevos campos */}
       <CreateContractModal
         isOpen={isContractModalOpen}
         onClose={closeContractModal}

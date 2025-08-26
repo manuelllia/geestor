@@ -1,7 +1,8 @@
+
 import React, { useState, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Button } from '../ui/button';
-import { Upload, FileText, AlertCircle, CheckCircle, X } from 'lucide-react';
+import { Upload, FileText, AlertCircle, CheckCircle } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Language } from '../../utils/translations';
 import * as XLSX from 'xlsx';
@@ -77,13 +78,13 @@ const ImportEmployeeAgreementsModal: React.FC<ImportEmployeeAgreementsModalProps
         endDate: row['endDate'] || undefined,
         observationsAndCommitment: row['observationsAndCommitment'] || '',
         // Campos requeridos para compatibilidad
-        jobPosition: row['jobPosition'] || '',
-        department: row['department'] || '',
-        agreementType: row['agreementType'] || '',
-        startDate: row['startDate'] || new Date().toISOString(),
-        salary: row['salary'] || '',
+        jobPosition: row['jobPosition'] || row['agreementConcepts'] || '',
+        department: row['department'] || row['workCenter'] || '',
+        agreementType: row['agreementType'] || row['agreementConcepts'] || '',
+        startDate: row['startDate'] || row['activationDate'] || new Date().toISOString(),
+        salary: row['salary'] || row['economicAgreement1'] || '0',
         status: (row['status'] as 'Activo' | 'Finalizado' | 'Suspendido') || 'Activo',
-        observations: row['observations'] || '',
+        observations: row['observations'] || row['observationsAndCommitment'] || '',
       }));
 
       let successCount = 0;
@@ -259,35 +260,6 @@ const ImportEmployeeAgreementsModal: React.FC<ImportEmployeeAgreementsModalProps
       </DialogContent>
     </Dialog>
   );
-};
-
-const handleDragOver = (e: React.DragEvent) => {
-  e.preventDefault();
-  setIsDragOver(true);
-};
-
-const handleDragLeave = (e: React.DragEvent) => {
-  e.preventDefault();
-  setIsDragOver(false);
-};
-
-const handleDrop = (e: React.DragEvent) => {
-  e.preventDefault();
-  setIsDragOver(false);
-  const files = e.dataTransfer.files;
-  handleFileSelect(files);
-};
-
-const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  if (e.target.files) {
-    handleFileSelect(e.target.files);
-  }
-};
-
-const handleClose = () => {
-  setUploadResult(null);
-  setIsUploading(false);
-  onClose();
 };
 
 export default ImportEmployeeAgreementsModal;
