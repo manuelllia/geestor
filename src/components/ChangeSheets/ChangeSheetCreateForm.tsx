@@ -1,3 +1,4 @@
+// src/components/Forms/ChangeSheetCreateForm.tsx
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -5,41 +6,45 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'; // Importado para Tipo de Cambio y Cambio de Empresa
-import { Checkbox } from '@/components/ui/checkbox'; // Importado para Necesidades
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Checkbox } from '@/components/ui/checkbox';
 import { ArrowLeft, Save } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Language } from '../../utils/translations';
 import { useTranslation } from '../../hooks/useTranslation';
 import { getWorkCenters, getContracts } from '../../services/workCentersService';
-// Asumo que ChangeSheetRecord puede necesitar algunas de las nuevas propiedades,
-// aunque se manejarán como opcionales en el mapeo si no existen.
-import { ChangeSheetRecord } from '../../services/changeSheetsService';
+import { ChangeSheetRecord } from '../../services/changeSheetsService'; // Importa la interfaz actualizada
 import AddButton from '../Common/AddButton';
 import CreateWorkCenterModal from '../Modals/CreateWorkCenterModal';
 import CreateContractModal from '../Modals/CreateContractModal';
 import { useWorkCenterModals } from '../../hooks/useWorkCenterModals';
 
-// --- NUEVA INTERFAZ ChangeSheetFormData ---
+// Importa Firebase Firestore
+import { db, serverTimestamp, Timestamp } from '../../lib/firebase'; // Asegúrate de que la ruta sea correcta
+import { collection, addDoc, updateDoc, doc } from 'firebase/firestore';
+
+
+// --- Interfaz ChangeSheetFormData para el estado local del formulario ---
+// Incluye los campos 'Other' para la lógica del UI
 interface ChangeSheetFormData {
-  employeeName: string; // Nombre Empleado
-  employeeLastName: string; // Apellidos Empleado
-  originCenter: string; // Centro De Salida (anteriormente workCenter)
-  contractsManaged: string; // Contratos que Administra (campo existente)
-  currentPosition: string; // Puesto Actual (valor de selección)
+  employeeName: string;
+  employeeLastName: string;
+  originCenter: string; // ID del centro de trabajo de origen
+  contractsManaged: string; // ID del contrato que administra
+  currentPosition: string; // Valor de selección (puede ser 'Otro')
   currentPositionOther: string; // Para la opción 'Otro' de Puesto Actual
-  currentSupervisorName: string; // Nombre Responsable Actual
-  currentSupervisorLastName: string; // Apellidos Responsable Actual
-  destinationCenter: string; // Centro de Destino (nuevo campo)
-  contractsToManage: string; // Contratos a Gestionar (nuevo campo)
-  newPosition: string; // Nuevo Puesto (valor de selección)
+  currentSupervisorName: string;
+  currentSupervisorLastName: string;
+  destinationCenter: string; // Nuevo campo: ID del centro de trabajo de destino
+  contractsToManage: string; // Nuevo campo: ID del contrato a gestionar
+  newPosition: string; // Valor de selección (puede ser 'Otro')
   newPositionOther: string; // Para la opción 'Otro' de Nuevo Puesto
-  startDate: string; // Fecha de Inicio
-  changeType: 'Permanente' | 'Temporal' | ''; // Tipo de Cambio (radio)
-  needs: string[]; // Necesidades (array de checkboxes)
-  currentCompany: string; // Empresa Actual (valor de selección)
+  startDate: string; // Fecha en formato 'YYYY-MM-DD'
+  changeType: 'Permanente' | 'Temporal' | '';
+  needs: string[]; // Array de strings
+  currentCompany: string; // Valor de selección (puede ser 'OTRA')
   currentCompanyOther: string; // Para la opción 'OTRA' de Empresa Actual
-  companyChange: 'Si' | 'No' | ''; // Cambio de Empresa (radio)
+  companyChange: 'Si' | 'No' | '';
   observations: string; // Motivo del Cambio y Observaciones (textarea combinado)
 }
 
@@ -66,7 +71,7 @@ const ChangeSheetCreateForm: React.FC<ChangeSheetCreateFormProps> = ({
   const positionOptions = ['Técnico/a', 'Responsable de Centro', 'Especialista (EDE)', 'Adminitrativo/a', 'Otro'];
   const companyOptions = ['ASIME SA', 'IBERMAN SA', 'MANTELEC SA', 'INDEL FACILITIES', 'INSANEX SSL', 'SSM', 'RD HEALING', 'AINTEC', 'OTRA'];
   const needsOptions = ['Actuación PRL', 'Desplazamiento', 'Alojamiento', 'Piso GEE', 'Vehíclo'];
-  
+
   const {
     isWorkCenterModalOpen,
     isContractModalOpen,
@@ -76,7 +81,6 @@ const ChangeSheetCreateForm: React.FC<ChangeSheetCreateFormProps> = ({
     closeContractModal
   } = useWorkCenterModals();
 
-  // --- NUEVA INICIALIZACIÓN DEL ESTADO formData ---
   const [formData, setFormData] = useState<ChangeSheetFormData>({
     employeeName: '',
     employeeLastName: '',
@@ -107,27 +111,24 @@ const ChangeSheetCreateForm: React.FC<ChangeSheetCreateFormProps> = ({
         employeeLastName: editingSheet.employeeLastName || '',
         originCenter: editingSheet.originCenter || '',
         contractsManaged: editingSheet.contractsManaged || '',
-        currentPosition: editingSheet.currentPosition || '',
-        currentPositionOther: '', // No se mapea desde editingSheet, se maneja en el UI
+        // Manejar 'Otro' y 'OTRA' al cargar para edición
+        currentPosition: positionOptions.includes(editingSheet.currentPosition) ? editingSheet.currentPosition : 'Otro',
+        currentPositionOther: !positionOptions.includes(editingSheet.currentPosition) ? editingSheet.currentPosition : '',
         currentSupervisorName: editingSheet.currentSupervisorName || '',
         currentSupervisorLastName: editingSheet.currentSupervisorLastName || '',
         destinationCenter: editingSheet.destinationCenter || '', // Nuevo campo
         contractsToManage: editingSheet.contractsToManage || '', // Nuevo campo
-        newPosition: editingSheet.newPosition || '',
-        newPositionOther: '', // No se mapea desde editingSheet
+        newPosition: positionOptions.includes(editingSheet.newPosition) ? editingSheet.newPosition : 'Otro',
+        newPositionOther: !positionOptions.includes(editingSheet.newPosition) ? editingSheet.newPosition : '',
         startDate: editingSheet.startDate
-          ? (editingSheet.startDate instanceof Date ? editingSheet.startDate.toISOString().split('T')[0] : editingSheet.startDate)
+          ? editingSheet.startDate.toISOString().split('T')[0] // Convierte Date a string YYYY-MM-DD
           : new Date().toISOString().split('T')[0],
-        changeType: (editingSheet.changeType === 'Permanente' || editingSheet.changeType === 'Temporal')
-          ? editingSheet.changeType
-          : '',
+        changeType: editingSheet.changeType || '',
         needs: editingSheet.needs || [],
-        currentCompany: editingSheet.currentCompany || '',
-        currentCompanyOther: '', // No se mapea desde editingSheet
-        companyChange: (editingSheet.companyChange === 'Si' || editingSheet.companyChange === 'No')
-          ? editingSheet.companyChange
-          : '',
-        observations: editingSheet.observations || '', // Combina motivo y observaciones
+        currentCompany: companyOptions.includes(editingSheet.currentCompany) ? editingSheet.currentCompany : 'OTRA',
+        currentCompanyOther: !companyOptions.includes(editingSheet.currentCompany) ? editingSheet.currentCompany : '',
+        companyChange: editingSheet.companyChange || '',
+        observations: editingSheet.observations || '',
       });
     }
   }, [editingSheet]);
@@ -175,80 +176,147 @@ const ChangeSheetCreateForm: React.FC<ChangeSheetCreateFormProps> = ({
 
   useEffect(() => {
     loadWorkCentersAndContracts();
-  }, []); // Se ejecuta solo una vez al montar el componente
+  }, []);
 
   const handleWorkCenterSuccess = () => {
     closeWorkCenterModal();
-    loadWorkCentersAndContracts();
+    loadWorkCentersAndContracts(); // Recarga los centros para que el nuevo aparezca en el select
   };
 
   const handleContractSuccess = () => {
     closeContractModal();
-    loadWorkCentersAndContracts();
+    loadWorkCentersAndContracts(); // Recarga los contratos para que el nuevo aparezca en el select
   };
 
-  // --- Función handleSubmit (enviando los nuevos campos) ---
+  // --- Función handleSubmit (enviando los nuevos campos a Firestore) ---
   const handleSubmit = async () => {
     setIsLoading(true);
 
-    // Validación básica de campos obligatorios
-    if (
-      !formData.employeeName ||
-      !formData.employeeLastName ||
-      !formData.originCenter ||
-      !formData.currentPosition || (formData.currentPosition === 'Otro' && !formData.currentPositionOther) ||
-      !formData.currentSupervisorName ||
-      !formData.currentSupervisorLastName ||
-      !formData.destinationCenter ||
-      !formData.newPosition || (formData.newPosition === 'Otro' && !formData.newPositionOther) ||
-      !formData.startDate ||
-      !formData.changeType ||
-      !formData.currentCompany || (formData.currentCompany === 'OTRA' && !formData.currentCompanyOther) ||
-      !formData.companyChange ||
-      !formData.observations
-    ) {
+    // 1. Pre-procesar los datos y validar campos obligatorios
+    // Los campos 'Other' y 'OTRA' se resuelven aquí para el payload final
+    const processedData = {
+      employeeName: formData.employeeName,
+      employeeLastName: formData.employeeLastName,
+      originCenter: formData.originCenter,
+      contractsManaged: formData.contractsManaged || '', // Opcional
+      currentPosition: formData.currentPosition === 'Otro' ? formData.currentPositionOther : formData.currentPosition,
+      currentSupervisorName: formData.currentSupervisorName,
+      currentSupervisorLastName: formData.currentSupervisorLastName,
+      destinationCenter: formData.destinationCenter,
+      contractsToManage: formData.contractsToManage || '', // Opcional
+      newPosition: formData.newPosition === 'Otro' ? formData.newPositionOther : formData.newPosition,
+      startDate: formData.startDate, // Todavía en string para validación
+      changeType: formData.changeType,
+      needs: formData.needs,
+      currentCompany: formData.currentCompany === 'OTRA' ? formData.currentCompanyOther : formData.currentCompany,
+      companyChange: formData.companyChange,
+      observations: formData.observations,
+    };
+
+    // 2. Validación de campos obligatorios
+    // Lista de campos que deben tener un valor.
+    // Los campos de selección con "Otro"/"OTRA" requieren que el campo "Other" esté relleno si se elige esa opción.
+    const requiredFields: Array<keyof typeof processedData> = [
+      'employeeName', 'employeeLastName', 'originCenter', 'currentPosition',
+      'currentSupervisorName', 'currentSupervisorLastName', 'destinationCenter',
+      'newPosition', 'startDate', 'changeType', 'currentCompany', 'companyChange', 'observations'
+    ];
+
+    let isValid = true;
+    let missingFieldName = ''; // Para identificar el campo faltante
+
+    for (const field of requiredFields) {
+      const value = processedData[field];
+
+      if (typeof value === 'string' && value.trim() === '') {
+        isValid = false;
+        missingFieldName = field;
+        break;
+      }
+      if (Array.isArray(value) && value.length === 0 && field === 'needs' /* si 'needs' fuera obligatorio */) {
+         // Si 'needs' no es obligatorio, no se necesita esta validación
+      }
+      // Validaciones específicas para campos 'Otro'
+      if (field === 'currentPosition' && formData.currentPosition === 'Otro' && formData.currentPositionOther.trim() === '') {
+        isValid = false;
+        missingFieldName = 'currentPositionOther';
+        break;
+      }
+      if (field === 'newPosition' && formData.newPosition === 'Otro' && formData.newPositionOther.trim() === '') {
+        isValid = false;
+        missingFieldName = 'newPositionOther';
+        break;
+      }
+      if (field === 'currentCompany' && formData.currentCompany === 'OTRA' && formData.currentCompanyOther.trim() === '') {
+        isValid = false;
+        missingFieldName = 'currentCompanyOther';
+        break;
+      }
+    }
+
+    if (!isValid) {
       toast({
-        title: "Campos Requeridos",
-        description: "Por favor, complete todos los campos obligatorios.",
+        title: "Campos Incompletos",
+        description: `Por favor, complete todos los campos obligatorios. Falta: ${missingFieldName}`,
         variant: 'destructive',
       });
       setIsLoading(false);
       return;
     }
 
+    // Convertir la fecha string a Timestamp para Firestore
+    const startDateTimestamp = processedData.startDate ? Timestamp.fromDate(new Date(processedData.startDate)) : null;
+
+    // Payload final para Firestore
+    const firestorePayload = {
+      ...processedData,
+      startDate: startDateTimestamp,
+      // Asegurarse de que los tipos literales sean correctos
+      changeType: processedData.changeType as 'Permanente' | 'Temporal',
+      companyChange: processedData.companyChange as 'Si' | 'No',
+    };
+
+    // 3. Lógica de guardado/actualización en Firestore
     try {
-      // Prepara los datos para guardar, manejando las opciones "Otro" / "OTRA"
-      const dataToSave = {
-        ...formData,
-        currentPosition: formData.currentPosition === 'Otro' ? formData.currentPositionOther : formData.currentPosition,
-        newPosition: formData.newPosition === 'Otro' ? formData.newPositionOther : formData.newPosition,
-        currentCompany: formData.currentCompany === 'OTRA' ? formData.currentCompanyOther : formData.currentCompany,
-        // Eliminar campos temporales 'Other' si no deben guardarse en la base de datos
-        currentPositionOther: undefined,
-        newPositionOther: undefined,
-        currentCompanyOther: undefined,
-      };
+      const sheetsCollectionRef = collection(db, 'Gestión de Talento', 'hojas-cambio', 'Hojas de Cambio');
 
-      console.log(editingSheet ? 'Updating change sheet:' : 'Creating change sheet:', dataToSave);
-      // Aquí iría la llamada a tu servicio para guardar/actualizar la hoja de cambio en Firebase
-      // await saveChangeSheet(dataToSave); // Ejemplo
-
-      toast({
-        title: "Éxito",
-        description: editingSheet ? "Hoja de cambio actualizada correctamente" : "Hoja de cambio creada correctamente",
-      });
-      onSave(); // Vuelve a la pantalla anterior o actualiza la lista
+      if (editingSheet && editingSheet.id) {
+        // Modo Edición: Actualizar documento existente
+        const docRef = doc(sheetsCollectionRef, editingSheet.id);
+        await updateDoc(docRef, {
+          ...firestorePayload,
+          updatedAt: serverTimestamp(),
+        });
+        toast({
+          title: "Éxito",
+          description: "Hoja de cambio actualizada correctamente.",
+        });
+      } else {
+        // Modo Creación: Añadir nuevo documento
+        await addDoc(sheetsCollectionRef, {
+          ...firestorePayload,
+          status: 'Pendiente', // Estado por defecto para nuevas hojas
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+        });
+        toast({
+          title: "Éxito",
+          description: "Nueva hoja de cambio creada correctamente.",
+        });
+      }
+      onSave(); // Llama a la función onSave para refrescar la lista o redirigir
     } catch (error) {
-      console.error("Error saving change sheet:", error);
+      console.error("Error al guardar la hoja de cambio:", error);
       toast({
         title: "Error",
-        description: editingSheet ? "Error al actualizar la hoja de cambio" : "Error al crear la hoja de cambio",
+        description: `Hubo un error al ${editingSheet ? 'actualizar' : 'crear'} la hoja de cambio. Inténtelo de nuevo.`,
         variant: 'destructive',
       });
     } finally {
       setIsLoading(false);
     }
   };
+
 
   return (
     <div className="space-y-6">
@@ -328,7 +396,7 @@ const ChangeSheetCreateForm: React.FC<ChangeSheetCreateFormProps> = ({
                     ))}
                   </SelectContent>
                 </Select>
-                <AddButton 
+                <AddButton
                   onClick={openWorkCenterModal}
                   label="Añadir"
                 />
@@ -354,7 +422,7 @@ const ChangeSheetCreateForm: React.FC<ChangeSheetCreateFormProps> = ({
                     ))}
                   </SelectContent>
                 </Select>
-                <AddButton 
+                <AddButton
                   onClick={openContractModal}
                   label="Añadir"
                 />
@@ -452,7 +520,7 @@ const ChangeSheetCreateForm: React.FC<ChangeSheetCreateFormProps> = ({
                     ))}
                   </SelectContent>
                 </Select>
-                <AddButton 
+                <AddButton
                   onClick={openWorkCenterModal}
                   label="Añadir"
                 />
@@ -478,7 +546,7 @@ const ChangeSheetCreateForm: React.FC<ChangeSheetCreateFormProps> = ({
                     ))}
                   </SelectContent>
                 </Select>
-                <AddButton 
+                <AddButton
                   onClick={openContractModal}
                   label="Añadir"
                 />

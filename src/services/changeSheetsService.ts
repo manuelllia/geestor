@@ -1,20 +1,49 @@
-
+// src/services/changeSheetsService.ts
 import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, query, orderBy, Timestamp, getDoc } from "firebase/firestore";
-import { db } from "../lib/firebase";
-import { ChangeSheetData } from "./changeSheetService";
+import { db } from "../lib/firebase"; // Asegúrate de que la ruta a tu archivo firebase.ts sea correcta
 
-export interface ChangeSheetRecord extends ChangeSheetData {
+// --- Interfaz ChangeSheetRecord actualizada ---
+// Esta interfaz representa cómo se manejan los datos en el cliente después de leer de Firestore.
+// Los campos de fecha (createdAt, updatedAt, startDate) ya están convertidos a Date.
+export interface ChangeSheetRecord {
   id: string;
+  employeeName: string;
+  employeeLastName: string;
+  originCenter: string; // ID del centro de trabajo de origen
+  contractsManaged?: string; // ID del contrato que administra (opcional)
+  currentPosition: string; // Puesto actual (ya resuelto de 'Otro')
+  currentSupervisorName: string;
+  currentSupervisorLastName: string;
+  destinationCenter: string; // Nuevo campo: ID del centro de trabajo de destino
+  contractsToManage?: string; // Nuevo campo: ID del contrato a gestionar (opcional)
+  newPosition: string; // Nuevo puesto (ya resuelto de 'Otro')
+  startDate?: Date; // Fecha de inicio, convertida a Date (puede ser undefined si es null en DB)
+  changeType: 'Permanente' | 'Temporal'; // Tipo de cambio
+  needs: string[]; // Array de necesidades
+  currentCompany: string; // Empresa actual (ya resuelto de 'OTRA')
+  companyChange: 'Si' | 'No'; // Cambio de empresa
+  observations: string; // Motivo y observaciones combinados
+
   createdAt: Date;
   updatedAt: Date;
   status: 'Pendiente' | 'Aprobado' | 'Rechazado';
 }
 
+// --- Tipo auxiliar para el payload de actualización/creación de Firestore ---
+// Esto define la estructura de datos que se enviará directamente a Firestore (Timestamp para fechas).
+export type ChangeSheetFirestorePayload = Omit<ChangeSheetRecord, 'id' | 'createdAt' | 'updatedAt' | 'startDate' | 'status'> & {
+  startDate: Timestamp | null; // Acepta Timestamp o null para Firestore
+  createdAt?: Timestamp; // Opcional, se añade al crear
+  updatedAt?: Timestamp; // Opcional, se añade al crear/actualizar
+  status?: 'Pendiente' | 'Aprobado' | 'Rechazado'; // Estado para creación/actualización
+};
+
+
+// --- Función para obtener todas las Hojas de Cambio ---
 export const getChangeSheets = async (): Promise<ChangeSheetRecord[]> => {
   try {
     console.log('Obteniendo hojas de cambio desde Firebase...');
     
-    // Referencia a la colección anidada
     const changeSheetsRef = collection(db, "Gestión de Talento", "hojas-cambio", "Hojas de Cambio");
     const q = query(changeSheetsRef, orderBy("createdAt", "desc"));
     
@@ -22,28 +51,41 @@ export const getChangeSheets = async (): Promise<ChangeSheetRecord[]> => {
     
     const changeSheets: ChangeSheetRecord[] = [];
     
-    querySnapshot.forEach((doc) => {
-      const data = doc.data();
+    querySnapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+
+      // Validar y tipar correctamente los campos de tipo literal
+      const changeType: 'Permanente' | 'Temporal' = (data.changeType === 'Permanente' || data.changeType === 'Temporal')
+        ? data.changeType
+        : 'Permanente'; // Valor por defecto si no es válido
+      const companyChange: 'Si' | 'No' = (data.companyChange === 'Si' || data.companyChange === 'No')
+        ? data.companyChange
+        : 'No'; // Valor por defecto si no es válido
+      const status: 'Pendiente' | 'Aprobado' | 'Rechazado' = (data.status === 'Pendiente' || data.status === 'Aprobado' || data.status === 'Rechazado')
+        ? data.status
+        : 'Pendiente'; // Valor por defecto si no es válido
+      
       changeSheets.push({
-        id: doc.id,
+        id: docSnap.id,
         employeeName: data.employeeName || '',
         employeeLastName: data.employeeLastName || '',
         originCenter: data.originCenter || '',
+        contractsManaged: data.contractsManaged || '',
         currentPosition: data.currentPosition || '',
         currentSupervisorName: data.currentSupervisorName || '',
         currentSupervisorLastName: data.currentSupervisorLastName || '',
+        destinationCenter: data.destinationCenter || '', // Nuevo campo
+        contractsToManage: data.contractsToManage || '', // Nuevo campo
         newPosition: data.newPosition || '',
-        newSupervisorName: data.newSupervisorName || '',
-        newSupervisorLastName: data.newSupervisorLastName || '',
-        startDate: data.startDate ? data.startDate.toDate() : undefined,
-        changeType: data.changeType || '',
-        needs: data.needs || [],
+        startDate: data.startDate instanceof Timestamp ? data.startDate.toDate() : undefined, // Convierte Timestamp a Date
+        changeType: changeType,
+        needs: Array.isArray(data.needs) ? data.needs : [], // Asegura que 'needs' sea un array
         currentCompany: data.currentCompany || '',
-        companyChange: data.companyChange || '',
+        companyChange: companyChange,
         observations: data.observations || '',
-        status: data.status || 'Pendiente',
-        createdAt: data.createdAt ? data.createdAt.toDate() : new Date(),
-        updatedAt: data.updatedAt ? data.updatedAt.toDate() : new Date()
+        status: status,
+        createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate() : new Date(),
+        updatedAt: data.updatedAt instanceof Timestamp ? data.updatedAt.toDate() : new Date()
       });
     });
     
@@ -55,6 +97,7 @@ export const getChangeSheets = async (): Promise<ChangeSheetRecord[]> => {
   }
 };
 
+// --- Función para obtener una Hoja de Cambio por ID ---
 export const getChangeSheetById = async (id: string): Promise<ChangeSheetRecord | null> => {
   try {
     const docRef = doc(db, "Gestión de Talento", "hojas-cambio", "Hojas de Cambio", id);
@@ -62,26 +105,38 @@ export const getChangeSheetById = async (id: string): Promise<ChangeSheetRecord 
     
     if (docSnap.exists()) {
       const data = docSnap.data();
+
+      const changeType: 'Permanente' | 'Temporal' = (data.changeType === 'Permanente' || data.changeType === 'Temporal')
+        ? data.changeType
+        : 'Permanente';
+      const companyChange: 'Si' | 'No' = (data.companyChange === 'Si' || data.companyChange === 'No')
+        ? data.companyChange
+        : 'No';
+      const status: 'Pendiente' | 'Aprobado' | 'Rechazado' = (data.status === 'Pendiente' || data.status === 'Aprobado' || data.status === 'Rechazado')
+        ? data.status
+        : 'Pendiente';
+
       return {
         id: docSnap.id,
         employeeName: data.employeeName || '',
         employeeLastName: data.employeeLastName || '',
         originCenter: data.originCenter || '',
+        contractsManaged: data.contractsManaged || '',
         currentPosition: data.currentPosition || '',
         currentSupervisorName: data.currentSupervisorName || '',
         currentSupervisorLastName: data.currentSupervisorLastName || '',
+        destinationCenter: data.destinationCenter || '', // Nuevo campo
+        contractsToManage: data.contractsToManage || '', // Nuevo campo
         newPosition: data.newPosition || '',
-        newSupervisorName: data.newSupervisorName || '',
-        newSupervisorLastName: data.newSupervisorLastName || '',
-        startDate: data.startDate ? data.startDate.toDate() : undefined,
-        changeType: data.changeType || '',
-        needs: data.needs || [],
+        startDate: data.startDate instanceof Timestamp ? data.startDate.toDate() : undefined,
+        changeType: changeType,
+        needs: Array.isArray(data.needs) ? data.needs : [],
         currentCompany: data.currentCompany || '',
-        companyChange: data.companyChange || '',
+        companyChange: companyChange,
         observations: data.observations || '',
-        status: data.status || 'Pendiente',
-        createdAt: data.createdAt ? data.createdAt.toDate() : new Date(),
-        updatedAt: data.updatedAt ? data.updatedAt.toDate() : new Date()
+        status: status,
+        createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate() : new Date(),
+        updatedAt: data.updatedAt instanceof Timestamp ? data.updatedAt.toDate() : new Date()
       };
     }
     return null;
@@ -91,6 +146,7 @@ export const getChangeSheetById = async (id: string): Promise<ChangeSheetRecord 
   }
 };
 
+// --- Función para actualizar el estado de una Hoja de Cambio ---
 export const updateChangeSheetStatus = async (id: string, status: 'Pendiente' | 'Aprobado' | 'Rechazado'): Promise<void> => {
   try {
     const docRef = doc(db, "Gestión de Talento", "hojas-cambio", "Hojas de Cambio", id);
@@ -105,16 +161,19 @@ export const updateChangeSheetStatus = async (id: string, status: 'Pendiente' | 
   }
 };
 
-export const updateChangeSheet = async (id: string, data: Partial<ChangeSheetData>): Promise<void> => {
+// --- Función para actualizar una Hoja de Cambio existente ---
+// Esta función espera los datos del lado del cliente, donde startDate es un objeto Date o null.
+export const updateChangeSheet = async (id: string, data: Partial<Omit<ChangeSheetRecord, 'id' | 'createdAt' | 'updatedAt' | 'status'>>): Promise<void> => {
   try {
     const docRef = doc(db, "Gestión de Talento", "hojas-cambio", "Hojas de Cambio", id);
     
-    const updateData = {
-      ...data,
-      startDate: data.startDate ? Timestamp.fromDate(data.startDate) : null,
-      updatedAt: Timestamp.now()
-    };
-    
+    // Convertir startDate de Date a Timestamp si está presente
+    const updateData: { [key: string]: any } = { ...data };
+    if (data.startDate !== undefined) {
+      updateData.startDate = data.startDate ? Timestamp.fromDate(data.startDate) : null;
+    }
+    updateData.updatedAt = Timestamp.now(); // Actualizar la marca de tiempo de modificación
+
     await updateDoc(docRef, updateData);
     console.log('Hoja de cambio actualizada:', id);
   } catch (error) {
@@ -123,6 +182,7 @@ export const updateChangeSheet = async (id: string, data: Partial<ChangeSheetDat
   }
 };
 
+// --- Función para duplicar una Hoja de Cambio ---
 export const duplicateChangeSheet = async (originalId: string): Promise<string> => {
   try {
     const originalDoc = await getChangeSheetById(originalId);
@@ -130,33 +190,31 @@ export const duplicateChangeSheet = async (originalId: string): Promise<string> 
       throw new Error('Documento original no encontrado');
     }
 
-    // Crear copia sin el ID y fechas del original
-    const duplicateData = {
+    // Crear copia con los nuevos campos, y convertir Date a Timestamp para Firestore
+    const duplicatePayload: ChangeSheetFirestorePayload = {
       employeeName: originalDoc.employeeName,
       employeeLastName: originalDoc.employeeLastName,
       originCenter: originalDoc.originCenter,
+      contractsManaged: originalDoc.contractsManaged,
       currentPosition: originalDoc.currentPosition,
       currentSupervisorName: originalDoc.currentSupervisorName,
       currentSupervisorLastName: originalDoc.currentSupervisorLastName,
+      destinationCenter: originalDoc.destinationCenter,
+      contractsToManage: originalDoc.contractsToManage,
       newPosition: originalDoc.newPosition,
-      newSupervisorName: originalDoc.newSupervisorName,
-      newSupervisorLastName: originalDoc.newSupervisorLastName,
-      startDate: originalDoc.startDate,
+      startDate: originalDoc.startDate ? Timestamp.fromDate(originalDoc.startDate) : null,
       changeType: originalDoc.changeType,
       needs: originalDoc.needs,
       currentCompany: originalDoc.currentCompany,
       companyChange: originalDoc.companyChange,
       observations: originalDoc.observations + ' (Copia)',
-      status: 'Pendiente' as const,
+      status: 'Pendiente', // El duplicado siempre comienza como Pendiente
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now()
     };
 
     const changeSheetsRef = collection(db, "Gestión de Talento", "hojas-cambio", "Hojas de Cambio");
-    const docRef = await addDoc(changeSheetsRef, {
-      ...duplicateData,
-      startDate: duplicateData.startDate ? Timestamp.fromDate(duplicateData.startDate) : null
-    });
+    const docRef = await addDoc(changeSheetsRef, duplicatePayload);
 
     console.log('Hoja de cambio duplicada con ID:', docRef.id);
     return docRef.id;
@@ -166,6 +224,7 @@ export const duplicateChangeSheet = async (originalId: string): Promise<string> 
   }
 };
 
+// --- Función para eliminar una Hoja de Cambio ---
 export const deleteChangeSheet = async (id: string): Promise<void> => {
   try {
     const docRef = doc(db, "Gestión de Talento", "hojas-cambio", "Hojas de Cambio", id);
@@ -177,6 +236,7 @@ export const deleteChangeSheet = async (id: string): Promise<void> => {
   }
 };
 
+// --- Función para exportar Hojas de Cambio a CSV ---
 export const exportChangeSheetsToCSV = async (): Promise<void> => {
   try {
     const changeSheets = await getChangeSheets();
@@ -186,18 +246,19 @@ export const exportChangeSheetsToCSV = async (): Promise<void> => {
       return;
     }
 
-    // Definir las columnas del CSV
+    // Definir las columnas del CSV (actualizadas a los nuevos campos)
     const headers = [
       'ID',
       'Nombre Empleado',
       'Apellidos Empleado',
       'Centro Origen',
+      'Contratos que Administra', // Nuevo campo
       'Posición Actual',
-      'Nombre Supervisor Actual',
-      'Apellidos Supervisor Actual',
-      'Nueva Posición',
-      'Nombre Nuevo Supervisor',
-      'Apellidos Nuevo Supervisor',
+      'Nombre Responsable Actual',
+      'Apellidos Responsable Actual',
+      'Centro Destino', // Nuevo campo
+      'Contratos a Gestionar', // Nuevo campo
+      'Nuevo Puesto',
       'Fecha Inicio',
       'Tipo de Cambio',
       'Necesidades',
@@ -214,25 +275,26 @@ export const exportChangeSheetsToCSV = async (): Promise<void> => {
       headers.join(','),
       ...changeSheets.map(sheet => [
         sheet.id,
-        `"${sheet.employeeName}"`,
-        `"${sheet.employeeLastName}"`,
-        `"${sheet.originCenter}"`,
-        `"${sheet.currentPosition}"`,
-        `"${sheet.currentSupervisorName}"`,
-        `"${sheet.currentSupervisorLastName}"`,
-        `"${sheet.newPosition}"`,
-        `"${sheet.newSupervisorName}"`,
-        `"${sheet.newSupervisorLastName}"`,
+        sheet.employeeName,
+        sheet.employeeLastName,
+        sheet.originCenter,
+        sheet.contractsManaged || '',
+        sheet.currentPosition,
+        sheet.currentSupervisorName,
+        sheet.currentSupervisorLastName,
+        sheet.destinationCenter,
+        sheet.contractsToManage || '',
+        sheet.newPosition,
         sheet.startDate ? sheet.startDate.toLocaleDateString() : '',
-        sheet.changeType === 'permanent' ? 'Permanente' : 'Temporal',
-        `"${sheet.needs.join('; ')}"`,
-        `"${sheet.currentCompany}"`,
-        sheet.companyChange === 'yes' ? 'Sí' : 'No',
-        `"${sheet.observations}"`,
-        `"${sheet.status}"`,
+        sheet.changeType,
+        sheet.needs.join('; '),
+        sheet.currentCompany,
+        sheet.companyChange,
+        sheet.observations,
+        sheet.status,
         sheet.createdAt.toLocaleDateString(),
         sheet.updatedAt.toLocaleDateString()
-      ].join(','))
+      ].map(field => `"${String(field).replace(/"/g, '""')}"`).join(',')) // Escapar comillas dobles y asegurarse de que todos los campos sean strings
     ].join('\n');
 
     // Crear y descargar el archivo
