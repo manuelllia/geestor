@@ -72,7 +72,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
 
   const handleDuplicateRequest = async (request: ContractRequestRecord) => {
     try {
-      await duplicateContractRequest(request.id);
+      await duplicateContractRequest(request);
       await loadRequests();
       toast.success('Solicitud duplicada correctamente');
     } catch (error) {
@@ -169,7 +169,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
       <ContractRequestCreateForm
         language={language}
         onBack={() => setShowCreateForm(false)}
-        onRequestCreated={handleRequestCreated}
+        onSuccess={handleRequestCreated}
       />
     );
   }
@@ -196,7 +196,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
           setShowEditForm(false);
           setSelectedRequest(null);
         }}
-        onRequestUpdated={handleRequestUpdated}
+        onSuccess={handleRequestUpdated}
       />
     );
   }
@@ -288,7 +288,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
                       <TableRow key={request.id}>
                         <TableCell className="font-medium text-xs sm:text-sm">
                           <div className="truncate max-w-[120px]">
-                            {request.candidateName} {request.candidateLastName}
+                            {request.employeeName} {request.employeeLastName}
                           </div>
                         </TableCell>
                         <TableCell className="text-xs sm:text-sm">
@@ -308,7 +308,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
                         </TableCell>
                         <TableCell className="text-xs sm:text-sm hidden lg:table-cell">
                           <div className="truncate max-w-[100px]">
-                            {request.departmentRequesting}
+                            {request.department}
                           </div>
                         </TableCell>
                         <TableCell className="text-xs sm:text-sm hidden sm:table-cell">

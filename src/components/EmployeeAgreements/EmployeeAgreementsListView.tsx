@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -73,7 +71,7 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
 
   const handleDuplicateAgreement = async (agreement: EmployeeAgreementRecord) => {
     try {
-      await duplicateEmployeeAgreement(agreement.id);
+      await duplicateEmployeeAgreement(agreement);
       await loadAgreements();
       toast.success('Acuerdo duplicado correctamente');
     } catch (error) {
@@ -170,7 +168,7 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
       <EmployeeAgreementCreateForm
         language={language}
         onBack={() => setShowCreateForm(false)}
-        onAgreementCreated={handleAgreementCreated}
+        onSuccess={handleAgreementCreated}
       />
     );
   }
@@ -197,7 +195,7 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
           setShowEditForm(false);
           setSelectedAgreement(null);
         }}
-        onAgreementUpdated={handleAgreementUpdated}
+        onSuccess={handleAgreementUpdated}
       />
     );
   }
