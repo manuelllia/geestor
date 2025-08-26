@@ -63,8 +63,7 @@ const PracticeEvaluationsListView: React.FC<PracticeEvaluationsListViewProps> = 
       return (
         <PracticeEvaluationDetailView
           evaluation={selectedEvaluation}
-          language={language}
-          onBack={handleBack}
+          onClose={handleBack}
         />
       );
     }
