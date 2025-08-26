@@ -81,9 +81,24 @@
   * {
     @apply border-border;
   }
-  body {
+  
+  html, body {
     @apply bg-background text-foreground font-sans;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100vw;
+  }
+  
+  #root {
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+  
+  /* Asegurar que ningún elemento cause scroll horizontal */
+  .container, .w-full {
+    max-width: 100%;
   }
 }
 
@@ -311,4 +326,16 @@
 .typing-dots::after {
   content: ''; /* Estado inicial vacío */
   animation: dots 1.5s infinite steps(1, start);
+}
+
+/* Utilidades para prevenir scroll horizontal */
+.no-scrollbar-x {
+  overflow-x: hidden;
+}
+
+.container-responsive {
+  width: 100%;
+  max-width: 100vw;
+  min-width: 0;
+  overflow-x: hidden;
 }
