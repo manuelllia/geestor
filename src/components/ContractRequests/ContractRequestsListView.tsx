@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -168,7 +169,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
       <ContractRequestCreateForm
         language={language}
         onBack={() => setShowCreateForm(false)}
-        onSuccess={handleRequestCreated}
+        onRequestCreated={handleRequestCreated}
       />
     );
   }
@@ -195,7 +196,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
           setShowEditForm(false);
           setSelectedRequest(null);
         }}
-        onSuccess={handleRequestUpdated}
+        onRequestUpdated={handleRequestUpdated}
       />
     );
   }
@@ -425,7 +426,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
           <ImportContractRequestsModal
             open={showImportModal}
             onClose={() => setShowImportModal(false)}
-            onSuccess={handleImportSuccess}
+            onImportSuccess={handleImportSuccess}
             language={language}
           />
         )}
