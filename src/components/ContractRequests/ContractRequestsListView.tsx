@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,7 +10,7 @@ import { useTranslation } from '../../hooks/useTranslation';
 import { Language } from '../../utils/translations';
 import { 
   getContractRequests, 
-  ContractRequestData,
+  ContractRequestRecord,
   deleteContractRequest,
   updateContractRequest,
   saveContractRequest
@@ -27,7 +28,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
   const { toast } = useToast();
   const [showImportModal, setShowImportModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [requests, setRequests] = useState<ContractRequestData[]>([]);
+  const [requests, setRequests] = useState<ContractRequestRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
@@ -82,10 +83,11 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
       const originalRequest = requests.find(r => r.id === id);
       if (!originalRequest) return;
 
-      const { id: _, createdAt, updatedAt, ...requestData } = originalRequest;
+      const { id: _, createdAt, updatedAt, status, requestDate, ...requestData } = originalRequest;
       const duplicatedData = {
         ...requestData,
-        applicantName: `${requestData.applicantName} (Copia)`,
+        requesterName: `${requestData.requesterName} (Copia)`,
+        incorporationDate: requestData.incorporationDate?.toISOString().split('T')[0] || '',
       };
       
       await saveContractRequest(duplicatedData);
@@ -141,10 +143,10 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
       'Nombre Solicitante',
       'Apellidos Solicitante',
       'Puesto',
-      'Departamento',
-      'Tipo de Solicitud',
+      'Empresa',
+      'Tipo de Contrato',
       'Fecha de Solicitud',
-      'Fecha Inicio Esperada',
+      'Fecha Incorporación',
       'Salario',
       'Estado',
       'Observaciones',
@@ -155,13 +157,13 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
       headers.join(','),
       ...requests.map(request => [
         request.id || '',
-        `"${request.applicantName}"`,
-        `"${request.applicantLastName}"`,
-        `"${request.position}"`,
-        `"${request.department}"`,
-        `"${request.requestType}"`,
+        `"${request.requesterName}"`,
+        `"${request.requesterLastName}"`,
+        `"${request.jobPosition}"`,
+        `"${request.company}"`,
+        `"${request.contractType}"`,
         request.requestDate.toLocaleDateString('es-ES'),
-        request.expectedStartDate ? request.expectedStartDate.toLocaleDateString('es-ES') : '',
+        request.incorporationDate ? request.incorporationDate.toLocaleDateString('es-ES') : '',
         `"${request.salary}"`,
         `"${request.status}"`,
         `"${request.observations}"`,
@@ -339,7 +341,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
                     <TableRow>
                       <TableHead>Solicitante</TableHead>
                       <TableHead>Puesto</TableHead>
-                      <TableHead>Departamento</TableHead>
+                      <TableHead>Empresa</TableHead>
                       <TableHead>Tipo</TableHead>
                       <TableHead>Fecha Solicitud</TableHead>
                       <TableHead>Estado</TableHead>
@@ -350,11 +352,11 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
                     {currentData.map((request) => (
                       <TableRow key={request.id}>
                         <TableCell className="font-medium">
-                          {request.applicantName} {request.applicantLastName}
+                          {request.requesterName} {request.requesterLastName}
                         </TableCell>
-                        <TableCell>{request.position}</TableCell>
-                        <TableCell>{request.department}</TableCell>
-                        <TableCell>{request.requestType}</TableCell>
+                        <TableCell>{request.jobPosition}</TableCell>
+                        <TableCell>{request.company}</TableCell>
+                        <TableCell>{request.contractType}</TableCell>
                         <TableCell>
                           {formatDate(request.requestDate)}
                         </TableCell>
@@ -368,7 +370,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => handleViewDetails(request.id!)}
+                              onClick={() => handleViewDetails(request.id)}
                               title="Ver detalles"
                             >
                               <Eye className="w-4 h-4" />
@@ -376,7 +378,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => handleDuplicate(request.id!)}
+                              onClick={() => handleDuplicate(request.id)}
                               title="Duplicar"
                             >
                               <Copy className="w-4 h-4" />
@@ -384,7 +386,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => handleDownloadPDF(request.id!)}
+                              onClick={() => handleDownloadPDF(request.id)}
                               title="Descargar PDF"
                             >
                               <Download className="w-4 h-4" />
@@ -392,7 +394,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => handleDelete(request.id!)}
+                              onClick={() => handleDelete(request.id)}
                               title="Eliminar"
                               className="text-red-600 hover:text-red-800"
                             >
@@ -477,3 +479,4 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
 };
 
 export default ContractRequestsListView;
+

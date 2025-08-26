@@ -1,3 +1,4 @@
+
 // src/services/contractRequestsService.ts
 
 import { collection, addDoc, getDocs, doc, setDoc, deleteDoc, updateDoc, query, orderBy, Timestamp, getDoc } from 'firebase/firestore';
@@ -42,18 +43,14 @@ export interface ContractRequestRecord {
   approved?: boolean; // Booleano para aprobación (podría ser redundante con status, pero se mantiene si existe)
 }
 
-// --- Tipos adicionales requeridos por los componentes ---
-export interface ContractRequestData {
-  applicantName: string;
-  applicantLastName: string;
-  position: string;
-  department: string;
-  requestType: string;
-  requestDate: Date;
-  expectedStartDate: Date;
-  salary: string;
-  status: string;
-  observations: string;
+// --- Aliases para compatibilidad con los componentes existentes ---
+export interface ContractRequestData extends ContractRequestRecord {
+  applicantName: string; // Alias para requesterName
+  applicantLastName: string; // Alias para requesterLastName
+  position: string; // Alias para jobPosition
+  department: string; // Alias para company
+  requestType: string; // Alias para contractType
+  expectedStartDate: Date; // Alias para incorporationDate
 }
 
 export interface ContractRequestInput {
@@ -371,60 +368,4 @@ export const importContractRequests = async (requests: ContractRequestInput[]): 
   }
 
   return results;
-};
-
-// --- FUNCIÓN para obtener una Solicitud de Contratación por ID ---
-export const getContractRequestById = async (id: string): Promise<ContractRequestRecord | null> => {
-  try {
-    const docRef = doc(db, COLLECTION_PATH, id);
-    const docSnap = await getDoc(docRef);
-
-    if (docSnap.exists()) {
-      const data = docSnap.data();
-
-      // Validar y tipar correctamente los campos de tipo literal
-      const companyFlat: 'Si' | 'No' = (data.companyFlat === 'Si' || data.companyFlat === 'No') ? data.companyFlat : 'No';
-      const status: 'Pendiente' | 'Aprobado' | 'Rechazado' = (data.status === 'Pendiente' || data.status === 'Aprobado' || data.status === 'Rechazado') ? data.status : 'Pendiente';
-
-      return {
-        id: docSnap.id,
-        requesterName: data.requesterName || '',
-        requesterLastName: data.requesterLastName || '',
-        contractType: data.contractType || '',
-        salary: data.salary || '',
-        observations: data.observations || '',
-        incorporationDate: data.incorporationDate instanceof Timestamp ? data.incorporationDate.toDate() : undefined,
-        company: data.company || '',
-        jobPosition: data.jobPosition || '',
-        professionalCategory: data.professionalCategory || '',
-        city: data.city || '',
-        province: data.province || '',
-        autonomousCommunity: data.autonomousCommunity || '',
-        workCenter: data.workCenter || '',
-        companyFlat: companyFlat,
-        language1: data.language1 || '',
-        level1: data.level1 || '',
-        language2: data.language2 || '',
-        level2: data.level2 || '',
-        experienceElectromedicine: data.experienceElectromedicine || '',
-        experienceInstallations: data.experienceInstallations || '',
-        hiringReason: data.hiringReason || '',
-        notesAndCommitments: data.notesAndCommitments || '',
-        
-        status: status,
-        requestDate: data.requestDate instanceof Timestamp ? data.requestDate.toDate() : new Date(),
-        createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate() : new Date(),
-        updatedAt: data.updatedAt instanceof Timestamp ? data.updatedAt.toDate() : new Date(),
-
-        createdByUserId: data.createdByUserId || undefined,
-        pdfSolicitation: data.pdfSolicitation || undefined,
-        selectedCandidate: data.selectedCandidate || undefined,
-        approved: typeof data.approved === 'boolean' ? data.approved : undefined,
-      };
-    }
-    return null;
-  } catch (error) {
-    console.error('Error al obtener solicitud de contratación por ID:', error);
-    throw error;
-  }
 };
