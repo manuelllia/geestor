@@ -8,7 +8,7 @@ import { MoreHorizontal, Eye, GraduationCap, RefreshCw } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Language } from '../../utils/translations';
 import { useTranslation } from '../../hooks/useTranslation';
-import { getPracticeEvaluations, PracticeEvaluationData } from '../../services/practiceEvaluationService';
+import { getPracticeEvaluations, PracticeEvaluationRecord } from '../../services/practiceEvaluationService';
 import PracticeEvaluationDetailView from './PracticeEvaluationDetailView';
 import { toast } from 'sonner';
 
@@ -18,7 +18,7 @@ interface PracticeEvaluationsListViewProps {
 
 const PracticeEvaluationsListView: React.FC<PracticeEvaluationsListViewProps> = ({ language }) => {
   const { t } = useTranslation(language);
-  const [evaluations, setEvaluations] = useState<PracticeEvaluationData[]>([]);
+  const [evaluations, setEvaluations] = useState<PracticeEvaluationRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentView, setCurrentView] = useState<'list' | 'detail'>('list');
   const [selectedEvaluationId, setSelectedEvaluationId] = useState<string | null>(null);
@@ -114,11 +114,11 @@ const PracticeEvaluationsListView: React.FC<PracticeEvaluationsListViewProps> = 
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="text-xs sm:text-sm min-w-[150px]">{t('name')}</TableHead>
+                      <TableHead className="text-xs sm:text-sm min-w-[150px]">Estudiante</TableHead>
                       <TableHead className="text-xs sm:text-sm min-w-[120px] hidden sm:table-cell">Centro práctica</TableHead>
                       <TableHead className="text-xs sm:text-sm min-w-[100px] hidden lg:table-cell">Fecha evaluación</TableHead>
-                      <TableHead className="text-xs sm:text-sm min-w-[80px] hidden md:table-cell">Puntuación</TableHead>
-                      <TableHead className="text-xs sm:text-sm min-w-[100px]">Supervisor</TableHead>
+                      <TableHead className="text-xs sm:text-sm min-w-[80px] hidden md:table-cell">Calificación</TableHead>
+                      <TableHead className="text-xs sm:text-sm min-w-[100px]">Tutor</TableHead>
                       <TableHead className="text-xs sm:text-sm min-w-[80px]">{t('status')}</TableHead>
                       <TableHead className="w-[50px] text-xs sm:text-sm">{t('actions')}</TableHead>
                     </TableRow>
@@ -128,30 +128,32 @@ const PracticeEvaluationsListView: React.FC<PracticeEvaluationsListViewProps> = 
                       <TableRow key={evaluation.id}>
                         <TableCell className="font-medium text-xs sm:text-sm">
                           <div className="truncate max-w-[150px] sm:max-w-[200px]">
-                            {evaluation.studentName || 'Sin datos'}
+                            {`${evaluation.studentName} ${evaluation.studentLastName}` || 'Sin datos'}
                           </div>
                         </TableCell>
                         <TableCell className="text-xs sm:text-sm hidden sm:table-cell">
                           <div className="truncate max-w-[120px]">
-                            {evaluation.practiceCenter || 'Sin datos'}
+                            {evaluation.workCenter || 'Sin datos'}
                           </div>
                         </TableCell>
                         <TableCell className="text-xs sm:text-sm hidden lg:table-cell">
-                          {evaluation.evaluationDate || 'Sin datos'}
+                          {evaluation.evaluationDate instanceof Date 
+                            ? evaluation.evaluationDate.toLocaleDateString() 
+                            : 'Sin datos'}
                         </TableCell>
                         <TableCell className="text-xs sm:text-sm hidden md:table-cell">
                           <Badge variant="outline" className="text-xs">
-                            {evaluation.overallScore || 'N/A'}/10
+                            {evaluation.performanceRating || 'N/A'}/10
                           </Badge>
                         </TableCell>
                         <TableCell className="text-xs sm:text-sm">
                           <div className="truncate max-w-[100px]">
-                            {evaluation.supervisor || 'Sin datos'}
+                            {`${evaluation.tutorName} ${evaluation.tutorLastName}` || 'Sin datos'}
                           </div>
                         </TableCell>
                         <TableCell>
                           <Badge variant="secondary" className="text-xs">
-                            {evaluation.status || t('pending')}
+                            {evaluation.finalEvaluation || t('pending')}
                           </Badge>
                         </TableCell>
                         <TableCell>
@@ -162,7 +164,7 @@ const PracticeEvaluationsListView: React.FC<PracticeEvaluationsListViewProps> = 
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="bg-white dark:bg-gray-800 border border-blue-200 dark:border-blue-700">
-                              <DropdownMenuItem onClick={() => handleView(evaluation.id!)} className="cursor-pointer text-xs sm:text-sm">
+                              <DropdownMenuItem onClick={() => handleView(evaluation.id)} className="cursor-pointer text-xs sm:text-sm">
                                 <Eye className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                                 {t('view')}
                               </DropdownMenuItem>

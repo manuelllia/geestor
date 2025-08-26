@@ -214,7 +214,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
                         </TableCell>
                         <TableCell className="text-xs sm:text-sm hidden md:table-cell">
                           <div className="truncate max-w-[100px]">
-                            {request.requestDate || 'Sin datos'}
+                            {request.contractType || 'Sin datos'}
                           </div>
                         </TableCell>
                         <TableCell>

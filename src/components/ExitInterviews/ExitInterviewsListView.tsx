@@ -8,7 +8,7 @@ import { MoreHorizontal, Eye, UserMinus, RefreshCw } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Language } from '../../utils/translations';
 import { useTranslation } from '../../hooks/useTranslation';
-import { getExitInterviews, ExitInterviewData } from '../../services/exitInterviewService';
+import { getExitInterviews, ExitInterviewRecord } from '../../services/exitInterviewService';
 import ExitInterviewDetailView from './ExitInterviewDetailView';
 import { toast } from 'sonner';
 
@@ -18,7 +18,7 @@ interface ExitInterviewsListViewProps {
 
 const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ language }) => {
   const { t } = useTranslation(language);
-  const [interviews, setInterviews] = useState<ExitInterviewData[]>([]);
+  const [interviews, setInterviews] = useState<ExitInterviewRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentView, setCurrentView] = useState<'list' | 'detail'>('list');
   const [selectedInterviewId, setSelectedInterviewId] = useState<string | null>(null);
@@ -112,10 +112,10 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
                   <TableHeader>
                     <TableRow>
                       <TableHead className="text-xs sm:text-sm min-w-[150px]">{t('name')}</TableHead>
-                      <TableHead className="text-xs sm:text-sm min-w-[120px] hidden sm:table-cell">{t('department')}</TableHead>
+                      <TableHead className="text-xs sm:text-sm min-w-[120px] hidden sm:table-cell">Centro trabajo</TableHead>
                       <TableHead className="text-xs sm:text-sm min-w-[100px] hidden lg:table-cell">Fecha salida</TableHead>
-                      <TableHead className="text-xs sm:text-sm min-w-[120px] hidden md:table-cell">Motivo salida</TableHead>
-                      <TableHead className="text-xs sm:text-sm min-w-[100px]">Entrevistador</TableHead>
+                      <TableHead className="text-xs sm:text-sm min-w-[120px] hidden md:table-cell">Razón salida</TableHead>
+                      <TableHead className="text-xs sm:text-sm min-w-[100px]">Supervisor</TableHead>
                       <TableHead className="text-xs sm:text-sm min-w-[80px]">{t('status')}</TableHead>
                       <TableHead className="w-[50px] text-xs sm:text-sm">{t('actions')}</TableHead>
                     </TableRow>
@@ -125,30 +125,32 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
                       <TableRow key={interview.id}>
                         <TableCell className="font-medium text-xs sm:text-sm">
                           <div className="truncate max-w-[150px] sm:max-w-[200px]">
-                            {interview.employeeName || 'Sin datos'}
+                            {`${interview.employeeName} ${interview.employeeLastName}` || 'Sin datos'}
                           </div>
                         </TableCell>
                         <TableCell className="text-xs sm:text-sm hidden sm:table-cell">
                           <div className="truncate max-w-[120px]">
-                            {interview.department || 'Sin datos'}
+                            {interview.workCenter || 'Sin datos'}
                           </div>
                         </TableCell>
                         <TableCell className="text-xs sm:text-sm hidden lg:table-cell">
-                          {interview.exitDate || 'Sin datos'}
+                          {interview.exitDate instanceof Date 
+                            ? interview.exitDate.toLocaleDateString() 
+                            : 'Sin datos'}
                         </TableCell>
                         <TableCell className="text-xs sm:text-sm hidden md:table-cell">
                           <div className="truncate max-w-[120px]">
-                            {interview.reasonForLeaving || 'Sin datos'}
+                            {interview.mainExitReason || 'Sin datos'}
                           </div>
                         </TableCell>
                         <TableCell className="text-xs sm:text-sm">
                           <div className="truncate max-w-[100px]">
-                            {interview.interviewer || 'Sin datos'}
+                            {`${interview.supervisorName} ${interview.supervisorLastName}` || 'Sin datos'}
                           </div>
                         </TableCell>
                         <TableCell>
                           <Badge variant="secondary" className="text-xs">
-                            {interview.status || t('pending')}
+                            {'Completada'}
                           </Badge>
                         </TableCell>
                         <TableCell>
@@ -159,7 +161,7 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="bg-white dark:bg-gray-800 border border-blue-200 dark:border-blue-700">
-                              <DropdownMenuItem onClick={() => handleView(interview.id!)} className="cursor-pointer text-xs sm:text-sm">
+                              <DropdownMenuItem onClick={() => handleView(interview.id)} className="cursor-pointer text-xs sm:text-sm">
                                 <Eye className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                                 {t('view')}
                               </DropdownMenuItem>
