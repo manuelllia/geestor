@@ -8,7 +8,7 @@ import { MoreHorizontal, Eye, UserMinus, RefreshCw } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Language } from '../../utils/translations';
 import { useTranslation } from '../../hooks/useTranslation';
-import { getExitInterviews, ExitInterviewRecord } from '../../services/exitInterviewService';
+import { getExitInterviews, ExitInterview } from '../../services/exitInterviewService';
 import ExitInterviewDetailView from './ExitInterviewDetailView';
 import { toast } from 'sonner';
 
@@ -18,7 +18,7 @@ interface ExitInterviewsListViewProps {
 
 const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ language }) => {
   const { t } = useTranslation(language);
-  const [interviews, setInterviews] = useState<ExitInterviewRecord[]>([]);
+  const [interviews, setInterviews] = useState<ExitInterview[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentView, setCurrentView] = useState<'list' | 'detail'>('list');
   const [selectedInterviewId, setSelectedInterviewId] = useState<string | null>(null);
@@ -35,7 +35,7 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
       setInterviews(data);
     } catch (error) {
       console.error('Error loading exit interviews:', error);
-      toast.error('Error cargando datos');
+      toast.error(t('errorLoadingData'));
     } finally {
       setLoading(false);
     }
@@ -76,7 +76,7 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
               {t('exitInterviews')}
             </h1>
             <p className="text-xs sm:text-sm lg:text-base text-gray-600 dark:text-gray-400 mt-1">
-              Gestionar entrevistas de salida
+              {t('manageExitInterviews')}
             </p>
           </div>
           
@@ -88,7 +88,7 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
             size="sm"
           >
             <RefreshCw className={`w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-            Actualizar
+            {t('refresh')}
           </Button>
         </div>
 
@@ -97,10 +97,10 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
             <CardTitle className="text-sm sm:text-base lg:text-lg text-blue-800 dark:text-blue-200 flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
               <span className="flex items-center gap-2">
                 <UserMinus className="w-4 h-4 sm:w-5 sm:h-5" />
-                Lista de entrevistas
+                {t('interviewsList')}
               </span>
               <Badge variant="secondary" className="text-xs sm:text-sm w-fit">
-                {interviews.length} entrevistas
+                {interviews.length} {t('interviews')}
               </Badge>
             </CardTitle>
           </CardHeader>
@@ -111,11 +111,11 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="text-xs sm:text-sm min-w-[150px]">{t('name')}</TableHead>
-                      <TableHead className="text-xs sm:text-sm min-w-[120px] hidden sm:table-cell">Centro trabajo</TableHead>
-                      <TableHead className="text-xs sm:text-sm min-w-[100px] hidden lg:table-cell">Fecha salida</TableHead>
-                      <TableHead className="text-xs sm:text-sm min-w-[120px] hidden md:table-cell">Razón salida</TableHead>
-                      <TableHead className="text-xs sm:text-sm min-w-[100px]">Supervisor</TableHead>
+                      <TableHead className="text-xs sm:text-sm min-w-[150px]">{t('employeeName')}</TableHead>
+                      <TableHead className="text-xs sm:text-sm min-w-[120px] hidden sm:table-cell">{t('department')}</TableHead>
+                      <TableHead className="text-xs sm:text-sm min-w-[100px] hidden lg:table-cell">{t('exitDate')}</TableHead>
+                      <TableHead className="text-xs sm:text-sm min-w-[120px] hidden md:table-cell">{t('reasonForLeaving')}</TableHead>
+                      <TableHead className="text-xs sm:text-sm min-w-[100px]">{t('interviewer')}</TableHead>
                       <TableHead className="text-xs sm:text-sm min-w-[80px]">{t('status')}</TableHead>
                       <TableHead className="w-[50px] text-xs sm:text-sm">{t('actions')}</TableHead>
                     </TableRow>
@@ -125,32 +125,30 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
                       <TableRow key={interview.id}>
                         <TableCell className="font-medium text-xs sm:text-sm">
                           <div className="truncate max-w-[150px] sm:max-w-[200px]">
-                            {`${interview.employeeName} ${interview.employeeLastName}` || 'Sin datos'}
+                            {interview.employeeName || t('noData')}
                           </div>
                         </TableCell>
                         <TableCell className="text-xs sm:text-sm hidden sm:table-cell">
                           <div className="truncate max-w-[120px]">
-                            {interview.workCenter || 'Sin datos'}
+                            {interview.department || t('noData')}
                           </div>
                         </TableCell>
                         <TableCell className="text-xs sm:text-sm hidden lg:table-cell">
-                          {interview.exitDate instanceof Date 
-                            ? interview.exitDate.toLocaleDateString() 
-                            : 'Sin datos'}
+                          {interview.exitDate || t('noData')}
                         </TableCell>
                         <TableCell className="text-xs sm:text-sm hidden md:table-cell">
                           <div className="truncate max-w-[120px]">
-                            {interview.mainExitReason || 'Sin datos'}
+                            {interview.reasonForLeaving || t('noData')}
                           </div>
                         </TableCell>
                         <TableCell className="text-xs sm:text-sm">
                           <div className="truncate max-w-[100px]">
-                            {`${interview.supervisorName} ${interview.supervisorLastName}` || 'Sin datos'}
+                            {interview.interviewer || t('noData')}
                           </div>
                         </TableCell>
                         <TableCell>
                           <Badge variant="secondary" className="text-xs">
-                            {'Completada'}
+                            {interview.status || t('pending')}
                           </Badge>
                         </TableCell>
                         <TableCell>
@@ -161,7 +159,7 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="bg-white dark:bg-gray-800 border border-blue-200 dark:border-blue-700">
-                              <DropdownMenuItem onClick={() => handleView(interview.id)} className="cursor-pointer text-xs sm:text-sm">
+                              <DropdownMenuItem onClick={() => handleView(interview.id!)} className="cursor-pointer text-xs sm:text-sm">
                                 <Eye className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                                 {t('view')}
                               </DropdownMenuItem>

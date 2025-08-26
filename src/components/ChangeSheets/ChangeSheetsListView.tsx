@@ -8,7 +8,7 @@ import { MoreHorizontal, Eye, Edit, Trash2, Plus, FileText, Upload, RefreshCw } 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Language } from '../../utils/translations';
 import { useTranslation } from '../../hooks/useTranslation';
-import { getChangeSheets, deleteChangeSheet, ChangeSheetRecord } from '../../services/changeSheetsService';
+import { getChangeSheets, deleteChangeSheet, ChangeSheet } from '../../services/changeSheetsService';
 import ChangeSheetCreateForm from './ChangeSheetCreateForm';
 import ChangeSheetDetailView from './ChangeSheetDetailView';
 import ImportChangeSheetsModal from './ImportChangeSheetsModal';
@@ -20,7 +20,7 @@ interface ChangeSheetsListViewProps {
 
 const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({ language }) => {
   const { t } = useTranslation(language);
-  const [sheets, setSheets] = useState<ChangeSheetRecord[]>([]);
+  const [sheets, setSheets] = useState<ChangeSheet[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentView, setCurrentView] = useState<'list' | 'create' | 'detail'>('list');
   const [selectedSheetId, setSelectedSheetId] = useState<string | null>(null);
@@ -38,7 +38,7 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({ language })
       setSheets(data);
     } catch (error) {
       console.error('Error loading change sheets:', error);
-      toast.error('Error cargando datos');
+      toast.error(t('errorLoadingData'));
     } finally {
       setLoading(false);
     }
@@ -51,14 +51,14 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({ language })
   };
 
   const handleDelete = async (id: string) => {
-    if (window.confirm('¿Estás seguro de que quieres eliminar este elemento?')) {
+    if (window.confirm(t('confirmDelete'))) {
       try {
         await deleteChangeSheet(id);
         setSheets(prev => prev.filter(sheet => sheet.id !== id));
-        toast.success('Eliminado exitosamente');
+        toast.success(t('deleteSuccess'));
       } catch (error) {
         console.error('Error deleting change sheet:', error);
-        toast.error('Error al eliminar');
+        toast.error(t('deleteError'));
       }
     }
   };
@@ -95,10 +95,6 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({ language })
         sheetId={selectedSheetId}
         language={language}
         onBack={handleBack}
-        onDelete={() => {
-          handleBack();
-          loadSheets();
-        }}
       />
     );
   }
@@ -112,7 +108,7 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({ language })
               {t('changeSheets')}
             </h1>
             <p className="text-xs sm:text-sm lg:text-base text-gray-600 dark:text-gray-400 mt-1">
-              Gestionar hojas de cambio
+              {t('manageChangeSheets')}
             </p>
           </div>
           
@@ -125,7 +121,7 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({ language })
               size="sm"
             >
               <RefreshCw className={`w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-              Actualizar
+              {t('refresh')}
             </Button>
             
             <Button
@@ -135,7 +131,7 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({ language })
               size="sm"
             >
               <Upload className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-              Importar
+              {t('importData')}
             </Button>
             
             <Button
@@ -154,10 +150,10 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({ language })
             <CardTitle className="text-sm sm:text-base lg:text-lg text-blue-800 dark:text-blue-200 flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
               <span className="flex items-center gap-2">
                 <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
-                Lista de hojas de cambio
+                {t('changeSheetsList')}
               </span>
               <Badge variant="secondary" className="text-xs sm:text-sm w-fit">
-                {sheets.length} hojas
+                {sheets.length} {t('sheets')}
               </Badge>
             </CardTitle>
           </CardHeader>
@@ -168,11 +164,11 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({ language })
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="text-xs sm:text-sm min-w-[120px]">Empleado</TableHead>
+                      <TableHead className="text-xs sm:text-sm min-w-[120px]">{t('title')}</TableHead>
                       <TableHead className="text-xs sm:text-sm min-w-[100px] hidden sm:table-cell">{t('workCenter')}</TableHead>
-                      <TableHead className="text-xs sm:text-sm min-w-[100px] hidden lg:table-cell">Fecha</TableHead>
+                      <TableHead className="text-xs sm:text-sm min-w-[100px] hidden lg:table-cell">{t('date')}</TableHead>
                       <TableHead className="text-xs sm:text-sm min-w-[80px]">{t('status')}</TableHead>
-                      <TableHead className="text-xs sm:text-sm min-w-[120px] hidden md:table-cell">Solicitado por</TableHead>
+                      <TableHead className="text-xs sm:text-sm min-w-[120px] hidden md:table-cell">{t('requestedBy')}</TableHead>
                       <TableHead className="w-[50px] text-xs sm:text-sm">{t('actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -181,16 +177,16 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({ language })
                       <TableRow key={sheet.id}>
                         <TableCell className="font-medium text-xs sm:text-sm">
                           <div className="truncate max-w-[120px] sm:max-w-[200px]">
-                            {`${sheet.employeeName} ${sheet.employeeLastName}` || 'Sin datos'}
+                            {sheet.title || t('noData')}
                           </div>
                         </TableCell>
                         <TableCell className="text-xs sm:text-sm hidden sm:table-cell">
                           <div className="truncate max-w-[100px]">
-                            {sheet.originCenter || 'Sin datos'}
+                            {sheet.workCenter || t('noData')}
                           </div>
                         </TableCell>
                         <TableCell className="text-xs sm:text-sm hidden lg:table-cell">
-                          {sheet.startDate?.toLocaleDateString() || 'Sin datos'}
+                          {sheet.date || t('noData')}
                         </TableCell>
                         <TableCell>
                           <Badge variant="secondary" className="text-xs">
@@ -199,7 +195,7 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({ language })
                         </TableCell>
                         <TableCell className="text-xs sm:text-sm hidden md:table-cell">
                           <div className="truncate max-w-[120px]">
-                            {`${sheet.currentSupervisorName} ${sheet.currentSupervisorLastName}` || 'Sin datos'}
+                            {sheet.requestedBy || t('noData')}
                           </div>
                         </TableCell>
                         <TableCell>
@@ -236,7 +232,7 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({ language })
         <ImportChangeSheetsModal
           open={isImportModalOpen}
           onClose={() => setIsImportModalOpen(false)}
-          language={language}
+          onImportSuccess={loadSheets}
         />
       </div>
     </div>

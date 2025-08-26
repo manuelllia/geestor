@@ -39,7 +39,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
       setRequests(data);
     } catch (error) {
       console.error('Error loading contract requests:', error);
-      toast.error('Error cargando datos');
+      toast.error(t('errorLoadingData'));
     } finally {
       setLoading(false);
     }
@@ -52,14 +52,14 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
   };
 
   const handleDelete = async (id: string) => {
-    if (window.confirm('¿Estás seguro de que quieres eliminar este elemento?')) {
+    if (window.confirm(t('confirmDelete'))) {
       try {
         await deleteContractRequest(id);
         setRequests(prev => prev.filter(request => request.id !== id));
-        toast.success('Eliminado exitosamente');
+        toast.success(t('deleteSuccess'));
       } catch (error) {
         console.error('Error deleting contract request:', error);
-        toast.error('Error al eliminar');
+        toast.error(t('deleteError'));
       }
     }
   };
@@ -125,7 +125,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
               {t('contractRequests')}
             </h1>
             <p className="text-xs sm:text-sm lg:text-base text-gray-600 dark:text-gray-400 mt-1">
-              Gestionar solicitudes de contrato
+              {t('manageContractRequests')}
             </p>
           </div>
           
@@ -138,7 +138,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
               size="sm"
             >
               <RefreshCw className={`w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-              Actualizar
+              {t('refresh')}
             </Button>
             
             <Button
@@ -148,7 +148,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
               size="sm"
             >
               <Upload className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-              Importar
+              {t('importData')}
             </Button>
             
             <Button
@@ -167,10 +167,10 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
             <CardTitle className="text-sm sm:text-base lg:text-lg text-blue-800 dark:text-blue-200 flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
               <span className="flex items-center gap-2">
                 <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
-                Lista de solicitudes de contrato
+                {t('contractRequestsList')}
               </span>
               <Badge variant="secondary" className="text-xs sm:text-sm w-fit">
-                {requests.length} solicitudes
+                {requests.length} {t('requests')}
               </Badge>
             </CardTitle>
           </CardHeader>
@@ -181,11 +181,11 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="text-xs sm:text-sm min-w-[120px]">Empleado</TableHead>
+                      <TableHead className="text-xs sm:text-sm min-w-[120px]">{t('employee')}</TableHead>
                       <TableHead className="text-xs sm:text-sm min-w-[100px] hidden sm:table-cell">{t('workCenter')}</TableHead>
-                      <TableHead className="text-xs sm:text-sm min-w-[100px] hidden lg:table-cell">Fecha solicitud</TableHead>
+                      <TableHead className="text-xs sm:text-sm min-w-[100px] hidden lg:table-cell">{t('requestDate')}</TableHead>
                       <TableHead className="text-xs sm:text-sm min-w-[80px]">{t('status')}</TableHead>
-                      <TableHead className="text-xs sm:text-sm min-w-[100px] hidden md:table-cell">Tipo solicitud</TableHead>
+                      <TableHead className="text-xs sm:text-sm min-w-[100px] hidden md:table-cell">{t('requestType')}</TableHead>
                       <TableHead className="w-[50px] text-xs sm:text-sm">{t('actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -194,18 +194,16 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
                       <TableRow key={request.id}>
                         <TableCell className="font-medium text-xs sm:text-sm">
                           <div className="truncate max-w-[120px] sm:max-w-[200px]">
-                            {`${request.requesterName} ${request.requesterLastName}`.trim() || 'Sin datos'}
+                            {request.employee || t('noData')}
                           </div>
                         </TableCell>
                         <TableCell className="text-xs sm:text-sm hidden sm:table-cell">
                           <div className="truncate max-w-[100px]">
-                            {request.workCenter || 'Sin datos'}
+                            {request.workCenter || t('noData')}
                           </div>
                         </TableCell>
                         <TableCell className="text-xs sm:text-sm hidden lg:table-cell">
-                          {request.requestDate instanceof Date 
-                            ? request.requestDate.toLocaleDateString() 
-                            : request.requestDate || 'Sin datos'}
+                          {request.requestDate || t('noData')}
                         </TableCell>
                         <TableCell>
                           <Badge variant="secondary" className="text-xs">
@@ -214,7 +212,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
                         </TableCell>
                         <TableCell className="text-xs sm:text-sm hidden md:table-cell">
                           <div className="truncate max-w-[100px]">
-                            {request.contractType || 'Sin datos'}
+                            {request.requestType || t('noData')}
                           </div>
                         </TableCell>
                         <TableCell>
@@ -255,7 +253,6 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
         <ImportContractRequestsModal
           open={isImportModalOpen}
           onClose={() => setIsImportModalOpen(false)}
-          language={language}
         />
       </div>
     </div>

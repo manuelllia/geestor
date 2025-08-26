@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { usePreferences } from '../hooks/usePreferences';
@@ -88,7 +89,13 @@ const Index: React.FC = () => {
       case 'maintenanceCalendar':
         return <MaintenanceCalendarView language={preferences.language} />;
       case 'changeSheets':
-        return <ChangeSheetsListView language={preferences.language} />;
+        return (
+          <ChangeSheetsListView 
+            language={preferences.language}
+            onViewDetails={() => {}}
+            onCreateNew={() => {}}
+          />
+        );
       case 'contractRequests':
         return <ContractRequestsListView language={preferences.language} />;
       case 'employeeAgreements':
