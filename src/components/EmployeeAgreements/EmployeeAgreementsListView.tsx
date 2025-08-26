@@ -168,7 +168,7 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
       <EmployeeAgreementCreateForm
         language={language}
         onBack={() => setShowCreateForm(false)}
-        onAgreementCreated={handleAgreementCreated}
+        onSuccess={handleAgreementCreated}
       />
     );
   }
@@ -195,7 +195,7 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
           setShowEditForm(false);
           setSelectedAgreement(null);
         }}
-        onAgreementUpdated={handleAgreementUpdated}
+        onSuccess={handleAgreementUpdated}
       />
     );
   }
@@ -425,7 +425,7 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
           <ImportEmployeeAgreementsModal
             open={showImportModal}
             onClose={() => setShowImportModal(false)}
-            onImportSuccess={handleImportSuccess}
+            onSuccess={handleImportSuccess}
           />
         )}
       </div>
