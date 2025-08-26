@@ -41,83 +41,78 @@ const MaintenanceInventoryTable: React.FC<MaintenanceInventoryTableProps> = ({
   };
 
   return (
-    <div className="w-full max-w-full overflow-hidden">
-      <div className="p-2 sm:p-4 lg:p-6">
-        <Card className="w-full">
-          <CardHeader className="p-3 sm:p-4 lg:p-6">
-            <CardTitle className="text-sm sm:text-base lg:text-lg text-blue-900 dark:text-blue-100">
-              Inventario de Equipos ({inventory.length} elementos)
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0 sm:p-3 lg:p-6">
-            {/* Contenedor con scroll horizontal solo para la tabla */}
-            <div className="w-full overflow-x-auto">
-              <div className="min-w-[1000px]">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="text-xs sm:text-sm min-w-[120px]">Equipo</TableHead>
-                      <TableHead className="text-xs sm:text-sm min-w-[100px] hidden sm:table-cell">Modelo</TableHead>
-                      <TableHead className="text-xs sm:text-sm min-w-[120px] hidden lg:table-cell">Nº Serie</TableHead>
-                      <TableHead className="text-xs sm:text-sm min-w-[100px] hidden md:table-cell">Ubicación</TableHead>
-                      <TableHead className="text-xs sm:text-sm min-w-[120px] hidden lg:table-cell">Departamento</TableHead>
-                      <TableHead className="text-xs sm:text-sm min-w-[100px] hidden xl:table-cell">Adquisición</TableHead>
-                      <TableHead className="text-xs sm:text-sm min-w-[100px] hidden lg:table-cell">Último Mant.</TableHead>
-                      <TableHead className="text-xs sm:text-sm min-w-[100px]">Próximo Mant.</TableHead>
-                      <TableHead className="text-xs sm:text-sm min-w-[80px]">Estado</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {inventory.map((item) => (
-                      <TableRow key={item.id}>
-                        <TableCell className="font-medium text-xs sm:text-sm">
-                          <div className="truncate max-w-[120px] sm:max-w-[150px]">
-                            {item.equipment}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-xs sm:text-sm hidden sm:table-cell">
-                          <div className="truncate max-w-[100px]">
-                            {item.model}
-                          </div>
-                        </TableCell>
-                        <TableCell className="font-mono text-xs hidden lg:table-cell">
-                          <div className="truncate max-w-[120px]">
-                            {item.serialNumber}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-xs sm:text-sm hidden md:table-cell">
-                          <div className="truncate max-w-[100px]">
-                            {item.location}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-xs sm:text-sm hidden lg:table-cell">
-                          <div className="truncate max-w-[120px]">
-                            {item.department}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-xs sm:text-sm hidden xl:table-cell">
-                          {item.acquisitionDate}
-                        </TableCell>
-                        <TableCell className="text-xs sm:text-sm hidden lg:table-cell">
-                          {item.lastMaintenance}
-                        </TableCell>
-                        <TableCell className="text-xs sm:text-sm">
-                          {item.nextMaintenance}
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={`${getStatusColor(item.status)} text-xs`}>
-                            {item.status}
-                          </Badge>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+    <div className="p-2 sm:p-4 lg:p-6">
+      <Card>
+        <CardHeader className="p-3 sm:p-4 lg:p-6">
+          <CardTitle className="text-sm sm:text-base lg:text-lg text-blue-900 dark:text-blue-100">
+            Inventario de Equipos ({inventory.length} elementos)
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-3 sm:p-4 lg:p-6">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-xs sm:text-sm min-w-[100px]">Equipo</TableHead>
+                  <TableHead className="text-xs sm:text-sm min-w-[80px] hidden sm:table-cell">Modelo</TableHead>
+                  <TableHead className="text-xs sm:text-sm min-w-[100px] hidden lg:table-cell">Nº Serie</TableHead>
+                  <TableHead className="text-xs sm:text-sm min-w-[80px] hidden md:table-cell">Ubicación</TableHead>
+                  <TableHead className="text-xs sm:text-sm min-w-[80px] hidden lg:table-cell">Departamento</TableHead>
+                  <TableHead className="text-xs sm:text-sm min-w-[80px] hidden xl:table-cell">Adquisición</TableHead>
+                  <TableHead className="text-xs sm:text-sm min-w-[80px] hidden lg:table-cell">Último Mant.</TableHead>
+                  <TableHead className="text-xs sm:text-sm min-w-[80px]">Próximo Mant.</TableHead>
+                  <TableHead className="text-xs sm:text-sm min-w-[80px]">Estado</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {inventory.map((item) => (
+                  <TableRow key={item.id}>
+                    <TableCell className="font-medium text-xs sm:text-sm">
+                      <div className="truncate max-w-[100px] sm:max-w-[150px]">
+                        {item.equipment}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-xs sm:text-sm hidden sm:table-cell">
+                      <div className="truncate max-w-[80px]">
+                        {item.model}
+                      </div>
+                    </TableCell>
+                    <TableCell className="font-mono text-xs hidden lg:table-cell">
+                      <div className="truncate max-w-[100px]">
+                        {item.serialNumber}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-xs sm:text-sm hidden md:table-cell">
+                      <div className="truncate max-w-[80px]">
+                        {item.location}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-xs sm:text-sm hidden lg:table-cell">
+                      <div className="truncate max-w-[80px]">
+                        {item.department}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-xs sm:text-sm hidden xl:table-cell">
+                      {item.acquisitionDate}
+                    </TableCell>
+                    <TableCell className="text-xs sm:text-sm hidden lg:table-cell">
+                      {item.lastMaintenance}
+                    </TableCell>
+                    <TableCell className="text-xs sm:text-sm">
+                      {item.nextMaintenance}
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={`${getStatusColor(item.status)} text-xs`}>
+                        {item.status}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

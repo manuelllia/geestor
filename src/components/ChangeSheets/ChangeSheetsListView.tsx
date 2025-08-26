@@ -1,240 +1,686 @@
-
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useEffect, useMemo } from 'react'; // Importar useMemo
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { MoreHorizontal, Eye, Edit, Trash2, Plus, FileText, Upload, RefreshCw } from 'lucide-react';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Language } from '../../utils/translations';
+import { Eye, Copy, Download, Plus, Upload, FileDown, RefreshCw, AlertCircle, Edit, ArrowUp, ArrowDown } from 'lucide-react'; // Importar ArrowUp y ArrowDown
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useTranslation } from '../../hooks/useTranslation';
-import { getChangeSheets, deleteChangeSheet, ChangeSheet } from '../../services/changeSheetsService';
+import { Language } from '../../utils/translations';
 import ChangeSheetCreateForm from './ChangeSheetCreateForm';
 import ChangeSheetDetailView from './ChangeSheetDetailView';
 import ImportChangeSheetsModal from './ImportChangeSheetsModal';
-import { toast } from 'sonner';
+import { getChangeSheets, ChangeSheetRecord, duplicateChangeSheet, exportChangeSheetsToCSV } from '../../services/changeSheetsService';
+import { useUserPermissions } from '../../hooks/useUserPermissions';
+import jsPDF from 'jspdf';
+import { cn } from '@/lib/utils'; // Asegúrate de que tienes esta utilidad (para combinar clases)
+
 
 interface ChangeSheetsListViewProps {
   language: Language;
+  onViewDetails: (sheetId: string) => void;
+  onCreateNew: () => void;
 }
 
-const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({ language }) => {
+const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({ 
+  language, 
+  onViewDetails,
+  onCreateNew
+}) => {
   const { t } = useTranslation(language);
-  const [sheets, setSheets] = useState<ChangeSheet[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [currentView, setCurrentView] = useState<'list' | 'create' | 'detail'>('list');
+  const { permissions, isLoading: permissionsLoading } = useUserPermissions();
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [showDetailView, setShowDetailView] = useState(false);
   const [selectedSheetId, setSelectedSheetId] = useState<string | null>(null);
-  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
+  const [editingSheet, setEditingSheet] = useState<ChangeSheetRecord | null>(null);
+  const [showDuplicateModal, setShowDuplicateModal] = useState(false);
+  const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [changeSheets, setChangeSheets] = useState<ChangeSheetRecord[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const itemsPerPage = 30;
+
+  // NUEVOS ESTADOS DE ORDENACIÓN
+  const [sortColumn, setSortColumn] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc'); // Por defecto ascendente
+
+  const canCreate = permissions?.Per_Create ?? true;
+  const canDelete = permissions?.Per_Delete ?? true;
+  const canView = permissions?.Per_View ?? true;
+  const canModify = permissions?.Per_Modificate ?? true;
+
+  const loadChangeSheets = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const sheets = await getChangeSheets();
+      setChangeSheets(sheets);
+      console.log('Hojas de cambio cargadas:', sheets.length);
+    } catch (err) {
+      console.error('Error cargando hojas de cambio:', err);
+      setError('Error al cargar las hojas de cambio');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    loadSheets();
+    loadChangeSheets();
   }, []);
 
-  const loadSheets = async () => {
-    try {
-      setLoading(true);
-      const data = await getChangeSheets();
-      setSheets(data);
-    } catch (error) {
-      console.error('Error loading change sheets:', error);
-      toast.error(t('errorLoadingData'));
-    } finally {
-      setLoading(false);
+  // LÓGICA DE ORDENACIÓN
+  const handleSort = (column: string) => {
+    if (sortColumn === column) {
+      // Si se hace clic en la misma columna, se cambia la dirección
+      setSortDirection(prevDir => (prevDir === 'asc' ? 'desc' : 'asc'));
+    } else {
+      // Si se hace clic en una nueva columna, se ordena por esa columna en ascendente
+      setSortColumn(column);
+      setSortDirection('asc');
     }
+    setCurrentPage(1); // Siempre volver a la primera página al ordenar
   };
 
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    await loadSheets();
-    setRefreshing(false);
-  };
+  // DATOS ORDENADOS Y MEMORIZADOS
+  const sortedChangeSheets = useMemo(() => {
+    if (!sortColumn) {
+      return changeSheets; // Si no hay columna de ordenación, devuelve los datos sin ordenar
+    }
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm(t('confirmDelete'))) {
-      try {
-        await deleteChangeSheet(id);
-        setSheets(prev => prev.filter(sheet => sheet.id !== id));
-        toast.success(t('deleteSuccess'));
-      } catch (error) {
-        console.error('Error deleting change sheet:', error);
-        toast.error(t('deleteError'));
+    const sortedData = [...changeSheets].sort((a, b) => {
+      // Accede a los valores dinámicamente. Asegúrate de que los nombres de columna existen en ChangeSheetRecord.
+      const aValue = (a as any)[sortColumn];
+      const bValue = (b as any)[sortColumn];
+
+      // Manejo de valores nulos o indefinidos para una ordenación consistente
+      if (aValue == null && bValue == null) return 0;
+      if (aValue == null) return sortDirection === 'asc' ? -1 : 1; // Nulos al principio en asc, al final en desc
+      if (bValue == null) return sortDirection === 'asc' ? 1 : -1;
+
+      let comparison = 0;
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        comparison = aValue.localeCompare(bValue); // Comparación de cadenas sensible a la configuración regional
+      } else if (aValue instanceof Date && bValue instanceof Date) {
+        comparison = aValue.getTime() - bValue.getTime(); // Comparación de fechas
+      } else if (typeof aValue === 'number' && typeof bValue === 'number') {
+        comparison = aValue - bValue; // Comparación de números
+      } else {
+        // En caso de tipos mixtos o no manejados, intenta una conversión a string como fallback
+        comparison = String(aValue).localeCompare(String(bValue));
       }
+
+      return sortDirection === 'asc' ? comparison : -comparison; // Aplica la dirección
+    });
+    return sortedData;
+  }, [changeSheets, sortColumn, sortDirection]); // Re-calcula solo si estos cambian
+
+
+  const totalPages = Math.ceil(sortedChangeSheets.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = Math.min(startIndex + itemsPerPage, sortedChangeSheets.length);
+  const currentData = sortedChangeSheets.slice(startIndex, endIndex); // La paginación se aplica AHORA a los datos ordenados
+
+  const handleViewDetails = (id: string) => {
+    setSelectedSheetId(id);
+    setShowDetailView(true);
+  };
+
+  const handleEdit = (sheet: ChangeSheetRecord) => {
+    setEditingSheet(sheet);
+    setShowCreateForm(true);
+  };
+
+  const handleDuplicate = (id: string) => {
+    setDuplicatingId(id);
+    setShowDuplicateModal(true);
+  };
+
+  const confirmDuplicate = async () => {
+    if (!duplicatingId) return;
+    
+    try {
+      await duplicateChangeSheet(duplicatingId);
+      setShowDuplicateModal(false);
+      setDuplicatingId(null);
+      await loadChangeSheets(); // Recargar la lista
+      console.log('Registro duplicado correctamente');
+    } catch (error) {
+      console.error('Error al duplicar:', error);
+      alert('Error al duplicar el registro');
     }
   };
 
-  const handleView = (id: string) => {
-    setSelectedSheetId(id);
-    setCurrentView('detail');
+  const handleDownloadPDF = (sheet: ChangeSheetRecord) => {
+    const pdf = new jsPDF();
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    let yPosition = 20;
+
+    // Título
+    pdf.setFontSize(18);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Hoja de Cambio de Empleado', pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 20;
+
+    // Información del empleado
+    pdf.setFontSize(14);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('INFORMACIÓN DEL EMPLEADO', 20, yPosition);
+    yPosition += 10;
+
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text(`Nombre: ${sheet.employeeName} ${sheet.employeeLastName}`, 20, yPosition);
+    yPosition += 8;
+    pdf.text(`Centro de Origen: ${sheet.originCenter}`, 20, yPosition);
+    yPosition += 8;
+    pdf.text(`Posición Actual: ${sheet.currentPosition}`, 20, yPosition);
+    yPosition += 15;
+
+    // Supervisor actual
+    pdf.setFontSize(14);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('SUPERVISOR ACTUAL', 20, yPosition);
+    yPosition += 10;
+
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text(`Nombre: ${sheet.currentSupervisorName} ${sheet.currentSupervisorLastName}`, 20, yPosition);
+    yPosition += 15;
+
+    // Nueva posición
+    pdf.setFontSize(14);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('NUEVA POSICIÓN', 20, yPosition);
+    yPosition += 10;
+
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text(`Posición: ${sheet.newPosition}`, 20, yPosition);
+    yPosition += 8;
+    pdf.text(`Supervisor: ${sheet.newSupervisorName} ${sheet.newSupervisorLastName}`, 20, yPosition);
+    yPosition += 8;
+    pdf.text(`Fecha de Inicio: ${sheet.startDate ? sheet.startDate.toLocaleDateString() : 'No especificada'}`, 20, yPosition);
+    yPosition += 15;
+
+    // Detalles del cambio
+    pdf.setFontSize(14);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('DETALLES DEL CAMBIO', 20, yPosition);
+    yPosition += 10;
+
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text(`Tipo de Cambio: ${sheet.changeType === 'Permanente' ? 'Permanente' : 'Temporal'}`, 20, yPosition);
+    yPosition += 8;
+    pdf.text(`Empresa Actual: ${sheet.currentCompany}`, 20, yPosition);
+    yPosition += 8;
+    pdf.text(`Cambio de Empresa: ${sheet.companyChange === 'Si' ? 'Sí' : 'No'}`, 20, yPosition);
+    yPosition += 8;
+    pdf.text(`Estado: ${sheet.status}`, 20, yPosition);
+    yPosition += 15;
+
+    // Necesidades
+    if (sheet.needs.length > 0) {
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('NECESIDADES', 20, yPosition);
+      yPosition += 10;
+
+      pdf.setFontSize(11);
+      pdf.setFont('helvetica', 'normal');
+      sheet.needs.forEach(need => {
+        pdf.text(`• ${need}`, 20, yPosition);
+        yPosition += 8;
+      });
+      yPosition += 7;
+    }
+
+    // Observaciones
+    if (sheet.observations) {
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('OBSERVACIONES', 20, yPosition);
+      yPosition += 10;
+
+      pdf.setFontSize(11);
+      pdf.setFont('helvetica', 'normal');
+      const splitObservations = pdf.splitTextToSize(sheet.observations, pageWidth - 40);
+      pdf.text(splitObservations, 20, yPosition);
+      yPosition += splitObservations.length * 6;
+    }
+
+    // Información de creación
+    yPosition += 10;
+    pdf.setFontSize(10);
+    pdf.setFont('helvetica', 'italic');
+    pdf.text(`Creado: ${sheet.createdAt.toLocaleDateString()}`, 20, yPosition);
+    yPosition += 6;
+    pdf.text(`Última actualización: ${sheet.updatedAt.toLocaleDateString()}`, 20, yPosition);
+
+    // Descargar
+    pdf.save(`Hoja_Cambio_${sheet.employeeName}_${sheet.employeeLastName}_${sheet.id}.pdf`);
   };
 
-  const handleSave = () => {
-    loadSheets();
-    setCurrentView('list');
-    setSelectedSheetId(null);
+  const handleExport = async () => {
+    try {
+      await exportChangeSheetsToCSV();
+      console.log('Datos exportados correctamente');
+    } catch (error) {
+      console.error('Error al exportar:', error);
+      alert('Error al exportar los datos');
+    }
   };
 
-  const handleBack = () => {
-    setCurrentView('list');
-    setSelectedSheetId(null);
+  const handleRefresh = () => {
+    loadChangeSheets();
+    setSortColumn(null); // Resetear ordenación al actualizar
+    setSortDirection('asc');
+    setCurrentPage(1);
   };
 
-  if (currentView === 'create') {
+  const getStatusBadge = (status: string) => {
+    const statusConfig = {
+      'Pendiente': 'bg-yellow-100 text-yellow-800 border-yellow-300',
+      'Aprobado': 'bg-green-100 text-green-800 border-green-300',
+      'Rechazado': 'bg-red-100 text-red-800 border-red-300'
+    };
+    return statusConfig[status as keyof typeof statusConfig] || 'bg-gray-100 text-gray-800 border-gray-300';
+  };
+
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString(language === 'es' ? 'es-ES' : 'en-US');
+  };
+
+  if (showDetailView && selectedSheetId) {
     return (
-      <ChangeSheetCreateForm
+      <ChangeSheetDetailView
         language={language}
-        onBack={handleBack}
-        onSave={handleSave}
+        sheetId={selectedSheetId}
+        onBack={() => {
+          setShowDetailView(false);
+          setSelectedSheetId(null);
+          loadChangeSheets(); // Recargar en caso de que se haya eliminado
+        }}
+        onDelete={() => {
+          setShowDetailView(false);
+          setSelectedSheetId(null);
+          loadChangeSheets();
+        }}
       />
     );
   }
 
-  if (currentView === 'detail' && selectedSheetId) {
+  if (showCreateForm) {
     return (
-      <ChangeSheetDetailView
-        sheetId={selectedSheetId}
-        language={language}
-        onBack={handleBack}
+      <ChangeSheetCreateForm 
+        language={language} 
+        editingSheet={editingSheet}
+        onBack={() => {
+          setShowCreateForm(false);
+          setEditingSheet(null);
+          loadChangeSheets(); // Recargar datos después de crear/editar
+        }}
+        onSave={() => {
+          setShowCreateForm(false);
+          setEditingSheet(null);
+          loadChangeSheets(); // Recargar datos después de guardar
+        }}
       />
     );
   }
 
   return (
-    <div className="w-full max-w-full overflow-hidden">
-      <div className="space-y-4 sm:space-y-6 p-2 sm:p-4 lg:p-6">
-        <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
-          <div>
-            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-blue-900 dark:text-blue-100">
-              {t('changeSheets')}
-            </h1>
-            <p className="text-xs sm:text-sm lg:text-base text-gray-600 dark:text-gray-400 mt-1">
-              {t('manageChangeSheets')}
-            </p>
-          </div>
+    <div className="space-y-6">
+      {/* Header con botones de acción */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <h1 className="text-2xl font-semibold text-blue-800 dark:text-blue-200">
+          {t('changeSheetsManagement')}
+        </h1>
+        
+        <div className="flex flex-wrap gap-2">
+          <Button
+            onClick={handleRefresh}
+            variant="outline"
+            disabled={isLoading}
+            className="border-blue-300 text-blue-700 hover:bg-blue-50"
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+            Actualizar
+          </Button>
           
-          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+          {canCreate && (
             <Button
-              onClick={handleRefresh}
-              variant="outline"
-              className="border-blue-300 text-blue-700 hover:bg-blue-50 text-xs sm:text-sm"
-              disabled={refreshing}
-              size="sm"
+              onClick={() => {
+                setEditingSheet(null);
+                setShowCreateForm(true);
+              }}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
             >
-              <RefreshCw className={`w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-              {t('refresh')}
-            </Button>
-            
-            <Button
-              onClick={() => setIsImportModalOpen(true)}
-              variant="outline"
-              className="border-blue-300 text-blue-700 hover:bg-blue-50 text-xs sm:text-sm"
-              size="sm"
-            >
-              <Upload className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-              {t('importData')}
-            </Button>
-            
-            <Button
-              onClick={() => setCurrentView('create')}
-              className="bg-blue-600 hover:bg-blue-700 text-xs sm:text-sm"
-              size="sm"
-            >
-              <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+              <Plus className="w-4 h-4 mr-2" />
               {t('createNew')}
             </Button>
-          </div>
+          )}
+          
+          <Button
+            variant="outline"
+            onClick={handleExport}
+            className="border-blue-300 text-blue-700 hover:bg-blue-50"
+          >
+            <FileDown className="w-4 h-4 mr-2" />
+            {t('export')}
+          </Button>
+          
+          <Button
+            variant="outline"
+            onClick={() => setShowImportModal(true)}
+            className="border-blue-300 text-blue-700 hover:bg-blue-50"
+          >
+            <Upload className="w-4 h-4 mr-2" />
+            {t('import')}
+          </Button>
         </div>
+      </div>
 
-        <Card className="border-blue-200 dark:border-blue-800 w-full">
-          <CardHeader className="p-3 sm:p-4 lg:p-6">
-            <CardTitle className="text-sm sm:text-base lg:text-lg text-blue-800 dark:text-blue-200 flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
-              <span className="flex items-center gap-2">
-                <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
-                {t('changeSheetsList')}
-              </span>
-              <Badge variant="secondary" className="text-xs sm:text-sm w-fit">
-                {sheets.length} {t('sheets')}
-              </Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0 sm:p-3 lg:p-6">
-            {/* Contenedor con scroll horizontal solo para la tabla */}
-            <div className="w-full overflow-x-auto">
-              <div className="min-w-[700px]">
+      {/* Tabla de hojas de cambio */}
+      <Card className="border-blue-200 dark:border-blue-800">
+        <CardHeader>
+          <CardTitle className="text-blue-800 dark:text-blue-200">
+            {t('hojasCambio')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {error && (
+            <div className="text-center py-8">
+              <div className="mx-auto w-16 h-16 bg-red-100 dark:bg-red-800 rounded-lg flex items-center justify-center mb-4">
+                <AlertCircle className="w-8 h-8 text-red-400" />
+              </div>
+              <h3 className="text-lg font-medium text-red-900 dark:text-red-100 mb-2">
+                Error al cargar datos
+              </h3>
+              <p className="text-red-600 dark:text-red-400 mb-4">
+                {error}
+              </p>
+              <Button onClick={handleRefresh} className="bg-blue-600 hover:bg-blue-700 text-white">
+                Intentar de nuevo
+              </Button>
+            </div>
+          )}
+          
+          {isLoading && (
+            <div className="text-center py-12">
+              <div className="mx-auto w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center mb-4">
+                <RefreshCw className="w-8 h-8 text-gray-400 animate-spin" />
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+                Cargando hojas de cambio...
+              </h3>
+            </div>
+          )}
+          
+          {!isLoading && !error && changeSheets.length === 0 && (
+            <div className="text-center py-12">
+              <div className="mx-auto w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center mb-4">
+                <Upload className="w-8 h-8 text-gray-400" />
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+                No hay hojas de cambio
+              </h3>
+              <p className="text-gray-500 dark:text-gray-400 mb-4">
+                Comienza creando una nueva hoja de cambio o importa datos desde un archivo.
+              </p>
+              <div className="flex justify-center space-x-2">
+                <Button
+                  onClick={() => setShowCreateForm(true)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Crear Nueva
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowImportModal(true)}
+                  className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                >
+                  <Upload className="w-4 h-4 mr-2" />
+                  Importar Datos
+                </Button>
+              </div>
+            </div>
+          )}
+          
+          {!isLoading && !error && changeSheets.length > 0 && (
+            <>
+              <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="text-xs sm:text-sm min-w-[120px]">{t('title')}</TableHead>
-                      <TableHead className="text-xs sm:text-sm min-w-[100px] hidden sm:table-cell">{t('workCenter')}</TableHead>
-                      <TableHead className="text-xs sm:text-sm min-w-[100px] hidden lg:table-cell">{t('date')}</TableHead>
-                      <TableHead className="text-xs sm:text-sm min-w-[80px]">{t('status')}</TableHead>
-                      <TableHead className="text-xs sm:text-sm min-w-[120px] hidden md:table-cell">{t('requestedBy')}</TableHead>
-                      <TableHead className="w-[50px] text-xs sm:text-sm">{t('actions')}</TableHead>
+                      {/* Cabeceras ordenables */}
+                      <TableHead 
+                        className="cursor-pointer select-none"
+                        onClick={() => handleSort('employeeName')}
+                      >
+                        <div className="flex items-center">
+                          {t('employeeName')}
+                          {sortColumn === 'employeeName' && (
+                            <span className="ml-1">
+                              {sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+                            </span>
+                          )}
+                        </div>
+                      </TableHead>
+                      <TableHead 
+                        className="cursor-pointer select-none"
+                        onClick={() => handleSort('originCenter')}
+                      >
+                        <div className="flex items-center">
+                          {t('originCenter')}
+                          {sortColumn === 'originCenter' && (
+                            <span className="ml-1">
+                              {sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+                            </span>
+                          )}
+                        </div>
+                      </TableHead>
+                      <TableHead 
+                        className="cursor-pointer select-none"
+                        onClick={() => handleSort('newPosition')}
+                      >
+                        <div className="flex items-center">
+                          Nuevo Puesto
+                          {sortColumn === 'newPosition' && (
+                            <span className="ml-1">
+                              {sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+                            </span>
+                          )}
+                        </div>
+                      </TableHead>
+                      <TableHead 
+                        className="cursor-pointer select-none"
+                        onClick={() => handleSort('startDate')}
+                      >
+                        <div className="flex items-center">
+                          {t('startDate')}
+                          {sortColumn === 'startDate' && (
+                            <span className="ml-1">
+                              {sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+                            </span>
+                          )}
+                        </div>
+                      </TableHead>
+                      <TableHead 
+                        className="cursor-pointer select-none"
+                        onClick={() => handleSort('status')}
+                      >
+                        <div className="flex items-center">
+                          {t('status')}
+                          {sortColumn === 'status' && (
+                            <span className="ml-1">
+                              {sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+                            </span>
+                          )}
+                        </div>
+                      </TableHead>
+                      <TableHead className="text-center">{t('actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {sheets.map((sheet) => (
+                    {currentData.map((sheet) => (
                       <TableRow key={sheet.id}>
-                        <TableCell className="font-medium text-xs sm:text-sm">
-                          <div className="truncate max-w-[120px] sm:max-w-[200px]">
-                            {sheet.title || t('noData')}
-                          </div>
+                        <TableCell className="font-medium">
+                          {sheet.employeeName} {sheet.employeeLastName}
                         </TableCell>
-                        <TableCell className="text-xs sm:text-sm hidden sm:table-cell">
-                          <div className="truncate max-w-[100px]">
-                            {sheet.workCenter || t('noData')}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-xs sm:text-sm hidden lg:table-cell">
-                          {sheet.date || t('noData')}
+                        <TableCell>{sheet.originCenter}</TableCell>
+                        <TableCell>{sheet.newPosition}</TableCell>
+                        <TableCell>
+                          {sheet.startDate ? formatDate(sheet.startDate) : 'No especificada'}
                         </TableCell>
                         <TableCell>
-                          <Badge variant="secondary" className="text-xs">
-                            {sheet.status || t('pending')}
+                          <Badge className={getStatusBadge(sheet.status)}>
+                            {sheet.status}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-xs sm:text-sm hidden md:table-cell">
-                          <div className="truncate max-w-[120px]">
-                            {sheet.requestedBy || t('noData')}
-                          </div>
-                        </TableCell>
                         <TableCell>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" className="h-6 w-6 sm:h-8 sm:w-8 p-0">
-                                <MoreHorizontal className="h-3 w-3 sm:h-4 sm:w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="bg-white dark:bg-gray-800 border border-blue-200 dark:border-blue-700">
-                              <DropdownMenuItem onClick={() => handleView(sheet.id!)} className="cursor-pointer text-xs sm:text-sm">
-                                <Eye className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                                {t('view')}
-                              </DropdownMenuItem>
-                              <DropdownMenuItem 
-                                onClick={() => handleDelete(sheet.id!)} 
-                                className="cursor-pointer text-red-600 hover:text-red-700 text-xs sm:text-sm"
+                          <div className="flex justify-center space-x-1">
+                            {canView && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleViewDetails(sheet.id)}
+                                title={t('view')}
                               >
-                                <Trash2 className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                                {t('delete')}
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                                <Eye className="w-4 h-4" />
+                              </Button>
+                            )}
+                            {canModify && (
+                              <>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleEdit(sheet)}
+                                  title="Editar registro"
+                                >
+                                  <Edit className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleDuplicate(sheet.id)}
+                                  title={t('duplicateRecord')}
+                                >
+                                  <Copy className="w-4 h-4" />
+                                </Button>
+                              </>
+                            )}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDownloadPDF(sheet)}
+                              title={t('downloadPDF')}
+                            >
+                              <Download className="w-4 h-4" />
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
               </div>
-            </div>
-          </CardContent>
-        </Card>
 
-        <ImportChangeSheetsModal
-          open={isImportModalOpen}
-          onClose={() => setIsImportModalOpen(false)}
-          onImportSuccess={loadSheets}
-        />
-      </div>
+              {/* Paginación */}
+              {changeSheets.length > itemsPerPage && (
+                <div className="flex flex-col sm:flex-row justify-between items-center mt-4 gap-4">
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    Mostrando {startIndex + 1} a {endIndex} de {sortedChangeSheets.length} registros
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                      disabled={currentPage === 1}
+                    >
+                      Anterior
+                    </Button>
+                    
+                    <div className="flex space-x-1">
+                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        let pageNumber;
+                        if (totalPages <= 5) {
+                          pageNumber = i + 1;
+                        } else if (currentPage <= 3) {
+                          pageNumber = i + 1;
+                        } else if (currentPage >= totalPages - 2) {
+                          pageNumber = totalPages - 4 + i;
+                        } else {
+                          pageNumber = currentPage - 2 + i;
+                        }
+                        
+                        return (
+                          <Button
+                            key={pageNumber}
+                            variant={currentPage === pageNumber ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => setCurrentPage(pageNumber)}
+                            className={cn(
+                                currentPage === pageNumber ? "bg-blue-600 text-white" : "",
+                                "dark:bg-gray-700 dark:hover:bg-gray-600" // Añadir estilos de modo oscuro si usas shadcn
+                            )}
+                          >
+                            {pageNumber}
+                          </Button>
+                        );
+                      })}
+                    </div>
+                    
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                      disabled={currentPage === totalPages}
+                    >
+                      Siguiente
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Modal de confirmación de duplicado */}
+      <Dialog open={showDuplicateModal} onOpenChange={setShowDuplicateModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirmar Duplicación</DialogTitle>
+            <DialogDescription>
+              ¿Estás seguro de que deseas duplicar este registro? Se creará una copia con estado "Pendiente".
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDuplicateModal(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={confirmDuplicate} className="bg-blue-600 hover:bg-blue-700">
+              Duplicar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de importación */}
+      <ImportChangeSheetsModal
+        open={showImportModal}
+        onClose={() => {
+          setShowImportModal(false);
+          loadChangeSheets(); // Recargar datos después de importar
+        }}
+        language={language}
+      />
     </div>
   );
 };

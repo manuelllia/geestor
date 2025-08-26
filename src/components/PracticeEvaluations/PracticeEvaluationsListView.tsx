@@ -1,182 +1,381 @@
-
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useMemo } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { MoreHorizontal, Eye, GraduationCap, RefreshCw } from 'lucide-react';
+import { FileUp, Download, RefreshCw, Plus, Calendar, ArrowUp, ArrowDown, Eye, Trash2 } from 'lucide-react'; 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Language } from '../../utils/translations';
-import { useTranslation } from '../../hooks/useTranslation';
-import { getPracticeEvaluations, PracticeEvaluation } from '../../services/practiceEvaluationService';
-import PracticeEvaluationDetailView from './PracticeEvaluationDetailView';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { getPracticeEvaluations, deletePracticeEvaluation, generatePracticeEvaluationToken, PracticeEvaluationRecord } from '../../services/practiceEvaluationService';
 import { toast } from 'sonner';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
+import { Language } from '../../utils/translations';
+import PracticeEvaluationDetailView from './PracticeEvaluationDetailView';
 
 interface PracticeEvaluationsListViewProps {
-  language: Language;
+  language?: Language;
 }
 
-const PracticeEvaluationsListView: React.FC<PracticeEvaluationsListViewProps> = ({ language }) => {
-  const { t } = useTranslation(language);
-  const [evaluations, setEvaluations] = useState<PracticeEvaluation[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [currentView, setCurrentView] = useState<'list' | 'detail'>('list');
-  const [selectedEvaluationId, setSelectedEvaluationId] = useState<string | null>(null);
-  const [refreshing, setRefreshing] = useState(false);
+export default function PracticeEvaluationsListView({ language = 'es' }: PracticeEvaluationsListViewProps) {
+  const queryClient = useQueryClient();
+  const { data: evaluations = [], isLoading, refetch } = useQuery({
+    queryKey: ['practice-evaluations'],
+    queryFn: getPracticeEvaluations,
+  });
 
-  useEffect(() => {
-    loadEvaluations();
-  }, []);
+  const [sortColumn, setSortColumn] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [selectedEvaluation, setSelectedEvaluation] = useState<PracticeEvaluationRecord | null>(null);
+  const [isDetailViewOpen, setIsDetailViewOpen] = useState(false);
+  const [evaluationToDelete, setEvaluationToDelete] = useState<string | null>(null);
 
-  const loadEvaluations = async () => {
-    try {
-      setLoading(true);
-      const data = await getPracticeEvaluations();
-      setEvaluations(data);
-    } catch (error) {
-      console.error('Error loading practice evaluations:', error);
-      toast.error(t('errorLoadingData'));
-    } finally {
-      setLoading(false);
+  // LÓGICA DE ORDENACIÓN
+  const handleSort = (column: string) => {
+    if (sortColumn === column) {
+      setSortDirection(prevDir => (prevDir === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortColumn(column);
+      setSortDirection('asc');
     }
   };
 
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    await loadEvaluations();
-    setRefreshing(false);
+  // DATOS ORDENADOS Y MEMORIZADOS
+  const sortedEvaluations = useMemo(() => {
+    if (!sortColumn) {
+      return evaluations;
+    }
+
+    const sortedData = [...evaluations].sort((a, b) => {
+      let aValue: any;
+      let bValue: any;
+
+      // Determinar los valores a comparar según la columna
+      switch (sortColumn) {
+        case 'studentName':
+          aValue = `${a.studentName} ${a.studentLastName}`;
+          bValue = `${b.studentName} ${b.studentLastName}`;
+          break;
+        case 'tutorName':
+          aValue = `${a.tutorName} ${a.tutorLastName}`;
+          bValue = `${b.tutorName} ${b.tutorLastName}`;
+          break;
+        case 'workCenter':
+        case 'formation':
+        case 'finalEvaluation':
+          aValue = (a as any)[sortColumn];
+          bValue = (b as any)[sortColumn];
+          break;
+        case 'evaluationDate':
+          aValue = a.evaluationDate instanceof Date ? a.evaluationDate.getTime() : new Date(a.evaluationDate).getTime();
+          bValue = b.evaluationDate instanceof Date ? b.evaluationDate.getTime() : new Date(b.evaluationDate).getTime();
+          break;
+        case 'performanceRating':
+          aValue = (a as any)[sortColumn];
+          bValue = (b as any)[sortColumn];
+          break;
+        default:
+          aValue = (a as any)[sortColumn];
+          bValue = (b as any)[sortColumn];
+          break;
+      }
+
+      // Manejo de valores nulos o indefinidos
+      if (aValue == null && bValue == null) return 0;
+      if (aValue == null) return sortDirection === 'asc' ? -1 : 1;
+      if (bValue == null) return sortDirection === 'asc' ? 1 : -1;
+
+      let comparison = 0;
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        comparison = aValue.localeCompare(bValue, language === 'es' ? 'es-ES' : 'en-US');
+      } else if (typeof aValue === 'number' && typeof bValue === 'number') {
+        comparison = aValue - bValue;
+      } else {
+        comparison = String(aValue).localeCompare(String(bValue), language === 'es' ? 'es-ES' : 'en-US');
+      }
+
+      return sortDirection === 'asc' ? comparison : -comparison;
+    });
+    return sortedData;
+  }, [evaluations, sortColumn, sortDirection, language]);
+
+  const handleGenerateLink = () => {
+    const token = generatePracticeEvaluationToken();
+    const link = `${window.location.origin}/valoracion-practicas/${token}`; 
+    
+    navigator.clipboard.writeText(link);
+    toast.success('Enlace copiado al portapapeles', {
+      description: 'Comparte este enlace para que se complete la valoración de prácticas',
+    });
   };
 
-  const handleView = (id: string) => {
-    setSelectedEvaluationId(id);
-    setCurrentView('detail');
+  const handleViewEvaluation = (evaluation: PracticeEvaluationRecord) => {
+    setSelectedEvaluation(evaluation);
+    setIsDetailViewOpen(true);
   };
 
-  const handleBack = () => {
-    setCurrentView('list');
-    setSelectedEvaluationId(null);
+  const handleDeleteEvaluation = async (id: string) => {
+    try {
+      await deletePracticeEvaluation(id);
+      toast.success('Valoración eliminada', {
+        description: 'La valoración de prácticas ha sido eliminada correctamente',
+      });
+      queryClient.invalidateQueries({ queryKey: ['practice-evaluations'] });
+      setEvaluationToDelete(null);
+    } catch (error) {
+      toast.error('Error al eliminar', {
+        description: 'No se pudo eliminar la valoración de prácticas',
+      });
+    }
   };
 
-  if (currentView === 'detail' && selectedEvaluationId) {
+  const handleExport = () => {
+    toast.info('Función de exportación', {
+      description: 'Esta función se implementará próximamente',
+    });
+  };
+
+  const handleImport = () => {
+    toast.info('Función de importación', {
+      description: 'Esta función se implementará próximamente',
+    });
+  };
+
+  if (isLoading) {
     return (
-      <PracticeEvaluationDetailView
-        evaluationId={selectedEvaluationId}
-        language={language}
-        onBack={handleBack}
-      />
+      <div className="space-y-4">
+        <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+        <div className="h-64 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+      </div>
     );
   }
 
   return (
-    <div className="w-full max-w-full overflow-hidden">
-      <div className="space-y-4 sm:space-y-6 p-2 sm:p-4 lg:p-6">
-        <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
-          <div>
-            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-blue-900 dark:text-blue-100">
-              {t('practiceEvaluations')}
-            </h1>
-            <p className="text-xs sm:text-sm lg:text-base text-gray-600 dark:text-gray-400 mt-1">
-              {t('managePracticeEvaluations')}
-            </p>
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-blue-600 dark:text-blue-300">Valoración de Prácticas</CardTitle>
+          <CardDescription>
+            Gestiona las valoraciones de prácticas realizadas por los tutores de GEE
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-2 mb-6">
+            <Button onClick={handleGenerateLink} className="bg-blue-600 hover:bg-blue-700">
+              <Plus className="w-4 h-4 mr-2" />
+              Generar Enlace de Valoración
+            </Button>
+            <Button variant="outline" onClick={handleExport}>
+              <Download className="w-4 h-4 mr-2" />
+              Exportar
+            </Button>
+            <Button variant="outline" onClick={handleImport}>
+              <FileUp className="w-4 h-4 mr-2" />
+              Importar
+            </Button>
+            <Button variant="outline" onClick={() => refetch()}>
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Actualizar
+            </Button>
           </div>
-          
-          <Button
-            onClick={handleRefresh}
-            variant="outline"
-            className="border-blue-300 text-blue-700 hover:bg-blue-50 text-xs sm:text-sm"
-            disabled={refreshing}
-            size="sm"
-          >
-            <RefreshCw className={`w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-            {t('refresh')}
-          </Button>
-        </div>
 
-        <Card className="border-blue-200 dark:border-blue-800 w-full">
-          <CardHeader className="p-3 sm:p-4 lg:p-6">
-            <CardTitle className="text-sm sm:text-base lg:text-lg text-blue-800 dark:text-blue-200 flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
-              <span className="flex items-center gap-2">
-                <GraduationCap className="w-4 h-4 sm:w-5 sm:h-5" />
-                {t('evaluationsList')}
-              </span>
-              <Badge variant="secondary" className="text-xs sm:text-sm w-fit">
-                {evaluations.length} {t('evaluations')}
-              </Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0 sm:p-3 lg:p-6">
-            {/* Contenedor con scroll horizontal solo para la tabla */}
-            <div className="w-full overflow-x-auto">
-              <div className="min-w-[800px]">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="text-xs sm:text-sm min-w-[150px]">{t('studentName')}</TableHead>
-                      <TableHead className="text-xs sm:text-sm min-w-[120px] hidden sm:table-cell">{t('practiceCenter')}</TableHead>
-                      <TableHead className="text-xs sm:text-sm min-w-[100px] hidden lg:table-cell">{t('evaluationDate')}</TableHead>
-                      <TableHead className="text-xs sm:text-sm min-w-[80px] hidden md:table-cell">{t('overallScore')}</TableHead>
-                      <TableHead className="text-xs sm:text-sm min-w-[100px]">{t('supervisor')}</TableHead>
-                      <TableHead className="text-xs sm:text-sm min-w-[80px]">{t('status')}</TableHead>
-                      <TableHead className="w-[50px] text-xs sm:text-sm">{t('actions')}</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {evaluations.map((evaluation) => (
-                      <TableRow key={evaluation.id}>
-                        <TableCell className="font-medium text-xs sm:text-sm">
-                          <div className="truncate max-w-[150px] sm:max-w-[200px]">
-                            {evaluation.studentName || t('noData')}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-xs sm:text-sm hidden sm:table-cell">
-                          <div className="truncate max-w-[120px]">
-                            {evaluation.practiceCenter || t('noData')}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-xs sm:text-sm hidden lg:table-cell">
-                          {evaluation.evaluationDate || t('noData')}
-                        </TableCell>
-                        <TableCell className="text-xs sm:text-sm hidden md:table-cell">
-                          <Badge variant="outline" className="text-xs">
-                            {evaluation.overallScore || 'N/A'}/10
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-xs sm:text-sm">
-                          <div className="truncate max-w-[100px]">
-                            {evaluation.supervisor || t('noData')}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="secondary" className="text-xs">
-                            {evaluation.status || t('pending')}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" className="h-6 w-6 sm:h-8 sm:w-8 p-0">
-                                <MoreHorizontal className="h-3 w-3 sm:h-4 sm:w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="bg-white dark:bg-gray-800 border border-blue-200 dark:border-blue-700">
-                              <DropdownMenuItem onClick={() => handleView(evaluation.id!)} className="cursor-pointer text-xs sm:text-sm">
-                                <Eye className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                                {t('view')}
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+          {evaluations.length === 0 ? (
+            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+              <Calendar className="w-12 h-12 mx-auto mb-4 opacity-50" />
+              <p>No hay valoraciones de prácticas registradas</p>
+              <p className="text-sm">Genera un enlace para comenzar a recibir valoraciones</p>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead 
+                      className="cursor-pointer select-none"
+                      onClick={() => handleSort('studentName')}
+                    >
+                      <div className="flex items-center">
+                        Estudiante
+                        {sortColumn === 'studentName' && (
+                          <span className="ml-1">
+                            {sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+                          </span>
+                        )}
+                      </div>
+                    </TableHead>
+                    <TableHead 
+                      className="cursor-pointer select-none"
+                      onClick={() => handleSort('tutorName')}
+                    >
+                      <div className="flex items-center">
+                        Tutor
+                        {sortColumn === 'tutorName' && (
+                          <span className="ml-1">
+                            {sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+                          </span>
+                        )}
+                      </div>
+                    </TableHead>
+                    <TableHead 
+                      className="cursor-pointer select-none"
+                      onClick={() => handleSort('workCenter')}
+                    >
+                      <div className="flex items-center">
+                        Centro de Trabajo
+                        {sortColumn === 'workCenter' && (
+                          <span className="ml-1">
+                            {sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+                          </span>
+                        )}
+                      </div>
+                    </TableHead>
+                    <TableHead 
+                      className="cursor-pointer select-none"
+                      onClick={() => handleSort('formation')}
+                    >
+                      <div className="flex items-center">
+                        Formación
+                        {sortColumn === 'formation' && (
+                          <span className="ml-1">
+                            {sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+                          </span>
+                        )}
+                      </div>
+                    </TableHead>
+                    <TableHead 
+                      className="cursor-pointer select-none"
+                      onClick={() => handleSort('finalEvaluation')}
+                    >
+                      <div className="flex items-center">
+                        Evaluación Final
+                        {sortColumn === 'finalEvaluation' && (
+                          <span className="ml-1">
+                            {sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+                          </span>
+                        )}
+                      </div>
+                    </TableHead>
+                    <TableHead 
+                      className="cursor-pointer select-none"
+                      onClick={() => handleSort('evaluationDate')}
+                    >
+                      <div className="flex items-center">
+                        Fecha
+                        {sortColumn === 'evaluationDate' && (
+                          <span className="ml-1">
+                            {sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+                          </span>
+                        )}
+                      </div>
+                    </TableHead>
+                    <TableHead 
+                      className="cursor-pointer select-none text-center"
+                      onClick={() => handleSort('performanceRating')}
+                    >
+                      <div className="flex items-center justify-center">
+                        Valoración
+                        {sortColumn === 'performanceRating' && (
+                          <span className="ml-1">
+                            {sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+                          </span>
+                        )}
+                      </div>
+                    </TableHead>
+                    <TableHead className="w-[120px]">Acciones</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {sortedEvaluations.map((evaluation) => (
+                    <TableRow key={evaluation.id}>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium">
+                            {evaluation.studentName} {evaluation.studentLastName}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {evaluation.institution}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {evaluation.tutorName} {evaluation.tutorLastName}
+                      </TableCell>
+                      <TableCell>{evaluation.workCenter}</TableCell>
+                      <TableCell>{evaluation.formation}</TableCell>
+                      <TableCell>
+                        <Badge variant={evaluation.finalEvaluation === 'Apto' ? 'default' : 'destructive'}>
+                          {evaluation.finalEvaluation}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {evaluation.evaluationDate instanceof Date 
+                           ? format(evaluation.evaluationDate, 'dd/MM/yyyy', { locale: es })
+                           : 'Fecha no válida'}
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-center">
+                          <div className="text-lg font-bold text-blue-600 dark:text-blue-300">
+                            {evaluation.performanceRating}/10
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleViewEvaluation(evaluation)}
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                          
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700">
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>¿Eliminar valoración?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Esta acción no se puede deshacer. Se eliminará permanentemente la valoración 
+                                  de {evaluation.studentName} {evaluation.studentLastName}.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleDeleteEvaluation(evaluation.id)}
+                                  className="bg-red-600 hover:bg-red-700"
+                                >
+                                  Eliminar
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Modal de detalle */}
+      {isDetailViewOpen && selectedEvaluation && (
+        <PracticeEvaluationDetailView
+          evaluation={selectedEvaluation}
+          onClose={() => {
+            setIsDetailViewOpen(false);
+            setSelectedEvaluation(null);
+          }}
+        />
+      )}
     </div>
   );
-};
-
-export default PracticeEvaluationsListView;
+}
