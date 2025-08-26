@@ -5,12 +5,13 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'; // Importado para Piso de Empresa
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ArrowLeft, Save } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Language } from '../../utils/translations';
 import { useTranslation } from '../../hooks/useTranslation';
 import { getWorkCenters, getContracts } from '../../services/workCentersService';
+import { saveContractRequest } from '../../services/contractRequestsService'; // Importa la función de guardado
 import AddButton from '../Common/AddButton';
 import CreateWorkCenterModal from '../Modals/CreateWorkCenterModal';
 import CreateContractModal from '../Modals/CreateContractModal';
@@ -169,27 +170,46 @@ const ContractRequestCreateForm: React.FC<ContractRequestCreateFormProps> = ({
     setIsLoading(true);
 
     // 1. Pre-procesar los datos para la validación y el envío
+    // Los campos 'Other' y 'OTRA' se resuelven aquí para el payload final
     const processedData = {
-      ...formData,
+      requesterName: formData.requesterName,
+      requesterLastName: formData.requesterLastName,
+      contractType: formData.contractType,
+      salary: formData.salary,
+      observations: formData.observations,
+      incorporationDate: formData.incorporationDate, // Todavía en string para validación
       company: formData.company === 'OTRA' ? formData.companyOther : formData.company,
       jobPosition: formData.jobPosition === 'OTRO' ? formData.jobPositionOther : formData.jobPosition,
       professionalCategory: formData.professionalCategory === 'OTRO' ? formData.professionalCategoryOther : formData.professionalCategory,
+      city: formData.city,
+      province: formData.province,
+      autonomousCommunity: formData.autonomousCommunity,
+      workCenter: formData.workCenter,
+      companyFlat: formData.companyFlat as 'Si' | 'No', // Casteo aquí, la validación asegura que es 'Si' o 'No'
       language1: formData.language1 === 'OTRO' ? formData.language1Other : formData.language1,
+      level1: formData.level1,
       language2: formData.language2 === 'OTRO' ? formData.language2Other : formData.language2,
+      level2: formData.level2,
+      experienceElectromedicine: formData.experienceElectromedicine,
+      experienceInstallations: formData.experienceInstallations,
+      hiringReason: formData.contractingReason,
+      notesAndCommitments: formData.notesAndCommitments,
     };
 
     // 2. Validación de campos obligatorios
-    const requiredFields: Array<keyof typeof processedData | 'companyOther' | 'jobPositionOther' | 'professionalCategoryOther'> = [
+    // Lista de campos que deben tener un valor.
+    // Los campos de selección con "Otro"/"OTRA" requieren que el campo "Other" esté relleno si se elige esa opción.
+    const requiredFields: Array<keyof typeof processedData> = [
       'requesterName', 'requesterLastName', 'contractType', 'incorporationDate',
       'company', 'jobPosition', 'professionalCategory', 'workCenter', 'companyFlat',
-      'contractingReason', 'notesAndCommitments' // 'observations' no era obligatorio en la lista pero lo mantengo así.
+      'hiringReason', 'notesAndCommitments'
     ];
 
     let isValid = true;
     let missingFieldName = '';
 
     for (const field of requiredFields) {
-      const value = processedData[field as keyof typeof processedData]; // Castear para acceso directo
+      const value = processedData[field];
 
       if (typeof value === 'string' && value.trim() === '') {
         isValid = false;
@@ -213,14 +233,24 @@ const ContractRequestCreateForm: React.FC<ContractRequestCreateFormProps> = ({
         break;
       }
       if (field === 'language1' && formData.language1 === 'OTRO' && formData.language1Other.trim() === '') {
-        isValid = false;
-        missingFieldName = 'Idioma 1 (especificar)';
-        break;
+        // 'language1' no es obligatorio en la lista de `requiredFields` pero podría serlo el 'Other'
+        // Si language1 fuera obligatorio, se incluiría en requiredFields
+        // Si no es obligatorio, esta validación solo aplica si 'OTRO' fue seleccionado pero 'Other' no se llenó
+        if (formData.language1 === 'OTRO' && formData.language1Other.trim() === '') {
+          // Si 'language1' no es obligatorio, no debería detener el envío si no se selecciona nada.
+          // Solo si seleccionó 'OTRO' y no especificó.
+          // Para esta validación, lo pondremos como un error bloqueante.
+          isValid = false;
+          missingFieldName = 'Idioma 1 (especificar)';
+          break;
+        }
       }
       if (field === 'language2' && formData.language2 === 'OTRO' && formData.language2Other.trim() === '') {
-        isValid = false;
-        missingFieldName = 'Idioma 2 (especificar)';
-        break;
+        if (formData.language2 === 'OTRO' && formData.language2Other.trim() === '') {
+          isValid = false;
+          missingFieldName = 'Idioma 2 (especificar)';
+          break;
+        }
       }
     }
 
@@ -234,16 +264,9 @@ const ContractRequestCreateForm: React.FC<ContractRequestCreateFormProps> = ({
       return;
     }
 
-
     try {
-      // Simulate creating contract request - replace with actual service call (e.g., Firestore)
-      console.log('Creando solicitud de contratación:', processedData);
-      // Aquí iría tu llamada a la API o Firestore, por ejemplo:
-      // await addDoc(collection(db, 'SolicitudesDeContratacion'), {
-      //   ...processedData,
-      //   createdAt: serverTimestamp(),
-      //   status: 'Pendiente', // Asumiendo un estado inicial
-      // });
+      // LLAMADA AL SERVICIO: Usa la función saveContractRequest de tu servicio
+      await saveContractRequest(processedData);
 
       toast({
         title: "Éxito",
@@ -251,7 +274,7 @@ const ContractRequestCreateForm: React.FC<ContractRequestCreateFormProps> = ({
       });
       onSave(); // Llama a la función onSave para refrescar la lista o redirigir
     } catch (error) {
-      console.error('Error creating contract request:', error);
+      console.error('Error al crear la solicitud de contratación:', error);
       toast({
         title: "Error",
         description: "Error al crear la solicitud de contratación",

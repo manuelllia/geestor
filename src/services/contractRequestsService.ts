@@ -1,4 +1,3 @@
-
 // src/services/contractRequestsService.ts
 
 import { collection, addDoc, getDocs, doc, setDoc, deleteDoc, updateDoc, query, orderBy, Timestamp, getDoc } from 'firebase/firestore';
@@ -43,48 +42,26 @@ export interface ContractRequestRecord {
   approved?: boolean; // Booleano para aprobación (podría ser redundante con status, pero se mantiene si existe)
 }
 
-// --- Aliases para compatibilidad con los componentes existentes ---
-export interface ContractRequestData extends ContractRequestRecord {
-  applicantName: string; // Alias para requesterName
-  applicantLastName: string; // Alias para requesterLastName
-  position: string; // Alias para jobPosition
-  department: string; // Alias para company
-  requestType: string; // Alias para contractType
-  expectedStartDate: Date; // Alias para incorporationDate
-}
-
-export interface ContractRequestInput {
-  applicantName: string;
-  applicantLastName: string;
-  position: string;
-  department: string;
-  requestType: string;
-  requestDate: Date;
-  expectedStartDate: Date;
-  salary: string;
-  status: string;
-  observations: string;
-}
-
 // --- Tipo para los datos que se enviarán directamente a Firestore ---
 // Las fechas se convierten a Timestamp para Firestore.
 export type ContractRequestFirestorePayload = Omit<
   ContractRequestRecord,
   'id' | 'requestDate' | 'incorporationDate' | 'createdAt' | 'updatedAt'
 > & {
-  requestDate: any; // Para guardar en Firestore, será un serverTimestamp al crear
+  requestDate: Timestamp; // Para guardar en Firestore, será un serverTimestamp al crear
   incorporationDate: Timestamp | null; // Para guardar en Firestore, puede ser null
-  createdAt?: any; // Para guardar en Firestore, opcional al crear/actualizar
-  updatedAt?: any; // Para guardar en Firestore, opcional al crear/actualizar
+  createdAt?: Timestamp; // Para guardar en Firestore, opcional al crear/actualizar
+  updatedAt?: Timestamp; // Para guardar en Firestore, opcional al crear/actualizar
 };
 
-// --- RUTA DE LA COLECCIÓN EN FIRESTORE ---
-const COLLECTION_PATH = 'Gestión de Talento/solicitudes-contratacion/Solicitudes de Contratación';
+// --- RUTA DE LA COLECCIÓN EN FIRESTORE (CORREGIDA) ---
+// Colección "Gestión de Talento" -> Documento "Solicitudes Contratación" -> Subcolección "solicitudes"
+const getContractRequestsCollectionRef = () => collection(db, "Gestión de Talento", "Solicitudes Contratación", "solicitudes");
 
 // --- FUNCIÓN para obtener una Solicitud de Contratación por ID ---
 export const getContractRequestById = async (id: string): Promise<ContractRequestRecord | null> => {
   try {
-    const docRef = doc(db, COLLECTION_PATH, id);
+    const docRef = doc(getContractRequestsCollectionRef(), id);
     const docSnap = await getDoc(docRef);
 
     if (docSnap.exists()) {
@@ -142,9 +119,7 @@ export const getContractRequests = async (): Promise<ContractRequestRecord[]> =>
   try {
     console.log('Obteniendo solicitudes de contratación desde Firebase...');
 
-    // Asume que 'requestDate' se usa para ordenar. Si el formulario no lo genera,
-    // puedes usar 'createdAt' en su lugar.
-    const q = query(collection(db, COLLECTION_PATH), orderBy("createdAt", "desc"));
+    const q = query(getContractRequestsCollectionRef(), orderBy("createdAt", "desc"));
     const querySnapshot = await getDocs(q);
 
     const requests: ContractRequestRecord[] = [];
@@ -201,7 +176,6 @@ export const getContractRequests = async (): Promise<ContractRequestRecord[]> =>
   }
 };
 
-
 // --- FUNCIÓN para guardar una nueva Solicitud de Contratación ---
 // Recibe los datos del formulario (donde las fechas aún son strings 'YYYY-MM-DD').
 export const saveContractRequest = async (
@@ -224,7 +198,7 @@ export const saveContractRequest = async (
       status: 'Pendiente', // Estado por defecto para nuevas solicitudes
     };
 
-    const docRef = await addDoc(collection(db, COLLECTION_PATH), payload);
+    const docRef = await addDoc(getContractRequestsCollectionRef(), payload);
     console.log('Solicitud de contratación guardada exitosamente con ID:', docRef.id);
     return docRef.id;
   } catch (error) {
@@ -232,7 +206,6 @@ export const saveContractRequest = async (
     throw error;
   }
 };
-
 
 // --- FUNCIÓN para actualizar una Solicitud de Contratación existente ---
 // Permite actualizaciones parciales.
@@ -243,7 +216,7 @@ export const updateContractRequest = async (
   }
 ): Promise<void> => {
   try {
-    const docRef = doc(db, COLLECTION_PATH, id);
+    const docRef = doc(getContractRequestsCollectionRef(), id);
 
     const updatePayload: { [key: string]: any } = { ...requestUpdates };
 
@@ -263,11 +236,10 @@ export const updateContractRequest = async (
   }
 };
 
-
 // --- FUNCIÓN para eliminar una Solicitud de Contratación ---
 export const deleteContractRequest = async (id: string): Promise<void> => {
   try {
-    await deleteDoc(doc(db, COLLECTION_PATH, id));
+    await deleteDoc(doc(getContractRequestsCollectionRef(), id));
     console.log('Solicitud de contratación eliminada exitosamente:', id);
   } catch (error) {
     console.error('Error al eliminar solicitud de contratación:', error);
@@ -275,9 +247,8 @@ export const deleteContractRequest = async (id: string): Promise<void> => {
   }
 };
 
-
 // --- FUNCIÓN para importar Solicitudes de Contratación (ej. desde CSV/Excel) ---
-export const importContractRequests = async (requests: ContractRequestInput[]): Promise<{ success: number; errors: string[] }> => {
+export const importContractRequests = async (requests: any[]): Promise<{ success: number; errors: string[] }> => {
   const results = { success: 0, errors: [] as string[] };
 
   // Opciones predefinidas (deben coincidir con las del formulario)
@@ -307,6 +278,7 @@ export const importContractRequests = async (requests: ContractRequestInput[]): 
           date = new Date(dateValue);
         } else if (typeof dateValue === 'number') {
           // Asume que es un timestamp de Excel, por ejemplo. Ajustar si tu fuente es diferente.
+          // Los números de Excel suelen ser días desde 1900-01-01.
           date = new Date(Math.round((dateValue - 25569) * 86400 * 1000));
         } else if (dateValue instanceof Date) {
           date = dateValue;
@@ -319,46 +291,54 @@ export const importContractRequests = async (requests: ContractRequestInput[]): 
       // Helper para resolver campos 'Otro'
       const resolveOtherField = (value: string, otherValue: string, options: string[]) => {
         if (!value) return '';
-        return options.includes(value) ? value : otherValue || value;
+        // Si el valor está en las opciones, úsalo. Si no, usa el valor de 'otherValue' si existe, si no, el propio 'value'.
+        // Esto es útil si el CSV trae el valor "específico" directamente sin indicar "Otro".
+        return options.includes(value) ? value : (otherValue || value);
       };
 
-      // Mapeo básico de los campos de importación
+      // Mapeo exhaustivo de los campos de la importación a la nueva interfaz
       const payload: ContractRequestFirestorePayload = {
-        requesterName: request.applicantName || '',
-        requesterLastName: request.applicantLastName || '',
-        contractType: request.requestType || '',
-        salary: request.salary?.toString() || '',
-        observations: request.observations || '',
-        incorporationDate: parseDate(request.expectedStartDate),
+        requesterName: request['Nombre Solicitante'] || '',
+        requesterLastName: request['Apellidos Solicitante'] || '',
+        contractType: request['Tipo de Contrato'] || '',
+        salary: request['Salario']?.toString() || '',
+        observations: request['Observaciones Generales'] || '', // Ajustado a 'Observaciones Generales'
+        incorporationDate: parseDate(request['Fecha de Incorporación']),
         
-        company: request.department || '',
-        jobPosition: request.position || '',
-        professionalCategory: '',
+        company: resolveOtherField(request['Empresa'] || '', request['Empresa (especificar)'] || '', companyOptions),
+        jobPosition: resolveOtherField(request['Puesto de Trabajo'] || '', request['Puesto de Trabajo (especificar)'] || '', jobPositionOptions),
+        professionalCategory: resolveOtherField(request['Categoría Profesional'] || '', request['Categoría Profesional (especificar)'] || '', professionalCategoryOptions),
         
-        city: '',
-        province: '',
-        autonomousCommunity: '',
-        workCenter: '',
-        companyFlat: 'No',
+        city: request['Población'] || '',
+        province: request['Provincia'] || '',
+        autonomousCommunity: request['Comunidad Autónoma'] || '',
+        workCenter: request['Centro de Trabajo'] || '', // Asumiendo que viene el ID/Nombre del centro
+        companyFlat: (request['Piso de Empresa'] === 'Si' || request['Piso de Empresa'] === 'No') ? request['Piso de Empresa'] : 'No',
         
-        language1: '',
-        level1: '',
-        language2: '',
-        level2: '',
+        language1: resolveOtherField(request['Idioma 1'] || '', request['Idioma 1 (especificar)'] || '', languageOptions),
+        level1: request['Nivel 1'] || '',
+        language2: resolveOtherField(request['Idioma 2'] || '', request['Idioma 2 (especificar)'] || '', languageOptions), // Asumo que language2Options es similar
+        level2: request['Nivel 2'] || '',
         
-        experienceElectromedicine: '',
-        experienceInstallations: '',
-        hiringReason: '',
-        notesAndCommitments: '',
+        experienceElectromedicine: request['Experiencia Previa en Electromedicina'] || '',
+        experienceInstallations: request['Experiencia Previa en Instalaciones'] || '',
+        hiringReason: request['Motivo de la Contratación'] || '',
+        notesAndCommitments: request['Observaciones y/o Compromisos'] || '',
 
         // Campos de sistema para importación
-        status: (request.status === 'Aprobado' || request.status === 'Rechazado' || request.status === 'Pendiente') ? request.status as 'Pendiente' | 'Aprobado' | 'Rechazado' : 'Pendiente',
-        requestDate: parseDate(request.requestDate) || serverTimestamp(),
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
+        status: (request['Estado'] === 'Aprobado' || request['Estado'] === 'Rechazado' || request['Estado'] === 'Pendiente') ? request['Estado'] : 'Pendiente',
+        requestDate: parseDate(request['Fecha de Solicitud']) || serverTimestamp(), // Podría venir como "Fecha de Solicitud" en el CSV
+        createdAt: parseDate(request['Fecha Creación']) || serverTimestamp(), // Si el CSV tiene estas fechas
+        updatedAt: parseDate(request['Última Actualización']) || serverTimestamp(), // Si el CSV tiene estas fechas
+
+        // Campos adicionales, si existen en la importación (usar nombres de columna del CSV)
+        createdByUserId: request['ID Creador'] || undefined,
+        pdfSolicitation: request['Link PDF Solicitud'] || undefined,
+        selectedCandidate: request['Candidato Seleccionado'] || undefined,
+        approved: typeof request['Aprobado'] === 'boolean' ? request['Aprobado'] : undefined, // Asumo una columna 'Aprobado'
       };
       
-      await addDoc(collection(db, COLLECTION_PATH), payload);
+      await addDoc(getContractRequestsCollectionRef(), payload);
       results.success++;
 
     } catch (error) {
