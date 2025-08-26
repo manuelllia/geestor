@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -201,72 +202,75 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
   }
 
   return (
-    <div className="w-full max-w-full overflow-hidden">
-      <div className="space-y-4 sm:space-y-6 p-2 sm:p-4 lg:p-6">
-        <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
-          <div>
-            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-blue-900 dark:text-blue-100">
+    <div className="w-full min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="w-full max-w-full p-2 sm:p-4 md:p-6 space-y-3 sm:space-y-4 md:space-y-6">
+        {/* Header responsive */}
+        <div className="flex flex-col space-y-3 sm:space-y-4">
+          <div className="flex flex-col space-y-2 sm:space-y-0">
+            <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-blue-900 dark:text-blue-100 leading-tight">
               {t('contractRequests')}
             </h1>
-            <p className="text-xs sm:text-sm lg:text-base text-gray-600 dark:text-gray-400 mt-1">
+            <p className="text-xs sm:text-sm md:text-base text-gray-600 dark:text-gray-400">
               Gestiona las solicitudes de contratación
             </p>
           </div>
           
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+          {/* Botones responsive */}
+          <div className="flex flex-col sm:flex-row gap-2 w-full">
             <Button
               onClick={handleRefresh}
               variant="outline"
-              className="border-blue-300 text-blue-700 hover:bg-blue-50 text-xs sm:text-sm"
+              className="border-blue-300 text-blue-700 hover:bg-blue-50 text-xs sm:text-sm h-8 sm:h-9 px-2 sm:px-3"
               disabled={refreshing}
               size="sm"
             >
               <RefreshCw className={`w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-              Actualizar
+              <span className="truncate">Actualizar</span>
             </Button>
             
             <Button
               onClick={() => setShowImportModal(true)}
               variant="outline"
-              className="border-green-300 text-green-700 hover:bg-green-50 text-xs sm:text-sm"
+              className="border-green-300 text-green-700 hover:bg-green-50 text-xs sm:text-sm h-8 sm:h-9 px-2 sm:px-3"
               size="sm"
             >
               <Upload className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-              Importar
+              <span className="truncate">Importar</span>
             </Button>
             
             <Button
               onClick={() => setShowCreateForm(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm"
+              className="bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm h-8 sm:h-9 px-2 sm:px-3"
               size="sm"
             >
               <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-              Nueva Solicitud
+              <span className="truncate">Nueva Solicitud</span>
             </Button>
           </div>
         </div>
 
+        {/* Card responsive */}
         <Card className="border-blue-200 dark:border-blue-800 w-full">
-          <CardHeader className="p-3 sm:p-4 lg:p-6">
-            <CardTitle className="text-sm sm:text-base lg:text-lg text-blue-800 dark:text-blue-200 flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
+          <CardHeader className="p-3 sm:p-4 md:p-6">
+            <CardTitle className="text-sm sm:text-base md:text-lg text-blue-800 dark:text-blue-200 flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
               <span className="flex items-center gap-2">
-                <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
-                Lista de Solicitudes
+                <FileText className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+                <span className="truncate">Lista de Solicitudes</span>
               </span>
               <Badge variant="secondary" className="text-xs sm:text-sm w-fit">
                 {requests.length} solicitudes
               </Badge>
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-0 sm:p-3 lg:p-6">
-            {/* Información de paginación */}
-            <div className="px-3 sm:px-0 pb-3 sm:pb-4">
+          <CardContent className="p-0">
+            {/* Información de paginación responsive */}
+            <div className="px-3 sm:px-4 md:px-6 pb-2 sm:pb-3">
               <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                 Mostrando del {startIndex + 1} al {Math.min(endIndex, totalItems)} de {totalItems} solicitudes
               </p>
             </div>
 
-            {/* Contenedor con scroll horizontal solo para la tabla */}
+            {/* Contenedor con scroll horizontal para tablas */}
             <div className="w-full overflow-x-auto">
               <div className="min-w-[800px]">
                 <Table>
@@ -354,25 +358,25 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
               </div>
             </div>
 
-            {/* Paginación */}
+            {/* Paginación responsive */}
             {totalPages > 1 && (
               <div className="flex flex-col sm:flex-row items-center justify-between gap-2 p-3 sm:p-4 border-t">
-                <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 order-2 sm:order-1">
                   <span>Página {currentPage} de {totalPages}</span>
                 </div>
                 
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1 order-1 sm:order-2">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 1}
-                    className="text-xs sm:text-sm"
+                    className="text-xs h-7 px-2"
                   >
                     Anterior
                   </Button>
                   
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1 max-w-[200px] overflow-x-auto">
                     {getPageNumbers().map((page, index) => (
                       <Button
                         key={index}
@@ -380,7 +384,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
                         size="sm"
                         onClick={() => typeof page === 'number' ? handlePageChange(page) : undefined}
                         disabled={page === '...'}
-                        className="text-xs sm:text-sm min-w-[32px] sm:min-w-[36px]"
+                        className="text-xs h-7 min-w-[28px] px-1"
                       >
                         {page}
                       </Button>
@@ -392,7 +396,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
                     size="sm"
                     onClick={() => handlePageChange(currentPage + 1)}
                     disabled={currentPage === totalPages}
-                    className="text-xs sm:text-sm"
+                    className="text-xs h-7 px-2"
                   >
                     Siguiente
                   </Button>
@@ -404,16 +408,16 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
 
         {/* Modal de confirmación para eliminar */}
         <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-          <AlertDialogContent>
+          <AlertDialogContent className="w-[90vw] max-w-md">
             <AlertDialogHeader>
-              <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-              <AlertDialogDescription>
+              <AlertDialogTitle className="text-sm sm:text-base">¿Estás seguro?</AlertDialogTitle>
+              <AlertDialogDescription className="text-xs sm:text-sm">
                 Esta acción no se puede deshacer. Se eliminará permanentemente la solicitud de contratación.
               </AlertDialogDescription>
             </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-              <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">
+            <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+              <AlertDialogCancel className="text-xs sm:text-sm h-8">Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700 text-xs sm:text-sm h-8">
                 Eliminar
               </AlertDialogAction>
             </AlertDialogFooter>

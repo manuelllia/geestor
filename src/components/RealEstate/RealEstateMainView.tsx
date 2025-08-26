@@ -24,7 +24,6 @@ const RealEstateMainView: React.FC<RealEstateMainViewProps> = ({ language }) => 
         const documentExists = await checkRealEstateDocument();
         setHasData(documentExists);
         
-        // Si no hay datos, mostrar directamente la vista de carga
         if (!documentExists) {
           setCurrentView('upload');
         }
@@ -50,7 +49,6 @@ const RealEstateMainView: React.FC<RealEstateMainViewProps> = ({ language }) => 
 
   const handleBackToDashboard = () => {
     setCurrentView('dashboard');
-    // Recargar datos después de importar
     const recheckData = async () => {
       const documentExists = await checkRealEstateDocument();
       setHasData(documentExists);
@@ -60,30 +58,40 @@ const RealEstateMainView: React.FC<RealEstateMainViewProps> = ({ language }) => 
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px] p-4 sm:p-6 lg:p-8">
-        <div className="animate-spin rounded-full h-8 w-8 sm:h-12 sm:w-12 border-b-2 border-primary"></div>
+      <div className="w-full min-h-screen bg-gray-50 dark:bg-gray-900">
+        <div className="flex items-center justify-center min-h-[400px] p-4 sm:p-6 lg:p-8">
+          <div className="animate-spin rounded-full h-8 w-8 sm:h-12 sm:w-12 border-b-2 border-primary"></div>
+        </div>
       </div>
     );
   }
 
   switch (currentView) {
     case 'list':
-      return <RealEstateListView onBack={handleBackToDashboard} />;
+      return (
+        <div className="w-full min-h-screen bg-gray-50 dark:bg-gray-900">
+          <RealEstateListView onBack={handleBackToDashboard} />
+        </div>
+      );
     case 'upload':
       return (
-        <RealEstateUploadView
-          language={language}
-          onUploadComplete={handleBackToDashboard}
-          onCancel={hasData ? handleBackToDashboard : undefined}
-        />
+        <div className="w-full min-h-screen bg-gray-50 dark:bg-gray-900">
+          <RealEstateUploadView
+            language={language}
+            onUploadComplete={handleBackToDashboard}
+            onCancel={hasData ? handleBackToDashboard : undefined}
+          />
+        </div>
       );
     default:
       return (
-        <RealEstateDashboard
-          language={language}
-          onImportData={handleImportData}
-          onViewTables={handleViewTables}
-        />
+        <div className="w-full min-h-screen bg-gray-50 dark:bg-gray-900">
+          <RealEstateDashboard
+            language={language}
+            onImportData={handleImportData}
+            onViewTables={handleViewTables}
+          />
+        </div>
       );
   }
 };
