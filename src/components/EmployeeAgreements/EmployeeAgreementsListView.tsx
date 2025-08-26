@@ -168,7 +168,7 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
       <EmployeeAgreementCreateForm
         language={language}
         onBack={() => setShowCreateForm(false)}
-        onAgreementCreated={handleAgreementCreated}
+        onSuccess={handleAgreementCreated}
       />
     );
   }
@@ -195,7 +195,7 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
           setShowEditForm(false);
           setSelectedAgreement(null);
         }}
-        onAgreementUpdated={handleAgreementUpdated}
+        onSuccess={handleAgreementUpdated}
       />
     );
   }
@@ -254,7 +254,7 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
                 Lista de Acuerdos
               </span>
               <Badge variant="secondary" className="text-xs sm:text-sm w-fit">
-                {totalItems} acuerdos
+                {agreements.length} acuerdos
               </Badge>
             </CardTitle>
           </CardHeader>
@@ -283,7 +283,7 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {currentItems.map((agreement) => (
+                    {agreements.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((agreement) => (
                       <TableRow key={agreement.id}>
                         <TableCell className="font-medium text-xs sm:text-sm">
                           <div className="truncate max-w-[120px]">
@@ -425,7 +425,7 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
           <ImportEmployeeAgreementsModal
             open={showImportModal}
             onClose={() => setShowImportModal(false)}
-            onImportSuccess={handleImportSuccess}
+            onSuccess={handleImportSuccess}
           />
         )}
       </div>

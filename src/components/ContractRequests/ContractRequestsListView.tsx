@@ -168,7 +168,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
       <ContractRequestCreateForm
         language={language}
         onBack={() => setShowCreateForm(false)}
-        onRequestCreated={handleRequestCreated}
+        onSuccess={handleRequestCreated}
       />
     );
   }
@@ -195,7 +195,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
           setShowEditForm(false);
           setSelectedRequest(null);
         }}
-        onRequestUpdated={handleRequestUpdated}
+        onSuccess={handleRequestUpdated}
       />
     );
   }
@@ -254,7 +254,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
                 Lista de Solicitudes
               </span>
               <Badge variant="secondary" className="text-xs sm:text-sm w-fit">
-                {totalItems} solicitudes
+                {requests.length} solicitudes
               </Badge>
             </CardTitle>
           </CardHeader>
@@ -283,7 +283,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {currentItems.map((request) => (
+                    {requests.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((request) => (
                       <TableRow key={request.id}>
                         <TableCell className="font-medium text-xs sm:text-sm">
                           <div className="truncate max-w-[120px]">
