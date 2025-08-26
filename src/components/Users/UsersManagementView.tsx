@@ -1,10 +1,11 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { MoreHorizontal, Eye, Users, Loader2, RefreshCw } from 'lucide-react';
+import { MoreHorizontal, Eye, Users, Loader2, RefreshCw, Search } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Language } from '../../utils/translations';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -23,6 +24,7 @@ const UsersManagementView: React.FC<UsersManagementViewProps> = ({ language }) =
   const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     loadUsers();
@@ -65,6 +67,39 @@ const UsersManagementView: React.FC<UsersManagementViewProps> = ({ language }) =
       console.error('Error updating user:', error);
       toast.error('Error al actualizar los permisos del usuario');
     }
+  };
+
+  // Función para filtrar usuarios basada en la búsqueda
+  const filteredUsers = useMemo(() => {
+    if (!searchTerm.trim()) {
+      return users;
+    }
+    
+    const searchLower = searchTerm.toLowerCase();
+    return users.filter(user => 
+      user.nombre.toLowerCase().includes(searchLower) ||
+      user.email.toLowerCase().includes(searchLower)
+    );
+  }, [users, searchTerm]);
+
+  // Función para resaltar el texto coincidente
+  const highlightMatch = (text: string, searchTerm: string) => {
+    if (!searchTerm.trim()) {
+      return text;
+    }
+    
+    const regex = new RegExp(`(${searchTerm})`, 'gi');
+    const parts = text.split(regex);
+    
+    return parts.map((part, index) => 
+      regex.test(part) ? (
+        <span key={index} className="bg-yellow-200 dark:bg-yellow-800 font-semibold">
+          {part}
+        </span>
+      ) : (
+        part
+      )
+    );
   };
 
   const getBooleanText = (value: boolean): string => {
@@ -131,6 +166,22 @@ const UsersManagementView: React.FC<UsersManagementViewProps> = ({ language }) =
           </div>
         </div>
 
+        {/* Buscador */}
+        <Card className="border-blue-200 dark:border-blue-800">
+          <CardContent className="p-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Input
+                type="text"
+                placeholder="Buscar usuarios por nombre o correo..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 border-blue-200 focus:border-blue-500 focus:ring-blue-500"
+              />
+            </div>
+          </CardContent>
+        </Card>
+
         <Card className="border-blue-200 dark:border-blue-800 w-full">
           <CardHeader className="p-3 sm:p-4 lg:p-6">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-2 sm:space-y-0">
@@ -139,7 +190,7 @@ const UsersManagementView: React.FC<UsersManagementViewProps> = ({ language }) =
                 Lista de Usuarios
               </CardTitle>
               <Badge variant="secondary" className="text-xs sm:text-sm w-fit">
-                {users.length} usuarios
+                {filteredUsers.length} de {users.length} usuarios
               </Badge>
             </div>
           </CardHeader>
@@ -163,16 +214,16 @@ const UsersManagementView: React.FC<UsersManagementViewProps> = ({ language }) =
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {users.map((user) => (
+                    {filteredUsers.map((user) => (
                       <TableRow key={user.uid}>
                         <TableCell className="font-medium text-xs sm:text-sm">
                           <div className="truncate max-w-[120px]">
-                            {user.nombre}
+                            {highlightMatch(user.nombre, searchTerm)}
                           </div>
                         </TableCell>
                         <TableCell className="text-xs sm:text-sm">
                           <div className="truncate max-w-[150px]">
-                            {user.email}
+                            {highlightMatch(user.email, searchTerm)}
                           </div>
                         </TableCell>
                         <TableCell className="hidden sm:table-cell text-xs sm:text-sm">

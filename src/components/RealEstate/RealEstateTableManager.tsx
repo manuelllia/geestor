@@ -4,22 +4,26 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { MoreHorizontal, Eye, Building2, RefreshCw, ArrowLeft } from 'lucide-react';
+import { MoreHorizontal, Eye, Building2, RefreshCw, ArrowLeft, Edit, Trash2 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { collection, getDocs } from "firebase/firestore";
-import { db } from "../../lib/firebase";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { getRealEstateProperties, deletePropertyRecord, PropertyData } from '../../services/realEstateService';
 import RealEstateDetailModal from './RealEstateDetailModal';
+import RealEstateEditModal from './RealEstateEditModal';
+import { toast } from 'sonner';
 
 interface RealEstateTableManagerProps {
   onBack: () => void;
 }
 
 const RealEstateTableManager: React.FC<RealEstateTableManagerProps> = ({ onBack }) => {
-  const [properties, setProperties] = useState<any[]>([]);
+  const [properties, setProperties] = useState<PropertyData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedProperty, setSelectedProperty] = useState<any>(null);
+  const [selectedProperty, setSelectedProperty] = useState<PropertyData | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     loadProperties();
@@ -28,37 +32,11 @@ const RealEstateTableManager: React.FC<RealEstateTableManagerProps> = ({ onBack 
   const loadProperties = async () => {
     try {
       setLoading(true);
-      const properties: any[] = [];
-      
-      // Obtener datos de pisos activos
-      const activePisosRef = collection(db, "Gestión de Talento", "Gestión Inmuebles", "PISOS ACTIVOS");
-      const activePisosSnapshot = await getDocs(activePisosRef);
-      
-      activePisosSnapshot.forEach((doc) => {
-        properties.push({
-          id: doc.id,
-          ...doc.data(),
-          status: 'Activo',
-          source: 'PISOS ACTIVOS'
-        });
-      });
-
-      // Obtener datos de pisos de baja
-      const bajaPisosRef = collection(db, "Gestión de Talento", "Gestión Inmuebles", "BAJA PISOS");
-      const bajaPisosSnapshot = await getDocs(bajaPisosRef);
-      
-      bajaPisosSnapshot.forEach((doc) => {
-        properties.push({
-          id: doc.id,
-          ...doc.data(),
-          status: 'Inactivo',
-          source: 'BAJA PISOS'
-        });
-      });
-      
-      setProperties(properties);
+      const propertiesData = await getRealEstateProperties();
+      setProperties(propertiesData);
     } catch (error) {
       console.error('Error loading properties:', error);
+      toast.error('Error al cargar las propiedades');
     } finally {
       setLoading(false);
     }
@@ -70,10 +48,81 @@ const RealEstateTableManager: React.FC<RealEstateTableManagerProps> = ({ onBack 
     setRefreshing(false);
   };
 
-  const handleViewProperty = (property: any) => {
+  const handleViewProperty = (property: PropertyData) => {
     setSelectedProperty(property);
     setIsDetailModalOpen(true);
   };
+
+  const handleEditProperty = (property: PropertyData) => {
+    setSelectedProperty(property);
+    setIsEditModalOpen(true);
+  };
+
+  const handleSaveProperty = (updatedProperty: PropertyData) => {
+    setProperties(prev => prev.map(prop => 
+      prop.id === updatedProperty.id ? updatedProperty : prop
+    ));
+  };
+
+  const handleDeleteProperty = async (property: PropertyData) => {
+    if (!property.source || !property.id) return;
+
+    try {
+      setDeletingId(property.id);
+      await deletePropertyRecord(property.id, property.source);
+      
+      // Remover de la lista local
+      setProperties(prev => prev.filter(prop => prop.id !== property.id));
+      
+      toast.success('Propiedad eliminada correctamente');
+    } catch (error) {
+      console.error('Error deleting property:', error);
+      toast.error('Error al eliminar la propiedad');
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const getPropertyName = (property: PropertyData): string => {
+    return property['CENTRO TRABAJO'] || 
+           property['DIRECCIÓN'] || 
+           property['NOMBRE TRABAJADORES'] || 
+           `Propiedad ${property.ID || property.id || 'Sin ID'}`;
+  };
+
+  const getPropertyType = (property: PropertyData): string => {
+    return property['EMPRESA GEE'] || 'No especificado';
+  };
+
+  const getPropertyCity = (property: PropertyData): string => {
+    // Intentar extraer la ciudad de la dirección
+    const direccion = property['DIRECCIÓN'] || '';
+    const parts = direccion.split('-');
+    if (parts.length > 1) {
+      return parts[parts.length - 1].trim();
+    }
+    return 'No especificado';
+  };
+
+  const getPropertyProvince = (property: PropertyData): string => {
+    return property['PROVINCIA'] || 'No especificado';
+  };
+
+  const getPropertyPrice = (property: PropertyData): number => {
+    return property['COSTE ANUAL'] || 0;
+  };
+
+  if (loading) {
+    return (
+      <div className="w-full max-w-full overflow-hidden">
+        <div className="space-y-4 sm:space-y-6 p-2 sm:p-4 lg:p-6">
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="animate-spin rounded-full h-8 w-8 sm:h-12 sm:w-12 border-b-2 border-primary"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-full overflow-hidden">
@@ -141,22 +190,22 @@ const RealEstateTableManager: React.FC<RealEstateTableManagerProps> = ({ onBack 
                       <TableRow key={property.id || index}>
                         <TableCell className="font-medium text-xs sm:text-sm">
                           <div className="truncate max-w-[120px] sm:max-w-[200px]">
-                            {property.nombre || property.description || 'Sin nombre'}
+                            {getPropertyName(property)}
                           </div>
                         </TableCell>
                         <TableCell className="text-xs sm:text-sm">
                           <div className="truncate max-w-[80px]">
-                            {property.tipo || property.type || 'No especificado'}
+                            {getPropertyType(property)}
                           </div>
                         </TableCell>
                         <TableCell className="text-xs sm:text-sm hidden sm:table-cell">
                           <div className="truncate max-w-[80px]">
-                            {property.ciudad || property.city || 'No especificado'}
+                            {getPropertyCity(property)}
                           </div>
                         </TableCell>
                         <TableCell className="text-xs sm:text-sm hidden lg:table-cell">
                           <div className="truncate max-w-[80px]">
-                            {property.provincia || property.province || 'No especificado'}
+                            {getPropertyProvince(property)}
                           </div>
                         </TableCell>
                         <TableCell>
@@ -164,13 +213,13 @@ const RealEstateTableManager: React.FC<RealEstateTableManagerProps> = ({ onBack 
                             variant={property.status === 'Activo' ? 'default' : 'secondary'}
                             className="text-xs"
                           >
-                            {property.status || 'No especificado'}
+                            {property['ESTADO'] || property.status || 'No especificado'}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-xs sm:text-sm hidden sm:table-cell">
                           <div className="truncate max-w-[100px]">
-                            {property.precio || property.price 
-                              ? `${(property.precio || property.price).toLocaleString('es-ES')} €`
+                            {getPropertyPrice(property) > 0
+                              ? `${getPropertyPrice(property).toLocaleString('es-ES')} €`
                               : 'No especificado'
                             }
                           </div>
@@ -187,6 +236,39 @@ const RealEstateTableManager: React.FC<RealEstateTableManagerProps> = ({ onBack 
                                 <Eye className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                                 Ver detalles
                               </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleEditProperty(property)} className="cursor-pointer text-xs sm:text-sm">
+                                <Edit className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                                Editar
+                              </DropdownMenuItem>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <DropdownMenuItem 
+                                    onSelect={(e) => e.preventDefault()}
+                                    className="cursor-pointer text-xs sm:text-sm text-red-600 hover:text-red-700"
+                                  >
+                                    <Trash2 className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                                    Eliminar
+                                  </DropdownMenuItem>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Esta acción no se puede deshacer. Se eliminará permanentemente la propiedad de la base de datos.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => handleDeleteProperty(property)}
+                                      disabled={deletingId === property.id}
+                                      className="bg-red-600 hover:bg-red-700"
+                                    >
+                                      {deletingId === property.id ? 'Eliminando...' : 'Eliminar'}
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </TableCell>
@@ -208,6 +290,19 @@ const RealEstateTableManager: React.FC<RealEstateTableManagerProps> = ({ onBack 
               setIsDetailModalOpen(false);
               setSelectedProperty(null);
             }}
+          />
+        )}
+
+        {/* Modal de edición */}
+        {selectedProperty && (
+          <RealEstateEditModal
+            property={selectedProperty}
+            isOpen={isEditModalOpen}
+            onClose={() => {
+              setIsEditModalOpen(false);
+              setSelectedProperty(null);
+            }}
+            onSave={handleSaveProperty}
           />
         )}
       </div>
