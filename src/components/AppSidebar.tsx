@@ -100,7 +100,7 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
     {
       id: 'gestion-tecnica',
       label: 'GESTIÓN TÉCNICA',
-      shortLabel: 'GT',
+      shortLabel: 'GEST. TÉC.',
       visible: permissions?.Per_GT ?? true,
       items: [
         {
@@ -120,7 +120,7 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
     {
       id: 'gestion-talento',
       label: 'GESTIÓN DE TALENTO',
-      shortLabel: 'GDT',
+      shortLabel: 'GEST. TAL.',
       visible: permissions?.Per_GDT ?? true,
       items: [
         {
