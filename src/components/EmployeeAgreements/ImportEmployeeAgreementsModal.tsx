@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Button } from '../ui/button';
@@ -15,13 +14,15 @@ import {
 interface ImportEmployeeAgreementsModalProps {
   open: boolean;
   onClose: () => void;
-  language: Language;
+  onImportSuccess: () => void;
+  language?: Language;
 }
 
 const ImportEmployeeAgreementsModal: React.FC<ImportEmployeeAgreementsModalProps> = ({
   open,
   onClose,
-  language
+  onImportSuccess,
+  language = 'es'
 }) => {
   const { t } = useTranslation(language);
   const [isUploading, setIsUploading] = useState(false);
@@ -142,7 +143,7 @@ const ImportEmployeeAgreementsModal: React.FC<ImportEmployeeAgreementsModalProps
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
+    <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">

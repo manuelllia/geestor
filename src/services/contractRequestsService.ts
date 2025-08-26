@@ -1,4 +1,3 @@
-
 // src/services/contractRequestsService.ts
 
 import { collection, addDoc, getDocs, doc, setDoc, deleteDoc, updateDoc, query, orderBy, Timestamp, getDoc } from 'firebase/firestore';
@@ -46,6 +45,7 @@ export interface ContractRequestRecord {
 // Export type aliases for compatibility with imports
 export type ContractRequestData = ContractRequestRecord;
 export type ContractRequestInput = Partial<ContractRequestRecord>;
+export type ContractRequest = ContractRequestRecord;
 
 // --- Tipo para los datos que se enviarán directamente a Firestore ---
 // Las fechas se convierten a Timestamp para Firestore.
@@ -208,6 +208,53 @@ export const saveContractRequest = async (
     return docRef.id;
   } catch (error) {
     console.error('Error al guardar solicitud de contratación:', error);
+    throw error;
+  }
+};
+
+// --- FUNCIÓN para duplicar una Solicitud de Contratación ---
+export const duplicateContractRequest = async (originalRequest: ContractRequestRecord): Promise<string> => {
+  try {
+    const duplicatedData: ContractRequestFirestorePayload = {
+      requesterName: originalRequest.requesterName + ' (Copia)',
+      requesterLastName: originalRequest.requesterLastName,
+      contractType: originalRequest.contractType,
+      salary: originalRequest.salary,
+      observations: originalRequest.observations,
+      incorporationDate: originalRequest.incorporationDate 
+        ? Timestamp.fromDate(originalRequest.incorporationDate)
+        : null,
+      company: originalRequest.company,
+      jobPosition: originalRequest.jobPosition,
+      professionalCategory: originalRequest.professionalCategory,
+      city: originalRequest.city,
+      province: originalRequest.province,
+      autonomousCommunity: originalRequest.autonomousCommunity,
+      workCenter: originalRequest.workCenter,
+      companyFlat: originalRequest.companyFlat,
+      language1: originalRequest.language1,
+      level1: originalRequest.level1,
+      language2: originalRequest.language2,
+      level2: originalRequest.level2,
+      experienceElectromedicine: originalRequest.experienceElectromedicine,
+      experienceInstallations: originalRequest.experienceInstallations,
+      hiringReason: originalRequest.hiringReason,
+      notesAndCommitments: originalRequest.notesAndCommitments,
+      status: 'Pendiente',
+      requestDate: serverTimestamp(),
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+      createdByUserId: originalRequest.createdByUserId,
+      pdfSolicitation: originalRequest.pdfSolicitation,
+      selectedCandidate: originalRequest.selectedCandidate,
+      approved: originalRequest.approved,
+    };
+
+    const docRef = await addDoc(getContractRequestsCollectionRef(), duplicatedData);
+    console.log('Solicitud de contratación duplicada exitosamente con ID:', docRef.id);
+    return docRef.id;
+  } catch (error) {
+    console.error('Error al duplicar solicitud de contratación:', error);
     throw error;
   }
 };

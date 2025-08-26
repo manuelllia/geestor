@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,7 +8,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Language } from '../../utils/translations';
 import { useTranslation } from '../../hooks/useTranslation';
-import { getContractRequests, deleteContractRequest, duplicateContractRequest, ContractRequest } from '../../services/contractRequestsService';
+import { getContractRequests, deleteContractRequest, duplicateContractRequest, ContractRequestRecord } from '../../services/contractRequestsService';
 import ContractRequestCreateForm from './ContractRequestCreateForm';
 import ContractRequestDetailView from './ContractRequestDetailView';
 import ContractRequestEditForm from './ContractRequestEditForm';
@@ -22,15 +21,15 @@ interface ContractRequestsListViewProps {
 
 const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ language }) => {
   const { t } = useTranslation(language);
-  const [requests, setRequests] = useState<ContractRequest[]>([]);
+  const [requests, setRequests] = useState<ContractRequestRecord[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedRequest, setSelectedRequest] = useState<ContractRequest | null>(null);
+  const [selectedRequest, setSelectedRequest] = useState<ContractRequestRecord | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showDetailView, setShowDetailView] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [requestToDelete, setRequestToDelete] = useState<ContractRequest | null>(null);
+  const [requestToDelete, setRequestToDelete] = useState<ContractRequestRecord | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
   // Estados para paginación
@@ -60,17 +59,17 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
     setRefreshing(false);
   };
 
-  const handleViewRequest = (request: ContractRequest) => {
+  const handleViewRequest = (request: ContractRequestRecord) => {
     setSelectedRequest(request);
     setShowDetailView(true);
   };
 
-  const handleEditRequest = (request: ContractRequest) => {
+  const handleEditRequest = (request: ContractRequestRecord) => {
     setSelectedRequest(request);
     setShowEditForm(true);
   };
 
-  const handleDuplicateRequest = async (request: ContractRequest) => {
+  const handleDuplicateRequest = async (request: ContractRequestRecord) => {
     try {
       await duplicateContractRequest(request);
       await loadRequests();
@@ -81,7 +80,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
     }
   };
 
-  const handleDeleteRequest = (request: ContractRequest) => {
+  const handleDeleteRequest = (request: ContractRequestRecord) => {
     setRequestToDelete(request);
     setDeleteDialogOpen(true);
   };
@@ -169,7 +168,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
       <ContractRequestCreateForm
         language={language}
         onBack={() => setShowCreateForm(false)}
-        onRequestCreated={handleRequestCreated}
+        onSuccess={handleRequestCreated}
       />
     );
   }
@@ -177,7 +176,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
   if (showDetailView && selectedRequest) {
     return (
       <ContractRequestDetailView
-        request={selectedRequest}
+        requestId={selectedRequest.id}
         language={language}
         onBack={() => {
           setShowDetailView(false);
@@ -190,13 +189,13 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
   if (showEditForm && selectedRequest) {
     return (
       <ContractRequestEditForm
-        request={selectedRequest}
+        requestId={selectedRequest.id}
         language={language}
         onBack={() => {
           setShowEditForm(false);
           setSelectedRequest(null);
         }}
-        onRequestUpdated={handleRequestUpdated}
+        onSuccess={handleRequestUpdated}
       />
     );
   }
@@ -424,7 +423,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
         {/* Modal de importación */}
         {showImportModal && (
           <ImportContractRequestsModal
-            isOpen={showImportModal}
+            open={showImportModal}
             onClose={() => setShowImportModal(false)}
             onImportSuccess={handleImportSuccess}
           />
