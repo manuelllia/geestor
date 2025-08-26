@@ -1,11 +1,10 @@
-
 import React, { useState, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Button } from '../ui/button';
 import { Upload, FileText, AlertCircle, CheckCircle, X } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Language } from '../../utils/translations';
-import { importContractRequests, ContractRequestInput } from '../../services/contractRequestsService';
+import { importContractRequests, ContractRequestRecord } from '../../services/contractRequestsService';
 import * as XLSX from 'xlsx';
 import Papa from 'papaparse';
 
@@ -55,17 +54,31 @@ const ImportContractRequestsModal: React.FC<ImportContractRequestsModalProps> = 
         throw new Error('Formato de archivo no soportado. Use CSV o Excel (.xlsx, .xls)');
       }
 
-      const requests: ContractRequestInput[] = data.map((row: any) => ({
-        applicantName: row['Nombre'] || row['applicantName'] || '',
-        applicantLastName: row['Apellidos'] || row['applicantLastName'] || '',
-        position: row['Puesto'] || row['position'] || '',
-        department: row['Departamento'] || row['department'] || '',
-        requestType: row['Tipo de Solicitud'] || row['requestType'] || 'Nueva Contratación',
-        requestDate: parseDate(row['Fecha de Solicitud'] || row['requestDate']) || new Date(),
-        expectedStartDate: parseDate(row['Fecha de Inicio Esperada'] || row['expectedStartDate']) || new Date(),
-        salary: row['Salario'] || row['salary'] || '',
-        status: row['Estado'] || row['status'] || 'Pendiente',
-        observations: row['Observaciones'] || row['observations'] || '',
+      // Mapear los datos del Excel/CSV a la estructura de ContractRequestRecord
+      const requests: Partial<ContractRequestRecord>[] = data.map((row: any) => ({
+        requesterName: row['Candidato Seleccionado'] || '',
+        requesterLastName: '', // No está en el Excel, se deja vacío
+        contractType: row['Tipo de Contrato'] || '',
+        salary: row['Salario']?.toString() || '',
+        observations: row['Observaciones'] || '',
+        incorporationDate: parseDate(row['Fecha de Incorporación']),
+        company: resolveCompany(row['Empresa'], row['NUEVA EMPRESA']),
+        jobPosition: resolveJobPosition(row['Puesto de Trabajo'], row['Especificar Puesto de Trabajo']),
+        professionalCategory: resolveProfessionalCategory(row['Categoría Profesional'], row['Especificar Categoría Profesional']),
+        city: row['Población'] || '',
+        province: row['Provincia'] || '',
+        autonomousCommunity: row['Comunidad Autónoma'] || '',
+        workCenter: resolveWorkCenter(row['Centro de Trabajo'], row['Especificar Centro']),
+        companyFlat: row['Piso de Empresa'] === 'Si' ? 'Si' : 'No',
+        language1: row['Idioma'] || '',
+        level1: row['Nivel'] || '',
+        language2: row['Idioma 2'] || '',
+        level2: row['Nivel 2'] || '',
+        experienceElectromedicine: row['Experiencia Previa en Electromedicina'] || '',
+        experienceInstallations: row['Experiencia Previa en Instalaciones'] || '',
+        hiringReason: row['Motivo de la Contratación'] || '',
+        notesAndCommitments: row['Observaciones y/o Compromisos'] || '',
+        status: 'Pendiente' as const,
       }));
 
       console.log('Datos procesados para importar:', requests);
@@ -84,8 +97,8 @@ const ImportContractRequestsModal: React.FC<ImportContractRequestsModalProps> = 
     }
   };
 
-  const parseDate = (dateString: string): Date | null => {
-    if (!dateString) return null;
+  const parseDate = (dateString: string): Date | undefined => {
+    if (!dateString) return undefined;
     
     const formats = [
       () => new Date(dateString),
@@ -116,7 +129,45 @@ const ImportContractRequestsModal: React.FC<ImportContractRequestsModalProps> = 
       }
     }
 
-    return new Date();
+    return undefined;
+  };
+
+  const resolveCompany = (empresa: string, nuevaEmpresa: string): string => {
+    const companyOptions = ['IBERMAN SA', 'ASIME SA', 'MANTELEC SA', 'INSANEX SL', 'SSM', 'RD HEALING', 'AINATEC INDEL FACILITIES'];
+    
+    if (empresa && companyOptions.includes(empresa)) {
+      return empresa;
+    }
+    
+    return nuevaEmpresa || empresa || '';
+  };
+
+  const resolveJobPosition = (puesto: string, especificar: string): string => {
+    const jobPositionOptions = [
+      'TÉCNICO/A DE ELECTROMEDICINA', 'RC', 'INGENIERO/A ELECTRONICO', 'INGENIERO/A MECANICO',
+      'INGENIERO/A DESARROLLO HW Y SW', 'ELECTRICISTA', 'FRIGORISTA', 'TÉCNICO/A DE INSTALACIONES',
+      'ALBAÑIL'
+    ];
+    
+    if (puesto && jobPositionOptions.includes(puesto)) {
+      return puesto;
+    }
+    
+    return especificar || puesto || '';
+  };
+
+  const resolveProfessionalCategory = (categoria: string, especificar: string): string => {
+    const professionalCategoryOptions = ['TÉCNICO/A', 'INGENIERO/A', 'OFICIAL 1º', 'OFICIAL 2º', 'OFICIAL 3º'];
+    
+    if (categoria && professionalCategoryOptions.includes(categoria)) {
+      return categoria;
+    }
+    
+    return especificar || categoria || '';
+  };
+
+  const resolveWorkCenter = (centro: string, especificar: string): string => {
+    return especificar || centro || '';
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -167,19 +218,20 @@ const ImportContractRequestsModal: React.FC<ImportContractRequestsModalProps> = 
               
               <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
                 <div className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-2">
-                  Columnas requeridas:
+                  Columnas esperadas del Excel:
                 </div>
                 <ul className="text-xs text-blue-800 dark:text-blue-200 space-y-1">
-                  <li>• Nombre</li>
-                  <li>• Apellidos</li>
-                  <li>• Puesto</li>
-                  <li>• Departamento</li>
-                  <li>• Tipo de Solicitud</li>
-                  <li>• Fecha de Solicitud</li>
-                  <li>• Fecha de Inicio Esperada</li>
+                  <li>• Candidato Seleccionado</li>
+                  <li>• Tipo de Contrato</li>
                   <li>• Salario</li>
-                  <li>• Estado</li>
                   <li>• Observaciones</li>
+                  <li>• Fecha de Incorporación</li>
+                  <li>• Empresa / NUEVA EMPRESA</li>
+                  <li>• Puesto de Trabajo / Especificar Puesto</li>
+                  <li>• Categoría Profesional / Especificar</li>
+                  <li>• Población, Provincia, Comunidad Autónoma</li>
+                  <li>• Centro de Trabajo / Especificar Centro</li>
+                  <li>• Idiomas y Experiencia</li>
                 </ul>
               </div>
 

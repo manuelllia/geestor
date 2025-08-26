@@ -1,7 +1,8 @@
+
 // src/services/contractRequestsService.ts
 
-import { collection, addDoc, getDocs, doc, setDoc, deleteDoc, updateDoc, query, orderBy, Timestamp, getDoc, FieldValue } from 'firebase/firestore';
-import { db, serverTimestamp } from '../lib/firebase'; // Asegúrate de que la ruta a tu archivo firebase.ts sea correcta
+import { collection, addDoc, getDocs, doc, setDoc, deleteDoc, updateDoc, query, orderBy, Timestamp, getDoc } from 'firebase/firestore';
+import { db, serverTimestamp } from '../lib/firebase';
 
 // --- Interfaz ContractRequestRecord: Define la estructura de datos en el cliente ---
 export interface ContractRequestRecord {
@@ -44,7 +45,7 @@ export interface ContractRequestRecord {
 
 // Export type aliases for compatibility with imports
 export type ContractRequestData = ContractRequestRecord;
-export type ContractRequestInput = ContractRequestRecord;
+export type ContractRequestInput = Partial<ContractRequestRecord>;
 
 // --- Tipo para los datos que se enviarán directamente a Firestore ---
 // Las fechas se convierten a Timestamp para Firestore.
@@ -53,7 +54,7 @@ export type ContractRequestFirestorePayload = Omit<
   'id' | 'requestDate' | 'incorporationDate' | 'createdAt' | 'updatedAt'
 > & {
   requestDate: any; // Para guardar en Firestore, será un serverTimestamp al crear
-  incorporationDate: Timestamp | null; // Para guardar en Firestore, puede ser null
+  incorporationDate: any; // Para guardar en Firestore, puede ser Timestamp o null
   createdAt?: any; // Para guardar en Firestore, opcional al crear/actualizar
   updatedAt?: any; // Para guardar en Firestore, opcional al crear/actualizar
 };
@@ -252,94 +253,55 @@ export const deleteContractRequest = async (id: string): Promise<void> => {
 };
 
 // --- FUNCIÓN para importar Solicitudes de Contratación (ej. desde CSV/Excel) ---
-export const importContractRequests = async (requests: any[]): Promise<{ success: number; errors: string[] }> => {
+export const importContractRequests = async (requests: Partial<ContractRequestRecord>[]): Promise<{ success: number; errors: string[] }> => {
   const results = { success: 0, errors: [] as string[] };
-
-  // Opciones predefinidas (deben coincidir con las del formulario)
-  const companyOptions = ['IBERMAN SA', 'ASIME SA', 'MANTELEC SA', 'INSANEX SL', 'SSM', 'RD HEALING', 'AINATEC INDEL FACILITIES'];
-  const jobPositionOptions = [
-    'TÉCNICO/A DE ELECTROMEDICINA', 'RC', 'INGENIERO/A ELECTRONICO', 'INGENIERO/A MECANICO',
-    'INGENIERO/A DESARROLLO HW Y SW', 'ELECTRICISTA', 'FRIGORISTA', 'TÉCNICO/A DE INSTALACIONES',
-    'ALBAÑIL'
-  ];
-  const professionalCategoryOptions = ['TÉCNICO/A', 'INGENIERO/A', 'OFICIAL 1º', 'OFICIAL 2º', 'OFICIAL 3º'];
-  const languageOptions = ['INGLÉS', 'FRANCÉS', 'PORTUGÉS'];
-  const levelOptions = [
-    'A1-A2 (BÁSICO)', 'B1 (INTERMEDIO-BAJO)', 'B1-B2', 'B2 (FIRST CERTIFICATE)',
-    'B2-C1', 'C1 (ADVANCED)', 'C2(BILINGÜE)'
-  ];
-
 
   for (let i = 0; i < requests.length; i++) {
     try {
       const request = requests[i];
 
-      // Helper para convertir fechas de importación (puede venir como string o número)
-      const parseDate = (dateValue: any): Timestamp | null => {
-        if (!dateValue) return null;
-        let date;
-        if (typeof dateValue === 'string') {
-          date = new Date(dateValue);
-        } else if (typeof dateValue === 'number') {
-          // Asume que es un timestamp de Excel, por ejemplo. Ajustar si tu fuente es diferente.
-          // Los números de Excel suelen ser días desde 1900-01-01.
-          date = new Date(Math.round((dateValue - 25569) * 86400 * 1000));
-        } else if (dateValue instanceof Date) {
-          date = dateValue;
-        } else {
-          return null;
-        }
-        return isNaN(date.getTime()) ? null : Timestamp.fromDate(date);
-      };
+      // Validar campos requeridos mínimos
+      if (!request.requesterName && !request.company) {
+        results.errors.push(`Fila ${i + 2}: Faltan datos mínimos requeridos`);
+        continue;
+      }
 
-      // Helper para resolver campos 'Otro'
-      const resolveOtherField = (value: string, otherValue: string, options: string[]) => {
-        if (!value) return '';
-        // Si el valor está en las opciones, úsalo. Si no, usa el valor de 'otherValue' si existe, si no, el propio 'value'.
-        // Esto es útil si el CSV trae el valor "específico" directamente sin indicar "Otro".
-        return options.includes(value) ? value : (otherValue || value);
-      };
+      // Convertir fecha de incorporación a Timestamp si existe
+      const incorporationDateTimestamp = request.incorporationDate
+        ? Timestamp.fromDate(request.incorporationDate instanceof Date ? request.incorporationDate : new Date(request.incorporationDate))
+        : null;
 
-      // Mapeo exhaustivo de los campos de la importación a la nueva interfaz
       const payload: ContractRequestFirestorePayload = {
-        requesterName: request['Nombre Solicitante'] || '',
-        requesterLastName: request['Apellidos Solicitante'] || '',
-        contractType: request['Tipo de Contrato'] || '',
-        salary: request['Salario']?.toString() || '',
-        observations: request['Observaciones Generales'] || '', // Ajustado a 'Observaciones Generales'
-        incorporationDate: parseDate(request['Fecha de Incorporación']),
-        
-        company: resolveOtherField(request['Empresa'] || '', request['Empresa (especificar)'] || '', companyOptions),
-        jobPosition: resolveOtherField(request['Puesto de Trabajo'] || '', request['Puesto de Trabajo (especificar)'] || '', jobPositionOptions),
-        professionalCategory: resolveOtherField(request['Categoría Profesional'] || '', request['Categoría Profesional (especificar)'] || '', professionalCategoryOptions),
-        
-        city: request['Población'] || '',
-        province: request['Provincia'] || '',
-        autonomousCommunity: request['Comunidad Autónoma'] || '',
-        workCenter: request['Centro de Trabajo'] || '', // Asumiendo que viene el ID/Nombre del centro
-        companyFlat: (request['Piso de Empresa'] === 'Si' || request['Piso de Empresa'] === 'No') ? request['Piso de Empresa'] : 'No',
-        
-        language1: resolveOtherField(request['Idioma 1'] || '', request['Idioma 1 (especificar)'] || '', languageOptions),
-        level1: request['Nivel 1'] || '',
-        language2: resolveOtherField(request['Idioma 2'] || '', request['Idioma 2 (especificar)'] || '', languageOptions), // Asumo que language2Options es similar
-        level2: request['Nivel 2'] || '',
-        
-        experienceElectromedicine: request['Experiencia Previa en Electromedicina'] || '',
-        experienceInstallations: request['Experiencia Previa en Instalaciones'] || '',
-        hiringReason: request['Motivo de la Contratación'] || '',
-        notesAndCommitments: request['Observaciones y/o Compromisos'] || '',
-
-        // Campos de sistema para importación
-        status: (request['Estado'] === 'Aprobado' || request['Estado'] === 'Rechazado' || request['Estado'] === 'Pendiente') ? request['Estado'] : 'Pendiente',
-        requestDate: parseDate(request['Fecha de Solicitud']) || serverTimestamp(), // Podría venir como "Fecha de Solicitud" en el CSV
-        createdAt: parseDate(request['Fecha Creación']) || serverTimestamp(), // Si el CSV tiene estas fechas
-        updatedAt: parseDate(request['Última Actualización']) || serverTimestamp(), // Si el CSV tiene estas fechas
-
-        // Campos adicionales, si existen en la importación (usar nombres de columna del CSV)
-        createdByUserId: request['ID Creador'] || undefined,
-        pdfSolicitation: request['Link PDF Solicitud'] || undefined,
-        selectedCandidate: request['Candidato Seleccionado'] || undefined,
-        approved: typeof request['Aprobado'] === 'boolean' ? request['Aprobado'] : undefined, // Asumo una columna 'Aprobado'
+        requesterName: request.requesterName || '',
+        requesterLastName: request.requesterLastName || '',
+        contractType: request.contractType || '',
+        salary: request.salary || '',
+        observations: request.observations || '',
+        incorporationDate: incorporationDateTimestamp,
+        company: request.company || '',
+        jobPosition: request.jobPosition || '',
+        professionalCategory: request.professionalCategory || '',
+        city: request.city || '',
+        province: request.province || '',
+        autonomousCommunity: request.autonomousCommunity || '',
+        workCenter: request.workCenter || '',
+        companyFlat: (request.companyFlat === 'Si' || request.companyFlat === 'No') ? request.companyFlat : 'No',
+        language1: request.language1 || '',
+        level1: request.level1 || '',
+        language2: request.language2 || '',
+        level2: request.level2 || '',
+        experienceElectromedicine: request.experienceElectromedicine || '',
+        experienceInstallations: request.experienceInstallations || '',
+        hiringReason: request.hiringReason || '',
+        notesAndCommitments: request.notesAndCommitments || '',
+        status: (request.status === 'Aprobado' || request.status === 'Rechazado' || request.status === 'Pendiente') ? request.status : 'Pendiente',
+        requestDate: serverTimestamp(),
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        createdByUserId: request.createdByUserId,
+        pdfSolicitation: request.pdfSolicitation,
+        selectedCandidate: request.selectedCandidate,
+        approved: request.approved,
       };
       
       await addDoc(getContractRequestsCollectionRef(), payload);
