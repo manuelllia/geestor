@@ -17,6 +17,8 @@ export interface ChangeSheetRecord {
   destinationCenter: string; // Nuevo campo: ID del centro de trabajo de destino
   contractsToManage?: string; // Nuevo campo: ID del contrato a gestionar (opcional)
   newPosition: string; // Nuevo puesto (ya resuelto de 'Otro')
+  newSupervisorName: string; // Nuevo campo agregado
+  newSupervisorLastName: string; // Nuevo campo agregado
   startDate?: Date; // Fecha de inicio, convertida a Date (puede ser undefined si es null en DB)
   changeType: 'Permanente' | 'Temporal'; // Tipo de cambio
   needs: string[]; // Array de necesidades
@@ -37,7 +39,6 @@ export type ChangeSheetFirestorePayload = Omit<ChangeSheetRecord, 'id' | 'create
   updatedAt?: Timestamp; // Opcional, se añade al crear/actualizar
   status?: 'Pendiente' | 'Aprobado' | 'Rechazado'; // Estado para creación/actualización
 };
-
 
 // --- Función para obtener todas las Hojas de Cambio ---
 export const getChangeSheets = async (): Promise<ChangeSheetRecord[]> => {
@@ -77,6 +78,8 @@ export const getChangeSheets = async (): Promise<ChangeSheetRecord[]> => {
         destinationCenter: data.destinationCenter || '', // Nuevo campo
         contractsToManage: data.contractsToManage || '', // Nuevo campo
         newPosition: data.newPosition || '',
+        newSupervisorName: data.newSupervisorName || '', // Nuevo campo agregado
+        newSupervisorLastName: data.newSupervisorLastName || '', // Nuevo campo agregado
         startDate: data.startDate instanceof Timestamp ? data.startDate.toDate() : undefined, // Convierte Timestamp a Date
         changeType: changeType,
         needs: Array.isArray(data.needs) ? data.needs : [], // Asegura que 'needs' sea un array
@@ -128,6 +131,8 @@ export const getChangeSheetById = async (id: string): Promise<ChangeSheetRecord 
         destinationCenter: data.destinationCenter || '', // Nuevo campo
         contractsToManage: data.contractsToManage || '', // Nuevo campo
         newPosition: data.newPosition || '',
+        newSupervisorName: data.newSupervisorName || '', // Nuevo campo agregado
+        newSupervisorLastName: data.newSupervisorLastName || '', // Nuevo campo agregado
         startDate: data.startDate instanceof Timestamp ? data.startDate.toDate() : undefined,
         changeType: changeType,
         needs: Array.isArray(data.needs) ? data.needs : [],
@@ -202,6 +207,8 @@ export const duplicateChangeSheet = async (originalId: string): Promise<string> 
       destinationCenter: originalDoc.destinationCenter,
       contractsToManage: originalDoc.contractsToManage,
       newPosition: originalDoc.newPosition,
+      newSupervisorName: originalDoc.newSupervisorName,
+      newSupervisorLastName: originalDoc.newSupervisorLastName,
       startDate: originalDoc.startDate ? Timestamp.fromDate(originalDoc.startDate) : null,
       changeType: originalDoc.changeType,
       needs: originalDoc.needs,
@@ -259,6 +266,8 @@ export const exportChangeSheetsToCSV = async (): Promise<void> => {
       'Centro Destino', // Nuevo campo
       'Contratos a Gestionar', // Nuevo campo
       'Nuevo Puesto',
+      'Nuevo Supervisor Nombre',
+      'Nuevo Supervisor Apellidos',
       'Fecha Inicio',
       'Tipo de Cambio',
       'Necesidades',
@@ -285,6 +294,8 @@ export const exportChangeSheetsToCSV = async (): Promise<void> => {
         sheet.destinationCenter,
         sheet.contractsToManage || '',
         sheet.newPosition,
+        sheet.newSupervisorName,
+        sheet.newSupervisorLastName,
         sheet.startDate ? sheet.startDate.toLocaleDateString() : '',
         sheet.changeType,
         sheet.needs.join('; '),

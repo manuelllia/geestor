@@ -39,6 +39,8 @@ interface ChangeSheetFormData {
   contractsToManage: string; // Nuevo campo: ID del contrato a gestionar
   newPosition: string; // Valor de selección (puede ser 'Otro')
   newPositionOther: string; // Para la opción 'Otro' de Nuevo Puesto
+  newSupervisorName: string; // Nuevo campo agregado
+  newSupervisorLastName: string; // Nuevo campo agregado
   startDate: string; // Fecha en formato 'YYYY-MM-DD'
   changeType: 'Permanente' | 'Temporal' | '';
   needs: string[]; // Array de strings
@@ -94,6 +96,8 @@ const ChangeSheetCreateForm: React.FC<ChangeSheetCreateFormProps> = ({
     contractsToManage: '',
     newPosition: '',
     newPositionOther: '',
+    newSupervisorName: '',
+    newSupervisorLastName: '',
     startDate: new Date().toISOString().split('T')[0], // Fecha actual por defecto
     changeType: '',
     needs: [],
@@ -120,6 +124,8 @@ const ChangeSheetCreateForm: React.FC<ChangeSheetCreateFormProps> = ({
         contractsToManage: editingSheet.contractsToManage || '', // Nuevo campo
         newPosition: positionOptions.includes(editingSheet.newPosition) ? editingSheet.newPosition : 'Otro',
         newPositionOther: !positionOptions.includes(editingSheet.newPosition) ? editingSheet.newPosition : '',
+        newSupervisorName: editingSheet.newSupervisorName || '',
+        newSupervisorLastName: editingSheet.newSupervisorLastName || '',
         startDate: editingSheet.startDate
           ? editingSheet.startDate.toISOString().split('T')[0] // Convierte Date a string YYYY-MM-DD
           : new Date().toISOString().split('T')[0],
@@ -205,6 +211,8 @@ const ChangeSheetCreateForm: React.FC<ChangeSheetCreateFormProps> = ({
       destinationCenter: formData.destinationCenter,
       contractsToManage: formData.contractsToManage || '', // Opcional
       newPosition: formData.newPosition === 'Otro' ? formData.newPositionOther : formData.newPosition,
+      newSupervisorName: formData.newSupervisorName,
+      newSupervisorLastName: formData.newSupervisorLastName,
       startDate: formData.startDate, // Todavía en string para validación
       changeType: formData.changeType,
       needs: formData.needs,
@@ -219,7 +227,7 @@ const ChangeSheetCreateForm: React.FC<ChangeSheetCreateFormProps> = ({
     const requiredFields: Array<keyof typeof processedData> = [
       'employeeName', 'employeeLastName', 'originCenter', 'currentPosition',
       'currentSupervisorName', 'currentSupervisorLastName', 'destinationCenter',
-      'newPosition', 'startDate', 'changeType', 'currentCompany', 'companyChange', 'observations'
+      'newPosition', 'newSupervisorName', 'newSupervisorLastName', 'startDate', 'changeType', 'currentCompany', 'companyChange', 'observations'
     ];
 
     let isValid = true;
@@ -587,6 +595,38 @@ const ChangeSheetCreateForm: React.FC<ChangeSheetCreateFormProps> = ({
                 required
               />
             )}
+          </div>
+
+          {/* Nuevo Supervisor Nombre y Apellidos */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <Label htmlFor="newSupervisorName" className="text-gray-700 dark:text-gray-300">
+                Nuevo Supervisor Nombre *
+              </Label>
+              <Input
+                type="text"
+                id="newSupervisorName"
+                name="newSupervisorName"
+                value={formData.newSupervisorName}
+                onChange={handleChange}
+                placeholder="Nombre del nuevo supervisor"
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="newSupervisorLastName" className="text-gray-700 dark:text-gray-300">
+                Nuevo Supervisor Apellidos *
+              </Label>
+              <Input
+                type="text"
+                id="newSupervisorLastName"
+                name="newSupervisorLastName"
+                value={formData.newSupervisorLastName}
+                onChange={handleChange}
+                placeholder="Apellidos del nuevo supervisor"
+                required
+              />
+            </div>
           </div>
 
           {/* Fecha de Inicio */}

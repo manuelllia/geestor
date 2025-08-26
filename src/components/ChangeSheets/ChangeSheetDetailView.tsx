@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
@@ -122,11 +121,11 @@ const ChangeSheetDetailView: React.FC<ChangeSheetDetailViewProps> = ({
 
     pdf.setFontSize(11);
     pdf.setFont('helvetica', 'normal');
-    pdf.text(`Tipo de Cambio: ${sheetData.changeType === 'permanent' ? 'Permanente' : 'Temporal'}`, 20, yPosition);
+    pdf.text(`Tipo de Cambio: ${sheetData.changeType === 'Permanente' ? 'Permanente' : 'Temporal'}`, 20, yPosition);
     yPosition += 8;
     pdf.text(`Empresa Actual: ${sheetData.currentCompany}`, 20, yPosition);
     yPosition += 8;
-    pdf.text(`Cambio de Empresa: ${sheetData.companyChange === 'yes' ? 'Sí' : 'No'}`, 20, yPosition);
+    pdf.text(`Cambio de Empresa: ${sheetData.companyChange === 'Si' ? 'Sí' : 'No'}`, 20, yPosition);
     yPosition += 8;
     pdf.text(`Estado: ${sheetData.status}`, 20, yPosition);
     yPosition += 15;
@@ -320,7 +319,7 @@ const ChangeSheetDetailView: React.FC<ChangeSheetDetailViewProps> = ({
           <CardContent className="space-y-4">
             <div>
               <label className="text-sm font-medium text-gray-600">Tipo de Cambio</label>
-              <p className="text-lg">{sheetData.changeType === 'permanent' ? 'Permanente' : 'Temporal'}</p>
+              <p className="text-lg">{sheetData.changeType === 'Permanente' ? 'Permanente' : 'Temporal'}</p>
             </div>
             <div>
               <label className="text-sm font-medium text-gray-600">Empresa Actual</label>
@@ -328,7 +327,7 @@ const ChangeSheetDetailView: React.FC<ChangeSheetDetailViewProps> = ({
             </div>
             <div>
               <label className="text-sm font-medium text-gray-600">Cambio de Empresa</label>
-              <p className="text-lg">{sheetData.companyChange === 'yes' ? 'Sí' : 'No'}</p>
+              <p className="text-lg">{sheetData.companyChange === 'Si' ? 'Sí' : 'No'}</p>
             </div>
           </CardContent>
         </Card>

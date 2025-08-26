@@ -212,11 +212,11 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({
 
     pdf.setFontSize(11);
     pdf.setFont('helvetica', 'normal');
-    pdf.text(`Tipo de Cambio: ${sheet.changeType === 'permanent' ? 'Permanente' : 'Temporal'}`, 20, yPosition);
+    pdf.text(`Tipo de Cambio: ${sheet.changeType === 'Permanente' ? 'Permanente' : 'Temporal'}`, 20, yPosition);
     yPosition += 8;
     pdf.text(`Empresa Actual: ${sheet.currentCompany}`, 20, yPosition);
     yPosition += 8;
-    pdf.text(`Cambio de Empresa: ${sheet.companyChange === 'yes' ? 'Sí' : 'No'}`, 20, yPosition);
+    pdf.text(`Cambio de Empresa: ${sheet.companyChange === 'Si' ? 'Sí' : 'No'}`, 20, yPosition);
     yPosition += 8;
     pdf.text(`Estado: ${sheet.status}`, 20, yPosition);
     yPosition += 15;
