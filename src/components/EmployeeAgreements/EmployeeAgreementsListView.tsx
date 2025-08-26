@@ -71,7 +71,7 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
 
   const handleDuplicateAgreement = async (agreement: EmployeeAgreementRecord) => {
     try {
-      await duplicateEmployeeAgreement(agreement);
+      await duplicateEmployeeAgreement(agreement.id);
       await loadAgreements();
       toast.success('Acuerdo duplicado correctamente');
     } catch (error) {
@@ -168,7 +168,7 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
       <EmployeeAgreementCreateForm
         language={language}
         onBack={() => setShowCreateForm(false)}
-        onSuccess={handleAgreementCreated}
+        onAgreementCreated={handleAgreementCreated}
       />
     );
   }
@@ -195,7 +195,7 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
           setShowEditForm(false);
           setSelectedAgreement(null);
         }}
-        onSuccess={handleAgreementUpdated}
+        onAgreementUpdated={handleAgreementUpdated}
       />
     );
   }
@@ -425,7 +425,7 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
           <ImportEmployeeAgreementsModal
             open={showImportModal}
             onClose={() => setShowImportModal(false)}
-            onSuccess={handleImportSuccess}
+            onImportSuccess={handleImportSuccess}
           />
         )}
       </div>

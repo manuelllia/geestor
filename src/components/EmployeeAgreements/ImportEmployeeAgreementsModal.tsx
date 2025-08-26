@@ -1,30 +1,23 @@
+
 import React, { useState, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Button } from '../ui/button';
-import { Upload, FileText, AlertCircle, CheckCircle } from 'lucide-react';
-import { useTranslation } from '../../hooks/useTranslation';
-import { Language } from '../../utils/translations';
+import { Upload, FileText, AlertCircle, CheckCircle, X } from 'lucide-react';
+import { importEmployeeAgreements, EmployeeAgreementRecord } from '../../services/employeeAgreementsService';
 import * as XLSX from 'xlsx';
 import Papa from 'papaparse';
-import {
-  saveEmployeeAgreement,
-  EmployeeAgreementRecord
-} from '../../services/employeeAgreementsService';
 
 interface ImportEmployeeAgreementsModalProps {
   open: boolean;
   onClose: () => void;
   onImportSuccess: () => void;
-  language?: Language;
 }
 
 const ImportEmployeeAgreementsModal: React.FC<ImportEmployeeAgreementsModalProps> = ({
   open,
   onClose,
-  onImportSuccess,
-  language = 'es'
+  onImportSuccess
 }) => {
-  const { t } = useTranslation(language);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadResult, setUploadResult] = useState<{ success: number; errors: string[] } | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -59,48 +52,31 @@ const ImportEmployeeAgreementsModal: React.FC<ImportEmployeeAgreementsModalProps
         throw new Error('Formato de archivo no soportado. Use CSV o Excel (.xlsx, .xls)');
       }
 
-      const agreements = data.map((row: any) => ({
-        employeeName: row['employeeName'] || '',
-        employeeLastName: row['employeeLastName'] || '',
-        workCenter: row['workCenter'] || '',
-        city: row['city'] || '',
-        province: row['province'] || '',
-        autonomousCommunity: row['autonomousCommunity'] || '',
-        responsibleName: row['responsibleName'] || '',
-        responsibleLastName: row['responsibleLastName'] || '',
-        agreementConcepts: row['agreementConcepts'] || '',
-        economicAgreement1: row['economicAgreement1'] || '',
-        concept1: row['concept1'] || '',
-        economicAgreement2: row['economicAgreement2'] || '',
-        concept2: row['concept2'] || '',
-        economicAgreement3: row['economicAgreement3'] || '',
-        concept3: row['concept3'] || '',
-        activationDate: row['activationDate'] || new Date().toISOString(),
-        endDate: row['endDate'] || undefined,
-        observationsAndCommitment: row['observationsAndCommitment'] || '',
-        // Campos requeridos para compatibilidad
-        jobPosition: row['jobPosition'] || row['agreementConcepts'] || '',
-        department: row['department'] || row['workCenter'] || '',
-        agreementType: row['agreementType'] || row['agreementConcepts'] || '',
-        startDate: row['startDate'] || row['activationDate'] || new Date().toISOString(),
-        salary: row['salary'] || row['economicAgreement1'] || '0',
-        status: (row['status'] as 'Activo' | 'Finalizado' | 'Suspendido') || 'Activo',
-        observations: row['observations'] || row['observationsAndCommitment'] || '',
+      // Mapear los datos del Excel/CSV a la estructura de EmployeeAgreementRecord
+      const agreements: Partial<EmployeeAgreementRecord>[] = data.map((row: any) => ({
+        employeeName: row['Nombre Empleado'] || '',
+        employeeLastName: row['Apellido Empleado'] || '',
+        company: row['Empresa'] || '',
+        department: row['Departamento'] || '',
+        jobPosition: row['Puesto'] || '',
+        workCenter: row['Centro de Trabajo'] || '',
+        city: row['Ciudad'] || '',
+        startDate: parseDate(row['Fecha Inicio']) || new Date(),
+        endDate: parseDate(row['Fecha Fin']),
+        salary: row['Salario']?.toString() || '',
+        contractType: row['Tipo de Contrato'] || '',
+        status: 'Activo' as const,
+        notes: row['Notas'] || '',
       }));
 
-      let successCount = 0;
-      const errors: string[] = [];
+      console.log('Datos procesados para importar:', agreements);
 
-      for (let i = 0; i < agreements.length; i++) {
-        try {
-          await saveEmployeeAgreement(agreements[i]);
-          successCount++;
-        } catch (error) {
-          errors.push(`Fila ${i + 1}: ${error}`);
-        }
+      const result = await importEmployeeAgreements(agreements);
+      setUploadResult(result);
+
+      if (result.success > 0) {
+        onImportSuccess();
       }
-
-      setUploadResult({ success: successCount, errors });
 
     } catch (error) {
       console.error('Error procesando archivo:', error);
@@ -111,6 +87,41 @@ const ImportEmployeeAgreementsModal: React.FC<ImportEmployeeAgreementsModalProps
     } finally {
       setIsUploading(false);
     }
+  };
+
+  const parseDate = (dateString: string): Date | undefined => {
+    if (!dateString) return undefined;
+    
+    const formats = [
+      () => new Date(dateString),
+      () => {
+        const parts = dateString.split('/');
+        if (parts.length === 3) {
+          return new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+        }
+        return null;
+      },
+      () => {
+        const parts = dateString.split('-');
+        if (parts.length === 3) {
+          return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+        }
+        return null;
+      }
+    ];
+
+    for (const format of formats) {
+      try {
+        const date = format();
+        if (date && !isNaN(date.getTime())) {
+          return date;
+        }
+      } catch (e) {
+        continue;
+      }
+    }
+
+    return undefined;
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -143,7 +154,7 @@ const ImportEmployeeAgreementsModal: React.FC<ImportEmployeeAgreementsModalProps
   };
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
@@ -158,21 +169,24 @@ const ImportEmployeeAgreementsModal: React.FC<ImportEmployeeAgreementsModalProps
               <div className="text-sm text-gray-600 dark:text-gray-400">
                 Sube un archivo CSV o Excel con los acuerdos con empleados. El archivo debe contener las siguientes columnas:
               </div>
-
+              
               <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
                 <div className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-2">
-                  Columnas requeridas:
+                  Columnas esperadas:
                 </div>
                 <ul className="text-xs text-blue-800 dark:text-blue-200 space-y-1">
-                  <li>• employeeName</li>
-                  <li>• employeeLastName</li>
-                  <li>• workCenter</li>
-                  <li>• responsibleName</li>
-                  <li>• responsibleLastName</li>
-                  <li>• agreementConcepts</li>
-                  <li>• activationDate</li>
-                  <li>• endDate</li>
-                  <li>• observationsAndCommitment</li>
+                  <li>• Nombre Empleado</li>
+                  <li>• Apellido Empleado</li>
+                  <li>• Empresa</li>
+                  <li>• Departamento</li>
+                  <li>• Puesto</li>
+                  <li>• Centro de Trabajo</li>
+                  <li>• Ciudad</li>
+                  <li>• Fecha Inicio</li>
+                  <li>• Fecha Fin (opcional)</li>
+                  <li>• Salario</li>
+                  <li>• Tipo de Contrato</li>
+                  <li>• Notas (opcional)</li>
                 </ul>
               </div>
 
@@ -220,11 +234,11 @@ const ImportEmployeeAgreementsModal: React.FC<ImportEmployeeAgreementsModalProps
                   Resultado de la Importación
                 </span>
               </div>
-
+              
               <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
                 <div className="text-sm">
                   <div className="text-green-600 dark:text-green-400">
-                    ✓ {uploadResult.success} acuerdos con empleados importados exitosamente
+                    ✓ {uploadResult.success} acuerdos importados exitosamente
                   </div>
                   {uploadResult.errors.length > 0 && (
                     <div className="mt-2">

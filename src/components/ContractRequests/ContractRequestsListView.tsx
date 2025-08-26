@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -169,7 +168,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
       <ContractRequestCreateForm
         language={language}
         onBack={() => setShowCreateForm(false)}
-        onSuccess={handleRequestCreated}
+        onRequestCreated={handleRequestCreated}
       />
     );
   }
@@ -196,7 +195,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
           setShowEditForm(false);
           setSelectedRequest(null);
         }}
-        onSuccess={handleRequestUpdated}
+        onRequestUpdated={handleRequestUpdated}
       />
     );
   }
@@ -288,7 +287,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
                       <TableRow key={request.id}>
                         <TableCell className="font-medium text-xs sm:text-sm">
                           <div className="truncate max-w-[120px]">
-                            {request.employeeName} {request.employeeLastName}
+                            {request.requesterName} {request.requesterLastName}
                           </div>
                         </TableCell>
                         <TableCell className="text-xs sm:text-sm">
@@ -308,7 +307,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
                         </TableCell>
                         <TableCell className="text-xs sm:text-sm hidden lg:table-cell">
                           <div className="truncate max-w-[100px]">
-                            {request.department}
+                            {request.professionalCategory}
                           </div>
                         </TableCell>
                         <TableCell className="text-xs sm:text-sm hidden sm:table-cell">
@@ -427,6 +426,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
             open={showImportModal}
             onClose={() => setShowImportModal(false)}
             onSuccess={handleImportSuccess}
+            language={language}
           />
         )}
       </div>
