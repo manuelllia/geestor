@@ -1,14 +1,14 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { MoreHorizontal, Eye, Copy, Edit, Trash, FileText, Plus, Upload, RefreshCw } from 'lucide-react';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { MoreHorizontal, Eye, Edit, Trash2, Plus, FileText, Upload, Download, RefreshCw } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Language } from '../../utils/translations';
 import { useTranslation } from '../../hooks/useTranslation';
-import { getContractRequests, deleteContractRequest, duplicateContractRequest, ContractRequestRecord } from '../../services/contractRequestsService';
+import { getContractRequests, deleteContractRequest, ContractRequest } from '../../services/contractRequestsService';
 import ContractRequestCreateForm from './ContractRequestCreateForm';
 import ContractRequestDetailView from './ContractRequestDetailView';
 import ContractRequestEditForm from './ContractRequestEditForm';
@@ -21,20 +21,12 @@ interface ContractRequestsListViewProps {
 
 const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ language }) => {
   const { t } = useTranslation(language);
-  const [requests, setRequests] = useState<ContractRequestRecord[]>([]);
+  const [requests, setRequests] = useState<ContractRequest[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedRequest, setSelectedRequest] = useState<ContractRequestRecord | null>(null);
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [showDetailView, setShowDetailView] = useState(false);
-  const [showEditForm, setShowEditForm] = useState(false);
-  const [showImportModal, setShowImportModal] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [requestToDelete, setRequestToDelete] = useState<ContractRequestRecord | null>(null);
+  const [currentView, setCurrentView] = useState<'list' | 'create' | 'detail' | 'edit'>('list');
+  const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-
-  // Estados para paginación
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(30);
 
   useEffect(() => {
     loadRequests();
@@ -43,11 +35,11 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
   const loadRequests = async () => {
     try {
       setLoading(true);
-      const requestsData = await getContractRequests();
-      setRequests(requestsData);
+      const data = await getContractRequests();
+      setRequests(data);
     } catch (error) {
       console.error('Error loading contract requests:', error);
-      toast.error('Error al cargar las solicitudes de contratación');
+      toast.error(t('errorLoadingData'));
     } finally {
       setLoading(false);
     }
@@ -59,143 +51,67 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
     setRefreshing(false);
   };
 
-  const handleViewRequest = (request: ContractRequestRecord) => {
-    setSelectedRequest(request);
-    setShowDetailView(true);
-  };
-
-  const handleEditRequest = (request: ContractRequestRecord) => {
-    setSelectedRequest(request);
-    setShowEditForm(true);
-  };
-
-  const handleDuplicateRequest = async (request: ContractRequestRecord) => {
-    try {
-      await duplicateContractRequest(request);
-      await loadRequests();
-      toast.success('Solicitud duplicada correctamente');
-    } catch (error) {
-      console.error('Error duplicating request:', error);
-      toast.error('Error al duplicar la solicitud');
-    }
-  };
-
-  const handleDeleteRequest = (request: ContractRequestRecord) => {
-    setRequestToDelete(request);
-    setDeleteDialogOpen(true);
-  };
-
-  const confirmDelete = async () => {
-    if (!requestToDelete) return;
-
-    try {
-      await deleteContractRequest(requestToDelete.id);
-      await loadRequests();
-      toast.success('Solicitud eliminada correctamente');
-    } catch (error) {
-      console.error('Error deleting request:', error);
-      toast.error('Error al eliminar la solicitud');
-    } finally {
-      setDeleteDialogOpen(false);
-      setRequestToDelete(null);
-    }
-  };
-
-  const handleRequestCreated = () => {
-    setShowCreateForm(false);
-    loadRequests();
-  };
-
-  const handleRequestUpdated = () => {
-    setShowEditForm(false);
-    setSelectedRequest(null);
-    loadRequests();
-  };
-
-  const handleImportSuccess = () => {
-    setShowImportModal(false);
-    loadRequests();
-  };
-
-  // Cálculos de paginación
-  const totalItems = requests.length;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentItems = requests.slice(startIndex, endIndex);
-
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-  };
-
-  const getPageNumbers = () => {
-    const pages = [];
-    const maxVisiblePages = 5;
-    
-    if (totalPages <= maxVisiblePages) {
-      for (let i = 1; i <= totalPages; i++) {
-        pages.push(i);
-      }
-    } else {
-      if (currentPage <= 3) {
-        for (let i = 1; i <= 4; i++) {
-          pages.push(i);
-        }
-        pages.push('...');
-        pages.push(totalPages);
-      } else if (currentPage >= totalPages - 2) {
-        pages.push(1);
-        pages.push('...');
-        for (let i = totalPages - 3; i <= totalPages; i++) {
-          pages.push(i);
-        }
-      } else {
-        pages.push(1);
-        pages.push('...');
-        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
-          pages.push(i);
-        }
-        pages.push('...');
-        pages.push(totalPages);
+  const handleDelete = async (id: string) => {
+    if (window.confirm(t('confirmDelete'))) {
+      try {
+        await deleteContractRequest(id);
+        setRequests(prev => prev.filter(request => request.id !== id));
+        toast.success(t('deleteSuccess'));
+      } catch (error) {
+        console.error('Error deleting contract request:', error);
+        toast.error(t('deleteError'));
       }
     }
-    
-    return pages;
   };
 
-  if (showCreateForm) {
+  const handleView = (id: string) => {
+    setSelectedRequestId(id);
+    setCurrentView('detail');
+  };
+
+  const handleEdit = (id: string) => {
+    setSelectedRequestId(id);
+    setCurrentView('edit');
+  };
+
+  const handleSave = () => {
+    loadRequests();
+    setCurrentView('list');
+    setSelectedRequestId(null);
+  };
+
+  const handleBack = () => {
+    setCurrentView('list');
+    setSelectedRequestId(null);
+  };
+
+  if (currentView === 'create') {
     return (
       <ContractRequestCreateForm
         language={language}
-        onBack={() => setShowCreateForm(false)}
-        onSave={handleRequestCreated}
+        onBack={handleBack}
+        onSave={handleSave}
       />
     );
   }
 
-  if (showDetailView && selectedRequest) {
+  if (currentView === 'detail' && selectedRequestId) {
     return (
       <ContractRequestDetailView
-        requestId={selectedRequest.id}
+        requestId={selectedRequestId}
         language={language}
-        onBack={() => {
-          setShowDetailView(false);
-          setSelectedRequest(null);
-        }}
+        onBack={handleBack}
       />
     );
   }
 
-  if (showEditForm && selectedRequest) {
+  if (currentView === 'edit' && selectedRequestId) {
     return (
       <ContractRequestEditForm
-        requestId={selectedRequest.id}
+        requestId={selectedRequestId}
         language={language}
-        onBack={() => {
-          setShowEditForm(false);
-          setSelectedRequest(null);
-        }}
-        onSave={handleRequestUpdated}
+        onBack={handleBack}
+        onSave={handleSave}
       />
     );
   }
@@ -209,11 +125,11 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
               {t('contractRequests')}
             </h1>
             <p className="text-xs sm:text-sm lg:text-base text-gray-600 dark:text-gray-400 mt-1">
-              Gestiona las solicitudes de contratación
+              {t('manageContractRequests')}
             </p>
           </div>
           
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
             <Button
               onClick={handleRefresh}
               variant="outline"
@@ -222,26 +138,26 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
               size="sm"
             >
               <RefreshCw className={`w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-              Actualizar
+              {t('refresh')}
             </Button>
             
             <Button
-              onClick={() => setShowImportModal(true)}
+              onClick={() => setIsImportModalOpen(true)}
               variant="outline"
-              className="border-green-300 text-green-700 hover:bg-green-50 text-xs sm:text-sm"
+              className="border-blue-300 text-blue-700 hover:bg-blue-50 text-xs sm:text-sm"
               size="sm"
             >
               <Upload className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-              Importar
+              {t('importData')}
             </Button>
             
             <Button
-              onClick={() => setShowCreateForm(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm"
+              onClick={() => setCurrentView('create')}
+              className="bg-blue-600 hover:bg-blue-700 text-xs sm:text-sm"
               size="sm"
             >
               <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-              Nueva Solicitud
+              {t('createNew')}
             </Button>
           </div>
         </div>
@@ -251,74 +167,53 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
             <CardTitle className="text-sm sm:text-base lg:text-lg text-blue-800 dark:text-blue-200 flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
               <span className="flex items-center gap-2">
                 <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
-                Lista de Solicitudes
+                {t('contractRequestsList')}
               </span>
               <Badge variant="secondary" className="text-xs sm:text-sm w-fit">
-                {requests.length} solicitudes
+                {requests.length} {t('requests')}
               </Badge>
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0 sm:p-3 lg:p-6">
-            {/* Información de paginación */}
-            <div className="px-3 sm:px-0 pb-3 sm:pb-4">
-              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                Mostrando del {startIndex + 1} al {Math.min(endIndex, totalItems)} de {totalItems} solicitudes
-              </p>
-            </div>
-
             {/* Contenedor con scroll horizontal solo para la tabla */}
             <div className="w-full overflow-x-auto">
               <div className="min-w-[800px]">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="text-xs sm:text-sm min-w-[120px]">Empleado</TableHead>
-                      <TableHead className="text-xs sm:text-sm min-w-[100px]">Centro de Trabajo</TableHead>
-                      <TableHead className="text-xs sm:text-sm min-w-[80px] hidden sm:table-cell">Ciudad</TableHead>
-                      <TableHead className="text-xs sm:text-sm min-w-[100px] hidden lg:table-cell">Puesto</TableHead>
-                      <TableHead className="text-xs sm:text-sm min-w-[100px] hidden lg:table-cell">Departamento</TableHead>
-                      <TableHead className="text-xs sm:text-sm min-w-[90px] hidden sm:table-cell">Fecha Inicio</TableHead>
-                      <TableHead className="text-xs sm:text-sm min-w-[80px]">Estado</TableHead>
-                      <TableHead className="w-[50px] text-xs sm:text-sm">Acciones</TableHead>
+                      <TableHead className="text-xs sm:text-sm min-w-[120px]">{t('employee')}</TableHead>
+                      <TableHead className="text-xs sm:text-sm min-w-[100px] hidden sm:table-cell">{t('workCenter')}</TableHead>
+                      <TableHead className="text-xs sm:text-sm min-w-[100px] hidden lg:table-cell">{t('requestDate')}</TableHead>
+                      <TableHead className="text-xs sm:text-sm min-w-[80px]">{t('status')}</TableHead>
+                      <TableHead className="text-xs sm:text-sm min-w-[100px] hidden md:table-cell">{t('requestType')}</TableHead>
+                      <TableHead className="w-[50px] text-xs sm:text-sm">{t('actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {requests.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((request) => (
+                    {requests.map((request) => (
                       <TableRow key={request.id}>
                         <TableCell className="font-medium text-xs sm:text-sm">
-                          <div className="truncate max-w-[120px]">
-                            {request.requesterName} {request.requesterLastName}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-xs sm:text-sm">
-                          <div className="truncate max-w-[100px]">
-                            {request.workCenter}
+                          <div className="truncate max-w-[120px] sm:max-w-[200px]">
+                            {request.employee || t('noData')}
                           </div>
                         </TableCell>
                         <TableCell className="text-xs sm:text-sm hidden sm:table-cell">
-                          <div className="truncate max-w-[80px]">
-                            {request.city}
+                          <div className="truncate max-w-[100px]">
+                            {request.workCenter || t('noData')}
                           </div>
                         </TableCell>
                         <TableCell className="text-xs sm:text-sm hidden lg:table-cell">
-                          <div className="truncate max-w-[100px]">
-                            {request.jobPosition}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-xs sm:text-sm hidden lg:table-cell">
-                          <div className="truncate max-w-[100px]">
-                            {request.professionalCategory}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-xs sm:text-sm hidden sm:table-cell">
-                          <div className="truncate max-w-[90px]">
-                            {new Date(request.incorporationDate).toLocaleDateString()}
-                          </div>
+                          {request.requestDate || t('noData')}
                         </TableCell>
                         <TableCell>
                           <Badge variant="secondary" className="text-xs">
-                            Activa
+                            {request.status || t('pending')}
                           </Badge>
+                        </TableCell>
+                        <TableCell className="text-xs sm:text-sm hidden md:table-cell">
+                          <div className="truncate max-w-[100px]">
+                            {request.requestType || t('noData')}
+                          </div>
                         </TableCell>
                         <TableCell>
                           <DropdownMenu>
@@ -328,21 +223,20 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="bg-white dark:bg-gray-800 border border-blue-200 dark:border-blue-700">
-                              <DropdownMenuItem onClick={() => handleViewRequest(request)} className="cursor-pointer text-xs sm:text-sm">
+                              <DropdownMenuItem onClick={() => handleView(request.id!)} className="cursor-pointer text-xs sm:text-sm">
                                 <Eye className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                                Ver detalles
+                                {t('view')}
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleEditRequest(request)} className="cursor-pointer text-xs sm:text-sm">
+                              <DropdownMenuItem onClick={() => handleEdit(request.id!)} className="cursor-pointer text-xs sm:text-sm">
                                 <Edit className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                                Editar
+                                {t('edit')}
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleDuplicateRequest(request)} className="cursor-pointer text-xs sm:text-sm">
-                                <Copy className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                                Duplicar
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleDeleteRequest(request)} className="cursor-pointer text-red-600 text-xs sm:text-sm">
-                                <Trash className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                                Eliminar
+                              <DropdownMenuItem 
+                                onClick={() => handleDelete(request.id!)} 
+                                className="cursor-pointer text-red-600 hover:text-red-700 text-xs sm:text-sm"
+                              >
+                                <Trash2 className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                                {t('delete')}
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -353,81 +247,13 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
                 </Table>
               </div>
             </div>
-
-            {/* Paginación */}
-            {totalPages > 1 && (
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-2 p-3 sm:p-4 border-t">
-                <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                  <span>Página {currentPage} de {totalPages}</span>
-                </div>
-                
-                <div className="flex items-center gap-1">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handlePageChange(currentPage - 1)}
-                    disabled={currentPage === 1}
-                    className="text-xs sm:text-sm"
-                  >
-                    Anterior
-                  </Button>
-                  
-                  <div className="flex items-center gap-1">
-                    {getPageNumbers().map((page, index) => (
-                      <Button
-                        key={index}
-                        variant={page === currentPage ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => typeof page === 'number' ? handlePageChange(page) : undefined}
-                        disabled={page === '...'}
-                        className="text-xs sm:text-sm min-w-[32px] sm:min-w-[36px]"
-                      >
-                        {page}
-                      </Button>
-                    ))}
-                  </div>
-                  
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handlePageChange(currentPage + 1)}
-                    disabled={currentPage === totalPages}
-                    className="text-xs sm:text-sm"
-                  >
-                    Siguiente
-                  </Button>
-                </div>
-              </div>
-            )}
           </CardContent>
         </Card>
 
-        {/* Modal de confirmación para eliminar */}
-        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-              <AlertDialogDescription>
-                Esta acción no se puede deshacer. Se eliminará permanentemente la solicitud de contratación.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-              <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">
-                Eliminar
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-
-        {/* Modal de importación */}
-        {showImportModal && (
-          <ImportContractRequestsModal
-            open={showImportModal}
-            onClose={() => setShowImportModal(false)}
-            language={language}
-          />
-        )}
+        <ImportContractRequestsModal
+          open={isImportModalOpen}
+          onClose={() => setIsImportModalOpen(false)}
+        />
       </div>
     </div>
   );
