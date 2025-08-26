@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,32 +11,38 @@ import { Language } from '../../utils/translations';
 import { useTranslation } from '../../hooks/useTranslation';
 import AddButton from '../Common/AddButton';
 import CreateWorkCenterModal from '../Modals/CreateWorkCenterModal';
-import CreateContractModal from '../Modals/CreateContractModal';
+import CreateContractModal from '../Modals/CreateContractModal'; // Mantenido si se usa en otro contexto
 import { useWorkCenterModals } from '../../hooks/useWorkCenterModals';
-import { getWorkCenters, getContracts } from '../../services/workCentersService';
+import { getWorkCenters, getContracts } from '../../services/workCentersService'; // getContracts se mantiene si el modal aún se usa
 
+// --- NUEVA INTERFAZ EmployeeAgreementFormData ---
 interface EmployeeAgreementFormData {
-  employeeName: string;
-  employeeLastName: string;
-  position: string;
-  department: string;
-  startDate: Date;
-  endDate?: Date;
-  agreementType: string;
-  salary: number;
-  benefits: string;
-  responsibilities: string;
-  workCenter: string;
-  contractsManaged: string;
-  performanceGoals: string;
-  developmentPlan: string;
-  comments: string;
+  employeeName: string; // Nombre Empleado
+  employeeLastName: string; // Apellidos Empleado
+  workCenter: string; // Centro de Trabajo
+  city: string; // Población
+  province: string; // Provincia
+  autonomousCommunity: string; // Comunidad Autónoma
+  responsibleName: string; // Nombre Responsable
+  responsibleLastName: string; // Apellidos Responsable
+  agreementConcepts: string; // Conceptos del Acuerdo (valor de selección)
+  agreementConceptsOther: string; // Para la opción 'Otro' de Conceptos del Acuerdo
+  economicAgreement1: string; // Acuerdo Económico 1 (campo de texto numérico)
+  concept1: string; // Concepto 1
+  economicAgreement2: string; // Acuerdo Económico 2 (campo de texto numérico)
+  concept2: string; // Concepto 2
+  economicAgreement3: string; // Acuerdo Económico 3 (campo de texto numérico)
+  concept3: string; // Concepto 3
+  activationDate: string; // Fecha de Activación (selector de fecha)
+  endDate: string; // Fecha Fin (selector de fecha)
+  observationsAndCommitment: string; // Observaciones y Compromiso (textarea)
 }
 
 interface EmployeeAgreementCreateFormProps {
   language: Language;
   onBack: () => void;
   onSave: () => void;
+  // Si necesitaras editar, añadirías un prop 'editingAgreement?: EmployeeAgreementRecord | null;'
 }
 
 const EmployeeAgreementCreateForm: React.FC<EmployeeAgreementCreateFormProps> = ({
@@ -49,34 +54,67 @@ const EmployeeAgreementCreateForm: React.FC<EmployeeAgreementCreateFormProps> = 
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [workCenters, setWorkCenters] = useState<Array<{id: string, name: string}>>([]);
-  const [contracts, setContracts] = useState<Array<{id: string, name: string}>>([]);
+  const [contracts, setContracts] = useState<Array<{id: string, name: string}>>([]); // Se mantiene por si el modal de contratos es útil en otro contexto
   
   const {
     isWorkCenterModalOpen,
-    isContractModalOpen,
+    isContractModalOpen, // Se mantiene por si el modal de contratos es útil en otro contexto
     openWorkCenterModal,
     closeWorkCenterModal,
     openContractModal,
     closeContractModal
   } = useWorkCenterModals();
 
+  // --- Opciones predefinidas para Conceptos del Acuerdo ---
+  const agreementConceptsOptions = [
+    'Cambio de Puesto',
+    'Complemento de Responsabilidad',
+    'Complemento de Destino',
+    'Complemento Internacional',
+    'Subida Salarial',
+    'Anulación de Acuerdo',
+    'Otro'
+  ];
+
+  // --- ESTADO DEL FORMULARIO INICIALIZADO CON LOS NUEVOS CAMPOS ---
   const [formData, setFormData] = useState<EmployeeAgreementFormData>({
     employeeName: '',
     employeeLastName: '',
-    position: '',
-    department: '',
-    startDate: new Date(),
-    endDate: undefined,
-    agreementType: '',
-    salary: 0,
-    benefits: '',
-    responsibilities: '',
     workCenter: '',
-    contractsManaged: '',
-    performanceGoals: '',
-    developmentPlan: '',
-    comments: ''
+    city: '',
+    province: '',
+    autonomousCommunity: '',
+    responsibleName: '',
+    responsibleLastName: '',
+    agreementConcepts: '',
+    agreementConceptsOther: '',
+    economicAgreement1: '',
+    concept1: '',
+    economicAgreement2: '',
+    concept2: '',
+    economicAgreement3: '',
+    concept3: '',
+    activationDate: '', // O puedes poner new Date().toISOString().split('T')[0]
+    endDate: '',
+    observationsAndCommitment: '',
   });
+
+  // Manejador genérico para inputs de texto, textarea y fecha
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // Manejador para Select
+  const handleSelectChange = (name: keyof EmployeeAgreementFormData, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
 
   const loadWorkCentersAndContracts = async () => {
     try {
@@ -85,7 +123,7 @@ const EmployeeAgreementCreateForm: React.FC<EmployeeAgreementCreateFormProps> = 
         getContracts()
       ]);
       setWorkCenters(workCentersData);
-      setContracts(contractsData);
+      setContracts(contractsData); // Se mantiene si el modal de contratos es útil en otro contexto
     } catch (error) {
       console.error('Error loading work centers and contracts:', error);
     }
@@ -96,25 +134,91 @@ const EmployeeAgreementCreateForm: React.FC<EmployeeAgreementCreateFormProps> = 
   }, []);
 
   const handleWorkCenterSuccess = () => {
+    closeWorkCenterModal();
     loadWorkCentersAndContracts();
   };
 
   const handleContractSuccess = () => {
+    closeContractModal();
     loadWorkCentersAndContracts();
   };
 
   const handleSubmit = async () => {
     setIsLoading(true);
+
+    // 1. Pre-procesar los datos para la validación y el envío
+    const processedData = {
+      ...formData,
+      agreementConcepts: formData.agreementConcepts === 'Otro' ? formData.agreementConceptsOther : formData.agreementConcepts,
+      // Aquí podrías parsear los campos económicos a números si tu backend los espera así
+      // economicAgreement1: parseFloat(formData.economicAgreement1) || 0,
+      // economicAgreement2: parseFloat(formData.economicAgreement2) || 0,
+      // economicAgreement3: parseFloat(formData.economicAgreement3) || 0,
+    };
+
+    // 2. Validación de campos obligatorios
+    const requiredFields: Array<keyof typeof processedData> = [
+      'employeeName', 'employeeLastName', 'workCenter', 'responsibleName', 'responsibleLastName',
+      'agreementConcepts', 'activationDate', 'observationsAndCommitment'
+      // economicAgreement1 y concept1 no son obligatorios si no hay un acuerdo específico
+    ];
+
+    let isValid = true;
+    let missingFieldName = '';
+
+    for (const field of requiredFields) {
+      const value = processedData[field];
+
+      if (typeof value === 'string' && value.trim() === '') {
+        isValid = false;
+        missingFieldName = field;
+        break;
+      }
+      // Validación específica para el campo 'Otro' de Conceptos del Acuerdo
+      if (field === 'agreementConcepts' && formData.agreementConcepts === 'Otro' && formData.agreementConceptsOther.trim() === '') {
+        isValid = false;
+        missingFieldName = 'Conceptos del Acuerdo (especificar)';
+        break;
+      }
+    }
+    
+    // Validación de acuerdos económicos si se ha rellenado alguno
+    if (formData.economicAgreement1.trim() !== '' && formData.concept1.trim() === '') {
+        isValid = false;
+        missingFieldName = 'Concepto 1 (si hay acuerdo económico)';
+    }
+    if (formData.economicAgreement2.trim() !== '' && formData.concept2.trim() === '') {
+        isValid = false;
+        missingFieldName = 'Concepto 2 (si hay acuerdo económico)';
+    }
+    if (formData.economicAgreement3.trim() !== '' && formData.concept3.trim() === '') {
+        isValid = false;
+        missingFieldName = 'Concepto 3 (si hay acuerdo económico)';
+    }
+
+
+    if (!isValid) {
+      toast({
+        title: "Campos Incompletos",
+        description: `Por favor, complete todos los campos obligatorios. Falta: ${missingFieldName}.`,
+        variant: 'destructive',
+      });
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      // Simulate creating employee agreement - replace with actual service call
-      console.log('Creating employee agreement:', formData);
+      // Simulate creating employee agreement - REEMPLAZAR CON TU LLAMADA REAL AL SERVICIO/API/FIREBASE
+      console.log('Creando acuerdo con empleado:', processedData);
+      // Ejemplo: await saveEmployeeAgreement(processedData);
+
       toast({
         title: "Éxito",
         description: "Acuerdo con empleado creado correctamente",
       });
-      onSave();
+      onSave(); // Vuelve a la pantalla anterior o actualiza la lista
     } catch (error) {
-      console.error('Error creating employee agreement:', error);
+      console.error('Error al crear el acuerdo con empleado:', error);
       toast({
         title: "Error",
         description: "Error al crear el acuerdo con empleado",
@@ -137,7 +241,7 @@ const EmployeeAgreementCreateForm: React.FC<EmployeeAgreementCreateFormProps> = 
           Volver
         </Button>
         <h1 className="text-2xl font-semibold text-blue-800 dark:text-blue-200">
-          Crear Nuevo Acuerdo con Empleado
+          Acuerdo con Empleado
         </h1>
       </div>
 
@@ -148,97 +252,50 @@ const EmployeeAgreementCreateForm: React.FC<EmployeeAgreementCreateFormProps> = 
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
+          {/* Nombre y Apellidos Empleado */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <Label htmlFor="employeeName" className="text-gray-700 dark:text-gray-300">
-                Nombre del Empleado *
+                Nombre Empleado *
               </Label>
               <Input
                 id="employeeName"
+                name="employeeName"
                 type="text"
                 value={formData.employeeName}
-                onChange={(e) => setFormData({ ...formData, employeeName: e.target.value })}
+                onChange={handleChange}
                 placeholder="Ingrese el nombre del empleado"
+                required
               />
             </div>
-
             <div>
               <Label htmlFor="employeeLastName" className="text-gray-700 dark:text-gray-300">
-                Apellidos del Empleado *
+                Apellidos Empleado *
               </Label>
               <Input
                 id="employeeLastName"
+                name="employeeLastName"
                 type="text"
                 value={formData.employeeLastName}
-                onChange={(e) => setFormData({ ...formData, employeeLastName: e.target.value })}
+                onChange={handleChange}
                 placeholder="Ingrese los apellidos del empleado"
+                required
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <Label htmlFor="position" className="text-gray-700 dark:text-gray-300">
-                Posición *
-              </Label>
-              <Input
-                id="position"
-                type="text"
-                value={formData.position}
-                onChange={(e) => setFormData({ ...formData, position: e.target.value })}
-                placeholder="Ingrese la posición"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="department" className="text-gray-700 dark:text-gray-300">
-                Departamento *
-              </Label>
-              <Input
-                id="department"
-                type="text"
-                value={formData.department}
-                onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                placeholder="Ingrese el departamento"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <Label htmlFor="agreementType" className="text-gray-700 dark:text-gray-300">
-                Tipo de Acuerdo *
-              </Label>
-              <Input
-                id="agreementType"
-                type="text"
-                value={formData.agreementType}
-                onChange={(e) => setFormData({ ...formData, agreementType: e.target.value })}
-                placeholder="Ingrese el tipo de acuerdo"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="salary" className="text-gray-700 dark:text-gray-300">
-                Salario *
-              </Label>
-              <Input
-                id="salary"
-                type="number"
-                value={formData.salary}
-                onChange={(e) => setFormData({ ...formData, salary: parseFloat(e.target.value) })}
-                placeholder="Ingrese el salario"
-              />
-            </div>
-          </div>
-
+          {/* Centro de Trabajo y Ubicación (Población, Provincia, Comunidad Autónoma) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <Label htmlFor="workCenter" className="text-gray-700 dark:text-gray-300">
                 Centro de Trabajo *
               </Label>
               <div className="flex items-center space-x-2 mt-1">
-                <Select value={formData.workCenter} onValueChange={(value) => setFormData(prev => ({ ...prev, workCenter: value }))}>
+                <Select
+                  value={formData.workCenter}
+                  onValueChange={(value) => handleSelectChange('workCenter', value)}
+                  required
+                >
                   <SelectTrigger className="flex-1">
                     <SelectValue placeholder="Seleccione un centro de trabajo" />
                   </SelectTrigger>
@@ -256,89 +313,246 @@ const EmployeeAgreementCreateForm: React.FC<EmployeeAgreementCreateFormProps> = 
                 />
               </div>
             </div>
-
-            <div>
-              <Label htmlFor="contract" className="text-gray-700 dark:text-gray-300">
-                Contratos que Administra *
-              </Label>
-              <div className="flex items-center space-x-2 mt-1">
-                <Select value={formData.contractsManaged} onValueChange={(value) => setFormData(prev => ({ ...prev, contractsManaged: value }))}>
-                  <SelectTrigger className="flex-1">
-                    <SelectValue placeholder="Seleccione un contrato" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {contracts.map((contract) => (
-                      <SelectItem key={contract.id} value={contract.id}>
-                        {contract.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <AddButton 
-                  onClick={openContractModal}
-                  label="Añadir"
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div>
+                <Label htmlFor="city" className="text-gray-700 dark:text-gray-300">
+                  Población
+                </Label>
+                <Input
+                  type="text"
+                  id="city"
+                  name="city"
+                  value={formData.city}
+                  onChange={handleChange}
+                  placeholder="Población"
+                />
+              </div>
+              <div>
+                <Label htmlFor="province" className="text-gray-700 dark:text-gray-300">
+                  Provincia
+                </Label>
+                <Input
+                  type="text"
+                  id="province"
+                  name="province"
+                  value={formData.province}
+                  onChange={handleChange}
+                  placeholder="Provincia"
+                />
+              </div>
+              <div>
+                <Label htmlFor="autonomousCommunity" className="text-gray-700 dark:text-gray-300">
+                  Comunidad Autónoma
+                </Label>
+                <Input
+                  type="text"
+                  id="autonomousCommunity"
+                  name="autonomousCommunity"
+                  value={formData.autonomousCommunity}
+                  onChange={handleChange}
+                  placeholder="Comunidad Autónoma"
                 />
               </div>
             </div>
           </div>
 
-          <div>
-            <Label htmlFor="benefits" className="text-gray-700 dark:text-gray-300">
-              Beneficios
-            </Label>
-            <Textarea
-              id="benefits"
-              value={formData.benefits}
-              onChange={(e) => setFormData({ ...formData, benefits: e.target.value })}
-              placeholder="Ingrese los beneficios"
-            />
+
+          {/* Nombre y Apellidos Responsable */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <Label htmlFor="responsibleName" className="text-gray-700 dark:text-gray-300">
+                Nombre Responsable *
+              </Label>
+              <Input
+                type="text"
+                id="responsibleName"
+                name="responsibleName"
+                value={formData.responsibleName}
+                onChange={handleChange}
+                placeholder="Nombre del responsable"
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="responsibleLastName" className="text-gray-700 dark:text-gray-300">
+                Apellidos Responsable *
+              </Label>
+              <Input
+                type="text"
+                id="responsibleLastName"
+                name="responsibleLastName"
+                value={formData.responsibleLastName}
+                onChange={handleChange}
+                placeholder="Apellidos del responsable"
+                required
+              />
+            </div>
           </div>
 
+          {/* Conceptos del Acuerdo */}
           <div>
-            <Label htmlFor="responsibilities" className="text-gray-700 dark:text-gray-300">
-              Responsabilidades
+            <Label htmlFor="agreementConcepts" className="text-gray-700 dark:text-gray-300">
+              Conceptos del Acuerdo *
             </Label>
-            <Textarea
-              id="responsibilities"
-              value={formData.responsibilities}
-              onChange={(e) => setFormData({ ...formData, responsibilities: e.target.value })}
-              placeholder="Ingrese las responsabilidades"
-            />
+            <Select
+              value={formData.agreementConcepts}
+              onValueChange={(value) => handleSelectChange('agreementConcepts', value)}
+              required
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Seleccionar" />
+              </SelectTrigger>
+              <SelectContent>
+                {agreementConceptsOptions.map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {formData.agreementConcepts === 'Otro' && (
+              <Input
+                type="text"
+                id="agreementConceptsOther"
+                name="agreementConceptsOther"
+                value={formData.agreementConceptsOther}
+                onChange={handleChange}
+                placeholder="Especifique el concepto del acuerdo"
+                className="mt-2"
+                required
+              />
+            )}
           </div>
 
-          <div>
-            <Label htmlFor="performanceGoals" className="text-gray-700 dark:text-gray-300">
-              Objetivos de Rendimiento
-            </Label>
-            <Textarea
-              id="performanceGoals"
-              value={formData.performanceGoals}
-              onChange={(e) => setFormData({ ...formData, performanceGoals: e.target.value })}
-              placeholder="Ingrese los objetivos de rendimiento"
-            />
+          {/* Acuerdos Económicos y Conceptos */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <Label htmlFor="economicAgreement1" className="text-gray-700 dark:text-gray-300">
+                Acuerdo Económico 1
+              </Label>
+              <Input
+                type="text" // Usamos text para permitir formatos de moneda o decimales
+                id="economicAgreement1"
+                name="economicAgreement1"
+                value={formData.economicAgreement1}
+                onChange={handleChange}
+                placeholder="Ej. 1500.00"
+              />
+            </div>
+            <div>
+              <Label htmlFor="concept1" className="text-gray-700 dark:text-gray-300">
+                Concepto 1
+              </Label>
+              <Input
+                type="text"
+                id="concept1"
+                name="concept1"
+                value={formData.concept1}
+                onChange={handleChange}
+                placeholder="Ej. Complemento de Idioma"
+              />
+            </div>
           </div>
 
-          <div>
-            <Label htmlFor="developmentPlan" className="text-gray-700 dark:text-gray-300">
-              Plan de Desarrollo
-            </Label>
-            <Textarea
-              id="developmentPlan"
-              value={formData.developmentPlan}
-              onChange={(e) => setFormData({ ...formData, developmentPlan: e.target.value })}
-              placeholder="Ingrese el plan de desarrollo"
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <Label htmlFor="economicAgreement2" className="text-gray-700 dark:text-gray-300">
+                Acuerdo Económico 2
+              </Label>
+              <Input
+                type="text"
+                id="economicAgreement2"
+                name="economicAgreement2"
+                value={formData.economicAgreement2}
+                onChange={handleChange}
+                placeholder="Ej. 500.00"
+              />
+            </div>
+            <div>
+              <Label htmlFor="concept2" className="text-gray-700 dark:text-gray-300">
+                Concepto 2
+              </Label>
+              <Input
+                type="text"
+                id="concept2"
+                name="concept2"
+                value={formData.concept2}
+                onChange={handleChange}
+                placeholder="Ej. Incentivo por Proyecto"
+              />
+            </div>
           </div>
 
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <Label htmlFor="economicAgreement3" className="text-gray-700 dark:text-gray-300">
+                Acuerdo Económico 3
+              </Label>
+              <Input
+                type="text"
+                id="economicAgreement3"
+                name="economicAgreement3"
+                value={formData.economicAgreement3}
+                onChange={handleChange}
+                placeholder="Ej. 200.00"
+              />
+            </div>
+            <div>
+              <Label htmlFor="concept3" className="text-gray-700 dark:text-gray-300">
+                Concepto 3
+              </Label>
+              <Input
+                type="text"
+                id="concept3"
+                name="concept3"
+                value={formData.concept3}
+                onChange={handleChange}
+                placeholder="Ej. Ayuda de Transporte"
+              />
+            </div>
+          </div>
+
+          {/* Fechas de Activación y Fin */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <Label htmlFor="activationDate" className="text-gray-700 dark:text-gray-300">
+                Fecha de Activación *
+              </Label>
+              <Input
+                type="date"
+                id="activationDate"
+                name="activationDate"
+                value={formData.activationDate}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="endDate" className="text-gray-700 dark:text-gray-300">
+                Fecha Fin
+              </Label>
+              <Input
+                type="date"
+                id="endDate"
+                name="endDate"
+                value={formData.endDate}
+                onChange={handleChange}
+              />
+            </div>
+          </div>
+
+          {/* Observaciones y Compromiso */}
           <div>
-            <Label htmlFor="comments" className="text-gray-700 dark:text-gray-300">
-              Comentarios
+            <Label htmlFor="observationsAndCommitment" className="text-gray-700 dark:text-gray-300">
+              Observaciones y Compromiso *
             </Label>
             <Textarea
-              id="comments"
-              value={formData.comments}
-              onChange={(e) => setFormData({ ...formData, comments: e.target.value })}
-              placeholder="Ingrese comentarios adicionales"
+              id="observationsAndCommitment"
+              name="observationsAndCommitment"
+              value={formData.observationsAndCommitment}
+              onChange={handleChange}
+              placeholder="Ingrese las observaciones y cualquier compromiso del acuerdo"
+              required
             />
           </div>
 
@@ -369,6 +583,7 @@ const EmployeeAgreementCreateForm: React.FC<EmployeeAgreementCreateFormProps> = 
         onSuccess={handleWorkCenterSuccess}
       />
 
+      {/* Se mantiene el modal de Contratos, aunque no se usa directamente en este formulario con los nuevos campos */}
       <CreateContractModal
         isOpen={isContractModalOpen}
         onClose={closeContractModal}
