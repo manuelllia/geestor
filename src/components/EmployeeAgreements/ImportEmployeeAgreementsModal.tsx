@@ -8,7 +8,7 @@ import * as XLSX from 'xlsx';
 import Papa from 'papaparse';
 import {
   saveEmployeeAgreement,
-  EmployeeAgreementData
+  EmployeeAgreementRecord
 } from '../../services/employeeAgreementsService';
 
 interface ImportEmployeeAgreementsModalProps {
@@ -57,9 +57,7 @@ const ImportEmployeeAgreementsModal: React.FC<ImportEmployeeAgreementsModalProps
         throw new Error('Formato de archivo no soportado. Use CSV o Excel (.xlsx, .xls)');
       }
 
-      // TODO: Adapt the data mapping to match the EmployeeAgreementRecord
-      const agreements: EmployeeAgreementData[] = data.map((row: any) => ({
-        id: row['id'] || '',
+      const agreements = data.map((row: any) => ({
         employeeName: row['employeeName'] || '',
         employeeLastName: row['employeeLastName'] || '',
         workCenter: row['workCenter'] || '',
@@ -75,16 +73,32 @@ const ImportEmployeeAgreementsModal: React.FC<ImportEmployeeAgreementsModalProps
         concept2: row['concept2'] || '',
         economicAgreement3: row['economicAgreement3'] || '',
         concept3: row['concept3'] || '',
-        activationDate: row['activationDate'] || '',
-        endDate: row['endDate'] || '',
+        activationDate: row['activationDate'] || new Date().toISOString(),
+        endDate: row['endDate'] || undefined,
         observationsAndCommitment: row['observationsAndCommitment'] || '',
-        createdAt: row['createdAt'] || '',
-        updatedAt: row['updatedAt'] || '',
+        // Campos requeridos para compatibilidad
+        jobPosition: row['jobPosition'] || '',
+        department: row['department'] || '',
+        agreementType: row['agreementType'] || '',
+        startDate: row['startDate'] || new Date().toISOString(),
+        salary: row['salary'] || '',
+        status: (row['status'] as 'Activo' | 'Finalizado' | 'Suspendido') || 'Activo',
+        observations: row['observations'] || '',
       }));
 
-      // TODO: Implement the importEmployeeAgreements function
-      // const result = await importEmployeeAgreements(agreements);
-      setUploadResult({ success: 0, errors: ['Import function not implemented'] });
+      let successCount = 0;
+      const errors: string[] = [];
+
+      for (let i = 0; i < agreements.length; i++) {
+        try {
+          await saveEmployeeAgreement(agreements[i]);
+          successCount++;
+        } catch (error) {
+          errors.push(`Fila ${i + 1}: ${error}`);
+        }
+      }
+
+      setUploadResult({ success: successCount, errors });
 
     } catch (error) {
       console.error('Error procesando archivo:', error);
@@ -143,7 +157,6 @@ const ImportEmployeeAgreementsModal: React.FC<ImportEmployeeAgreementsModalProps
                 Sube un archivo CSV o Excel con los acuerdos con empleados. El archivo debe contener las siguientes columnas:
               </div>
 
-              {/* TODO: Update the required columns */}
               <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
                 <div className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-2">
                   Columnas requeridas:
@@ -246,6 +259,35 @@ const ImportEmployeeAgreementsModal: React.FC<ImportEmployeeAgreementsModalProps
       </DialogContent>
     </Dialog>
   );
+};
+
+const handleDragOver = (e: React.DragEvent) => {
+  e.preventDefault();
+  setIsDragOver(true);
+};
+
+const handleDragLeave = (e: React.DragEvent) => {
+  e.preventDefault();
+  setIsDragOver(false);
+};
+
+const handleDrop = (e: React.DragEvent) => {
+  e.preventDefault();
+  setIsDragOver(false);
+  const files = e.dataTransfer.files;
+  handleFileSelect(files);
+};
+
+const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  if (e.target.files) {
+    handleFileSelect(e.target.files);
+  }
+};
+
+const handleClose = () => {
+  setUploadResult(null);
+  setIsUploading(false);
+  onClose();
 };
 
 export default ImportEmployeeAgreementsModal;
