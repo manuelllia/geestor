@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -193,7 +194,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
                       <TableRow key={request.id}>
                         <TableCell className="font-medium text-xs sm:text-sm">
                           <div className="truncate max-w-[120px] sm:max-w-[200px]">
-                            {request.employeeName || 'Sin datos'}
+                            {`${request.requesterName} ${request.requesterLastName}`.trim() || 'Sin datos'}
                           </div>
                         </TableCell>
                         <TableCell className="text-xs sm:text-sm hidden sm:table-cell">
