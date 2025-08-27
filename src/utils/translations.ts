@@ -1,4 +1,3 @@
-
 export type Language = 'es' | 'en';
 export type Theme = 'light' | 'dark';
 
@@ -20,6 +19,7 @@ export const translations = {
     talentManagementShort: 'GEST. TAL',
     calendarManagement: 'Calendario de Mantenimiento',
     calendarManagementShort: 'Calendario',
+    maintenanceCalendar: 'Calendario de Mantenimiento',
     contractRequests: 'Solicitudes de Contrato',
     changeSheets: 'Hojas de Cambio',
     employeeAgreements: 'Acuerdos con Empleados',
@@ -30,7 +30,7 @@ export const translations = {
     bidAnalyzer: 'Analizador de Licitaciones',
     costAnalysis: 'Análisis de Costos',
     costAnalysisShort: 'Análisis',
-    checkers: 'Comprobadores', // Nueva clave para el menú
+    checkers: 'Comprobadores',
     operations: 'OPERACIONES',
     homeMenu: 'Inicio',
     
@@ -73,7 +73,6 @@ export const translations = {
     permissions: 'Permisos',
     permissionsDescription: 'Permisos asignados al usuario',
     departmentPermissions: 'Permisos de Departamento',
-    operations: 'Operaciones',
     actionPermissions: 'Permisos de Acciones',
     userManagement: 'Gestión de Usuarios',
     modify: 'Modificar',
@@ -297,6 +296,7 @@ export const translations = {
     talentManagementShort: 'TAL. MAN',
     calendarManagement: 'Maintenance Calendar',
     calendarManagementShort: 'Calendar',
+    maintenanceCalendar: 'Maintenance Calendar',
     contractRequests: 'Contract Requests',
     changeSheets: 'Change Sheets',
     employeeAgreements: 'Employee Agreements',
@@ -307,7 +307,7 @@ export const translations = {
     bidAnalyzer: 'Bid Analyzer',
     costAnalysis: 'Cost Analysis',
     costAnalysisShort: 'Analysis',
-    checkers: 'Checkers', // Nueva clave para el menú
+    checkers: 'Checkers',
     operations: 'OPERATIONS',
     homeMenu: 'Home',
     
@@ -350,7 +350,6 @@ export const translations = {
     permissions: 'Permissions',
     permissionsDescription: 'User assigned permissions',
     departmentPermissions: 'Department Permissions',
-    operations: 'Operations',
     actionPermissions: 'Action Permissions',
     userManagement: 'User Management',
     modify: 'Modify',
