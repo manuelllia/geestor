@@ -1,113 +1,335 @@
 
 import { useState } from 'react';
-import { analyzeDocumentsWithQwen, mergeStepResults } from '../services/costAnalysisService';
+import * as pdfjsLib from 'pdfjs-dist';
 
-interface ReportData {
-  presupuestoGeneral: string;
+// Configurar el worker de PDF.js
+pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+
+interface CostAnalysisData {
   esPorLotes: boolean;
-  lotes: any[];
-  variablesDinamicas: any[];
+  lotes: Array<{
+    nombre: string;
+    centroAsociado: string;
+    descripcion: string;
+    presupuesto: string;
+    requisitosClave: string[];
+  }>;
+  variablesDinamicas: Array<{
+    nombre: string;
+    descripcion: string;
+    mapeo: 'price' | 'tenderBudget' | 'maxScore' | 'lowestPrice' | 'averagePrice';
+  }>;
   formulaEconomica: string;
-  formulasDetectadas: any[];
+  formulasDetectadas: Array<{
+    formulaOriginal: string;
+    representacionLatex: string;
+    descripcionVariables: string;
+    condicionesLogicas: string;
+  }>;
   umbralBajaTemeraria: string;
-  criteriosAutomaticos: any[];
-  criteriosSubjetivos: any[];
-  otrosCriterios: any[];
-  costesDetalladosRecomendados: any[];
+  criteriosAutomaticos: Array<{
+    nombre: string;
+    descripcion: string;
+    puntuacionMaxima: number;
+  }>;
+  criteriosSubjetivos: Array<{
+    nombre: string;
+    descripcion: string;
+    puntuacionMaxima: number;
+  }>;
+  otrosCriterios: Array<{
+    nombre: string;
+    descripcion: string;
+    puntuacionMaxima: number;
+  }>;
+  presupuestoGeneral: string;
+  costesDetalladosRecomendados: {
+    [key: string]: any;
+  };
 }
 
 export const useCostAnalysis = () => {
-  const [analysisResult, setAnalysisResult] = useState<ReportData | null>(null);
+  const [analysisResult, setAnalysisResult] = useState<CostAnalysisData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [currentStep, setCurrentStep] = useState(0);
-  const [totalSteps, setTotalSteps] = useState(0);
-  const [currentProgress, setCurrentProgress] = useState('');
 
-  const wait = (seconds: number): Promise<void> => {
-    return new Promise(resolve => setTimeout(resolve, seconds * 1000));
+  const extractTextFromPDF = async (file: File): Promise<string> => {
+    try {
+      console.log(`Extrayendo texto del archivo: ${file.name}`);
+      
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      
+      let fullText = '';
+      
+      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+        console.log(`Procesando página ${pageNum}/${pdf.numPages} de ${file.name}`);
+        const page = await pdf.getPage(pageNum);
+        const textContent = await page.getTextContent();
+        
+        const pageText = textContent.items
+          .map((item: any) => item.str)
+          .join(' ');
+        
+        fullText += `\n--- PÁGINA ${pageNum} ---\n${pageText}\n`;
+      }
+      
+      console.log(`Texto extraído del ${file.name}: ${fullText.length} caracteres, ${pdf.numPages} páginas`);
+      return fullText;
+      
+    } catch (error) {
+      console.error(`Error extrayendo texto del archivo ${file.name}:`, error);
+      throw new Error(`No se pudo extraer el texto del archivo ${file.name}. Verifica que el PDF no esté protegido o corrupto.`);
+    }
   };
 
-  const analyzeCosts = async (pcapFile: File, pptFile: File): Promise<void> => {
-    console.log('🚀 INICIO: Análisis completo de costes con Qwen 3');
-    console.log('📁 Archivos recibidos:', {
-      pcap: `${pcapFile.name} (${(pcapFile.size / 1024 / 1024).toFixed(2)} MB)`,
-      ppt: `${pptFile.name} (${(pptFile.size / 1024 / 1024).toFixed(2)} MB)`
-    });
+  const generateMasterPrompt = (pcapText: string, pptText: string): string => `
+Actúa como un prestigioso matemático y un experto consultor especializado en licitaciones públicas de electromedicina en España. Tu tarea es analizar el texto extraído de un Pliego de Cláusulas Administrativas Particulares (PCAP) y un Pliego de Prescripciones Técnicas (PPT).
 
+**Instrucción de Idioma (CRÍTICA):** Los documentos de entrada (PCAP y PPT) pueden estar escritos en español, catalán, gallego, euskera (vasco), valenciano o inglés. Independientemente del idioma de origen, TU RESPUESTA Y TODOS LOS DATOS EXTRAÍDOS en el JSON final DEBEN ESTAR OBLIGATORIAMENTE EN ESPAÑOL. Realiza la traducción necesaria para todos los campos.
+
+Extrae únicamente la información verificable presente en los textos proporcionados para rellenar la estructura JSON solicitada. No incluyas explicaciones, introducciones o conclusiones fuera del objeto JSON.
+
+**Análisis de Lotes:**
+1.  **Detecta si es por lotes:** Primero, determina si la licitación está explícitamente dividida en lotes. Establece el campo 'esPorLotes' en 'true' si es así, y en 'false' en caso contrario.
+2.  **Si es por lotes:** Rellena el array 'lotes'. Para cada lote identificado, extrae: 'nombre', 'centroAsociado', 'descripcion', 'presupuesto' (string numérico sin IVA), y 'requisitosClave'.
+3.  **Si NO es por lotes:** El array 'lotes' debe quedar vacío ([]).
+
+---
+**TAREA CRÍTICA 1: ANÁLISIS DE VARIABLES DINÁMICAS (NUEVO)**
+Antes de analizar la fórmula económica principal, tu primera tarea es identificar las variables que se usan en ella.
+1.  **Detecta Variables:** Identifica todas las variables utilizadas en la fórmula de puntuación económica (ej. "Plic", "Pmax", "Oferta_i", "B").
+2.  **Define y Mapea:** Por cada variable detectada, crea un objeto en el array \`variablesDinamicas\`. Este objeto DEBE tener:
+    *   \`nombre\`: El nombre exacto de la variable tal y como aparece en el pliego (ej: "Plic").
+    *   \`descripcion\`: Una descripción clara de lo que representa la variable (ej: "Presupuesto base de licitación sin IVA").
+    *   \`mapeo\`: Un mapeo ESTRICTO a uno de los siguientes conceptos del sistema: "price", "tenderBudget", "maxScore", "lowestPrice", "averagePrice".
+    
+    **Ejemplo de Salida para \`variablesDinamicas\`:**
+    \`\`\`json
+    "variablesDinamicas": [
+      {
+        "nombre": "P",
+        "descripcion": "Precio de la oferta evaluada",
+        "mapeo": "price"
+      },
+      {
+        "nombre": "Plic",
+        "descripcion": "Presupuesto de la licitación",
+        "mapeo": "tenderBudget"
+      }
+    ]
+    \`\`\`
+
+**TAREA CRÍTICA 2: ANÁLISIS Y DESCOMPOSICIÓN DE FÓRMULAS (AST como String JSON)**
+Una vez identificadas las variables, analiza la fórmula económica principal y descomponla en un Árbol de Sintaxis Abstracta (AST) serializado como una cadena JSON.
+*   **Usa las Variables Detectadas:** En los nodos de tipo "variable" del AST, DEBES usar el \`nombre\` de la variable que has definido en \`variablesDinamicas\`. Por ejemplo, si detectaste "Plic", el nodo variable será \`{ "type": "variable", "name": "Plic" }\`.
+*   **Serialización:** El objeto JSON completo del AST debe ser serializado como una única cadena de texto para el campo \`formulaEconomica\`.
+
+**EJEMPLO COMPLETO:**
+Si la fórmula es \`70 * (1 - (P - Pmin) / (Plic - Pmin))\`, y has detectado que 'P' es el precio de la oferta, 'Pmin' el precio más bajo y 'Plic' el presupuesto:
+1.  \`variablesDinamicas\` contendrá las definiciones de 'P', 'Pmin', y 'Plic'.
+2.  El AST usará estos nombres: \`{"type":"binary_operation","operator":"*","left":{...},"right":{"type":"binary_operation", "operator": "-", "left":{...}, "right":{"type":"binary_operation", "operator":"/", "left": {"type":"variable", "name":"P"},...}}}\`
+3.  El campo \`formulaEconomica\` recibirá este AST como una cadena de texto JSON.
+
+Si no hay fórmula económica principal, \`formulaEconomica\` será un string de objeto vacío ('{}') y \`variablesDinamicas\` un array vacío ([]).
+
+---
+**TAREA CRÍTICA 3: ANÁLISIS MATEMÁTICO DE TODAS LAS FÓRMULAS**
+Como matemático, tu misión es identificar, interpretar y catalogar **todas** las fórmulas presentes en los documentos, no solo la fórmula de puntuación económica principal. Esto incluye fórmulas para criterios de mejora, fórmulas de penalización, umbrales calculados, etc.
+
+Para cada fórmula matemática que encuentres, sin excepción:
+1.  **Ajusta e Interpreta:** Analiza la fórmula para entender su propósito y componentes. Si la fórmula está escrita de manera ambigua o con texto descriptivo, "ajústala" para representarla en una notación matemática estándar y clara.
+2.  **Cataloga en \`formulasDetectadas\`:** Crea un objeto en el array \`formulasDetectadas\` con los siguientes campos:
+    *   \`formulaOriginal\`: La fórmula EXACTA como está en el texto. Si la has ajustado desde una descripción, pon aquí la versión ajustada y estándar.
+    *   \`representacionLatex\`: Su traducción precisa a formato LaTeX. Presta especial atención a raíces, potencias, fracciones y símbolos. **Ej: \`P = 5 * (Ht – 100)/ 100)\` debe ser \`P = 5 \\times \\frac{(Ht - 100)}{100}\`**.
+    *   \`descripcionVariables\`: Una descripción clara y concisa de CADA variable en la fórmula.
+    *   \`condicionesLogicas\`: Explica cualquier condición lógica, tramo o regla asociada. Por ejemplo: "Esta fórmula solo se aplica si la oferta supera las 100 horas de formación."
+
+Tu objetivo es que un usuario pueda entender perfectamente cómo funciona cada cálculo en la licitación. No omitas ninguna fórmula, por trivial que parezca.
+---
+
+**Análisis del Resto de Criterios:**
+*   **'umbralBajaTemeraria':** Describe las condiciones para que una oferta sea considerada anormalmente baja o temeraria.
+*   **'criteriosAutomaticos', 'criteriosSubjetivos', 'otrosCriterios':** Listas detalladas de todos los demás criterios con su descripción y puntuación máxima. La suma de todas las puntuaciones debe ser coherente con el total del pliego.
+
+**Análisis Económico y de Costes:**
+*   **Presupuesto General:** Busca el "Presupuesto Base de Licitación" (PBL) o "Valor Estimado del Contrato" (VEC) **TOTAL**. Extrae su valor numérico **sin IVA** como una cadena de texto.
+*   **Recomendaciones de Costes ('costesDetalladosRecomendados'):** Actúa como un director de operaciones. Tu objetivo es generar un desglose de costes **realista, completo y rentable**.
+
+Regla general: Si un dato no se encuentra, usa "No especificado en los documentos" para strings y arrays vacíos para listas. Para los costes recomendados, omite los campos que no puedas estimar.
+
+--- TEXTO PCAP ---
+${pcapText}
+--- FIN TEXTO PCAP ---
+
+--- TEXTO PPT ---
+${pptText}
+--- FIN TEXTO PPT ---
+
+RESPUESTA REQUERIDA: Proporciona ÚNICAMENTE un objeto JSON válido con la estructura CostAnalysisData solicitada. No agregues explicaciones, texto adicional o bloques de código markdown.
+`;
+
+  const callGeminiAPI = async (prompt: string): Promise<CostAnalysisData> => {
+    const GEMINI_API_KEY = 'AIzaSyANIWvIMRvCW7f0meHRk4SobRz4s0pnxtg';
+    const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent';
+    
+    try {
+      console.log('🤖 Enviando análisis de costes a Gemini API...');
+      console.log(`📄 Tamaño del prompt: ${prompt.length} caracteres`);
+      
+      const requestBody = {
+        contents: [{
+          parts: [{
+            text: prompt
+          }]
+        }],
+        generationConfig: {
+          temperature: 0.1,
+          topK: 20,
+          topP: 0.8,
+          maxOutputTokens: 8192,
+          responseMimeType: "application/json"
+        },
+        safetySettings: [
+          {
+            category: "HARM_CATEGORY_HARASSMENT",
+            threshold: "BLOCK_NONE"
+          },
+          {
+            category: "HARM_CATEGORY_HATE_SPEECH", 
+            threshold: "BLOCK_NONE"
+          },
+          {
+            category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+            threshold: "BLOCK_NONE"
+          },
+          {
+            category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+            threshold: "BLOCK_NONE"
+          }
+        ]
+      };
+
+      console.log('📤 Enviando request a Gemini:', JSON.stringify(requestBody, null, 2).substring(0, 500) + '...');
+
+      const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      console.log('📥 Response status:', response.status);
+
+      if (!response.ok) {
+        const errorData = await response.text();
+        console.error('❌ Error de Gemini API:', errorData);
+        throw new Error(`Error de Gemini API: ${response.status} - ${errorData}`);
+      }
+
+      const data = await response.json();
+      console.log('✅ Respuesta completa de Gemini recibida');
+
+      if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
+        console.error('❌ Estructura de respuesta inválida:', data);
+        throw new Error('Respuesta inválida de Gemini API - estructura incorrecta');
+      }
+
+      const responseText = data.candidates[0].content.parts[0].text;
+      console.log('📝 Texto de respuesta recibido');
+
+      // Función para parsear JSON de forma segura
+      const safeJsonParse = (jsonString: string): CostAnalysisData => {
+        try {
+          // Limpiar la respuesta si tiene bloques de código markdown
+          let cleanedResponse = jsonString
+            .replace(/```json\n?/g, '')
+            .replace(/```\n?/g, '')
+            .trim();
+          
+          // Buscar el inicio y fin del JSON
+          const jsonStart = cleanedResponse.indexOf('{');
+          const jsonEnd = cleanedResponse.lastIndexOf('}');
+          
+          if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
+            cleanedResponse = cleanedResponse.substring(jsonStart, jsonEnd + 1);
+          }
+          
+          const parsedResult: CostAnalysisData = JSON.parse(cleanedResponse);
+          console.log('✅ JSON parseado exitosamente');
+          
+          // Validar estructura básica
+          if (typeof parsedResult !== 'object' || parsedResult === null) {
+            throw new Error('El resultado no es un objeto válido');
+          }
+          
+          return parsedResult;
+        } catch (parseError) {
+          console.error('❌ Error parseando JSON:', parseError);
+          console.error('📝 Respuesta recibida:', jsonString.substring(0, 500) + '...');
+          throw new Error(`La respuesta de Gemini no es un JSON válido: ${parseError instanceof Error ? parseError.message : 'Error desconocido'}`);
+        }
+      };
+
+      return safeJsonParse(responseText);
+
+    } catch (error) {
+      console.error('❌ Error en llamada a Gemini API:', error);
+      if (error instanceof Error) {
+        throw new Error(`Error en análisis de costes con Gemini: ${error.message}`);
+      }
+      throw new Error('Error desconocido en análisis de costes con Gemini');
+    }
+  };
+
+  const analyzeCosts = async (pcapFile: File, pptFile: File) => {
     setIsLoading(true);
     setError(null);
     setAnalysisResult(null);
-    setCurrentStep(0);
-    setTotalSteps(6);
-    setCurrentProgress('Iniciando análisis con Qwen 3...');
     
     try {
-      console.log('🤖 ANÁLISIS: Iniciando análisis paso a paso con Qwen 3');
-      const stepResults: any[] = [];
-
-      // EJECUTAR ANÁLISIS PASO A PASO CON QWEN 3
-      for (let step = 1; step <= 6; step++) {
-        try {
-          setCurrentStep(step);
-          setCurrentProgress(`🤖 Analizando paso ${step}/6 con Qwen 3...`);
-          console.log(`\n🔄 PASO ${step}/6: Iniciando análisis con Qwen 3...`);
-          
-          const stepResult = await analyzeDocumentsWithQwen(pcapFile, pptFile, step, 6);
-          stepResults.push(stepResult);
-          
-          console.log(`✅ PASO ${step}/6: Completado exitosamente`);
-          console.log(`📊 PASO ${step} - Resultado:`, stepResult);
-          
-          // Pausa entre pasos para evitar rate limiting de la API
-          if (step < 6) {
-            const waitTime = Math.floor(Math.random() * 2) + 3; // Entre 3 y 4 segundos
-            console.log(`⏳ PAUSA: Esperando ${waitTime}s antes del siguiente paso...`);
-            setCurrentProgress(`⏳ Esperando ${waitTime}s antes del paso ${step + 1}...`);
-            await wait(waitTime);
-          }
-          
-        } catch (stepError) {
-          console.error(`❌ ERROR PASO ${step}:`, stepError);
-          // Continuar con estructura vacía para este paso
-          stepResults.push({});
-          
-          // Mostrar error específico en el progreso
-          setCurrentProgress(`⚠️ Error en paso ${step}, continuando...`);
-          await wait(2); // Pausa antes de continuar
-        }
+      console.log('🚀 Iniciando análisis de costes con Gemini...');
+      
+      // Extraer texto real de los PDFs
+      console.log('📄 Extrayendo texto de archivos PDF...');
+      const pcapText = await extractTextFromPDF(pcapFile);
+      const pptText = await extractTextFromPDF(pptFile);
+      
+      // Verificar que se extrajo contenido
+      if (!pcapText.trim() && !pptText.trim()) {
+        throw new Error('No se pudo extraer texto de los archivos PDF. Verifica que los archivos no estén corruptos o protegidos.');
       }
-
-      console.log('🔧 MERGE: Iniciando combinación de todos los resultados...');
-      setCurrentProgress('🔧 Generando informe final...');
       
-      const finalResult = mergeStepResults(...stepResults);
+      if (!pcapText.trim()) {
+        console.warn('⚠️ No se extrajo texto del archivo PCAP');
+      }
       
-      console.log('✅ ANÁLISIS COMPLETADO: Resultado final generado');
-      console.log('📊 RESULTADO FINAL:', finalResult);
+      if (!pptText.trim()) {
+        console.warn('⚠️ No se extrajo texto del archivo PPT');
+      }
       
-      setAnalysisResult(finalResult);
-      setCurrentProgress('✅ Análisis completado con éxito');
+      console.log(`📊 PCAP extraído: ${pcapText.length} caracteres`);
+      console.log(`📊 PPT extraído: ${pptText.length} caracteres`);
+      console.log(`📊 Total de texto para análisis: ${pcapText.length + pptText.length} caracteres`);
+      
+      // Generar el prompt maestro
+      const prompt = generateMasterPrompt(pcapText, pptText);
+      console.log(`🔤 Prompt maestro generado: ${prompt.length} caracteres`);
+      
+      // Llamar a la API de Gemini
+      console.log('🤖 Enviando análisis completo a Gemini API...');
+      const analysis = await callGeminiAPI(prompt);
+      
+      setAnalysisResult(analysis);
+      console.log('✅ Análisis de costes completado exitosamente con Gemini');
       
     } catch (err) {
-      console.error('❌ ERROR CRÍTICO en análisis:', err);
-      
-      let errorMessage = 'Error desconocido en el análisis';
-      if (err instanceof Error) {
-        errorMessage = err.message;
-        console.error('❌ Detalles del error:', {
-          message: err.message,
-          stack: err.stack
-        });
-      }
-      
+      const errorMessage = err instanceof Error ? err.message : 'Error desconocido durante el análisis';
       setError(errorMessage);
-      setCurrentProgress('❌ Error en el análisis');
-      
+      console.error('❌ Error en análisis de costes:', err);
     } finally {
       setIsLoading(false);
-      setCurrentStep(0);
-      console.log('🏁 FINALIZADO: Proceso de análisis terminado');
     }
   };
 
@@ -115,9 +337,6 @@ export const useCostAnalysis = () => {
     analyzeCosts,
     analysisResult,
     isLoading,
-    error,
-    currentStep,
-    totalSteps,
-    currentProgress
+    error
   };
 };
