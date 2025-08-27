@@ -1,10 +1,10 @@
 
 interface MaintenanceCSVRow {
-  nombreEquipo: string;
-  numeroEquipos: number;
+  equipo: string;
+  numeroEquipo: number;
   tipoMantenimiento: string;
   horasPorMantenimiento: number;
-  totalHoras: number;
+  horasTotales: number;
   ene: number;
   feb: number;
   mar: number;
@@ -52,14 +52,18 @@ export class MaintenanceCSVExporter {
     
     // Determinar frecuencia en número de veces al año
     let frecuenciaAnual = 1;
-    if (frecuenciaLower.includes('mensual')) frecuenciaAnual = 12;
+    if (frecuenciaLower.includes('diario') || frecuenciaLower.includes('diaria')) frecuenciaAnual = 365;
+    else if (frecuenciaLower.includes('semanal')) frecuenciaAnual = 52;
+    else if (frecuenciaLower.includes('quincenal')) frecuenciaAnual = 24;
+    else if (frecuenciaLower.includes('mensual')) frecuenciaAnual = 12;
     else if (frecuenciaLower.includes('bimensual')) frecuenciaAnual = 6;
     else if (frecuenciaLower.includes('trimestral')) frecuenciaAnual = 4;
     else if (frecuenciaLower.includes('cuatrimestral')) frecuenciaAnual = 3;
     else if (frecuenciaLower.includes('semestral')) frecuenciaAnual = 2;
     else if (frecuenciaLower.includes('anual')) frecuenciaAnual = 1;
     
-    const horasPorMes = totalHours / frecuenciaAnual;
+    // Calcular horas por instancia de mantenimiento
+    const horasPorInstancia = totalHours / frecuenciaAnual;
     
     // Lógica estacional para equipos específicos
     if (denominacionLower.includes('frigorífico') || 
@@ -68,16 +72,24 @@ export class MaintenanceCSVExporter {
         denominacionLower.includes('aire acondicionado') ||
         denominacionLower.includes('climatizador')) {
       
-      // Mantenimiento de equipos de frío antes del verano
+      // Mantenimiento de equipos de frío - mayor intensidad antes del verano
       if (frecuenciaAnual === 1) {
         distribution['may'] = totalHours; // Una vez al año en mayo
       } else if (frecuenciaAnual === 2) {
-        distribution['may'] = horasPorMes;
-        distribution['nov'] = horasPorMes; // Semestral: mayo y noviembre
+        distribution['may'] = horasPorInstancia;
+        distribution['oct'] = horasPorInstancia; // Semestral: mayo y octubre
+      } else if (frecuenciaAnual >= 12) {
+        // Mensual o mayor frecuencia - distribución uniforme con énfasis pre-verano
+        const baseHoursPerMonth = totalHours / 12;
+        months.forEach((month, index) => {
+          // Mayor intensidad en abril, mayo, junio (pre-verano) y septiembre, octubre (pre-invierno)
+          const multiplier = ['abr', 'may', 'jun', 'sep', 'oct'].includes(month) ? 1.3 : 0.8;
+          distribution[month] = baseHoursPerMonth * multiplier;
+        });
       } else {
-        // Mensual/trimestral con énfasis pre-verano
+        // Distribución estacional con énfasis en meses clave
         const mesesPreferidos = ['abr', 'may', 'jun', 'sep', 'oct', 'nov'];
-        this.distributeHoursInMonths(distribution, horasPorMes, frecuenciaAnual, mesesPreferidos);
+        this.distributeHoursInMonths(distribution, horasPorInstancia, frecuenciaAnual, mesesPreferidos);
       }
       
     } else if (denominacionLower.includes('quirófano') ||
@@ -85,21 +97,64 @@ export class MaintenanceCSVExporter {
                denominacionLower.includes('quirúrgico') ||
                denominacionLower.includes('mesa de operaciones')) {
       
-      // Mantenimiento de quirófanos en verano
+      // Mantenimiento de quirófanos - intensidad en períodos de menor actividad (verano)
       if (frecuenciaAnual === 1) {
         distribution['jul'] = totalHours; // Una vez al año en julio
       } else if (frecuenciaAnual === 2) {
-        distribution['jul'] = horasPorMes;
-        distribution['dic'] = horasPorMes; // Semestral: julio y diciembre
+        distribution['jul'] = horasPorInstancia;
+        distribution['dic'] = horasPorInstancia; // Semestral: julio y diciembre
+      } else if (frecuenciaAnual >= 12) {
+        // Mensual - distribución uniforme con énfasis en verano y fin de año
+        const baseHoursPerMonth = totalHours / 12;
+        months.forEach((month, index) => {
+          const multiplier = ['jul', 'ago', 'dic'].includes(month) ? 1.4 : 0.9;
+          distribution[month] = baseHoursPerMonth * multiplier;
+        });
       } else {
-        // Mensual/trimestral con énfasis en verano
         const mesesPreferidos = ['jun', 'jul', 'ago', 'dic'];
-        this.distributeHoursInMonths(distribution, horasPorMes, frecuenciaAnual, mesesPreferidos);
+        this.distributeHoursInMonths(distribution, horasPorInstancia, frecuenciaAnual, mesesPreferidos);
+      }
+      
+    } else if (denominacionLower.includes('ventilador') ||
+               denominacionLower.includes('respirador') ||
+               denominacionLower.includes('monitor') ||
+               denominacionLower.includes('desfibrilador')) {
+      
+      // Equipos críticos - mantenimiento distribuido uniformemente todo el año
+      if (frecuenciaAnual >= 12) {
+        const horasPerMonth = totalHours / 12;
+        months.forEach(month => distribution[month] = horasPerMonth);
+      } else {
+        this.distributeHoursUniformly(distribution, horasPorInstancia, frecuenciaAnual, months);
+      }
+      
+    } else if (denominacionLower.includes('rayos x') ||
+               denominacionLower.includes('radiología') ||
+               denominacionLower.includes('tomógrafo') ||
+               denominacionLower.includes('resonancia') ||
+               denominacionLower.includes('ecógrafo')) {
+      
+      // Equipos de diagnóstico por imagen - mantenimiento planificado
+      if (frecuenciaAnual >= 12) {
+        const baseHoursPerMonth = totalHours / 12;
+        months.forEach((month, index) => {
+          // Evitar meses de mayor demanda (enero, septiembre)
+          const multiplier = ['ene', 'sep'].includes(month) ? 0.7 : 1.1;
+          distribution[month] = baseHoursPerMonth * multiplier;
+        });
+      } else {
+        const mesesPreferidos = ['feb', 'mar', 'may', 'jun', 'oct', 'nov'];
+        this.distributeHoursInMonths(distribution, horasPorInstancia, frecuenciaAnual, mesesPreferidos);
       }
       
     } else {
       // Distribución uniforme para otros equipos
-      this.distributeHoursUniformly(distribution, horasPorMes, frecuenciaAnual, months);
+      if (frecuenciaAnual >= 12) {
+        const horasPerMonth = totalHours / 12;
+        months.forEach(month => distribution[month] = horasPerMonth);
+      } else {
+        this.distributeHoursUniformly(distribution, horasPorInstancia, frecuenciaAnual, months);
+      }
     }
     
     return distribution;
@@ -110,19 +165,26 @@ export class MaintenanceCSVExporter {
    */
   private static distributeHoursUniformly(
     distribution: { [month: string]: number },
-    horasPorMes: number,
+    horasPorInstancia: number,
     frecuenciaAnual: number,
     months: string[]
   ) {
     if (frecuenciaAnual >= 12) {
-      // Mensual - cada mes
-      months.forEach(month => distribution[month] = horasPorMes);
+      // Mensual o más frecuente - cada mes
+      months.forEach(month => distribution[month] = horasPorInstancia);
     } else {
       // Distribuir equitativamente
       const intervalMonths = Math.floor(12 / frecuenciaAnual);
       for (let i = 0; i < frecuenciaAnual; i++) {
         const monthIndex = (i * intervalMonths) % 12;
-        distribution[months[monthIndex]] = horasPorMes;
+        distribution[months[monthIndex]] += horasPorInstancia;
+      }
+      
+      // Si sobran instancias, distribuir en meses restantes
+      const remaining = frecuenciaAnual - Math.floor(frecuenciaAnual / intervalMonths) * intervalMonths;
+      for (let i = 0; i < remaining; i++) {
+        const monthIndex = (Math.floor(frecuenciaAnual / intervalMonths) * intervalMonths + i) % 12;
+        distribution[months[monthIndex]] += horasPorInstancia;
       }
     }
   }
@@ -132,32 +194,38 @@ export class MaintenanceCSVExporter {
    */
   private static distributeHoursInMonths(
     distribution: { [month: string]: number },
-    horasPorMes: number,
+    horasPorInstancia: number,
     frecuenciaAnual: number,
     mesesPreferidos: string[]
   ) {
-    const mesesAUsar = Math.min(frecuenciaAnual, mesesPreferidos.length);
-    for (let i = 0; i < mesesAUsar; i++) {
-      distribution[mesesPreferidos[i]] = horasPorMes;
-    }
+    // Calcular cuántas instancias por mes preferido
+    const instancesPerPreferredMonth = Math.floor(frecuenciaAnual / mesesPreferidos.length);
+    const remainingInstances = frecuenciaAnual % mesesPreferidos.length;
     
-    // Si necesitamos más meses, distribuir en el resto
+    // Distribuir en meses preferidos
+    mesesPreferidos.forEach((month, index) => {
+      let instances = instancesPerPreferredMonth;
+      if (index < remainingInstances) instances += 1;
+      distribution[month] += instances * horasPorInstancia;
+    });
+    
+    // Si necesitamos más meses, usar los restantes
     if (frecuenciaAnual > mesesPreferidos.length) {
       const mesesRestantes = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic']
         .filter(m => !mesesPreferidos.includes(m));
       
       const mesesExtra = frecuenciaAnual - mesesPreferidos.length;
       for (let i = 0; i < mesesExtra && i < mesesRestantes.length; i++) {
-        distribution[mesesRestantes[i]] = horasPorMes;
+        distribution[mesesRestantes[i]] += horasPorInstancia;
       }
     }
   }
   
   /**
-   * Genera los datos para el CSV
+   * Genera los datos para el CSV con todas las columnas especificadas
    */
   static generateCSVData(denominaciones: DenominacionHomogeneaData[]): MaintenanceCSVRow[] {
-    console.log('🔄 Generando datos CSV optimizados...');
+    console.log('🔄 Generando datos CSV con distribución mensual completa...');
     
     return denominaciones
       .filter(d => d.frecuencia && d.frecuencia !== 'No especificada' &&
@@ -165,39 +233,39 @@ export class MaintenanceCSVExporter {
                    d.tiempo && d.tiempo !== 'No especificado')
       .map(denominacion => {
         const horasPorMantenimiento = parseFloat(denominacion.tiempo || '2') || 2;
-        const totalHoras = denominacion.cantidad * horasPorMantenimiento;
+        const horasTotales = denominacion.cantidad * horasPorMantenimiento;
         
         const monthlyDistribution = this.getSeasonalDistribution(
           denominacion.denominacion,
           denominacion.tipoMantenimiento,
           denominacion.frecuencia,
-          totalHoras
+          horasTotales
         );
         
         return {
-          nombreEquipo: denominacion.denominacion,
-          numeroEquipos: denominacion.cantidad,
+          equipo: denominacion.denominacion,
+          numeroEquipo: denominacion.cantidad,
           tipoMantenimiento: denominacion.tipoMantenimiento,
           horasPorMantenimiento,
-          totalHoras,
-          ene: monthlyDistribution.ene || 0,
-          feb: monthlyDistribution.feb || 0,
-          mar: monthlyDistribution.mar || 0,
-          abr: monthlyDistribution.abr || 0,
-          may: monthlyDistribution.may || 0,
-          jun: monthlyDistribution.jun || 0,
-          jul: monthlyDistribution.jul || 0,
-          ago: monthlyDistribution.ago || 0,
-          sep: monthlyDistribution.sep || 0,
-          oct: monthlyDistribution.oct || 0,
-          nov: monthlyDistribution.nov || 0,
-          dic: monthlyDistribution.dic || 0
+          horasTotales,
+          ene: Math.round(monthlyDistribution.ene || 0),
+          feb: Math.round(monthlyDistribution.feb || 0),
+          mar: Math.round(monthlyDistribution.mar || 0),
+          abr: Math.round(monthlyDistribution.abr || 0),
+          may: Math.round(monthlyDistribution.may || 0),
+          jun: Math.round(monthlyDistribution.jun || 0),
+          jul: Math.round(monthlyDistribution.jul || 0),
+          ago: Math.round(monthlyDistribution.ago || 0),
+          sep: Math.round(monthlyDistribution.sep || 0),
+          oct: Math.round(monthlyDistribution.oct || 0),
+          nov: Math.round(monthlyDistribution.nov || 0),
+          dic: Math.round(monthlyDistribution.dic || 0)
         };
       });
   }
   
   /**
-   * Convierte datos a CSV y descarga el archivo
+   * Convierte datos a CSV y descarga el archivo con las columnas especificadas
    */
   static exportToCSV(denominaciones: DenominacionHomogeneaData[], filename: string = 'plan-mantenimiento-anual.csv') {
     const csvData = this.generateCSVData(denominaciones);
@@ -207,13 +275,13 @@ export class MaintenanceCSVExporter {
       return;
     }
     
-    // Crear cabeceras del CSV
+    // Crear cabeceras del CSV según las especificaciones
     const headers = [
-      'NOMBRE EQUIPO',
-      'Nº DE EQUIPOS', 
+      'EQUIPO (DENOMINACIÓN)',
+      'Nº EQUIPO', 
       'TIPO DE MANTENIMIENTO',
-      'HORAS POR MANTENIMIENTO',
-      'TOTAL HORAS',
+      'HORAS POR MANTENIMIENTO (H)',
+      'HORAS TOTALES',
       'ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN',
       'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'
     ];
@@ -222,11 +290,11 @@ export class MaintenanceCSVExporter {
     const csvRows = [
       headers.join(','),
       ...csvData.map(row => [
-        `"${row.nombreEquipo}"`,
-        row.numeroEquipos,
+        `"${row.equipo}"`,
+        row.numeroEquipo,
         `"${row.tipoMantenimiento}"`,
         row.horasPorMantenimiento,
-        row.totalHoras,
+        row.horasTotales,
         row.ene, row.feb, row.mar, row.abr, row.may, row.jun,
         row.jul, row.ago, row.sep, row.oct, row.nov, row.dic
       ].join(','))
@@ -249,8 +317,8 @@ export class MaintenanceCSVExporter {
     
     console.log('✅ CSV exportado:', filename, 'con', csvData.length, 'equipos');
     
-    // Mostrar resumen
-    const totalHoras = csvData.reduce((sum, row) => sum + row.totalHoras, 0);
+    // Mostrar resumen detallado
+    const totalHoras = csvData.reduce((sum, row) => sum + row.horasTotales, 0);
     const resumenMensual = csvData.reduce((acc, row) => {
       acc.ene += row.ene; acc.feb += row.feb; acc.mar += row.mar;
       acc.abr += row.abr; acc.may += row.may; acc.jun += row.jun;
@@ -259,10 +327,17 @@ export class MaintenanceCSVExporter {
       return acc;
     }, { ene: 0, feb: 0, mar: 0, abr: 0, may: 0, jun: 0, jul: 0, ago: 0, sep: 0, oct: 0, nov: 0, dic: 0 });
     
-    console.log('📊 Resumen del plan anual:', {
+    console.log('📊 Resumen del plan anual mejorado:', {
       totalHoras,
       distribMensual: resumenMensual,
-      equiposTotales: csvData.reduce((sum, row) => sum + row.numeroEquipos, 0)
+      equiposTotales: csvData.reduce((sum, row) => sum + row.numeroEquipo, 0),
+      tiposMantenimiento: new Set(csvData.map(row => row.tipoMantenimiento)).size
+    });
+    
+    // Mostrar distribución mensual en consola
+    console.log('📅 Distribución mensual de horas:');
+    Object.entries(resumenMensual).forEach(([mes, horas]) => {
+      console.log(`   ${mes.toUpperCase()}: ${horas} horas`);
     });
     
     return { csvData, totalHoras, resumenMensual };
