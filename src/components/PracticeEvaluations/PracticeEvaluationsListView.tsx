@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -82,7 +81,6 @@ const PracticeEvaluationsListView: React.FC<PracticeEvaluationsListViewProps> = 
   if (showDetailView && selectedEvaluationId) {
     return (
       <PracticeEvaluationDetailView
-        language={language}
         evaluationId={selectedEvaluationId}
         onBack={() => {
           setShowDetailView(false);
@@ -184,7 +182,7 @@ const PracticeEvaluationsListView: React.FC<PracticeEvaluationsListViewProps> = 
                           <span className="responsive-text font-medium">Estudiante</span>
                         </TableHead>
                         <TableHead className="min-w-[120px]">
-                          <span className="responsive-text font-medium">Universidad</span>
+                          <span className="responsive-text font-medium">Institución</span>
                         </TableHead>
                         <TableHead className="min-w-[120px]">
                           <span className="responsive-text font-medium">Centro de Trabajo</span>
@@ -193,7 +191,7 @@ const PracticeEvaluationsListView: React.FC<PracticeEvaluationsListViewProps> = 
                           <span className="responsive-text font-medium">Tutor</span>
                         </TableHead>
                         <TableHead className="min-w-[100px]">
-                          <span className="responsive-text font-medium">Fecha Inicio</span>
+                          <span className="responsive-text font-medium">Fecha Evaluación</span>
                         </TableHead>
                         <TableHead className="min-w-[100px]">
                           <span className="responsive-text font-medium">Puntuación</span>
@@ -213,7 +211,7 @@ const PracticeEvaluationsListView: React.FC<PracticeEvaluationsListViewProps> = 
                           </TableCell>
                           <TableCell>
                             <div className="responsive-text truncate max-w-[100px]">
-                              {evaluation.university}
+                              {evaluation.institution}
                             </div>
                           </TableCell>
                           <TableCell>
@@ -228,12 +226,12 @@ const PracticeEvaluationsListView: React.FC<PracticeEvaluationsListViewProps> = 
                           </TableCell>
                           <TableCell>
                             <div className="responsive-text">
-                              {evaluation.startDate ? formatDate(evaluation.startDate) : 'No especificada'}
+                              {evaluation.evaluationDate ? formatDate(evaluation.evaluationDate) : 'No especificada'}
                             </div>
                           </TableCell>
                           <TableCell>
-                            <Badge className={`${getScoreBadge(evaluation.overallScore)} text-xs`}>
-                              {evaluation.overallScore}/10
+                            <Badge className={`${getScoreBadge(evaluation.performanceRating)} text-xs`}>
+                              {evaluation.performanceRating}/10
                             </Badge>
                           </TableCell>
                           <TableCell>

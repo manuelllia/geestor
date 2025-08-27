@@ -388,3 +388,89 @@ export const importEmployeeAgreements = async (agreements: Partial<EmployeeAgree
 
   return results;
 };
+
+// --- FUNCIÓN para exportar acuerdos de empleados a CSV ---
+export const exportEmployeeAgreementsToCSV = async (): Promise<void> => {
+  try {
+    const agreements = await getEmployeeAgreements();
+    
+    // Crear headers del CSV
+    const headers = [
+      'Nombre del Empleado',
+      'Apellidos',
+      'Centro de Trabajo', 
+      'Ciudad',
+      'Provincia',
+      'Comunidad Autónoma',
+      'Nombre del Responsable',
+      'Apellidos del Responsable',
+      'Conceptos del Acuerdo',
+      'Acuerdo Económico 1',
+      'Concepto 1',
+      'Acuerdo Económico 2', 
+      'Concepto 2',
+      'Acuerdo Económico 3',
+      'Concepto 3',
+      'Fecha de Activación',
+      'Fecha de Fin',
+      'Observaciones y Compromiso',
+      'Posición',
+      'Departamento',
+      'Tipo de Acuerdo',
+      'Fecha de Inicio',
+      'Salario',
+      'Estado',
+      'Observaciones'
+    ];
+
+    // Convertir datos a formato CSV
+    const csvData = agreements.map(agreement => [
+      agreement.employeeName || '',
+      agreement.employeeLastName || '',
+      agreement.workCenter || '',
+      agreement.city || '',
+      agreement.province || '',
+      agreement.autonomousCommunity || '',
+      agreement.responsibleName || '',
+      agreement.responsibleLastName || '',
+      agreement.agreementConcepts || '',
+      agreement.economicAgreement1 || '',
+      agreement.concept1 || '',
+      agreement.economicAgreement2 || '',
+      agreement.concept2 || '',
+      agreement.economicAgreement3 || '',
+      agreement.concept3 || '',
+      agreement.activationDate ? agreement.activationDate.toLocaleDateString() : '',
+      agreement.endDate ? agreement.endDate.toLocaleDateString() : '',
+      agreement.observationsAndCommitment || '',
+      agreement.jobPosition || '',
+      agreement.department || '',
+      agreement.agreementType || '',
+      agreement.startDate ? agreement.startDate.toLocaleDateString() : '',
+      agreement.salary || '',
+      agreement.status || '',
+      agreement.observations || ''
+    ]);
+
+    // Crear contenido CSV
+    const csvContent = [headers, ...csvData]
+      .map(row => row.map(field => `"${field.toString().replace(/"/g, '""')}"`).join(','))
+      .join('\n');
+
+    // Descargar archivo
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `acuerdos_empleados_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    console.log('Acuerdos de empleados exportados a CSV correctamente');
+  } catch (error) {
+    console.error('Error al exportar acuerdos de empleados a CSV:', error);
+    throw error;
+  }
+};

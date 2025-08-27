@@ -1,4 +1,3 @@
-
 import { collection, addDoc, getDocs, doc, getDoc, updateDoc, deleteDoc, Timestamp, query, orderBy } from "firebase/firestore";
 import { db } from "../lib/firebase";
 
@@ -160,69 +159,53 @@ export const generateExitInterviewToken = (): string => {
   return Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
 };
 
-export const exportExitInterviewsToCSV = (interviews: ExitInterviewRecord[]): string => {
-  if (interviews.length === 0) return '';
+export const exportExitInterviewsToCSV = async (): Promise<void> => {
+  try {
+    const interviews = await getExitInterviews();
+    
+    // Crear headers del CSV
+    const headers = [
+      'Nombre del Empleado',
+      'Apellidos del Empleado',
+      'Posición',
+      'Centro de Trabajo',
+      'Tipo de Baja',
+      'Fecha de Baja',
+      'Antigüedad',
+      'Fecha de Entrevista'
+    ];
 
-  const headers = [
-    'ID',
-    'Nombre Empleado',
-    'Apellidos Empleado',
-    'Nombre Supervisor',
-    'Apellidos Supervisor',
-    'Centro de Trabajo',
-    'Puesto',
-    'Antigüedad',
-    'Tipo de Baja',
-    'Fecha de Baja',
-    'Razones de Ingreso',
-    'Razón Principal de Salida',
-    'Otros Factores',
-    'Comentarios',
-    'Puntuación Integración',
-    'Puntuación Comunicación',
-    'Puntuación Compensación',
-    'Puntuación Formación',
-    'Puntuación Horario',
-    'Puntuación Mentoring',
-    'Puntuación Trabajo Realizado',
-    'Puntuación Ambiente',
-    'Puntuación Cultura',
-    'Puntuación Relación Supervisor',
-    'Puntuación Global',
-    'Fecha de Creación'
-  ];
+    // Convertir datos a formato CSV
+    const csvData = interviews.map(interview => [
+      interview.employeeName || '',
+      interview.employeeLastName || '',
+      interview.position || '',
+      interview.workCenter || '',
+      interview.exitType || '',
+      interview.exitDate ? interview.exitDate.toLocaleDateString() : '',
+      interview.seniority || '',
+      interview.createdAt ? interview.createdAt.toLocaleDateString() : ''
+    ]);
 
-  const csvContent = [
-    headers.join(','),
-    ...interviews.map(interview => [
-      interview.id,
-      `"${interview.employeeName}"`,
-      `"${interview.employeeLastName}"`,
-      `"${interview.supervisorName}"`,
-      `"${interview.supervisorLastName}"`,
-      `"${interview.workCenter}"`,
-      `"${interview.position}"`,
-      `"${interview.seniority}"`,
-      `"${interview.exitType}"`,
-      interview.exitDate.toLocaleDateString('es-ES'),
-      `"${interview.joiningReasons.join('; ')}"`,
-      `"${interview.mainExitReason}"`,
-      `"${interview.otherInfluencingFactors.join('; ')}"`,
-      `"${interview.comments}"`,
-      interview.scores.integration,
-      interview.scores.internalCommunication,
-      interview.scores.compensation,
-      interview.scores.training,
-      interview.scores.workSchedule,
-      interview.scores.mentoring,
-      interview.scores.workPerformed,
-      interview.scores.workEnvironment,
-      interview.scores.corporateCulture,
-      interview.scores.supervisorRelation,
-      interview.scores.globalAssessment,
-      interview.createdAt.toLocaleDateString('es-ES')
-    ].join(','))
-  ].join('\n');
+    // Crear contenido CSV
+    const csvContent = [headers, ...csvData]
+      .map(row => row.map(field => `"${field.toString().replace(/"/g, '""')}"`).join(','))
+      .join('\n');
 
-  return csvContent;
+    // Descargar archivo
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `entrevistas_salida_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    console.log('Entrevistas de salida exportadas a CSV correctamente');
+  } catch (error) {
+    console.error('Error al exportar entrevistas de salida a CSV:', error);
+    throw error;
+  }
 };

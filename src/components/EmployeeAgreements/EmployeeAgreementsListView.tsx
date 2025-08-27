@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -29,7 +28,7 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
   const [showEditForm, setShowEditForm] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const [selectedAgreementId, setSelectedAgreementId] = useState<string | null>(null);
-  const [editingAgreement, setEditingAgreement] = useState<EmployeeAgreementRecord | null>(null);
+  const [editingAgreementId, setEditingAgreementId] = useState<string | null>(null);
   const [agreements, setAgreements] = useState<EmployeeAgreementRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -70,7 +69,7 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
   };
 
   const handleEdit = (agreement: EmployeeAgreementRecord) => {
-    setEditingAgreement(agreement);
+    setEditingAgreementId(agreement.id);
     setShowEditForm(true);
   };
 
@@ -131,19 +130,19 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
     );
   }
 
-  if (showEditForm && editingAgreement) {
+  if (showEditForm && editingAgreementId) {
     return (
       <EmployeeAgreementEditForm 
         language={language} 
-        agreement={editingAgreement}
+        agreementId={editingAgreementId}
         onBack={() => {
           setShowEditForm(false);
-          setEditingAgreement(null);
+          setEditingAgreementId(null);
           loadAgreements();
         }}
         onSave={() => {
           setShowEditForm(false);
-          setEditingAgreement(null);
+          setEditingAgreementId(null);
           loadAgreements();
         }}
       />
@@ -306,7 +305,7 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
                           </TableCell>
                           <TableCell>
                             <div className="responsive-text truncate max-w-[100px]">
-                              {agreement.position}
+                              {agreement.jobPosition}
                             </div>
                           </TableCell>
                           <TableCell>
@@ -408,7 +407,6 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
           setShowImportModal(false);
           loadAgreements();
         }}
-        language={language}
       />
     </div>
   );
