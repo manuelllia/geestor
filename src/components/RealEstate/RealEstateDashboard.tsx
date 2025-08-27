@@ -218,7 +218,7 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1">
                 <p className="text-orange-100 text-xs sm:text-sm font-medium mb-1 truncate">
-                  {t('totalRooms')}
+                  Total Habitaciones
                 </p>
                 <div className="text-lg sm:text-xl lg:text-2xl xl:text-3xl font-bold">
                   {propertyCounts.totalRooms.toLocaleString(language)}
