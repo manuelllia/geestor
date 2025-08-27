@@ -1,4 +1,5 @@
 export type Language = 'es' | 'en';
+export type Theme = 'light' | 'dark';
 
 export interface Translations {
   home: string;
@@ -85,6 +86,59 @@ export interface Translations {
   suggestionsReviewTitle: string;
   suggestionsReviewDescription: string;
   analyzing: string;
+  theme: string;
+  light: string;
+  dark: string;
+  operations: string;
+  costAnalysisShort: string;
+  technicalManagement: string;
+  technicalManagementShort: string;
+  calendarManagement: string;
+  calendarManagementShort: string;
+  checkers: string;
+  talentManagement: string;
+  talentManagementShort: string;
+  contractRequests: string;
+  changeSheets: string;
+  employeeAgreements: string;
+  realEstateManagement: string;
+  practiceEvaluation: string;
+  exitInterviews: string;
+  homeMenu: string;
+  users: string;
+  changeSheetsManagement: string;
+  createNew: string;
+  export: string;
+  import: string;
+  hojasCambio: string;
+  employeeName: string;
+  originCenter: string;
+  startDate: string;
+  status: string;
+  actions: string;
+  view: string;
+  duplicateRecord: string;
+  downloadPDF: string;
+  back: string;
+  generatedOn: string;
+  documentGenerated: string;
+  recordNotFound: string;
+  employeeInformation: string;
+  employeeLastName: string;
+  position: string;
+  department: string;
+  agreementDetails: string;
+  agreementType: string;
+  endDate: string;
+  salary: string;
+  benefitsAndConditions: string;
+  benefits: string;
+  conditions: string;
+  observations: string;
+  employeeAgreementDetails: string;
+  comingSoonTitle: string;
+  comingSoonDescription: string;
+  comingSoonDescriptionComprobadores: string;
 }
 
 export const translations: Record<Language, Translations> = {
@@ -172,7 +226,66 @@ export const translations: Record<Language, Translations> = {
     applySuggestions: 'Aplicar Sugerencias',
     suggestionsReviewTitle: 'Revisar Sugerencias de IA',
     suggestionsReviewDescription: 'Se encontraron sugerencias de mantenimiento. Revisa y selecciona las que desees aplicar.',
-    analyzing: 'Analizando...'
+    analyzing: 'Analizando...',
+
+    theme: 'Tema',
+    light: 'Claro',
+    dark: 'Oscuro',
+    
+    operations: 'Operaciones',
+    costAnalysisShort: 'Análisis Costes',
+    technicalManagement: 'Gestión Técnica',
+    technicalManagementShort: 'Gestión Técnica',
+    calendarManagement: 'Gestión de Calendario',
+    calendarManagementShort: 'Calendario',
+    checkers: 'Comprobadores',
+    talentManagement: 'Gestión de Talento',
+    talentManagementShort: 'Gestión Talento',
+    contractRequests: 'Solicitudes de Contratación',
+    changeSheets: 'Hojas de Cambio',
+    employeeAgreements: 'Acuerdos de Empleados',
+    realEstateManagement: 'Gestión de Inmuebles',
+    practiceEvaluation: 'Valoración de Prácticas',
+    exitInterviews: 'Entrevistas de Salida',
+    homeMenu: 'Inicio',
+    users: 'Usuarios',
+    
+    changeSheetsManagement: 'Gestión de Hojas de Cambio',
+    createNew: 'Crear Nuevo',
+    export: 'Exportar',
+    import: 'Importar',
+    hojasCambio: 'Hojas de Cambio',
+    employeeName: 'Nombre del Empleado',
+    originCenter: 'Centro de Origen',
+    startDate: 'Fecha de Inicio',
+    status: 'Estado',
+    actions: 'Acciones',
+    view: 'Ver',
+    duplicateRecord: 'Duplicar Registro',
+    downloadPDF: 'Descargar PDF',
+    
+    back: 'Volver',
+    generatedOn: 'Generado el',
+    documentGenerated: 'Documento generado por GEESTOR',
+    recordNotFound: 'Registro no encontrado',
+    
+    employeeInformation: 'Información del Empleado',
+    employeeLastName: 'Apellidos del Empleado',
+    position: 'Puesto',
+    department: 'Departamento',
+    agreementDetails: 'Detalles del Acuerdo',
+    agreementType: 'Tipo de Acuerdo',
+    endDate: 'Fecha de Fin',
+    salary: 'Salario',
+    benefitsAndConditions: 'Beneficios y Condiciones',
+    benefits: 'Beneficios',
+    conditions: 'Condiciones',
+    observations: 'Observaciones',
+    employeeAgreementDetails: 'Detalles del Acuerdo de Empleado',
+    
+    comingSoonTitle: 'Próximamente',
+    comingSoonDescription: 'Esta sección estará disponible próximamente.',
+    comingSoonDescriptionComprobadores: 'El módulo de Comprobadores estará disponible próximamente.'
   },
   en: {
     home: 'Home',
@@ -258,6 +371,65 @@ export const translations: Record<Language, Translations> = {
     applySuggestions: 'Apply Suggestions',
     suggestionsReviewTitle: 'Review AI Suggestions',
     suggestionsReviewDescription: 'Maintenance suggestions found. Review and select the ones you want to apply.',
-    analyzing: 'Analyzing...'
+    analyzing: 'Analyzing...',
+
+    theme: 'Theme',
+    light: 'Light',
+    dark: 'Dark',
+    
+    operations: 'Operations',
+    costAnalysisShort: 'Cost Analysis',
+    technicalManagement: 'Technical Management',
+    technicalManagementShort: 'Technical Mgmt',
+    calendarManagement: 'Calendar Management',
+    calendarManagementShort: 'Calendar',
+    checkers: 'Checkers',
+    talentManagement: 'Talent Management',
+    talentManagementShort: 'Talent Mgmt',
+    contractRequests: 'Contract Requests',
+    changeSheets: 'Change Sheets',
+    employeeAgreements: 'Employee Agreements',
+    realEstateManagement: 'Real Estate Management',
+    practiceEvaluation: 'Practice Evaluation',
+    exitInterviews: 'Exit Interviews',
+    homeMenu: 'Home',
+    users: 'Users',
+    
+    changeSheetsManagement: 'Change Sheets Management',
+    createNew: 'Create New',
+    export: 'Export',
+    import: 'Import',
+    hojasCambio: 'Change Sheets',
+    employeeName: 'Employee Name',
+    originCenter: 'Origin Center',
+    startDate: 'Start Date',
+    status: 'Status',
+    actions: 'Actions',
+    view: 'View',
+    duplicateRecord: 'Duplicate Record',
+    downloadPDF: 'Download PDF',
+    
+    back: 'Back',
+    generatedOn: 'Generated on',
+    documentGenerated: 'Document generated by GEESTOR',
+    recordNotFound: 'Record not found',
+    
+    employeeInformation: 'Employee Information',
+    employeeLastName: 'Employee Last Name',
+    position: 'Position',
+    department: 'Department',
+    agreementDetails: 'Agreement Details',
+    agreementType: 'Agreement Type',
+    endDate: 'End Date',
+    salary: 'Salary',
+    benefitsAndConditions: 'Benefits and Conditions',
+    benefits: 'Benefits',
+    conditions: 'Conditions',
+    observations: 'Observations',
+    employeeAgreementDetails: 'Employee Agreement Details',
+    
+    comingSoonTitle: 'Coming Soon',
+    comingSoonDescription: 'This section will be available soon.',
+    comingSoonDescriptionComprobadores: 'The Checkers module will be available soon.'
   }
 };
