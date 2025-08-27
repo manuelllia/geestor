@@ -1,9 +1,6 @@
 
 import { useState } from 'react';
-import * as pdfjsLib from 'pdfjs-dist';
-
-// Configurar el worker de PDF.js
-pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+import { fileToBase64, getMimeType } from '../utils/file-helpers';
 
 interface CostAnalysisData {
   esPorLotes: boolean;
@@ -53,42 +50,12 @@ export const useCostAnalysis = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const extractTextFromPDF = async (file: File): Promise<string> => {
-    try {
-      console.log(`Extrayendo texto del archivo: ${file.name}`);
-      
-      const arrayBuffer = await file.arrayBuffer();
-      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-      
-      let fullText = '';
-      
-      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-        console.log(`Procesando página ${pageNum}/${pdf.numPages} de ${file.name}`);
-        const page = await pdf.getPage(pageNum);
-        const textContent = await page.getTextContent();
-        
-        const pageText = textContent.items
-          .map((item: any) => item.str)
-          .join(' ');
-        
-        fullText += `\n--- PÁGINA ${pageNum} ---\n${pageText}\n`;
-      }
-      
-      console.log(`Texto extraído del ${file.name}: ${fullText.length} caracteres, ${pdf.numPages} páginas`);
-      return fullText;
-      
-    } catch (error) {
-      console.error(`Error extrayendo texto del archivo ${file.name}:`, error);
-      throw new Error(`No se pudo extraer el texto del archivo ${file.name}. Verifica que el PDF no esté protegido o corrupto.`);
-    }
-  };
-
-  const generateMasterPrompt = (pcapText: string, pptText: string): string => `
-Actúa como un prestigioso matemático y un experto consultor especializado en licitaciones públicas de electromedicina en España. Tu tarea es analizar el texto extraído de un Pliego de Cláusulas Administrativas Particulares (PCAP) y un Pliego de Prescripciones Técnicas (PPT).
+  const generateMasterPrompt = (): string => `
+Actúa como un prestigioso matemático y un experto consultor especializado en licitaciones públicas de electromedicina en España. Tu tarea es analizar los documentos PDF proporcionados: un Pliego de Cláusulas Administrativas Particulares (PCAP) y un Pliego de Prescripciones Técnicas (PPT).
 
 **Instrucción de Idioma (CRÍTICA):** Los documentos de entrada (PCAP y PPT) pueden estar escritos en español, catalán, gallego, euskera (vasco), valenciano o inglés. Independientemente del idioma de origen, TU RESPUESTA Y TODOS LOS DATOS EXTRAÍDOS en el JSON final DEBEN ESTAR OBLIGATORIAMENTE EN ESPAÑOL. Realiza la traducción necesaria para todos los campos.
 
-Extrae únicamente la información verificable presente en los textos proporcionados para rellenar la estructura JSON solicitada. No incluyas explicaciones, introducciones o conclusiones fuera del objeto JSON.
+Extrae únicamente la información verificable presente en los documentos proporcionados para rellenar la estructura JSON solicitada. No incluyas explicaciones, introducciones o conclusiones fuera del objeto JSON.
 
 **Análisis de Lotes:**
 1.  **Detecta si es por lotes:** Primero, determina si la licitación está explícitamente dividida en lotes. Establece el campo 'esPorLotes' en 'true' si es así, y en 'false' en caso contrario.
@@ -103,22 +70,6 @@ Antes de analizar la fórmula económica principal, tu primera tarea es identifi
     *   \`nombre\`: El nombre exacto de la variable tal y como aparece en el pliego (ej: "Plic").
     *   \`descripcion\`: Una descripción clara de lo que representa la variable (ej: "Presupuesto base de licitación sin IVA").
     *   \`mapeo\`: Un mapeo ESTRICTO a uno de los siguientes conceptos del sistema: "price", "tenderBudget", "maxScore", "lowestPrice", "averagePrice".
-    
-    **Ejemplo de Salida para \`variablesDinamicas\`:**
-    \`\`\`json
-    "variablesDinamicas": [
-      {
-        "nombre": "P",
-        "descripcion": "Precio de la oferta evaluada",
-        "mapeo": "price"
-      },
-      {
-        "nombre": "Plic",
-        "descripcion": "Presupuesto de la licitación",
-        "mapeo": "tenderBudget"
-      }
-    ]
-    \`\`\`
 
 **TAREA CRÍTICA 2: ANÁLISIS Y DESCOMPOSICIÓN DE FÓRMULAS (AST como String JSON)**
 Una vez identificadas las variables, analiza la fórmula económica principal y descomponla en un Árbol de Sintaxis Abstracta (AST) serializado como una cadena JSON.
@@ -158,30 +109,43 @@ Tu objetivo es que un usuario pueda entender perfectamente cómo funciona cada c
 
 Regla general: Si un dato no se encuentra, usa "No especificado en los documentos" para strings y arrays vacíos para listas. Para los costes recomendados, omite los campos que no puedas estimar.
 
---- TEXTO PCAP ---
-${pcapText}
---- FIN TEXTO PCAP ---
-
---- TEXTO PPT ---
-${pptText}
---- FIN TEXTO PPT ---
-
 RESPUESTA REQUERIDA: Proporciona ÚNICAMENTE un objeto JSON válido con la estructura CostAnalysisData solicitada. No agregues explicaciones, texto adicional o bloques de código markdown.
 `;
 
-  const callGeminiAPI = async (prompt: string): Promise<CostAnalysisData> => {
+  const callGeminiAPI = async (pcapFile: File, pptFile: File): Promise<CostAnalysisData> => {
     const GEMINI_API_KEY = 'AIzaSyANIWvIMRvCW7f0meHRk4SobRz4s0pnxtg';
     const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent';
     
     try {
-      console.log('🤖 Enviando análisis de costes a Gemini API...');
-      console.log(`📄 Tamaño del prompt: ${prompt.length} caracteres`);
+      console.log('🤖 Enviando análisis de costes a Gemini API con archivos PDF...');
       
+      // Convertir archivos a base64
+      const pcapBase64 = await fileToBase64(pcapFile);
+      const pptBase64 = await fileToBase64(pptFile);
+      
+      console.log('📄 Archivos convertidos a base64');
+      console.log(`PCAP: ${pcapFile.name} (${pcapFile.size} bytes)`);
+      console.log(`PPT: ${pptFile.name} (${pptFile.size} bytes)`);
+
       const requestBody = {
         contents: [{
-          parts: [{
-            text: prompt
-          }]
+          parts: [
+            {
+              text: generateMasterPrompt()
+            },
+            {
+              inlineData: {
+                mimeType: getMimeType(pcapFile.name),
+                data: pcapBase64
+              }
+            },
+            {
+              inlineData: {
+                mimeType: getMimeType(pptFile.name),
+                data: pptBase64
+              }
+            }
+          ]
         }],
         generationConfig: {
           temperature: 0.1,
@@ -210,7 +174,7 @@ RESPUESTA REQUERIDA: Proporciona ÚNICAMENTE un objeto JSON válido con la estru
         ]
       };
 
-      console.log('📤 Enviando request a Gemini:', JSON.stringify(requestBody, null, 2).substring(0, 500) + '...');
+      console.log('📤 Enviando request a Gemini con archivos PDF...');
 
       const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
         method: 'POST',
@@ -289,37 +253,24 @@ RESPUESTA REQUERIDA: Proporciona ÚNICAMENTE un objeto JSON válido con la estru
     setAnalysisResult(null);
     
     try {
-      console.log('🚀 Iniciando análisis de costes con Gemini...');
+      console.log('🚀 Iniciando análisis de costes con Gemini y archivos PDF...');
       
-      // Extraer texto real de los PDFs
-      console.log('📄 Extrayendo texto de archivos PDF...');
-      const pcapText = await extractTextFromPDF(pcapFile);
-      const pptText = await extractTextFromPDF(pptFile);
-      
-      // Verificar que se extrajo contenido
-      if (!pcapText.trim() && !pptText.trim()) {
-        throw new Error('No se pudo extraer texto de los archivos PDF. Verifica que los archivos no estén corruptos o protegidos.');
+      // Verificar archivos
+      if (!pcapFile || !pptFile) {
+        throw new Error('Ambos archivos (PCAP y PPT) son requeridos para el análisis');
       }
       
-      if (!pcapText.trim()) {
-        console.warn('⚠️ No se extrajo texto del archivo PCAP');
+      if (pcapFile.type !== 'application/pdf' || pptFile.type !== 'application/pdf') {
+        throw new Error('Los archivos deben ser PDFs válidos');
       }
       
-      if (!pptText.trim()) {
-        console.warn('⚠️ No se extrajo texto del archivo PPT');
-      }
+      console.log(`📊 Procesando archivos:`);
+      console.log(`  - PCAP: ${pcapFile.name} (${(pcapFile.size / 1024 / 1024).toFixed(2)} MB)`);
+      console.log(`  - PPT: ${pptFile.name} (${(pptFile.size / 1024 / 1024).toFixed(2)} MB)`);
       
-      console.log(`📊 PCAP extraído: ${pcapText.length} caracteres`);
-      console.log(`📊 PPT extraído: ${pptText.length} caracteres`);
-      console.log(`📊 Total de texto para análisis: ${pcapText.length + pptText.length} caracteres`);
-      
-      // Generar el prompt maestro
-      const prompt = generateMasterPrompt(pcapText, pptText);
-      console.log(`🔤 Prompt maestro generado: ${prompt.length} caracteres`);
-      
-      // Llamar a la API de Gemini
+      // Llamar a la API de Gemini con los archivos PDF
       console.log('🤖 Enviando análisis completo a Gemini API...');
-      const analysis = await callGeminiAPI(prompt);
+      const analysis = await callGeminiAPI(pcapFile, pptFile);
       
       setAnalysisResult(analysis);
       console.log('✅ Análisis de costes completado exitosamente con Gemini');
