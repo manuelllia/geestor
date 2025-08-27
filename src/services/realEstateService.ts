@@ -148,6 +148,30 @@ export const deletePropertyRecord = async (
   }
 };
 
+export const addRealEstateProperty = async (propertyData: PropertyData): Promise<string> => {
+  try {
+    // Determine which collection to use based on property status
+    const isActive = propertyData.status === 'Activo' || propertyData['ESTADO'] === 'Activo';
+    const collectionName = isActive ? "PISOS ACTIVOS" : "BAJA PISOS";
+    
+    const subcollectionRef = collection(db, "Gestión de Talento", "Gestión Inmuebles", collectionName);
+    
+    const docData = {
+      ...propertyData,
+      originalSheet: collectionName,
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now()
+    };
+    
+    const docRef = await addDoc(subcollectionRef, docData);
+    console.log(`Nueva propiedad creada con ID: ${docRef.id} en ${collectionName}`);
+    return docRef.id;
+  } catch (error) {
+    console.error('Error al agregar nueva propiedad:', error);
+    throw error;
+  }
+};
+
 export const getPropertyCounts = async (): Promise<PropertyCounts> => {
   try {
     // Obtener pisos activos
