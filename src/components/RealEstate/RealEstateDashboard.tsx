@@ -2,7 +2,7 @@
 // src/components/RealEstate/RealEstateDashboard.tsx
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart as BarChartIcon, Building2, Home, DollarSign, Activity, Bed, Plus } from 'lucide-react'; // Importa Plus icon
+import { BarChart as BarChartIcon, Building2, Home, DollarSign, Activity, Bed, Plus } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { getPropertyCounts, getAnnualCostData, getProvinceActivityData, ProvinceActivityData } from '../../services/realEstateService';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -14,14 +14,14 @@ interface RealEstateDashboardProps {
   language: Language;
   onImportData: () => void;
   onViewTables: () => void;
-  onAddProperty?: () => void; // ¡NUEVO PROP! Opcional
+  onAddProperty?: () => void;
 }
 
 const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({ 
   language, 
   onImportData, 
   onViewTables,
-  onAddProperty // ¡DESESTRUCTURAR EL NUEVO PROP!
+  onAddProperty
 }) => {
   const { t } = useTranslation(language);
   const [propertyCounts, setPropertyCounts] = useState({ active: 0, inactive: 0, total: 0, totalRooms: 0 });
@@ -69,7 +69,7 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({
   ];
 
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat(language, { // Usar 'language' para formato correcto
+    return new Intl.NumberFormat(language, {
       style: 'currency',
       currency: 'EUR',
       minimumFractionDigits: 0,
@@ -78,7 +78,7 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({
   };
 
   const formatCurrencyCompact = (value: number) => {
-    const suffix = language === 'es' ? '€' : '€'; // Puedes cambiar esto si tienes más monedas
+    const suffix = language === 'es' ? '€' : '€';
     if (value >= 1000000) {
       return `${(value / 1000000).toFixed(1)}M${suffix}`;
     } else if (value >= 1000) {
@@ -119,9 +119,9 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({
             Gestión completa de propiedades inmobiliarias
           </p>
         </div>
-        {/* Contenedor de botones - adaptado para 3 botones */}
+        {/* Contenedor de botones */}
         <div className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-3">
-          {/* NUEVO BOTÓN: Agregar Inmueble */}
+          {/* Botón Agregar Inmueble */}
           {onAddProperty && (
             <Button
               onClick={onAddProperty}

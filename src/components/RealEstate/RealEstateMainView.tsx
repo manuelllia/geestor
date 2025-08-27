@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import RealEstateDashboard from './RealEstateDashboard';
 import RealEstateListView from './RealEstateListView';
 import RealEstateUploadView from './RealEstateUploadView';
+import RealEstatePropertyForm from './RealEstatePropertyForm';
 import { Language } from '../../utils/translations';
 import { checkRealEstateDocument } from '../../services/realEstateService';
 
@@ -10,7 +11,7 @@ interface RealEstateMainViewProps {
   language: Language;
 }
 
-type ViewType = 'dashboard' | 'list' | 'upload';
+type ViewType = 'dashboard' | 'list' | 'upload' | 'addProperty';
 
 const RealEstateMainView: React.FC<RealEstateMainViewProps> = ({ language }) => {
   const [currentView, setCurrentView] = useState<ViewType>('dashboard');
@@ -45,6 +46,10 @@ const RealEstateMainView: React.FC<RealEstateMainViewProps> = ({ language }) => 
 
   const handleViewTables = () => {
     setCurrentView('list');
+  };
+
+  const handleAddProperty = () => {
+    setCurrentView('addProperty');
   };
 
   const handleBackToDashboard = () => {
@@ -83,6 +88,16 @@ const RealEstateMainView: React.FC<RealEstateMainViewProps> = ({ language }) => 
           />
         </div>
       );
+    case 'addProperty':
+      return (
+        <div className="w-full min-h-screen bg-gray-50 dark:bg-gray-900">
+          <RealEstatePropertyForm
+            language={language}
+            onBack={handleBackToDashboard}
+            onSave={handleBackToDashboard}
+          />
+        </div>
+      );
     default:
       return (
         <div className="w-full min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -90,6 +105,7 @@ const RealEstateMainView: React.FC<RealEstateMainViewProps> = ({ language }) => 
             language={language}
             onImportData={handleImportData}
             onViewTables={handleViewTables}
+            onAddProperty={handleAddProperty}
           />
         </div>
       );
