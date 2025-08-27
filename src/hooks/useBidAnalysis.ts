@@ -1,9 +1,9 @@
-
+// src/hooks/useBidAnalysis.ts
 import { useState } from 'react';
-import * as pdfjsLib from 'pdfjs-dist';
-
-// Configurar el worker de PDF.js
-pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+// Importamos la función de extracción de texto de nuestro archivo de utilidades
+import { extractPDFText } from '../utils/pdf-utils'; 
+// No necesitamos importar * as pdfjsLib aquí ni configurar GlobalWorkerOptions.workerSrc
+// porque ya lo hemos hecho en pdf-utils.ts
 
 interface BidAnalysisData {
   esPorLotes: boolean;
@@ -53,35 +53,7 @@ export const useBidAnalysis = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const extractTextFromPDF = async (file: File): Promise<string> => {
-    try {
-      console.log(`Extrayendo texto del archivo: ${file.name}`);
-      
-      const arrayBuffer = await file.arrayBuffer();
-      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-      
-      let fullText = '';
-      
-      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-        console.log(`Procesando página ${pageNum}/${pdf.numPages} de ${file.name}`);
-        const page = await pdf.getPage(pageNum);
-        const textContent = await page.getTextContent();
-        
-        const pageText = textContent.items
-          .map((item: any) => item.str)
-          .join(' ');
-        
-        fullText += `\n--- PÁGINA ${pageNum} ---\n${pageText}\n`;
-      }
-      
-      console.log(`Texto extraído del ${file.name}: ${fullText.length} caracteres, ${pdf.numPages} páginas`);
-      return fullText;
-      
-    } catch (error) {
-      console.error(`Error extrayendo texto del archivo ${file.name}:`, error);
-      throw new Error(`No se pudo extraer el texto del archivo ${file.name}. Verifica que el PDF no esté protegido o corrupto.`);
-    }
-  };
+  // Eliminamos la función `extractTextFromPDF` de aquí, ya que la importamos de pdf-utils.ts
 
   const generatePrompt = (pcapText: string, pptText: string): string => `
 Actúa como un prestigioso matemático y un experto consultor especializado en licitaciones públicas de electromedicina en España. Tu tarea es analizar el texto extraído de un Pliego de Cláusulas Administrativas Particulares (PCAP) y un Pliego de Prescripciones Técnicas (PPT).
@@ -170,11 +142,12 @@ RESPUESTA REQUERIDA: Proporciona ÚNICAMENTE un objeto JSON válido con la estru
 `;
 
   const callGeminiAPI = async (prompt: string): Promise<BidAnalysisData> => {
+    // ... tu código callGeminiAPI no necesita cambios ...
     const GEMINI_API_KEY = 'AIzaSyANIWvIMRvCW7f0meHRk4SobRz4s0pnxtg';
-    const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent';
+    const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
     
     try {
-      console.log('🤖 Enviando análisis completo a Gemini 2.0 Flash...');
+      console.log('🤖 Enviando análisis completo a Gemini 2.5 Flash...');
       console.log(`📄 Tamaño del prompt: ${prompt.length} caracteres`);
       
       const requestBody = {
@@ -287,10 +260,10 @@ RESPUESTA REQUERIDA: Proporciona ÚNICAMENTE un objeto JSON válido con la estru
     try {
       console.log('🚀 Iniciando análisis completo de licitación con Gemini 2.0 Flash...');
       
-      // Extraer texto real de los PDFs
+      // Extraer texto real de los PDFs usando la utilidad importada
       console.log('📄 Extrayendo texto de archivos PDF...');
-      const pcapText = await extractTextFromPDF(pcapFile);
-      const pptText = await extractTextFromPDF(pptFile);
+      const pcapText = await extractPDFText(pcapFile); // <- Usamos la función importada
+      const pptText = await extractPDFText(pptFile);   // <- Usamos la función importada
       
       // Verificar que se extrajo contenido
       if (!pcapText.trim() && !pptText.trim()) {
