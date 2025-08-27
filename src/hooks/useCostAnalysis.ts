@@ -114,7 +114,7 @@ RESPUESTA REQUERIDA: Proporciona ÚNICAMENTE un objeto JSON válido con la estru
 
   const callGeminiAPI = async (pcapFile: File, pptFile: File): Promise<CostAnalysisData> => {
     const GEMINI_API_KEY = 'AIzaSyANIWvIMRvCW7f0meHRk4SobRz4s0pnxtg';
-    const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
+    const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent';
     
     try {
       console.log('🤖 Enviando análisis de costes a Gemini API con archivos PDF...');

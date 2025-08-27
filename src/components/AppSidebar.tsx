@@ -229,7 +229,7 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
                       className="w-full justify-start hover:bg-blue-50 dark:hover:bg-blue-900/20 data-[active=true]:bg-blue-100 dark:data-[active=true]:bg-blue-800 mb-1 sm:mb-2 text-sm sm:text-base p-2 sm:p-3"
                     >
                       <Home className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                      <span className="ml-2 truncate">{t('homeMenu')}</span>
+                      <span className="ml-2 truncate">Inicio</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 </SidebarMenu>
@@ -248,7 +248,7 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
                         className="w-full justify-start hover:bg-blue-50 dark:hover:bg-blue-900/20 data-[active=true]:bg-blue-100 dark:data-[active=true]:bg-blue-800 mb-1 sm:mb-2 text-sm sm:text-base p-2 sm:p-3"
                       >
                         <Users className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                        <span className="ml-2 truncate">{t('users')}</span>
+                        <span className="ml-2 truncate">Usuarios</span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   </SidebarMenu>
@@ -266,8 +266,8 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
                   <CollapsibleTrigger asChild>
                     <SidebarGroupLabel className="group/label hover:bg-blue-50 dark:hover:bg-blue-900/20 cursor-pointer text-blue-600 dark:text-blue-300 font-semibold text-xs sm:text-sm uppercase tracking-wide p-1.5 sm:p-2 rounded-md flex items-center justify-between">
                       <span className="truncate pr-1">
-                        <span className="hidden sm:inline">{t(group.label as any)}</span>
-                        <span className="sm:hidden">{t(group.shortLabel as any) || t(group.label as any)}</span>
+                        <span className="hidden sm:inline">{group.label}</span>
+                        <span className="sm:hidden">{group.shortLabel || group.label}</span>
                       </span>
                       <span className="flex-shrink-0">
                         {openGroup === group.id ? (
@@ -291,8 +291,8 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
                             >
                               <item.icon className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                               <span className="ml-2 truncate">
-                                <span className="hidden sm:inline">{t(item.label as any)}</span>
-                                <span className="sm:hidden">{t(item.shortLabel as any) || t(item.label as any)}</span>
+                                <span className="hidden sm:inline">{item.label}</span>
+                                <span className="sm:hidden">{item.shortLabel || item.label}</span>
                               </span>
                             </SidebarMenuButton>
                           </SidebarMenuItem>
