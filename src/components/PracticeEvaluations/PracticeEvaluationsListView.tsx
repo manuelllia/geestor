@@ -21,7 +21,7 @@ const PracticeEvaluationsListView: React.FC<PracticeEvaluationsListViewProps> = 
   const { isMobile, isTablet } = useResponsive();
   
   const [showDetailView, setShowDetailView] = useState(false);
-  const [selectedEvaluationId, setSelectedEvaluationId] = useState<string | null>(null);
+  const [selectedEvaluation, setSelectedEvaluation] = useState<PracticeEvaluationRecord | null>(null);
   const [evaluations, setEvaluations] = useState<PracticeEvaluationRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -53,8 +53,8 @@ const PracticeEvaluationsListView: React.FC<PracticeEvaluationsListViewProps> = 
   const endIndex = Math.min(startIndex + itemsPerPage, evaluations.length);
   const currentData = evaluations.slice(startIndex, endIndex);
 
-  const handleViewDetails = (id: string) => {
-    setSelectedEvaluationId(id);
+  const handleViewDetails = (evaluation: PracticeEvaluationRecord) => {
+    setSelectedEvaluation(evaluation);
     setShowDetailView(true);
   };
 
@@ -78,13 +78,13 @@ const PracticeEvaluationsListView: React.FC<PracticeEvaluationsListViewProps> = 
     return 'bg-red-100 text-red-800 border-red-300';
   };
 
-  if (showDetailView && selectedEvaluationId) {
+  if (showDetailView && selectedEvaluation) {
     return (
       <PracticeEvaluationDetailView
-        evaluationId={selectedEvaluationId}
-        onBack={() => {
+        evaluation={selectedEvaluation}
+        onClose={() => {
           setShowDetailView(false);
-          setSelectedEvaluationId(null);
+          setSelectedEvaluation(null);
           loadEvaluations();
         }}
       />
@@ -240,7 +240,7 @@ const PracticeEvaluationsListView: React.FC<PracticeEvaluationsListViewProps> = 
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  onClick={() => handleViewDetails(evaluation.id)}
+                                  onClick={() => handleViewDetails(evaluation)}
                                   title={t('view')}
                                   className="hover:bg-primary/10"
                                 >
