@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react'; // Agregamos useEffect
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,11 +7,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ArrowLeft, Building2, Save, Plus, Trash2, CalendarIcon } from 'lucide-react';
+import { ArrowLeft, Building2, Save, Plus, Trash2, CalendarIcon, PlusCircle } from 'lucide-react'; // Agregamos PlusCircle
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { createPropertyRecord } from '../../services/realEstateService';
+import { getWorkCenters } from '../../services/workCentersService'; // Importamos el servicio para Centros de Trabajo
+import CreateWorkCenterModal from '../Modals/CreateWorkCenterModal'; // Importamos el modal
+import { useWorkCenterModals } from '../../hooks/useWorkCenterModals'; // Importamos el hook para gestionar modales
 
 interface ActivePropertyFormProps {
   onBack: () => void;
@@ -25,6 +27,7 @@ interface Worker {
   dni: string;
 }
 
+// Interfaz actualizada para reflejar la separación de campos
 interface ActivePropertyFormData {
   id: string;
   workers: Worker[];
@@ -41,7 +44,8 @@ interface ActivePropertyFormData {
   fechaOcupacion: Date | undefined;
   fechaInicioContrato: Date | undefined;
   codMeta4: string;
-  contratoProyecto: string;
+  contratoProyecto: string; // Este campo ahora será SÓLO para el string del contrato de proyecto
+  workCenterCode: string; // NUEVO: Este campo será para el ID del centro de trabajo seleccionado del desplegable
 }
 
 const empresasGeeOptions = [
@@ -73,10 +77,44 @@ const ActivePropertyForm: React.FC<ActivePropertyFormProps> = ({ onBack, onSave 
     fechaOcupacion: undefined,
     fechaInicioContrato: undefined,
     codMeta4: '',
-    contratoProyecto: ''
+    contratoProyecto: '', // Inicializamos el contrato de proyecto
+    workCenterCode: '', // Inicializamos el nuevo campo para el código del centro de trabajo
   });
   
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [workCenters, setWorkCenters] = useState<Array<{id: string, name: string}>>([]); // Estado para los centros de trabajo
+
+  // Hook para gestionar los modales de centros de trabajo y contratos
+  const {
+    isWorkCenterModalOpen,
+    openWorkCenterModal,
+    closeWorkCenterModal,
+    // isContractModalOpen, // No necesitamos el de contratos aquí
+    // openContractModal,
+    // closeContractModal
+  } = useWorkCenterModals();
+
+  // Función para cargar los centros de trabajo desde Firebase
+  const loadWorkCenters = async () => {
+    try {
+      const data = await getWorkCenters();
+      setWorkCenters(data);
+    } catch (error) {
+      console.error('Error loading work centers:', error);
+      toast.error('Error al cargar los centros de trabajo.');
+    }
+  };
+
+  // Cargar centros de trabajo al montar el componente
+  useEffect(() => {
+    loadWorkCenters();
+  }, []);
+
+  // Callback para cuando se crea un nuevo centro de trabajo desde el modal
+  const handleWorkCenterSuccess = () => {
+    closeWorkCenterModal();
+    loadWorkCenters(); // Recargar la lista para incluir el nuevo centro
+  };
 
   const addWorker = () => {
     const newWorker = {
@@ -113,7 +151,7 @@ const ActivePropertyForm: React.FC<ActivePropertyFormProps> = ({ onBack, onSave 
     
     // Validaciones obligatorias
     if (!formData.id || !formData.empresaGee || !formData.estadoPiso || 
-        !formData.habitaciones || !formData.provinciaOrigen) {
+        !formData.habitaciones || !formData.provinciaOrigen || !formData.workCenterCode) { // Agregada validación para workCenterCode
       toast.error('Por favor, completa todos los campos obligatorios');
       return;
     }
@@ -152,8 +190,8 @@ const ActivePropertyForm: React.FC<ActivePropertyFormProps> = ({ onBack, onSave 
         'FECHA DE OCUPACIÓN': formData.fechaOcupacion ? format(formData.fechaOcupacion, 'dd/MM/yyyy') : '',
         'FECHA INICIO CONTRATO': formData.fechaInicioContrato ? Math.floor(formData.fechaInicioContrato.getTime() / (1000 * 60 * 60 * 24)) + 25569 : 0, // Excel serial date
         'COD. META 4': formData.codMeta4,
-        'CONTRATO PROYECTO': formData.contratoProyecto,
-        'CODIGO CENTRO TRABAJO': formData.contratoProyecto
+        'CONTRATO PROYECTO': formData.contratoProyecto, // Ahora usa el campo específico para el proyecto
+        'CODIGO CENTRO TRABAJO': formData.workCenterCode // Ahora usa el nuevo campo del desplegable
       };
 
       await createPropertyRecord(propertyData, 'PISOS ACTIVOS');
@@ -277,6 +315,7 @@ const ActivePropertyForm: React.FC<ActivePropertyFormProps> = ({ onBack, onSave 
                 <Select
                   value={formData.empresaGee}
                   onValueChange={(value) => setFormData(prev => ({ ...prev, empresaGee: value }))}
+                  required
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Seleccionar empresa" />
@@ -295,6 +334,7 @@ const ActivePropertyForm: React.FC<ActivePropertyFormProps> = ({ onBack, onSave 
                     value={formData.empresaGeeCustom}
                     onChange={(e) => setFormData(prev => ({ ...prev, empresaGeeCustom: e.target.value }))}
                     className="mt-2"
+                    required
                   />
                 )}
               </div>
@@ -306,6 +346,7 @@ const ActivePropertyForm: React.FC<ActivePropertyFormProps> = ({ onBack, onSave 
                   value={formData.estadoPiso}
                   onValueChange={(value) => setFormData(prev => ({ ...prev, estadoPiso: value }))}
                   className="flex gap-6"
+                  required
                 >
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="Ocupado" id="ocupado" />
@@ -471,7 +512,7 @@ const ActivePropertyForm: React.FC<ActivePropertyFormProps> = ({ onBack, onSave 
                 />
               </div>
 
-              {/* Contrato Proyecto */}
+              {/* Contrato Proyecto (ahora es solo para el string del contrato) */}
               <div className="space-y-2">
                 <Label htmlFor="contratoProyecto" className="text-sm font-medium">
                   Contrato Proyecto
@@ -482,6 +523,40 @@ const ActivePropertyForm: React.FC<ActivePropertyFormProps> = ({ onBack, onSave 
                   onChange={(e) => setFormData(prev => ({ ...prev, contratoProyecto: e.target.value }))}
                   placeholder="Ej: 06005"
                 />
+              </div>
+
+              {/* Código Centro Trabajo (¡NUEVO DESPLEGABLE!) */}
+              <div className="space-y-2">
+                <Label htmlFor="workCenterCode" className="text-sm font-medium">
+                  Código Centro Trabajo *
+                </Label>
+                <div className="flex items-center space-x-2">
+                    <Select
+                        value={formData.workCenterCode}
+                        onValueChange={(value) => setFormData(prev => ({ ...prev, workCenterCode: value }))}
+                        required
+                    >
+                        <SelectTrigger className="flex-1">
+                            <SelectValue placeholder="Seleccione un centro de trabajo" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {workCenters.map((center) => (
+                                <SelectItem key={center.id} value={center.id}>
+                                    {center.name}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="icon" // Usamos size="icon" para un botón más compacto con solo el icono
+                        onClick={openWorkCenterModal}
+                        title="Añadir nuevo centro de trabajo"
+                    >
+                        <PlusCircle className="h-4 w-4" />
+                    </Button>
+                </div>
               </div>
             </div>
 
@@ -506,6 +581,13 @@ const ActivePropertyForm: React.FC<ActivePropertyFormProps> = ({ onBack, onSave 
           </form>
         </CardContent>
       </Card>
+
+      {/* Modal para crear nuevo Centro de Trabajo */}
+      <CreateWorkCenterModal
+        isOpen={isWorkCenterModalOpen}
+        onClose={closeWorkCenterModal}
+        onSuccess={handleWorkCenterSuccess}
+      />
     </div>
   );
 };
