@@ -1,4 +1,3 @@
-
 export type Language = 'es' | 'en';
 export type Theme = 'light' | 'dark';
 
@@ -6,7 +5,7 @@ export const translations = {
   es: {
     // Configuración general
     settings: 'Configuración',
-    language: 'Idioma',
+    language: 'Idioma', 
     theme: 'Tema',
     spanish: 'Español',
     english: 'Inglés',
@@ -69,6 +68,11 @@ export const translations = {
     operations: 'Operaciones',
     actionPermissions: 'Permisos de Acciones',
     userManagement: 'Gestión de Usuarios',
+    modify: 'Modificar',
+    saveChanges: 'Guardar Cambios',
+    
+    // Pantalla de verificación
+    verifyingAccount: 'Verificando Cuenta',
     
     // Calendario de Mantenimiento
     hospitalInventory: 'Inventario Hospitalario',
@@ -330,6 +334,11 @@ export const translations = {
     operations: 'Operations',
     actionPermissions: 'Action Permissions',
     userManagement: 'User Management',
+    modify: 'Modify',
+    saveChanges: 'Save Changes',
+    
+    // Verification screen
+    verifyingAccount: 'Verifying Account',
     
     // Maintenance Calendar
     hospitalInventory: 'Hospital Inventory',
