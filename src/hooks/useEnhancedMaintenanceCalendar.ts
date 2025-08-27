@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { MaintenanceTaskProcessor } from '../utils/maintenance/MaintenanceTaskProcessor';
 import { OptimizedSchedulingEngine } from '../utils/maintenance/OptimizedSchedulingEngine';
@@ -11,7 +10,7 @@ interface MaintenanceTask {
   tiempo: string;
 }
 
-interface DenominacionHomogeneaData {
+export interface DenominacionHomogeneaData {
   codigo: string;
   denominacion: string;
   cantidad: number;

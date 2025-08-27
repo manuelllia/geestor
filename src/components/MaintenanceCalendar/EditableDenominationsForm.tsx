@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -42,7 +41,7 @@ const EditableDenominationsForm: React.FC<EditableDenominationsFormProps> = ({
 
   const handleGetSuggestions = useCallback(async () => {
     const incompleteDenominaciones = denominaciones.filter(den => 
-      !den.tipo_mantenimiento || den.tipo_mantenimiento === ''
+      !den.tipoMantenimiento || den.tipoMantenimiento === ''
     );
     
     if (incompleteDenominaciones.length === 0) {
@@ -69,9 +68,11 @@ const EditableDenominationsForm: React.FC<EditableDenominationsFormProps> = ({
 
   const addNewDenominacion = useCallback(() => {
     const newDenominacion: DenominacionHomogeneaData = {
-      denominacion_homogenea: '',
-      tipo_mantenimiento: '',
-      frecuencia: ''
+      codigo: '',
+      denominacion: '',
+      cantidad: 1,
+      frecuencia: '',
+      tipoMantenimiento: ''
     };
     onUpdate([...denominaciones, newDenominacion]);
   }, [denominaciones, onUpdate]);
@@ -81,7 +82,7 @@ const EditableDenominationsForm: React.FC<EditableDenominationsFormProps> = ({
     onUpdate(updated);
   }, [denominaciones, onUpdate]);
 
-  const updateDenominacion = useCallback((index: number, field: keyof DenominacionHomogeneaData, value: string) => {
+  const updateDenominacion = useCallback((index: number, field: keyof DenominacionHomogeneaData, value: string | number) => {
     const updated = denominaciones.map((den, i) => 
       i === index ? { ...den, [field]: value } : den
     );
@@ -89,12 +90,12 @@ const EditableDenominationsForm: React.FC<EditableDenominationsFormProps> = ({
   }, [denominaciones, onUpdate]);
 
   const incompleteDenominaciones = useMemo(() => 
-    denominaciones.filter(den => !den.tipo_mantenimiento || den.tipo_mantenimiento === ''),
+    denominaciones.filter(den => !den.tipoMantenimiento || den.tipoMantenimiento === ''),
     [denominaciones]
   );
 
   const completeDenominaciones = useMemo(() => 
-    denominaciones.filter(den => den.tipo_mantenimiento && den.tipo_mantenimiento !== ''),
+    denominaciones.filter(den => den.tipoMantenimiento && den.tipoMantenimiento !== ''),
     [denominaciones]
   );
 
@@ -135,8 +136,8 @@ const EditableDenominationsForm: React.FC<EditableDenominationsFormProps> = ({
                 <div className="col-span-5">
                   <Label>Denominación</Label>
                   <Input
-                    value={denominacion.denominacion_homogenea}
-                    onChange={(e) => updateDenominacion(index, 'denominacion_homogenea', e.target.value)}
+                    value={denominacion.denominacion}
+                    onChange={(e) => updateDenominacion(index, 'denominacion', e.target.value)}
                     placeholder="Nombre de la denominación"
                   />
                 </div>
@@ -144,8 +145,8 @@ const EditableDenominationsForm: React.FC<EditableDenominationsFormProps> = ({
                 <div className="col-span-3">
                   <Label>Tipo de Mantenimiento</Label>
                   <Select
-                    value={denominacion.tipo_mantenimiento}
-                    onValueChange={(value) => updateDenominacion(index, 'tipo_mantenimiento', value)}
+                    value={denominacion.tipoMantenimiento}
+                    onValueChange={(value) => updateDenominacion(index, 'tipoMantenimiento', value)}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Seleccionar tipo" />
@@ -215,13 +216,15 @@ const EditableDenominationsForm: React.FC<EditableDenominationsFormProps> = ({
         </CardContent>
       </Card>
 
-      <SuggestionsReviewModal
-        isOpen={showSuggestions}
-        onClose={() => setShowSuggestions(false)}
-        suggestions={suggestions}
-        onApply={handleApplySuggestions}
-        language={language}
-      />
+      {showSuggestions && (
+        <SuggestionsReviewModal
+          suggestions={suggestions}
+          denominaciones={denominaciones}
+          onApply={handleApplySuggestions}
+          onClose={() => setShowSuggestions(false)}
+          language={language}
+        />
+      )}
     </>
   );
 };
