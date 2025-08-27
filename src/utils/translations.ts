@@ -1,3 +1,4 @@
+
 export type Language = 'es' | 'en';
 export type Theme = 'light' | 'dark';
 
@@ -139,6 +140,45 @@ export interface Translations {
   comingSoonTitle: string;
   comingSoonDescription: string;
   comingSoonDescriptionComprobadores: string;
+  // Missing keys that need to be added
+  workCenter: string;
+  profile: string;
+  welcome: string;
+  loginSubtitle: string;
+  loginButton: string;
+  featureTitleComprobadores: string;
+  comingSoon: string;
+  confirm: string;
+  calendar: string;
+  analysis: string;
+  hospitalInventory: string;
+  maintenanceSchedule: string;
+  processFiles: string;
+  uploadFiles: string;
+  missingMaintenanceMessage: string;
+  completeFirst: string;
+  activeProperties: string;
+  inactiveProperties: string;
+  realEstateDashboard: string;
+  viewTables: string;
+  totalProperties: string;
+  annualCost: string;
+  exportPDF: string;
+  realEstateDetails: string;
+  detailViewPlaceholder: string;
+  userProfile: string;
+  personalInformation: string;
+  changePhoto: string;
+  email: string;
+  permissions: string;
+  permissionsDescription: string;
+  departmentPermissions: string;
+  actionPermissions: string;
+  create: string;
+  modify: string;
+  delete: string;
+  logout: string;
+  saveChanges: string;
 }
 
 export const translations: Record<Language, Translations> = {
@@ -227,11 +267,9 @@ export const translations: Record<Language, Translations> = {
     suggestionsReviewTitle: 'Revisar Sugerencias de IA',
     suggestionsReviewDescription: 'Se encontraron sugerencias de mantenimiento. Revisa y selecciona las que desees aplicar.',
     analyzing: 'Analizando...',
-
     theme: 'Tema',
     light: 'Claro',
     dark: 'Oscuro',
-    
     operations: 'Operaciones',
     costAnalysisShort: 'Análisis Costes',
     technicalManagement: 'Gestión Técnica',
@@ -249,7 +287,6 @@ export const translations: Record<Language, Translations> = {
     exitInterviews: 'Entrevistas de Salida',
     homeMenu: 'Inicio',
     users: 'Usuarios',
-    
     changeSheetsManagement: 'Gestión de Hojas de Cambio',
     createNew: 'Crear Nuevo',
     export: 'Exportar',
@@ -263,12 +300,10 @@ export const translations: Record<Language, Translations> = {
     view: 'Ver',
     duplicateRecord: 'Duplicar Registro',
     downloadPDF: 'Descargar PDF',
-    
     back: 'Volver',
     generatedOn: 'Generado el',
     documentGenerated: 'Documento generado por GEESTOR',
     recordNotFound: 'Registro no encontrado',
-    
     employeeInformation: 'Información del Empleado',
     employeeLastName: 'Apellidos del Empleado',
     position: 'Puesto',
@@ -282,10 +317,48 @@ export const translations: Record<Language, Translations> = {
     conditions: 'Condiciones',
     observations: 'Observaciones',
     employeeAgreementDetails: 'Detalles del Acuerdo de Empleado',
-    
     comingSoonTitle: 'Próximamente',
     comingSoonDescription: 'Esta sección estará disponible próximamente.',
-    comingSoonDescriptionComprobadores: 'El módulo de Comprobadores estará disponible próximamente.'
+    comingSoonDescriptionComprobadores: 'El módulo de Comprobadores estará disponible próximamente.',
+    // New missing translations
+    workCenter: 'Centro de Trabajo',
+    profile: 'Perfil',
+    welcome: 'Bienvenido a GEESTOR',
+    loginSubtitle: 'Sistema de Gestión Empresarial del Grupo Electromédico',
+    loginButton: 'Iniciar sesión con Microsoft',
+    featureTitleComprobadores: 'Módulo de Comprobadores',
+    comingSoon: 'Próximamente',
+    confirm: 'Confirmar',
+    calendar: 'Calendario',
+    analysis: 'Análisis',
+    hospitalInventory: 'Inventario Hospitalario',
+    maintenanceSchedule: 'Planificación de Mantenimiento',
+    processFiles: 'Procesar Archivos',
+    uploadFiles: 'Cargar Archivos',
+    missingMaintenanceMessage: 'Algunos equipos no tienen mantenimientos completos definidos',
+    completeFirst: 'Complete primero los mantenimientos faltantes',
+    activeProperties: 'Propiedades Activas',
+    inactiveProperties: 'Propiedades Inactivas',
+    realEstateDashboard: 'Panel de Inmuebles',
+    viewTables: 'Ver Tablas',
+    totalProperties: 'Total de Propiedades',
+    annualCost: 'Coste Anual',
+    exportPDF: 'Exportar PDF',
+    realEstateDetails: 'Detalles del Inmueble',
+    detailViewPlaceholder: 'Vista de detalles no disponible',
+    userProfile: 'Perfil de Usuario',
+    personalInformation: 'Información Personal',
+    changePhoto: 'Cambiar Foto',
+    email: 'Correo Electrónico',
+    permissions: 'Permisos',
+    permissionsDescription: 'Gestiona los permisos de acceso del usuario',
+    departmentPermissions: 'Permisos por Departamento',
+    actionPermissions: 'Permisos de Acción',
+    create: 'Crear',
+    modify: 'Modificar',
+    delete: 'Eliminar',
+    logout: 'Cerrar Sesión',
+    saveChanges: 'Guardar Cambios'
   },
   en: {
     home: 'Home',
@@ -372,11 +445,9 @@ export const translations: Record<Language, Translations> = {
     suggestionsReviewTitle: 'Review AI Suggestions',
     suggestionsReviewDescription: 'Maintenance suggestions found. Review and select the ones you want to apply.',
     analyzing: 'Analyzing...',
-
     theme: 'Theme',
     light: 'Light',
     dark: 'Dark',
-    
     operations: 'Operations',
     costAnalysisShort: 'Cost Analysis',
     technicalManagement: 'Technical Management',
@@ -394,7 +465,6 @@ export const translations: Record<Language, Translations> = {
     exitInterviews: 'Exit Interviews',
     homeMenu: 'Home',
     users: 'Users',
-    
     changeSheetsManagement: 'Change Sheets Management',
     createNew: 'Create New',
     export: 'Export',
@@ -408,12 +478,10 @@ export const translations: Record<Language, Translations> = {
     view: 'View',
     duplicateRecord: 'Duplicate Record',
     downloadPDF: 'Download PDF',
-    
     back: 'Back',
     generatedOn: 'Generated on',
     documentGenerated: 'Document generated by GEESTOR',
     recordNotFound: 'Record not found',
-    
     employeeInformation: 'Employee Information',
     employeeLastName: 'Employee Last Name',
     position: 'Position',
@@ -427,9 +495,47 @@ export const translations: Record<Language, Translations> = {
     conditions: 'Conditions',
     observations: 'Observations',
     employeeAgreementDetails: 'Employee Agreement Details',
-    
     comingSoonTitle: 'Coming Soon',
     comingSoonDescription: 'This section will be available soon.',
-    comingSoonDescriptionComprobadores: 'The Checkers module will be available soon.'
+    comingSoonDescriptionComprobadores: 'The Checkers module will be available soon.',
+    // New missing translations
+    workCenter: 'Work Center',
+    profile: 'Profile',
+    welcome: 'Welcome to GEESTOR',
+    loginSubtitle: 'Business Management System of the Electromedical Group',
+    loginButton: 'Sign in with Microsoft',
+    featureTitleComprobadores: 'Checkers Module',
+    comingSoon: 'Coming Soon',
+    confirm: 'Confirm',
+    calendar: 'Calendar',
+    analysis: 'Analysis',
+    hospitalInventory: 'Hospital Inventory',
+    maintenanceSchedule: 'Maintenance Schedule',
+    processFiles: 'Process Files',
+    uploadFiles: 'Upload Files',
+    missingMaintenanceMessage: 'Some equipment do not have complete maintenance defined',
+    completeFirst: 'Complete missing maintenance first',
+    activeProperties: 'Active Properties',
+    inactiveProperties: 'Inactive Properties',
+    realEstateDashboard: 'Real Estate Dashboard',
+    viewTables: 'View Tables',
+    totalProperties: 'Total Properties',
+    annualCost: 'Annual Cost',
+    exportPDF: 'Export PDF',
+    realEstateDetails: 'Real Estate Details',
+    detailViewPlaceholder: 'Detail view not available',
+    userProfile: 'User Profile',
+    personalInformation: 'Personal Information',
+    changePhoto: 'Change Photo',
+    email: 'Email',
+    permissions: 'Permissions',
+    permissionsDescription: 'Manage user access permissions',
+    departmentPermissions: 'Department Permissions',
+    actionPermissions: 'Action Permissions',
+    create: 'Create',
+    modify: 'Modify',
+    delete: 'Delete',
+    logout: 'Logout',
+    saveChanges: 'Save Changes'
   }
 };
