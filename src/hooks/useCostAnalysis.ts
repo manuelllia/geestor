@@ -82,7 +82,7 @@ Si la fórmula es \`70 * (1 - (P - Pmin) / (Plic - Pmin))\`, y has detectado que
 2.  El AST usará estos nombres: \`{"type":"binary_operation","operator":"*","left":{...},"right":{"type":"binary_operation", "operator": "-", "left":{...}, "right":{"type":"binary_operation", "operator":"/", "left": {"type":"variable", "name":"P"},...}}}\`
 3.  El campo \`formulaEconomica\` recibirá este AST como una cadena de texto JSON.
 
-Si no hay fórmula económica principal, \`formulaEconomica\` será un string de objeto vacío ('{}') y \`variablesDinamicas\` un array vacío ([]).
+Si no hay fórmula económica principal, \`formulaEconomica\` será un string vacío ('') y \`variablesDinamicas\` un array vacío ([]).
 
 ---
 **TAREA CRÍTICA 3: ANÁLISIS MATEMÁTICO DE TODAS LAS FÓRMULAS**
@@ -223,12 +223,53 @@ RESPUESTA REQUERIDA: Proporciona ÚNICAMENTE un objeto JSON válido con la estru
           const parsedResult: CostAnalysisData = JSON.parse(cleanedResponse);
           console.log('✅ JSON parseado exitosamente');
           
-          // Validar estructura básica
-          if (typeof parsedResult !== 'object' || parsedResult === null) {
-            throw new Error('El resultado no es un objeto válido');
-          }
+          // Validar y limpiar la estructura para evitar objetos complejos en React
+          const cleanedResult: CostAnalysisData = {
+            esPorLotes: Boolean(parsedResult.esPorLotes),
+            lotes: Array.isArray(parsedResult.lotes) ? parsedResult.lotes.map(lote => ({
+              nombre: String(lote.nombre || ''),
+              centroAsociado: String(lote.centroAsociado || ''),
+              descripcion: String(lote.descripcion || ''),
+              presupuesto: String(lote.presupuesto || ''),
+              requisitosClave: Array.isArray(lote.requisitosClave) ? lote.requisitosClave.map(req => String(req)) : []
+            })) : [],
+            variablesDinamicas: Array.isArray(parsedResult.variablesDinamicas) ? parsedResult.variablesDinamicas.map(variable => ({
+              nombre: String(variable.nombre || ''),
+              descripcion: String(variable.descripcion || ''),
+              mapeo: ['price', 'tenderBudget', 'maxScore', 'lowestPrice', 'averagePrice'].includes(variable.mapeo) 
+                ? variable.mapeo as 'price' | 'tenderBudget' | 'maxScore' | 'lowestPrice' | 'averagePrice'
+                : 'price'
+            })) : [],
+            formulaEconomica: String(parsedResult.formulaEconomica || ''),
+            formulasDetectadas: Array.isArray(parsedResult.formulasDetectadas) ? parsedResult.formulasDetectadas.map(formula => ({
+              formulaOriginal: String(formula.formulaOriginal || ''),
+              representacionLatex: String(formula.representacionLatex || ''),
+              descripcionVariables: String(formula.descripcionVariables || ''),
+              condicionesLogicas: String(formula.condicionesLogicas || '')
+            })) : [],
+            umbralBajaTemeraria: String(parsedResult.umbralBajaTemeraria || 'No especificado'),
+            criteriosAutomaticos: Array.isArray(parsedResult.criteriosAutomaticos) ? parsedResult.criteriosAutomaticos.map(criterio => ({
+              nombre: String(criterio.nombre || ''),
+              descripcion: String(criterio.descripcion || ''),
+              puntuacionMaxima: Number(criterio.puntuacionMaxima) || 0
+            })) : [],
+            criteriosSubjetivos: Array.isArray(parsedResult.criteriosSubjetivos) ? parsedResult.criteriosSubjetivos.map(criterio => ({
+              nombre: String(criterio.nombre || ''),
+              descripcion: String(criterio.descripcion || ''),
+              puntuacionMaxima: Number(criterio.puntuacionMaxima) || 0
+            })) : [],
+            otrosCriterios: Array.isArray(parsedResult.otrosCriterios) ? parsedResult.otrosCriterios.map(criterio => ({
+              nombre: String(criterio.nombre || ''),
+              descripcion: String(criterio.descripcion || ''),
+              puntuacionMaxima: Number(criterio.puntuacionMaxima) || 0
+            })) : [],
+            presupuestoGeneral: String(parsedResult.presupuestoGeneral || '0'),
+            costesDetalladosRecomendados: typeof parsedResult.costesDetalladosRecomendados === 'object' 
+              ? parsedResult.costesDetalladosRecomendados || {} 
+              : {}
+          };
           
-          return parsedResult;
+          return cleanedResult;
         } catch (parseError) {
           console.error('❌ Error parseando JSON:', parseError);
           console.error('📝 Respuesta recibida:', jsonString.substring(0, 500) + '...');
