@@ -1,381 +1,303 @@
-import React, { useState, useMemo } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { FileUp, Download, RefreshCw, Plus, Calendar, ArrowUp, ArrowDown, Eye, Trash2 } from 'lucide-react'; 
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { getPracticeEvaluations, deletePracticeEvaluation, generatePracticeEvaluationToken, PracticeEvaluationRecord } from '../../services/practiceEvaluationService';
-import { toast } from 'sonner';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { Eye, Plus, Upload, FileDown, RefreshCw, AlertCircle, Edit } from 'lucide-react';
+import { useTranslation } from '../../hooks/useTranslation';
 import { Language } from '../../utils/translations';
+import { ResponsiveTable, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/responsive-table';
 import PracticeEvaluationDetailView from './PracticeEvaluationDetailView';
+import { getPracticeEvaluations, PracticeEvaluationRecord, exportPracticeEvaluationsToCSV } from '../../services/practiceEvaluationService';
+import { useUserPermissions } from '../../hooks/useUserPermissions';
+import { useResponsive } from '../../hooks/useResponsive';
 
 interface PracticeEvaluationsListViewProps {
-  language?: Language;
+  language: Language;
 }
 
-export default function PracticeEvaluationsListView({ language = 'es' }: PracticeEvaluationsListViewProps) {
-  const queryClient = useQueryClient();
-  const { data: evaluations = [], isLoading, refetch } = useQuery({
-    queryKey: ['practice-evaluations'],
-    queryFn: getPracticeEvaluations,
-  });
+const PracticeEvaluationsListView: React.FC<PracticeEvaluationsListViewProps> = ({ language }) => {
+  const { t } = useTranslation(language);
+  const { permissions } = useUserPermissions();
+  const { isMobile, isTablet } = useResponsive();
+  
+  const [showDetailView, setShowDetailView] = useState(false);
+  const [selectedEvaluationId, setSelectedEvaluationId] = useState<string | null>(null);
+  const [evaluations, setEvaluations] = useState<PracticeEvaluationRecord[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 30;
 
-  const [sortColumn, setSortColumn] = useState<string | null>(null);
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
-  const [selectedEvaluation, setSelectedEvaluation] = useState<PracticeEvaluationRecord | null>(null);
-  const [isDetailViewOpen, setIsDetailViewOpen] = useState(false);
-  const [evaluationToDelete, setEvaluationToDelete] = useState<string | null>(null);
+  const canView = permissions?.Per_View ?? true;
 
-  // LÓGICA DE ORDENACIÓN
-  const handleSort = (column: string) => {
-    if (sortColumn === column) {
-      setSortDirection(prevDir => (prevDir === 'asc' ? 'desc' : 'asc'));
-    } else {
-      setSortColumn(column);
-      setSortDirection('asc');
-    }
-  };
-
-  // DATOS ORDENADOS Y MEMORIZADOS
-  const sortedEvaluations = useMemo(() => {
-    if (!sortColumn) {
-      return evaluations;
-    }
-
-    const sortedData = [...evaluations].sort((a, b) => {
-      let aValue: any;
-      let bValue: any;
-
-      // Determinar los valores a comparar según la columna
-      switch (sortColumn) {
-        case 'studentName':
-          aValue = `${a.studentName} ${a.studentLastName}`;
-          bValue = `${b.studentName} ${b.studentLastName}`;
-          break;
-        case 'tutorName':
-          aValue = `${a.tutorName} ${a.tutorLastName}`;
-          bValue = `${b.tutorName} ${b.tutorLastName}`;
-          break;
-        case 'workCenter':
-        case 'formation':
-        case 'finalEvaluation':
-          aValue = (a as any)[sortColumn];
-          bValue = (b as any)[sortColumn];
-          break;
-        case 'evaluationDate':
-          aValue = a.evaluationDate instanceof Date ? a.evaluationDate.getTime() : new Date(a.evaluationDate).getTime();
-          bValue = b.evaluationDate instanceof Date ? b.evaluationDate.getTime() : new Date(b.evaluationDate).getTime();
-          break;
-        case 'performanceRating':
-          aValue = (a as any)[sortColumn];
-          bValue = (b as any)[sortColumn];
-          break;
-        default:
-          aValue = (a as any)[sortColumn];
-          bValue = (b as any)[sortColumn];
-          break;
-      }
-
-      // Manejo de valores nulos o indefinidos
-      if (aValue == null && bValue == null) return 0;
-      if (aValue == null) return sortDirection === 'asc' ? -1 : 1;
-      if (bValue == null) return sortDirection === 'asc' ? 1 : -1;
-
-      let comparison = 0;
-      if (typeof aValue === 'string' && typeof bValue === 'string') {
-        comparison = aValue.localeCompare(bValue, language === 'es' ? 'es-ES' : 'en-US');
-      } else if (typeof aValue === 'number' && typeof bValue === 'number') {
-        comparison = aValue - bValue;
-      } else {
-        comparison = String(aValue).localeCompare(String(bValue), language === 'es' ? 'es-ES' : 'en-US');
-      }
-
-      return sortDirection === 'asc' ? comparison : -comparison;
-    });
-    return sortedData;
-  }, [evaluations, sortColumn, sortDirection, language]);
-
-  const handleGenerateLink = () => {
-    const token = generatePracticeEvaluationToken();
-    const link = `${window.location.origin}/valoracion-practicas/${token}`; 
-    
-    navigator.clipboard.writeText(link);
-    toast.success('Enlace copiado al portapapeles', {
-      description: 'Comparte este enlace para que se complete la valoración de prácticas',
-    });
-  };
-
-  const handleViewEvaluation = (evaluation: PracticeEvaluationRecord) => {
-    setSelectedEvaluation(evaluation);
-    setIsDetailViewOpen(true);
-  };
-
-  const handleDeleteEvaluation = async (id: string) => {
+  const loadEvaluations = async () => {
+    setIsLoading(true);
+    setError(null);
     try {
-      await deletePracticeEvaluation(id);
-      toast.success('Valoración eliminada', {
-        description: 'La valoración de prácticas ha sido eliminada correctamente',
-      });
-      queryClient.invalidateQueries({ queryKey: ['practice-evaluations'] });
-      setEvaluationToDelete(null);
-    } catch (error) {
-      toast.error('Error al eliminar', {
-        description: 'No se pudo eliminar la valoración de prácticas',
-      });
+      const evaluationsData = await getPracticeEvaluations();
+      setEvaluations(evaluationsData);
+    } catch (err) {
+      console.error('Error cargando evaluaciones:', err);
+      setError('Error al cargar las evaluaciones de prácticas');
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleExport = () => {
-    toast.info('Función de exportación', {
-      description: 'Esta función se implementará próximamente',
-    });
+  useEffect(() => {
+    loadEvaluations();
+  }, []);
+
+  const totalPages = Math.ceil(evaluations.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = Math.min(startIndex + itemsPerPage, evaluations.length);
+  const currentData = evaluations.slice(startIndex, endIndex);
+
+  const handleViewDetails = (id: string) => {
+    setSelectedEvaluationId(id);
+    setShowDetailView(true);
   };
 
-  const handleImport = () => {
-    toast.info('Función de importación', {
-      description: 'Esta función se implementará próximamente',
-    });
+  const handleExport = async () => {
+    try {
+      await exportPracticeEvaluationsToCSV();
+      console.log('Datos exportados correctamente');
+    } catch (error) {
+      console.error('Error al exportar:', error);
+      alert('Error al exportar los datos');
+    }
   };
 
-  if (isLoading) {
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString(language === 'es' ? 'es-ES' : 'en-US');
+  };
+
+  const getScoreBadge = (score: number) => {
+    if (score >= 8) return 'bg-green-100 text-green-800 border-green-300';
+    if (score >= 6) return 'bg-yellow-100 text-yellow-800 border-yellow-300';
+    return 'bg-red-100 text-red-800 border-red-300';
+  };
+
+  if (showDetailView && selectedEvaluationId) {
     return (
-      <div className="space-y-4">
-        <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
-        <div className="h-64 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
-      </div>
+      <PracticeEvaluationDetailView
+        language={language}
+        evaluationId={selectedEvaluationId}
+        onBack={() => {
+          setShowDetailView(false);
+          setSelectedEvaluationId(null);
+          loadEvaluations();
+        }}
+      />
     );
   }
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-blue-600 dark:text-blue-300">Valoración de Prácticas</CardTitle>
-          <CardDescription>
-            Gestiona las valoraciones de prácticas realizadas por los tutores de GEE
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-2 mb-6">
-            <Button onClick={handleGenerateLink} className="bg-blue-600 hover:bg-blue-700">
-              <Plus className="w-4 h-4 mr-2" />
-              Generar Enlace de Valoración
+    <div className="w-full overflow-hidden">
+      <div className="responsive-container responsive-padding space-y-4 sm:space-y-6">
+        {/* Header responsivo */}
+        <div className="flex flex-col space-y-4 sm:flex-row sm:justify-between sm:items-start sm:space-y-0">
+          <h1 className="responsive-title font-semibold text-primary">
+            Valoración de Prácticas
+          </h1>
+          
+          <div className="flex flex-wrap gap-2">
+            <Button
+              onClick={loadEvaluations}
+              variant="outline"
+              disabled={isLoading}
+              className="button-responsive border-primary/30 text-primary hover:bg-primary/10"
+            >
+              <RefreshCw className={`icon-responsive mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+              <span className="hidden xs:inline">Actualizar</span>
             </Button>
-            <Button variant="outline" onClick={handleExport}>
-              <Download className="w-4 h-4 mr-2" />
-              Exportar
-            </Button>
-            <Button variant="outline" onClick={handleImport}>
-              <FileUp className="w-4 h-4 mr-2" />
-              Importar
-            </Button>
-            <Button variant="outline" onClick={() => refetch()}>
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Actualizar
+            
+            <Button
+              variant="outline"
+              onClick={handleExport}
+              className="button-responsive border-primary/30 text-primary hover:bg-primary/10"
+            >
+              <FileDown className="icon-responsive mr-2 flex-shrink-0" />
+              <span className="hidden sm:inline">{t('export')}</span>
             </Button>
           </div>
+        </div>
 
-          {evaluations.length === 0 ? (
-            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-              <Calendar className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p>No hay valoraciones de prácticas registradas</p>
-              <p className="text-sm">Genera un enlace para comenzar a recibir valoraciones</p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead 
-                      className="cursor-pointer select-none"
-                      onClick={() => handleSort('studentName')}
-                    >
-                      <div className="flex items-center">
-                        Estudiante
-                        {sortColumn === 'studentName' && (
-                          <span className="ml-1">
-                            {sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
-                          </span>
-                        )}
-                      </div>
-                    </TableHead>
-                    <TableHead 
-                      className="cursor-pointer select-none"
-                      onClick={() => handleSort('tutorName')}
-                    >
-                      <div className="flex items-center">
-                        Tutor
-                        {sortColumn === 'tutorName' && (
-                          <span className="ml-1">
-                            {sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
-                          </span>
-                        )}
-                      </div>
-                    </TableHead>
-                    <TableHead 
-                      className="cursor-pointer select-none"
-                      onClick={() => handleSort('workCenter')}
-                    >
-                      <div className="flex items-center">
-                        Centro de Trabajo
-                        {sortColumn === 'workCenter' && (
-                          <span className="ml-1">
-                            {sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
-                          </span>
-                        )}
-                      </div>
-                    </TableHead>
-                    <TableHead 
-                      className="cursor-pointer select-none"
-                      onClick={() => handleSort('formation')}
-                    >
-                      <div className="flex items-center">
-                        Formación
-                        {sortColumn === 'formation' && (
-                          <span className="ml-1">
-                            {sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
-                          </span>
-                        )}
-                      </div>
-                    </TableHead>
-                    <TableHead 
-                      className="cursor-pointer select-none"
-                      onClick={() => handleSort('finalEvaluation')}
-                    >
-                      <div className="flex items-center">
-                        Evaluación Final
-                        {sortColumn === 'finalEvaluation' && (
-                          <span className="ml-1">
-                            {sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
-                          </span>
-                        )}
-                      </div>
-                    </TableHead>
-                    <TableHead 
-                      className="cursor-pointer select-none"
-                      onClick={() => handleSort('evaluationDate')}
-                    >
-                      <div className="flex items-center">
-                        Fecha
-                        {sortColumn === 'evaluationDate' && (
-                          <span className="ml-1">
-                            {sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
-                          </span>
-                        )}
-                      </div>
-                    </TableHead>
-                    <TableHead 
-                      className="cursor-pointer select-none text-center"
-                      onClick={() => handleSort('performanceRating')}
-                    >
-                      <div className="flex items-center justify-center">
-                        Valoración
-                        {sortColumn === 'performanceRating' && (
-                          <span className="ml-1">
-                            {sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
-                          </span>
-                        )}
-                      </div>
-                    </TableHead>
-                    <TableHead className="w-[120px]">Acciones</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {sortedEvaluations.map((evaluation) => (
-                    <TableRow key={evaluation.id}>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium">
-                            {evaluation.studentName} {evaluation.studentLastName}
-                          </div>
-                          <div className="text-sm text-gray-500">
-                            {evaluation.institution}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {evaluation.tutorName} {evaluation.tutorLastName}
-                      </TableCell>
-                      <TableCell>{evaluation.workCenter}</TableCell>
-                      <TableCell>{evaluation.formation}</TableCell>
-                      <TableCell>
-                        <Badge variant={evaluation.finalEvaluation === 'Apto' ? 'default' : 'destructive'}>
-                          {evaluation.finalEvaluation}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {evaluation.evaluationDate instanceof Date 
-                           ? format(evaluation.evaluationDate, 'dd/MM/yyyy', { locale: es })
-                           : 'Fecha no válida'}
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-center">
-                          <div className="text-lg font-bold text-blue-600 dark:text-blue-300">
-                            {evaluation.performanceRating}/10
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleViewEvaluation(evaluation)}
-                          >
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                          
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700">
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>¿Eliminar valoración?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Esta acción no se puede deshacer. Se eliminará permanentemente la valoración 
-                                  de {evaluation.studentName} {evaluation.studentLastName}.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={() => handleDeleteEvaluation(evaluation.id)}
-                                  className="bg-red-600 hover:bg-red-700"
+        {/* Card con tabla responsiva */}
+        <Card className="border-primary/20">
+          <CardHeader className="responsive-padding">
+            <CardTitle className="responsive-subtitle text-primary">
+              Lista de Evaluaciones
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            {error && (
+              <div className="text-center py-8 responsive-padding">
+                <div className="mx-auto w-16 h-16 bg-destructive/10 rounded-lg flex items-center justify-center mb-4">
+                  <AlertCircle className="w-8 h-8 text-destructive" />
+                </div>
+                <h3 className="responsive-text font-medium text-destructive mb-2">
+                  Error al cargar datos
+                </h3>
+                <p className="responsive-text text-destructive/80 mb-4">
+                  {error}
+                </p>
+                <Button onClick={loadEvaluations} className="bg-primary hover:bg-primary/90 text-primary-foreground">
+                  Intentar de nuevo
+                </Button>
+              </div>
+            )}
+            
+            {isLoading && (
+              <div className="text-center py-12 responsive-padding">
+                <div className="mx-auto w-16 h-16 bg-muted rounded-lg flex items-center justify-center mb-4">
+                  <RefreshCw className="w-8 h-8 text-muted-foreground animate-spin" />
+                </div>
+                <h3 className="responsive-text font-medium text-foreground mb-2">
+                  Cargando evaluaciones...
+                </h3>
+              </div>
+            )}
+            
+            {!isLoading && !error && evaluations.length === 0 && (
+              <div className="text-center py-12 responsive-padding">
+                <div className="mx-auto w-16 h-16 bg-muted rounded-lg flex items-center justify-center mb-4">
+                  <Upload className="w-8 h-8 text-muted-foreground" />
+                </div>
+                <h3 className="responsive-text font-medium text-foreground mb-2">
+                  No hay evaluaciones de prácticas
+                </h3>
+                <p className="responsive-text text-muted-foreground mb-4">
+                  Las evaluaciones aparecerán aquí cuando los estudiantes completen el formulario de valoración.
+                </p>
+              </div>
+            )}
+            
+            {!isLoading && !error && evaluations.length > 0 && (
+              <div className="w-full">
+                <ResponsiveTable minWidth="900px">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="min-w-[140px]">
+                          <span className="responsive-text font-medium">Estudiante</span>
+                        </TableHead>
+                        <TableHead className="min-w-[120px]">
+                          <span className="responsive-text font-medium">Universidad</span>
+                        </TableHead>
+                        <TableHead className="min-w-[120px]">
+                          <span className="responsive-text font-medium">Centro de Trabajo</span>
+                        </TableHead>
+                        <TableHead className="min-w-[100px]">
+                          <span className="responsive-text font-medium">Tutor</span>
+                        </TableHead>
+                        <TableHead className="min-w-[100px]">
+                          <span className="responsive-text font-medium">Fecha Inicio</span>
+                        </TableHead>
+                        <TableHead className="min-w-[100px]">
+                          <span className="responsive-text font-medium">Puntuación</span>
+                        </TableHead>
+                        <TableHead className="text-center min-w-[100px]">
+                          <span className="responsive-text font-medium">{t('actions')}</span>
+                        </TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {currentData.map((evaluation) => (
+                        <TableRow key={evaluation.id} className="hover:bg-muted/50">
+                          <TableCell className="font-medium">
+                            <div className="responsive-text truncate max-w-[120px]">
+                              {evaluation.studentName} {evaluation.studentLastName}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="responsive-text truncate max-w-[100px]">
+                              {evaluation.university}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="responsive-text truncate max-w-[100px]">
+                              {evaluation.workCenter}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="responsive-text truncate max-w-[100px]">
+                              {evaluation.tutorName} {evaluation.tutorLastName}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="responsive-text">
+                              {evaluation.startDate ? formatDate(evaluation.startDate) : 'No especificada'}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge className={`${getScoreBadge(evaluation.overallScore)} text-xs`}>
+                              {evaluation.overallScore}/10
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex justify-center">
+                              {canView && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleViewDetails(evaluation.id)}
+                                  title={t('view')}
+                                  className="hover:bg-primary/10"
                                 >
-                                  Eliminar
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                                  <Eye className="icon-responsive flex-shrink-0" />
+                                </Button>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </ResponsiveTable>
 
-      {/* Modal de detalle */}
-      {isDetailViewOpen && selectedEvaluation && (
-        <PracticeEvaluationDetailView
-          evaluation={selectedEvaluation}
-          onClose={() => {
-            setIsDetailViewOpen(false);
-            setSelectedEvaluation(null);
-          }}
-        />
-      )}
+                {/* Paginación responsiva */}
+                {evaluations.length > itemsPerPage && (
+                  <div className="flex flex-col sm:flex-row justify-between items-center responsive-padding responsive-gap">
+                    <div className="responsive-text text-muted-foreground">
+                      Mostrando {startIndex + 1} a {endIndex} de {evaluations.length} registros
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                        disabled={currentPage === 1}
+                        className="responsive-text"
+                      >
+                        Anterior
+                      </Button>
+                      
+                      <div className="text-sm text-muted-foreground">
+                        {currentPage} de {totalPages}
+                      </div>
+                      
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                        disabled={currentPage === totalPages}
+                        className="responsive-text"
+                      >
+                        Siguiente
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
-}
+};
+
+export default PracticeEvaluationsListView;
