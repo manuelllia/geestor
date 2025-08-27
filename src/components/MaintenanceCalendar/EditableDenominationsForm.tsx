@@ -57,11 +57,21 @@ const EditableDenominationsForm: React.FC<EditableDenominationsFormProps> = ({ l
   const [isMaintenanceModalOpen, setIsMaintenanceModalOpen] = useState(false);
   const [selectedDenominacion, setSelectedDenominacion] = useState<DenominacionHomogeneaData | null>(null);
   const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false);
-  const { suggestions, isLoading: isLoadingSuggestions, error: suggestionsError, fetchSuggestions } = useMaintenanceSuggestions();
+  const { suggestions, isLoading: isLoadingSuggestions, error: suggestionsError, getSuggestions } = useMaintenanceSuggestions();
 
   useEffect(() => {
     setData(initialData);
   }, [initialData]);
+
+  const handleOpenSuggestions = async (denominacion: DenominacionHomogeneaData) => {
+    setSelectedDenominacion(denominacion);
+    
+    // Define maintenance types of interest
+    const tiposMantenimientoInteres = ['Preventivo', 'Correctivo', 'Predictivo', 'Calibración', 'Inspección'];
+    
+    await getSuggestions([denominacion], tiposMantenimientoInteres);
+    setIsSuggestionsOpen(true);
+  };
 
   const handleInputChange = (index: number, field: keyof DenominacionHomogeneaData, value: any) => {
     const newData = [...data];
@@ -186,12 +196,6 @@ const EditableDenominationsForm: React.FC<EditableDenominationsFormProps> = ({ l
   useEffect(() => {
     onDataUpdate(data);
   }, [data, onDataUpdate]);
-
-  const handleOpenSuggestions = async (denominacion: DenominacionHomogeneaData) => {
-    setSelectedDenominacion(denominacion);
-    await fetchSuggestions(denominacion.denominacion);
-    setIsSuggestionsOpen(true);
-  };
 
   const handleCloseSuggestions = () => {
     setIsSuggestionsOpen(false);
