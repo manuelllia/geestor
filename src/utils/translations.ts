@@ -34,6 +34,7 @@ export const translations = {
     delete: 'Eliminar',
     add: 'Agregar',
     create: 'Crear',
+    createNew: 'Crear Nuevo',
     update: 'Actualizar',
     search: 'Buscar',
     filter: 'Filtrar',
@@ -47,6 +48,7 @@ export const translations = {
     previous: 'Anterior',
     confirm: 'Confirmar',
     close: 'Cerrar',
+    actions: 'Acciones',
     
     // Calendario de Mantenimiento
     hospitalInventory: 'Inventario Hospitalario',
@@ -81,19 +83,32 @@ export const translations = {
     
     // Hojas de Cambio
     changeSheetsTitle: 'Hojas de Cambio',
+    changeSheetsManagement: 'Gestión de Hojas de Cambio',
+    hojasCambio: 'Hojas de Cambio',
     newChangeSheet: 'Nueva Hoja de Cambio',
     changeNumber: 'Número de Cambio',
     changeDate: 'Fecha de Cambio',
     changeType: 'Tipo de Cambio',
     affected: 'Afectados',
+    originCenter: 'Centro de Origen',
+    destinationCenter: 'Centro de Destino',
     
     // Acuerdos con Empleados
     employeeAgreementsTitle: 'Acuerdos con Empleados',
     newEmployeeAgreement: 'Nuevo Acuerdo',
     employeeName: 'Nombre del Empleado',
+    employeeLastName: 'Apellidos del Empleado',
     agreementType: 'Tipo de Acuerdo',
     startDate: 'Fecha de Inicio',
     endDate: 'Fecha de Fin',
+    employeeInformation: 'Información del Empleado',
+    agreementDetails: 'Detalles del Acuerdo',
+    benefitsAndConditions: 'Beneficios y Condiciones',
+    benefits: 'Beneficios',
+    conditions: 'Condiciones',
+    observations: 'Observaciones',
+    position: 'Puesto',
+    salary: 'Salario',
     
     // Gestión de Inmuebles
     realEstateTitle: 'Gestión de Inmuebles',
@@ -106,6 +121,7 @@ export const translations = {
     occupancyStatus: 'Estado de Ocupación',
     workerName: 'Nombre del Trabajador',
     annualCost: 'Coste Anual',
+    workCenter: 'Centro de Trabajo',
     
     // Valoración de Prácticas
     practiceEvaluationTitle: 'Valoración de Prácticas',
@@ -127,6 +143,7 @@ export const translations = {
     userEmail: 'Correo Electrónico',
     userRole: 'Rol',
     createdDate: 'Fecha de Creación',
+    name: 'Nombre',
     
     // Estados y valores comunes
     active: 'Activo',
@@ -147,6 +164,7 @@ export const translations = {
     success: 'Éxito',
     warning: 'Advertencia',
     info: 'Información',
+    recordNotFound: 'Registro no encontrado',
     
     // Formularios
     required: 'Campo requerido',
@@ -154,7 +172,6 @@ export const translations = {
     passwordTooShort: 'La contraseña es muy corta',
     
     // Analizador de Licitaciones
-    bidAnalyzer: 'Analizador de Licitaciones',
     technicalScore: 'Puntuación Técnica',
     economicScore: 'Puntuación Económica',
     totalScore: 'Puntuación Total',
@@ -162,10 +179,21 @@ export const translations = {
     // Análisis de Costos
     costAnalysisTitle: 'Análisis de Costos',
     costBreakdown: 'Desglose de Costos',
-    scoreAnalysis: 'Análisis de Puntuación'
+    scoreAnalysis: 'Análisis de Puntuación',
+    
+    // Funciones adicionales
+    duplicateRecord: 'Duplicar Registro',
+    downloadPDF: 'Descargar PDF',
+    generatedOn: 'Generado el',
+    documentGenerated: 'Documento generado por',
+    
+    // Detalles específicos
+    employeeAgreementDetails: 'Detalles del Acuerdo de Empleado',
+    contractRequestDetails: 'Detalles de la Solicitud de Contrato',
+    exitInterviewDetails: 'Detalles de la Entrevista de Salida'
   },
   en: {
-    // General configuration
+    // General configuration  
     settings: 'Settings',
     language: 'Language',
     theme: 'Theme',
@@ -195,6 +223,7 @@ export const translations = {
     delete: 'Delete',
     add: 'Add',
     create: 'Create',
+    createNew: 'Create New',
     update: 'Update',
     search: 'Search',
     filter: 'Filter',
@@ -208,6 +237,7 @@ export const translations = {
     previous: 'Previous',
     confirm: 'Confirm',
     close: 'Close',
+    actions: 'Actions',
     
     // Maintenance Calendar
     hospitalInventory: 'Hospital Inventory',
@@ -242,19 +272,32 @@ export const translations = {
     
     // Change Sheets
     changeSheetsTitle: 'Change Sheets',
+    changeSheetsManagement: 'Change Sheets Management',
+    hojasCambio: 'Change Sheets',
     newChangeSheet: 'New Change Sheet',
     changeNumber: 'Change Number',
     changeDate: 'Change Date',
     changeType: 'Change Type',
     affected: 'Affected',
+    originCenter: 'Origin Center',
+    destinationCenter: 'Destination Center',
     
     // Employee Agreements
     employeeAgreementsTitle: 'Employee Agreements',
     newEmployeeAgreement: 'New Agreement',
     employeeName: 'Employee Name',
+    employeeLastName: 'Employee Last Name',
     agreementType: 'Agreement Type',
     startDate: 'Start Date',
     endDate: 'End Date',
+    employeeInformation: 'Employee Information',
+    agreementDetails: 'Agreement Details',
+    benefitsAndConditions: 'Benefits and Conditions',
+    benefits: 'Benefits',
+    conditions: 'Conditions',
+    observations: 'Observations',
+    position: 'Position',
+    salary: 'Salary',
     
     // Real Estate Management
     realEstateTitle: 'Real Estate Management',
@@ -267,6 +310,7 @@ export const translations = {
     occupancyStatus: 'Occupancy Status',
     workerName: 'Worker Name',
     annualCost: 'Annual Cost',
+    workCenter: 'Work Center',
     
     // Practice Evaluation
     practiceEvaluationTitle: 'Practice Evaluation',
@@ -288,6 +332,7 @@ export const translations = {
     userEmail: 'Email Address',
     userRole: 'Role',
     createdDate: 'Creation Date',
+    name: 'Name',
     
     // Common states and values
     active: 'Active',
@@ -308,6 +353,7 @@ export const translations = {
     success: 'Success',
     warning: 'Warning',
     info: 'Information',
+    recordNotFound: 'Record not found',
     
     // Forms
     required: 'Required field',
@@ -315,7 +361,6 @@ export const translations = {
     passwordTooShort: 'Password too short',
     
     // Bid Analyzer
-    bidAnalyzer: 'Bid Analyzer',
     technicalScore: 'Technical Score',
     economicScore: 'Economic Score',
     totalScore: 'Total Score',
@@ -323,6 +368,17 @@ export const translations = {
     // Cost Analysis
     costAnalysisTitle: 'Cost Analysis',
     costBreakdown: 'Cost Breakdown',
-    scoreAnalysis: 'Score Analysis'
+    scoreAnalysis: 'Score Analysis',
+    
+    // Additional functions
+    duplicateRecord: 'Duplicate Record',
+    downloadPDF: 'Download PDF',
+    generatedOn: 'Generated on',
+    documentGenerated: 'Document generated by',
+    
+    // Specific details
+    employeeAgreementDetails: 'Employee Agreement Details',
+    contractRequestDetails: 'Contract Request Details',
+    exitInterviewDetails: 'Exit Interview Details'
   }
 };
