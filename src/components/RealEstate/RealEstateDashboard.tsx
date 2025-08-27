@@ -1,7 +1,7 @@
-
+// src/components/RealEstate/RealEstateDashboard.tsx
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart as BarChartIcon, Building2, Home, DollarSign, Activity, Bed } from 'lucide-react';
+import { BarChart as BarChartIcon, Building2, Home, DollarSign, Activity, Bed, Plus } from 'lucide-react'; // Importa Plus icon
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { getPropertyCounts, getAnnualCostData, getProvinceActivityData, ProvinceActivityData } from '../../services/realEstateService';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -13,9 +13,15 @@ interface RealEstateDashboardProps {
   language: Language;
   onImportData: () => void;
   onViewTables: () => void;
+  onAddProperty?: () => void; // ¡NUEVO PROP! Opcional
 }
 
-const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({ language, onImportData, onViewTables }) => {
+const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({ 
+  language, 
+  onImportData, 
+  onViewTables,
+  onAddProperty // ¡DESESTRUCTURAR EL NUEVO PROP!
+}) => {
   const { t } = useTranslation(language);
   const [propertyCounts, setPropertyCounts] = useState({ active: 0, inactive: 0, total: 0, totalRooms: 0 });
   const [costData, setCostData] = useState({ totalCost: 0, byProvince: {} });
@@ -57,12 +63,12 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({ language, onI
   }));
 
   const propertyStatusData = [
-    { name: 'Activas', value: propertyCounts.active, color: '#3B82F6' },
-    { name: 'Inactivas', value: propertyCounts.inactive, color: '#EF4444' }
+    { name: t('activeProperties'), value: propertyCounts.active, color: '#3B82F6' },
+    { name: t('inactiveProperties'), value: propertyCounts.inactive, color: '#EF4444' }
   ];
 
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('es-ES', {
+    return new Intl.NumberFormat(language, { // Usar 'language' para formato correcto
       style: 'currency',
       currency: 'EUR',
       minimumFractionDigits: 0,
@@ -71,12 +77,13 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({ language, onI
   };
 
   const formatCurrencyCompact = (value: number) => {
+    const suffix = language === 'es' ? '€' : '€'; // Puedes cambiar esto si tienes más monedas
     if (value >= 1000000) {
-      return `${(value / 1000000).toFixed(1)}M€`;
+      return `${(value / 1000000).toFixed(1)}M${suffix}`;
     } else if (value >= 1000) {
-      return `${(value / 1000).toFixed(0)}k€`;
+      return `${(value / 1000).toFixed(0)}k${suffix}`;
     }
-    return `${value}€`;
+    return `${value}${suffix}`;
   };
 
   if (isLoading) {
@@ -108,22 +115,34 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({ language, onI
             {t('realEstateDashboard')}
           </h1>
           <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
-            Panel de control de gestión inmobiliaria
+            {t('realEstateDashboardDescription')} {/* Se asume traducción para esta frase */}
           </p>
         </div>
+        {/* Contenedor de botones - adaptado para 3 botones */}
         <div className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-3">
+          {/* NUEVO BOTÓN: Agregar Inmueble */}
+          {onAddProperty && (
+            <Button
+              onClick={onAddProperty}
+              className="bg-green-600 hover:bg-green-700 text-white px-3 sm:px-4 lg:px-6 py-2 rounded-lg shadow-lg text-sm sm:text-base flex items-center justify-center"
+            >
+              <Plus className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+              {t('addProperty')} {/* Asume una traducción para 'Agregar Inmueble' */}
+            </Button>
+          )}
+
           <Button 
             onClick={onImportData} 
-            className="bg-blue-600 hover:bg-blue-700 text-white px-3 sm:px-4 lg:px-6 py-2 rounded-lg shadow-lg text-sm sm:text-base"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-3 sm:px-4 lg:px-6 py-2 rounded-lg shadow-lg text-sm sm:text-base flex items-center justify-center"
           >
-            Importar Datos
+            {t('importData')} {/* Asume una traducción para 'Importar Datos' */}
           </Button>
           <Button 
             onClick={onViewTables}
             variant="outline"
-            className="border-blue-200 text-blue-700 hover:bg-blue-50 px-3 sm:px-4 lg:px-6 py-2 rounded-lg text-sm sm:text-base"
+            className="border-blue-200 text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 px-3 sm:px-4 lg:px-6 py-2 rounded-lg text-sm sm:text-base flex items-center justify-center"
           >
-            Ver Tablas
+            {t('viewTables')} {/* Asume una traducción para 'Ver Tablas' */}
           </Button>
         </div>
       </div>
@@ -138,10 +157,10 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({ language, onI
                   {t('activeProperties')}
                 </p>
                 <div className="text-lg sm:text-xl lg:text-2xl xl:text-3xl font-bold">
-                  {propertyCounts.active.toLocaleString()}
+                  {propertyCounts.active.toLocaleString(language)}
                 </div>
                 <p className="text-blue-200 text-xs mt-1 truncate">
-                  Propiedades operativas
+                  {t('propertiesOperational')}
                 </p>
               </div>
               <div className="bg-white/20 p-1.5 sm:p-2 lg:p-3 rounded-full ml-2 flex-shrink-0">
@@ -159,10 +178,10 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({ language, onI
                   {t('inactiveProperties')}
                 </p>
                 <div className="text-lg sm:text-xl lg:text-2xl xl:text-3xl font-bold">
-                  {propertyCounts.inactive.toLocaleString()}
+                  {propertyCounts.inactive.toLocaleString(language)}
                 </div>
                 <p className="text-red-200 text-xs mt-1 truncate">
-                  Propiedades en pausa
+                  {t('propertiesPaused')}
                 </p>
               </div>
               <div className="bg-white/20 p-1.5 sm:p-2 lg:p-3 rounded-full ml-2 flex-shrink-0">
@@ -180,10 +199,10 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({ language, onI
                   {t('totalProperties')}
                 </p>
                 <div className="text-lg sm:text-xl lg:text-2xl xl:text-3xl font-bold">
-                  {propertyCounts.total.toLocaleString()}
+                  {propertyCounts.total.toLocaleString(language)}
                 </div>
                 <p className="text-green-200 text-xs mt-1 truncate">
-                  Total del portafolio
+                  {t('totalPortfolio')}
                 </p>
               </div>
               <div className="bg-white/20 p-1.5 sm:p-2 lg:p-3 rounded-full ml-2 flex-shrink-0">
@@ -198,13 +217,13 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({ language, onI
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1">
                 <p className="text-orange-100 text-xs sm:text-sm font-medium mb-1 truncate">
-                  Total Habitaciones
+                  {t('totalRooms')}
                 </p>
                 <div className="text-lg sm:text-xl lg:text-2xl xl:text-3xl font-bold">
-                  {propertyCounts.totalRooms.toLocaleString()}
+                  {propertyCounts.totalRooms.toLocaleString(language)}
                 </div>
                 <p className="text-orange-200 text-xs mt-1 truncate">
-                  Habitaciones disponibles
+                  {t('availableRooms')}
                 </p>
               </div>
               <div className="bg-white/20 p-1.5 sm:p-2 lg:p-3 rounded-full ml-2 flex-shrink-0">
@@ -219,13 +238,13 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({ language, onI
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1">
                 <p className="text-purple-100 text-xs sm:text-sm font-medium mb-1 truncate">
-                  Coste Anual Total
+                  {t('totalAnnualCost')}
                 </p>
                 <div className="text-sm sm:text-base lg:text-lg xl:text-xl font-bold leading-tight break-words">
                   {formatCurrencyCompact(costData.totalCost)}
                 </div>
                 <p className="text-purple-200 text-xs mt-1 truncate">
-                  Gastos operativos
+                  {t('operatingExpenses')}
                 </p>
               </div>
               <div className="bg-white/20 p-1.5 sm:p-2 lg:p-3 rounded-full ml-2 flex-shrink-0">
@@ -240,13 +259,13 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({ language, onI
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1">
                 <p className="text-teal-100 text-xs sm:text-sm font-medium mb-1 truncate">
-                  Coste Promedio
+                  {t('averageCost')}
                 </p>
                 <div className="text-sm sm:text-base lg:text-lg xl:text-xl font-bold leading-tight break-words">
                   {propertyCounts.total > 0 ? formatCurrencyCompact(costData.totalCost / propertyCounts.total) : '0€'}
                 </div>
                 <p className="text-teal-200 text-xs mt-1 truncate">
-                  Por propiedad
+                  {t('perProperty')}
                 </p>
               </div>
               <div className="bg-white/20 p-1.5 sm:p-2 lg:p-3 rounded-full ml-2 flex-shrink-0">
@@ -264,7 +283,7 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({ language, onI
           <CardHeader className="border-b border-gray-100 dark:border-gray-700">
             <CardTitle className="text-sm sm:text-base lg:text-lg text-gray-900 dark:text-white flex items-center gap-2">
               <BarChartIcon className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-              Coste Anual por Provincia
+              {t('annualCostByProvince')}
             </CardTitle>
           </CardHeader>
           <CardContent className="p-3 sm:p-4 lg:p-6">
@@ -287,7 +306,7 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({ language, onI
                     tickFormatter={(value) => formatCurrencyCompact(value)}
                   />
                   <Tooltip 
-                    formatter={(value: number) => [formatCurrency(value), 'Coste Anual']}
+                    formatter={(value: number) => [formatCurrency(value), t('annualCost')]}
                     labelStyle={{ color: '#1f2937', fontWeight: 'bold' }}
                     contentStyle={{ 
                       backgroundColor: 'white', 
@@ -321,7 +340,7 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({ language, onI
           <CardHeader className="border-b border-gray-100 dark:border-gray-700">
             <CardTitle className="text-sm sm:text-base lg:text-lg text-gray-900 dark:text-white flex items-center gap-2">
               <Activity className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
-              Estado de Propiedades
+              {t('propertyStatus')}
             </CardTitle>
           </CardHeader>
           <CardContent className="p-3 sm:p-4 lg:p-6">
@@ -342,7 +361,7 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({ language, onI
                     ))}
                   </Pie>
                   <Tooltip 
-                    formatter={(value: number) => [value.toLocaleString(), 'Propiedades']}
+                    formatter={(value: number) => [value.toLocaleString(language), t('properties')]}
                     contentStyle={{ 
                       backgroundColor: 'white', 
                       border: '1px solid #e5e7eb',
@@ -362,7 +381,7 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({ language, onI
                     style={{ backgroundColor: item.color }}
                   ></div>
                   <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">
-                    {item.name}: {item.value.toLocaleString()}
+                    {item.name}: {item.value.toLocaleString(language)}
                   </span>
                 </div>
               ))}
@@ -375,6 +394,7 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({ language, onI
       <TopProvincesChart 
         provinceActivity={provinceActivity}
         hasData={hasData}
+        language={language} // Asegúrate de pasar el prop language
       />
     </div>
   );
