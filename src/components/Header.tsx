@@ -1,4 +1,4 @@
-// src/components/Header.tsx
+
 import React, { useState } from 'react';
 import { User, Settings, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,7 @@ import { SidebarTrigger } from '@/components/ui/sidebar';
 import { User as UserType } from '../types/auth';
 import SettingsModal from './SettingsModal';
 import UserProfileModal from './UserProfileModal';
+import { useResponsive } from '../hooks/useResponsive';
 
 interface HeaderProps {
   user: UserType;
@@ -31,6 +32,7 @@ export function Header({
   onPermissionsUpdate 
 }: HeaderProps) {
   const { t } = useTranslation(language);
+  const { isMobile } = useResponsive();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const handleSettingsClick = () => {
@@ -39,14 +41,14 @@ export function Header({
 
   return (
     <>
-      <header className="bg-white dark:bg-gray-900 border-b border-blue-200 dark:border-blue-800 px-2 py-2 flex items-center justify-between h-14 w-full min-w-0 z-30">
-        <div className="flex items-center min-w-0 flex-shrink-0">
-          <SidebarTrigger className="h-8 w-8 flex-shrink-0">
+      <header className="bg-background border-b border-border px-4 py-3 flex items-center justify-between h-16 w-full min-w-0 sticky top-0 z-50">
+        <div className="flex items-center min-w-0">
+          <SidebarTrigger className="h-9 w-9 p-0">
             <Menu className="h-4 w-4" />
           </SidebarTrigger>
         </div>
         
-        <div className="flex items-center gap-1 flex-shrink-0 ml-2">
+        <div className="flex items-center responsive-gap">
           <UserProfileModal
             user={user}
             language={language}
@@ -56,16 +58,10 @@ export function Header({
             <Button 
               variant="ghost" 
               size="sm"
-              // CLAVE: Añadir 'flex items-center justify-center' aquí.
-              // Esto fuerza a que el contenido del botón (el icono y/o texto) 
-              // siempre se centre horizontal y verticalmente.
-              // Asegúrate de que el Button de tu UI no tiene un `flex` o `inline-flex` por defecto
-              // que entre en conflicto, si lo tiene, esto podría ser redundante pero inofensivo.
-              // Si el problema persiste, intenta `inline-flex` en vez de `flex`.
-              className="flex items-center justify-center text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 px-2 py-1 h-8 min-w-8 flex-shrink-0"
+              className="flex items-center justify-center text-primary hover:bg-accent h-9 px-3"
             >
               <User className="h-4 w-4" />
-              <span className="ml-1 hidden sm:inline text-sm">{t('profile')}</span>
+              {!isMobile && <span className="ml-2 text-sm">{t('profile')}</span>}
             </Button>
           </UserProfileModal>
           
@@ -73,11 +69,10 @@ export function Header({
             variant="ghost" 
             size="sm"
             onClick={handleSettingsClick}
-            // CLAVE: Añadir 'flex items-center justify-center' aquí también.
-            className="flex items-center justify-center text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 px-2 py-1 h-8 min-w-8 flex-shrink-0"
+            className="flex items-center justify-center text-primary hover:bg-accent h-9 px-3"
           >
             <Settings className="h-4 w-4" />
-            <span className="ml-1 hidden sm:inline text-sm">{t('settings')}</span>
+            {!isMobile && <span className="ml-2 text-sm">{t('settings')}</span>}
           </Button>
         </div>
       </header>
