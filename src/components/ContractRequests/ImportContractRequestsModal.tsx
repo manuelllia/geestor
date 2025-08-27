@@ -12,12 +12,14 @@ interface ImportContractRequestsModalProps {
   open: boolean;
   onClose: () => void;
   language: Language;
+  onImportSuccess?: () => void;
 }
 
 const ImportContractRequestsModal: React.FC<ImportContractRequestsModalProps> = ({
   open,
   onClose,
-  language
+  language,
+  onImportSuccess
 }) => {
   const { t } = useTranslation(language);
   const [isUploading, setIsUploading] = useState(false);
@@ -85,6 +87,11 @@ const ImportContractRequestsModal: React.FC<ImportContractRequestsModalProps> = 
 
       const result = await importContractRequests(requests);
       setUploadResult(result);
+
+      // Call onImportSuccess if import was successful
+      if (result.success > 0 && onImportSuccess) {
+        onImportSuccess();
+      }
 
     } catch (error) {
       console.error('Error procesando archivo:', error);
