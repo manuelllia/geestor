@@ -7,9 +7,17 @@ import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, addMo
 import { es } from 'date-fns/locale';
 import MaintenanceEventModal from './MaintenanceEventModal';
 import HospitalConfirmationModal from './HospitalConfirmationModal';
-import IncompleteDenominationsManager from './IncompleteDenominationsManager';
 import { useEnhancedMaintenanceCalendar } from '../../hooks/useEnhancedMaintenanceCalendar';
 import EditableDenominationsForm from './EditableDenominationsForm';
+import { useTranslation } from '../../hooks/useTranslation';
+import { Language } from '../../utils/translations';
+
+interface MaintenanceTask {
+  id: string;
+  tipoMantenimiento: string;
+  frecuencia: string;
+  tiempo: string;
+}
 
 interface DenominacionHomogeneaData {
   codigo: string;
@@ -18,17 +26,21 @@ interface DenominacionHomogeneaData {
   frecuencia: string;
   tipoMantenimiento: string;
   tiempo?: string;
+  maintenanceTasks?: MaintenanceTask[];
 }
 
 interface EditableMaintenanceCalendarProps {
   denominaciones: DenominacionHomogeneaData[];
   onBack: () => void;
+  language: Language;
 }
 
 const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = ({
   denominaciones,
-  onBack
+  onBack,
+  language
 }) => {
+  const { t } = useTranslation(language);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -229,7 +241,7 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
             <div className="mb-6">
               <div className="w-20 h-20 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin mx-auto mb-6" />
               <h2 className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-2">
-                🔄 Generando Calendario Profesional
+                🔄 {t('generateCalendar')} Profesional
               </h2>
               <p className="text-gray-600 dark:text-gray-300 mb-4">
                 Nuestro sistema está creando un calendario optimizado para tu hospital
@@ -287,6 +299,7 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
         onUpdate={handleUpdateDenominaciones}
         onGenerate={handleGenerateCalendar}
         isGenerating={isGenerating}
+        language={language}
       />
 
       {/* Calendario principal */}
@@ -296,7 +309,7 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
             <div>
               <CardTitle className="flex items-center gap-2">
                 <Calendar className="h-5 w-5" />
-                🏥 Calendario Profesional de Mantenimiento - Gestión Técnica
+                🏥 {t('maintenanceCalendar')} - Gestión Técnica
               </CardTitle>
               <p className="text-sm text-gray-600 dark:text-gray-300 mt-2">
                 📋 Programación L-V • {constraints.tecnicos} técnicos • {constraints.horasPorDia}h/día • 
@@ -321,7 +334,7 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
                 </div>
               </div>
               <Button onClick={handleExportCSV} variant="outline">
-                📊 Exportar Plan CSV
+                📊 {t('export')} Plan CSV
               </Button>
               <Button 
                 onClick={() => setShowConstraintsConfig(!showConstraintsConfig)}
@@ -337,10 +350,10 @@ const EditableMaintenanceCalendar: React.FC<EditableMaintenanceCalendarProps> = 
                 disabled={!isCalendarComplete() || isGenerating}
               >
                 <CheckCircle className="h-4 w-4 mr-2" />
-                Confirmar Calendario
+                {t('confirm')} {t('calendar')}
               </Button>
               <Button onClick={onBack} variant="outline">
-                Volver al Análisis
+                {t('back')} al {t('analysis')}
               </Button>
             </div>
           </CardHeader>

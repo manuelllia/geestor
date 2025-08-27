@@ -109,6 +109,7 @@ const MaintenanceCalendarView: React.FC<MaintenanceCalendarViewProps> = ({ langu
       <EditableMaintenanceCalendar
         denominaciones={denominacionesData}
         onBack={handleBackToAnalysis}
+        language={language}
       />
     );
   }
@@ -117,7 +118,7 @@ const MaintenanceCalendarView: React.FC<MaintenanceCalendarViewProps> = ({ langu
     switch (processingStep) {
       case 'select-sheets':
         const currentFile = currentProcessingFile === 'inventory' ? inventoryFile : maintenanceFile;
-        const fileTitle = currentProcessingFile === 'inventory' ? 'Inventario Hospitalario' : 'Calendario de Mantenimiento';
+        const fileTitle = currentProcessingFile === 'inventory' ? t('hospitalInventory') : t('maintenanceSchedule');
         
         return (
           <Card className="animate-slideInLeft">
@@ -140,7 +141,7 @@ const MaintenanceCalendarView: React.FC<MaintenanceCalendarViewProps> = ({ langu
             <Card className="animate-bounceIn">
               <CardHeader className="pb-3 sm:pb-4">
                 <CardTitle className="flex items-center gap-2 text-sm sm:text-base md:text-lg">
-                  🤖 Generar Calendario de Mantenimiento
+                  🤖 {t('generateCalendar')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-6">
@@ -154,7 +155,7 @@ const MaintenanceCalendarView: React.FC<MaintenanceCalendarViewProps> = ({ langu
                         {inventory.length}
                       </div>
                       <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                        Equipos en Inventario
+                        Equipos en {t('inventory')}
                       </div>
                     </div>
                     
@@ -182,10 +183,10 @@ const MaintenanceCalendarView: React.FC<MaintenanceCalendarViewProps> = ({ langu
                       {isLoading ? (
                         <div className="flex items-center gap-2">
                           <div className="w-3 h-3 sm:w-4 sm:h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                          <span className="text-xs sm:text-sm">Generando...</span>
+                          <span className="text-xs sm:text-sm">{t('loading')}</span>
                         </div>
                       ) : (
-                        <span className="text-xs sm:text-sm">Generar Calendario con IA</span>
+                        <span className="text-xs sm:text-sm">{t('generateCalendar')} con IA</span>
                       )}
                     </Button>
                     
@@ -195,7 +196,7 @@ const MaintenanceCalendarView: React.FC<MaintenanceCalendarViewProps> = ({ langu
                       size="sm"
                       className="text-xs sm:text-sm"
                     >
-                      Volver al Inicio
+                      {t('back')} al Inicio
                     </Button>
                   </div>
                 </div>
@@ -251,11 +252,11 @@ const MaintenanceCalendarView: React.FC<MaintenanceCalendarViewProps> = ({ langu
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
               <Card className="animate-slideInLeft hover-lift">
                 <CardHeader className="pb-3 sm:pb-4">
-                  <CardTitle className="text-sm sm:text-base md:text-lg">📦 Inventario Hospitalario</CardTitle>
+                  <CardTitle className="text-sm sm:text-base md:text-lg">📦 {t('hospitalInventory')}</CardTitle>
                 </CardHeader>
                 <CardContent className="p-3 sm:p-6">
                   <MaintenanceFileUploader
-                    title="Inventario Hospitalario"
+                    title={t('hospitalInventory')}
                     description="Sube un archivo Excel o CSV con el inventario de equipos médicos"
                     acceptedFormats=".xlsx,.xls,.csv"
                     onFileUpload={(file) => setInventoryFile(file)}
@@ -274,11 +275,11 @@ const MaintenanceCalendarView: React.FC<MaintenanceCalendarViewProps> = ({ langu
 
               <Card className="animate-slideInRight hover-lift">
                 <CardHeader className="pb-3 sm:pb-4">
-                  <CardTitle className="text-sm sm:text-base md:text-lg">🔧 Calendario de Mantenimiento</CardTitle>
+                  <CardTitle className="text-sm sm:text-base md:text-lg">🔧 {t('maintenanceSchedule')}</CardTitle>
                 </CardHeader>
                 <CardContent className="p-3 sm:p-6">
                   <MaintenanceFileUploader
-                    title="Calendario de Mantenimiento"
+                    title={t('maintenanceSchedule')}
                     description="Sube un archivo Excel o CSV con la programación de mantenimiento"
                     acceptedFormats=".xlsx,.xls,.csv"
                     onFileUpload={(file) => setMaintenanceFile(file)}
@@ -300,7 +301,7 @@ const MaintenanceCalendarView: React.FC<MaintenanceCalendarViewProps> = ({ langu
               <Card className="animate-zoomIn hover-glow">
                 <CardHeader className="pb-3 sm:pb-4">
                   <CardTitle className="text-sm sm:text-xl font-semibold text-blue-900 dark:text-blue-100">
-                    📈 Procesar Archivos
+                    📈 {t('processFiles')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-3 sm:p-6">
@@ -324,10 +325,10 @@ const MaintenanceCalendarView: React.FC<MaintenanceCalendarViewProps> = ({ langu
                       {isLoading ? (
                         <div className="flex items-center gap-2">
                           <div className="w-3 h-3 sm:w-4 sm:h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                          <span className="text-xs sm:text-sm">Procesando...</span>
+                          <span className="text-xs sm:text-sm">{t('loading')}</span>
                         </div>
                       ) : (
-                        <span className="text-xs sm:text-sm">Procesar Archivos</span>
+                        <span className="text-xs sm:text-sm">{t('processFiles')}</span>
                       )}
                     </Button>
                   </div>
@@ -373,7 +374,7 @@ const MaintenanceCalendarView: React.FC<MaintenanceCalendarViewProps> = ({ langu
   return (
     <div className="space-y-4 sm:space-y-6 p-2 sm:p-4 lg:p-6">
       <div className="bg-gradient-to-r from-emerald-500 to-emerald-700 text-white rounded-lg p-4 sm:p-6 lg:p-8 animate-slideDown">
-        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-2 sm:mb-4">Calendario de Mantenimiento</h1>
+        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-2 sm:mb-4">{t('maintenanceCalendar')}</h1>
         <p className="text-emerald-100 text-sm sm:text-base lg:text-lg">
           Gestiona el inventario hospitalario y programa el mantenimiento de equipos
         </p>
@@ -382,19 +383,19 @@ const MaintenanceCalendarView: React.FC<MaintenanceCalendarViewProps> = ({ langu
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 text-xs sm:text-sm">
           <TabsTrigger value="upload" className="text-xs sm:text-sm px-2 sm:px-4">
-            <span className="hidden sm:inline">📁 Subir Archivos</span>
-            <span className="sm:hidden">📁 Subir</span>
+            <span className="hidden sm:inline">📁 {t('uploadFiles')}</span>
+            <span className="sm:hidden">📁 {t('upload')}</span>
           </TabsTrigger>
           <TabsTrigger value="analysis" disabled={denominacionesData.length === 0} className="text-xs sm:text-sm px-2 sm:px-4">
-            <span className="hidden sm:inline">📊 Análisis ({denominacionesData.length})</span>
+            <span className="hidden sm:inline">📊 {t('analysis')} ({denominacionesData.length})</span>
             <span className="sm:hidden">📊 ({denominacionesData.length})</span>
           </TabsTrigger>
           <TabsTrigger value="inventory" disabled={inventory.length === 0} className="text-xs sm:text-sm px-2 sm:px-4">
-            <span className="hidden sm:inline">📋 Inventario ({inventory.length})</span>
+            <span className="hidden sm:inline">📋 {t('inventory')} ({inventory.length})</span>
             <span className="sm:hidden">📋 ({inventory.length})</span>
           </TabsTrigger>
           <TabsTrigger value="calendar" disabled={maintenanceCalendar.length === 0} className="text-xs sm:text-sm px-2 sm:px-4">
-            <span className="hidden sm:inline">📅 Calendario ({maintenanceCalendar.length})</span>
+            <span className="hidden sm:inline">📅 {t('calendar')} ({maintenanceCalendar.length})</span>
             <span className="sm:hidden">📅 ({maintenanceCalendar.length})</span>
           </TabsTrigger>
         </TabsList>

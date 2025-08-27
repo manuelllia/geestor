@@ -1,7 +1,15 @@
+
 import { useState, useEffect } from 'react';
 import { MaintenanceTaskProcessor } from '../utils/maintenance/MaintenanceTaskProcessor';
 import { OptimizedSchedulingEngine } from '../utils/maintenance/OptimizedSchedulingEngine';
 import { MaintenanceCSVExporter } from '../utils/maintenance/CSVExporter';
+
+interface MaintenanceTask {
+  id: string;
+  tipoMantenimiento: string;
+  frecuencia: string;
+  tiempo: string;
+}
 
 interface DenominacionHomogeneaData {
   codigo: string;
@@ -10,6 +18,7 @@ interface DenominacionHomogeneaData {
   frecuencia: string;
   tipoMantenimiento: string;
   tiempo?: string;
+  maintenanceTasks?: MaintenanceTask[];
 }
 
 interface ScheduledEvent {
@@ -48,53 +57,94 @@ export const useEnhancedMaintenanceCalendar = (denominaciones: DenominacionHomog
   });
 
   // Extraer opciones únicas de los datos
-  const frecuenciaOptions = [...new Set(
-    denominaciones
+  const frecuenciaOptions = [...new Set([
+    ...denominaciones
       .map(d => d.frecuencia)
+      .filter(f => f && f !== 'No especificada'),
+    ...denominaciones
+      .flatMap(d => d.maintenanceTasks || [])
+      .map(t => t.frecuencia)
       .filter(f => f && f !== 'No especificada')
-  )].concat([
+  ])].concat([
     'Mensual', 'Bimensual', 'Trimestral', 'Cuatrimestral', 
     'Semestral', 'Anual', 'Cada 15 días', 'Cada 3 meses'
   ]);
 
-  const tipoOptions = [...new Set(
-    denominaciones
+  const tipoOptions = [...new Set([
+    ...denominaciones
       .map(d => d.tipoMantenimiento)
+      .filter(t => t && t !== 'No especificado'),
+    ...denominaciones
+      .flatMap(d => d.maintenanceTasks || [])
+      .map(t => t.tipoMantenimiento)
       .filter(t => t && t !== 'No especificado')
-  )].concat([
+  ])].concat([
     'Preventivo', 'Correctivo', 'Calibración', 'Verificación',
     'Limpieza', 'Inspección', 'Revisión técnica'
   ]);
 
   // Identificar denominaciones incompletas
-  const incompleteDenominaciones = denominaciones.filter(d => 
-    !d.frecuencia || d.frecuencia === 'No especificada' || 
-    !d.tipoMantenimiento || d.tipoMantenimiento === 'No especificado' ||
-    !d.tiempo || d.tiempo === 'No especificado'
-  );
+  const incompleteDenominaciones = denominaciones.filter(d => {
+    const hasTasks = d.maintenanceTasks && d.maintenanceTasks.length > 0;
+    const hasBasicMaintenance = d.frecuencia && d.frecuencia !== 'No especificada' && 
+                               d.tipoMantenimiento && d.tipoMantenimiento !== 'No especificado' &&
+                               d.tiempo && d.tiempo !== 'No especificado';
+    return !hasTasks && !hasBasicMaintenance;
+  });
 
   const generateEnhancedCalendar = async () => {
     setIsGenerating(true);
     console.log('🚀 Iniciando generación de calendario mejorado...');
     
     try {
-      // Filtrar solo denominaciones completas
-      const completeDenominaciones = denominaciones.filter(d => 
-        d.frecuencia && d.frecuencia !== 'No especificada' && 
-        d.tipoMantenimiento && d.tipoMantenimiento !== 'No especificado' &&
-        d.tiempo && d.tiempo !== 'No especificado'
-      );
+      // Expandir denominaciones con múltiples tareas de mantenimiento
+      const expandedMaintenanceTasks: any[] = [];
+      
+      denominaciones.forEach(denominacion => {
+        // Si tiene tareas específicas, usar esas
+        if (denominacion.maintenanceTasks && denominacion.maintenanceTasks.length > 0) {
+          denominacion.maintenanceTasks.forEach(task => {
+            expandedMaintenanceTasks.push({
+              codigo: denominacion.codigo,
+              denominacion: denominacion.denominacion,
+              cantidad: denominacion.cantidad,
+              frecuencia: task.frecuencia,
+              tipoMantenimiento: task.tipoMantenimiento,
+              tiempo: task.tiempo
+            });
+          });
+        } 
+        // Si no tiene tareas específicas pero tiene mantenimiento básico
+        else if (
+          denominacion.frecuencia && denominacion.frecuencia !== 'No especificada' && 
+          denominacion.tipoMantenimiento && denominacion.tipoMantenimiento !== 'No especificado'
+        ) {
+          expandedMaintenanceTasks.push({
+            codigo: denominacion.codigo,
+            denominacion: denominacion.denominacion,
+            cantidad: denominacion.cantidad,
+            frecuencia: denominacion.frecuencia,
+            tipoMantenimiento: denominacion.tipoMantenimiento,
+            tiempo: denominacion.tiempo || '2'
+          });
+        }
+        // Si no tiene nada, crear mantenimiento básico con valores por defecto
+        else {
+          expandedMaintenanceTasks.push({
+            codigo: denominacion.codigo,
+            denominacion: denominacion.denominacion,
+            cantidad: denominacion.cantidad,
+            frecuencia: 'Trimestral',
+            tipoMantenimiento: 'Preventivo',
+            tiempo: '2'
+          });
+        }
+      });
 
-      if (completeDenominaciones.length === 0) {
-        console.warn('⚠️ No hay denominaciones completas para generar calendario');
-        setIsGenerating(false);
-        return;
-      }
-
-      console.log(`📋 Procesando ${completeDenominaciones.length} denominaciones completas`);
+      console.log(`📋 Procesando ${expandedMaintenanceTasks.length} tareas de mantenimiento expandidas`);
       
       // Convertir a tareas de mantenimiento
-      const maintenanceTasks = MaintenanceTaskProcessor.convertToMaintenanceTasks(completeDenominaciones);
+      const maintenanceTasks = MaintenanceTaskProcessor.convertToMaintenanceTasks(expandedMaintenanceTasks);
       console.log(`🔧 ${maintenanceTasks.length} tareas de mantenimiento generadas`);
 
       // Generar calendario optimizado
@@ -133,20 +183,47 @@ export const useEnhancedMaintenanceCalendar = (denominaciones: DenominacionHomog
     }
   };
 
-  const addIncompleteToCalendar = (updatedDenominacion: DenominacionHomogeneaData) => {
-    console.log('➕ Agregando denominación completada:', updatedDenominacion.denominacion);
-    // Esta función se manejará desde el componente padre
-  };
-
   const isCalendarComplete = () => {
     return incompleteDenominaciones.length === 0;
   };
 
   const exportCalendarToCSV = () => {
     try {
-      const result = MaintenanceCSVExporter.exportToCSV(denominaciones);
-      console.log('📊 CSV exportado exitosamente:', result);
-      return result;
+      // Convertir eventos a formato CSV
+      const csvData = events.map(event => ({
+        fecha: event.fecha.toISOString().split('T')[0],
+        denominacion: event.denominacion,
+        codigo: event.codigo,
+        tipoMantenimiento: event.tipoMantenimiento,
+        tiempo: event.tiempo,
+        cantidad: event.cantidad,
+        estado: event.estado,
+        prioridad: event.prioridad,
+        tecnico: event.tecnico || 'Sin asignar',
+        notas: event.notas || ''
+      }));
+
+      // Crear el CSV
+      const csvContent = [
+        // Encabezados
+        ['Fecha', 'Denominación', 'Código', 'Tipo de Mantenimiento', 'Tiempo (h)', 'Cantidad', 'Estado', 'Prioridad', 'Técnico', 'Notas'].join(','),
+        // Datos
+        ...csvData.map(row => Object.values(row).map(val => `"${val}"`).join(','))
+      ].join('\n');
+
+      // Descargar archivo
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `calendario_mantenimiento_${new Date().getFullYear()}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      console.log('📊 CSV exportado exitosamente');
+      return true;
     } catch (error) {
       console.error('❌ Error exportando CSV:', error);
       return null;
@@ -178,7 +255,6 @@ export const useEnhancedMaintenanceCalendar = (denominaciones: DenominacionHomog
     constraints,
     setConstraints,
     generateEnhancedCalendar,
-    addIncompleteToCalendar,
     isCalendarComplete,
     exportCalendarToCSV,
     stats

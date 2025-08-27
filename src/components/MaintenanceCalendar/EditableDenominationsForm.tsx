@@ -2,10 +2,21 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
-import { Input } from '../ui/input';
 import { Badge } from '../ui/badge';
+import { Input } from '../ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { Pencil, Check, X, AlertCircle } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
+import { Plus, Edit3, Trash2, Clock, Wrench, AlertTriangle } from 'lucide-react';
+import { useTranslation } from '../../hooks/useTranslation';
+import { Language } from '../../utils/translations';
+import MissingMaintenanceModal from './MissingMaintenanceModal';
+
+interface MaintenanceTask {
+  id: string;
+  tipoMantenimiento: string;
+  frecuencia: string;
+  tiempo: string;
+}
 
 interface DenominacionHomogeneaData {
   codigo: string;
@@ -14,15 +25,17 @@ interface DenominacionHomogeneaData {
   frecuencia: string;
   tipoMantenimiento: string;
   tiempo?: string;
+  maintenanceTasks?: MaintenanceTask[];
 }
 
 interface EditableDenominationsFormProps {
   denominaciones: DenominacionHomogeneaData[];
   frecuenciaOptions: string[];
   tipoOptions: string[];
-  onUpdate: (updatedDenominaciones: DenominacionHomogeneaData[]) => void;
+  onUpdate: (denominaciones: DenominacionHomogeneaData[]) => void;
   onGenerate: () => void;
   isGenerating: boolean;
+  language: Language;
 }
 
 const EditableDenominationsForm: React.FC<EditableDenominationsFormProps> = ({
@@ -31,231 +44,326 @@ const EditableDenominationsForm: React.FC<EditableDenominationsFormProps> = ({
   tipoOptions,
   onUpdate,
   onGenerate,
-  isGenerating
+  isGenerating,
+  language
 }) => {
-  const [editingIndex, setEditingIndex] = useState<number | null>(null);
-  const [tempValues, setTempValues] = useState<Partial<DenominacionHomogeneaData>>({});
+  const { t } = useTranslation(language);
+  const [selectedDenominacion, setSelectedDenominacion] = useState<DenominacionHomogeneaData | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [showMissingModal, setShowMissingModal] = useState(false);
+  const [newMaintenanceForm, setNewMaintenanceForm] = useState({
+    tipoMantenimiento: '',
+    frecuencia: '',
+    tiempo: '2'
+  });
 
-  const incompleteDenominaciones = denominaciones.filter(d => 
-    !d.frecuencia || d.frecuencia === 'No especificada' || 
-    !d.tipoMantenimiento || d.tipoMantenimiento === 'No especificado' ||
-    !d.tiempo || d.tiempo === 'No especificado'
-  );
+  // Identificar denominaciones sin mantenimientos completos
+  const incompleteDenominaciones = denominaciones.filter(d => {
+    const hasTasks = d.maintenanceTasks && d.maintenanceTasks.length > 0;
+    const hasBasicMaintenance = d.frecuencia && d.frecuencia !== 'No especificada' && 
+                               d.tipoMantenimiento && d.tipoMantenimiento !== 'No especificado';
+    return !hasTasks && !hasBasicMaintenance;
+  });
 
-  const completeDenominaciones = denominaciones.filter(d => 
-    d.frecuencia && d.frecuencia !== 'No especificada' && 
-    d.tipoMantenimiento && d.tipoMantenimiento !== 'No especificado' &&
-    d.tiempo && d.tiempo !== 'No especificado'
-  );
-
-  const startEdit = (index: number, denominacion: DenominacionHomogeneaData) => {
-    setEditingIndex(index);
-    setTempValues({ ...denominacion });
+  const handleEditDenominacion = (denominacion: DenominacionHomogeneaData) => {
+    setSelectedDenominacion({
+      ...denominacion,
+      maintenanceTasks: denominacion.maintenanceTasks || []
+    });
+    setIsEditModalOpen(true);
   };
 
-  const saveEdit = () => {
-    if (editingIndex !== null && tempValues) {
-      const updated = [...denominaciones];
-      updated[editingIndex] = { ...updated[editingIndex], ...tempValues };
-      onUpdate(updated);
-      setEditingIndex(null);
-      setTempValues({});
+  const handleAddMaintenanceTask = () => {
+    if (!selectedDenominacion || !newMaintenanceForm.tipoMantenimiento || !newMaintenanceForm.frecuencia) return;
+
+    const newTask: MaintenanceTask = {
+      id: `task-${Date.now()}`,
+      tipoMantenimiento: newMaintenanceForm.tipoMantenimiento,
+      frecuencia: newMaintenanceForm.frecuencia,
+      tiempo: newMaintenanceForm.tiempo
+    };
+
+    setSelectedDenominacion(prev => ({
+      ...prev!,
+      maintenanceTasks: [...(prev!.maintenanceTasks || []), newTask]
+    }));
+
+    setNewMaintenanceForm({
+      tipoMantenimiento: '',
+      frecuencia: '',
+      tiempo: '2'
+    });
+  };
+
+  const handleRemoveMaintenanceTask = (taskId: string) => {
+    if (!selectedDenominacion) return;
+
+    setSelectedDenominacion(prev => ({
+      ...prev!,
+      maintenanceTasks: prev!.maintenanceTasks?.filter(task => task.id !== taskId) || []
+    }));
+  };
+
+  const handleSaveDenominacion = () => {
+    if (!selectedDenominacion) return;
+
+    const updatedDenominaciones = denominaciones.map(d => 
+      d.codigo === selectedDenominacion.codigo ? selectedDenominacion : d
+    );
+
+    onUpdate(updatedDenominaciones);
+    setIsEditModalOpen(false);
+    setSelectedDenominacion(null);
+  };
+
+  const handleGenerateCalendar = () => {
+    if (incompleteDenominaciones.length > 0) {
+      setShowMissingModal(true);
+    } else {
+      onGenerate();
     }
   };
 
-  const cancelEdit = () => {
-    setEditingIndex(null);
-    setTempValues({});
-  };
-
-  const getFrecuenciaColor = (frecuencia: string) => {
-    const freq = frecuencia.toLowerCase();
-    if (freq.includes('mensual')) return 'bg-red-100 text-red-800 border-red-200';
-    if (freq.includes('trimestral')) return 'bg-orange-100 text-orange-800 border-orange-200';
-    if (freq.includes('semestral')) return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-    if (freq.includes('anual')) return 'bg-green-100 text-green-800 border-green-200';
-    return 'bg-gray-100 text-gray-800 border-gray-200';
-  };
-
-  const getTipoColor = (tipo: string) => {
-    const tipoLower = tipo.toLowerCase();
-    if (tipoLower.includes('preventivo')) return 'bg-blue-100 text-blue-800 border-blue-200';
-    if (tipoLower.includes('correctivo')) return 'bg-red-100 text-red-800 border-red-200';
-    if (tipoLower.includes('calibración')) return 'bg-purple-100 text-purple-800 border-purple-200';
-    return 'bg-gray-100 text-gray-800 border-gray-200';
+  const handleGenerateAnyway = () => {
+    setShowMissingModal(false);
+    onGenerate();
   };
 
   return (
-    <div className="space-y-6">
-      {/* Denominaciones incompletas */}
-      {incompleteDenominaciones.length > 0 && (
-        <Card className="border-amber-200 bg-amber-50 dark:bg-amber-900/20">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-amber-800 dark:text-amber-200">
-              <AlertCircle className="h-5 w-5" />
-              Denominaciones Incompletas ({incompleteDenominaciones.length})
-            </CardTitle>
-            <p className="text-sm text-amber-700 dark:text-amber-300">
-              Estas denominaciones necesitan completarse manualmente antes de generar el calendario
-            </p>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left p-3">Código</th>
-                    <th className="text-left p-3">Denominación</th>
-                    <th className="text-center p-3">Cantidad</th>
-                    <th className="text-center p-3">Frecuencia</th>
-                    <th className="text-center p-3">Tipo</th>
-                    <th className="text-center p-3">Tiempo (h)</th>
-                    <th className="text-center p-3">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {incompleteDenominaciones.map((item, globalIndex) => {
-                    const actualIndex = denominaciones.findIndex(d => d.codigo === item.codigo);
-                    const isEditing = editingIndex === actualIndex;
-                    
-                    return (
-                      <tr key={item.codigo} className="border-b hover:bg-amber-100/50 dark:hover:bg-amber-900/30">
-                        <td className="p-3">
-                          <span className="font-mono text-sm bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
-                            {item.codigo}
-                          </span>
-                        </td>
-                        <td className="p-3">{item.denominacion}</td>
-                        <td className="p-3 text-center">{item.cantidad}</td>
-                        <td className="p-3 text-center">
-                          {isEditing ? (
-                            <Select 
-                              value={tempValues.frecuencia || ''} 
-                              onValueChange={(value) => setTempValues(prev => ({...prev, frecuencia: value}))}
-                            >
-                              <SelectTrigger className="w-40">
-                                <SelectValue placeholder="Seleccionar" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {frecuenciaOptions.map(option => (
-                                  <SelectItem key={option} value={option}>{option}</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          ) : (
-                            <Badge className={getFrecuenciaColor(item.frecuencia)}>
-                              {item.frecuencia}
-                            </Badge>
-                          )}
-                        </td>
-                        <td className="p-3 text-center">
-                          {isEditing ? (
-                            <Select 
-                              value={tempValues.tipoMantenimiento || ''} 
-                              onValueChange={(value) => setTempValues(prev => ({...prev, tipoMantenimiento: value}))}
-                            >
-                              <SelectTrigger className="w-40">
-                                <SelectValue placeholder="Seleccionar" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {tipoOptions.map(option => (
-                                  <SelectItem key={option} value={option}>{option}</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          ) : (
-                            <Badge className={getTipoColor(item.tipoMantenimiento)}>
-                              {item.tipoMantenimiento}
-                            </Badge>
-                          )}
-                        </td>
-                        <td className="p-3 text-center">
-                          {isEditing ? (
-                            <Input
-                              type="number"
-                              min="1"
-                              max="8"
-                              value={tempValues.tiempo || ''}
-                              onChange={(e) => setTempValues(prev => ({...prev, tiempo: e.target.value}))}
-                              className="w-20"
-                              placeholder="h"
-                            />
-                          ) : (
-                            <span>{item.tiempo || 'No especificado'}</span>
-                          )}
-                        </td>
-                        <td className="p-3 text-center">
-                          {isEditing ? (
-                            <div className="flex gap-1 justify-center">
-                              <Button size="sm" variant="outline" onClick={saveEdit}>
-                                <Check className="h-4 w-4" />
-                              </Button>
-                              <Button size="sm" variant="outline" onClick={cancelEdit}>
-                                <X className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          ) : (
-                            <Button 
-                              size="sm" 
-                              variant="outline" 
-                              onClick={() => startEdit(actualIndex, item)}
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Denominaciones completas */}
-      {completeDenominaciones.length > 0 && (
-        <Card className="border-green-200 bg-green-50 dark:bg-green-900/20">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-green-800 dark:text-green-200">
-              <Check className="h-5 w-5" />
-              Denominaciones Completas ({completeDenominaciones.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-sm text-green-700 dark:text-green-300 mb-4">
-              Estas denominaciones están listas para generar el calendario de mantenimiento
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Botón para generar calendario */}
-      <div className="flex justify-center">
-        <Button
-          onClick={onGenerate}
-          disabled={incompleteDenominaciones.length > 0 || isGenerating}
-          size="lg"
-          className={`${
-            incompleteDenominaciones.length === 0 && !isGenerating
-              ? 'bg-green-600 hover:bg-green-700'
-              : 'bg-gray-400 cursor-not-allowed'
-          } text-white font-semibold px-8 py-3`}
-        >
-          {isGenerating ? (
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <span>{t('equipmentTypes')} ({denominaciones.length})</span>
             <div className="flex items-center gap-2">
-              <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-              Generando calendario...
+              {incompleteDenominaciones.length > 0 && (
+                <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
+                  <AlertTriangle className="h-3 w-3 mr-1" />
+                  {incompleteDenominaciones.length} {t('missingMaintenanceTitle').toLowerCase()}
+                </Badge>
+              )}
+              <Button 
+                onClick={handleGenerateCalendar}
+                disabled={isGenerating}
+                className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+              >
+                {isGenerating ? t('loading') : t('generateCalendar')}
+              </Button>
             </div>
-          ) : incompleteDenominaciones.length > 0 ? (
-            `Completa ${incompleteDenominaciones.length} denominaciones pendientes`
-          ) : (
-            'Generar Calendario Modificable'
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3 max-h-96 overflow-y-auto">
+            {denominaciones.map((denominacion) => {
+              const hasMaintenanceTasks = denominacion.maintenanceTasks && denominacion.maintenanceTasks.length > 0;
+              const hasBasicMaintenance = denominacion.frecuencia && denominacion.frecuencia !== 'No especificada';
+              const isComplete = hasMaintenanceTasks || hasBasicMaintenance;
+
+              return (
+                <div
+                  key={denominacion.codigo}
+                  className={`p-4 rounded-lg border transition-colors ${
+                    isComplete 
+                      ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800' 
+                      : 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div>
+                      <h4 className="font-semibold text-gray-900 dark:text-gray-100">
+                        {denominacion.denominacion}
+                      </h4>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        {t('equipmentCount')}: {denominacion.cantidad} • Código: {denominacion.codigo}
+                      </p>
+                    </div>
+                    <Button
+                      onClick={() => handleEditDenominacion(denominacion)}
+                      size="sm"
+                      variant="outline"
+                    >
+                      <Edit3 className="h-4 w-4 mr-1" />
+                      {t('edit')}
+                    </Button>
+                  </div>
+
+                  <div className="space-y-2">
+                    {hasMaintenanceTasks && denominacion.maintenanceTasks?.map(task => (
+                      <div key={task.id} className="flex items-center gap-2 text-sm bg-white dark:bg-gray-800 rounded p-2">
+                        <Wrench className="h-3 w-3 text-blue-500" />
+                        <span className="font-medium">{task.tipoMantenimiento}</span>
+                        <span className="text-gray-500">•</span>
+                        <Clock className="h-3 w-3 text-green-500" />
+                        <span>{task.frecuencia}</span>
+                        <span className="text-gray-500">•</span>
+                        <span>{task.tiempo}h</span>
+                      </div>
+                    ))}
+
+                    {hasBasicMaintenance && !hasMaintenanceTasks && (
+                      <div className="flex items-center gap-2 text-sm bg-white dark:bg-gray-800 rounded p-2">
+                        <Wrench className="h-3 w-3 text-blue-500" />
+                        <span className="font-medium">{denominacion.tipoMantenimiento}</span>
+                        <span className="text-gray-500">•</span>
+                        <Clock className="h-3 w-3 text-green-500" />
+                        <span>{denominacion.frecuencia}</span>
+                        <span className="text-gray-500">•</span>
+                        <span>{denominacion.tiempo || '2'}h</span>
+                      </div>
+                    )}
+
+                    {!isComplete && (
+                      <div className="text-sm text-amber-600 dark:text-amber-400 italic">
+                        {t('missingMaintenanceTitle').toLowerCase()}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Modal de edición */}
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Edit3 className="h-5 w-5" />
+              {t('edit')} - {selectedDenominacion?.denominacion}
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedDenominacion && (
+            <div className="space-y-6">
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  {t('equipmentCount')}: {selectedDenominacion.cantidad} • Código: {selectedDenominacion.codigo}
+                </p>
+              </div>
+
+              {/* Lista de mantenimientos existentes */}
+              {selectedDenominacion.maintenanceTasks && selectedDenominacion.maintenanceTasks.length > 0 && (
+                <div className="space-y-2">
+                  <h4 className="font-medium">{t('maintenanceType')}s configurados:</h4>
+                  {selectedDenominacion.maintenanceTasks.map(task => (
+                    <div key={task.id} className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg border">
+                      <div className="flex items-center gap-3">
+                        <Wrench className="h-4 w-4 text-blue-500" />
+                        <span className="font-medium">{task.tipoMantenimiento}</span>
+                        <span className="text-gray-500">•</span>
+                        <Clock className="h-4 w-4 text-green-500" />
+                        <span>{task.frecuencia}</span>
+                        <span className="text-gray-500">•</span>
+                        <span>{task.tiempo}h</span>
+                      </div>
+                      <Button
+                        onClick={() => handleRemoveMaintenanceTask(task.id)}
+                        size="sm"
+                        variant="outline"
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Formulario para agregar nuevo mantenimiento */}
+              <div className="space-y-4 border-t pt-4">
+                <h4 className="font-medium flex items-center gap-2">
+                  <Plus className="h-4 w-4" />
+                  {t('addMaintenance')}
+                </h4>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">
+                      {t('maintenanceType')} *
+                    </label>
+                    <Select 
+                      value={newMaintenanceForm.tipoMantenimiento} 
+                      onValueChange={(value) => setNewMaintenanceForm(prev => ({ ...prev, tipoMantenimiento: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccionar tipo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {tipoOptions.map(tipo => (
+                          <SelectItem key={tipo} value={tipo}>{tipo}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-1">
+                      {t('frequency')} *
+                    </label>
+                    <Select 
+                      value={newMaintenanceForm.frecuencia} 
+                      onValueChange={(value) => setNewMaintenanceForm(prev => ({ ...prev, frecuencia: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccionar frecuencia" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {frecuenciaOptions.map(freq => (
+                          <SelectItem key={freq} value={freq}>{freq}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-1">
+                      {t('estimatedTime')} (h)
+                    </label>
+                    <Input
+                      type="number"
+                      value={newMaintenanceForm.tiempo}
+                      onChange={(e) => setNewMaintenanceForm(prev => ({ ...prev, tiempo: e.target.value }))}
+                      min="0.5"
+                      max="8"
+                      step="0.5"
+                    />
+                  </div>
+                </div>
+
+                <Button
+                  onClick={handleAddMaintenanceTask}
+                  disabled={!newMaintenanceForm.tipoMantenimiento || !newMaintenanceForm.frecuencia}
+                  className="w-full"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  {t('addMaintenance')}
+                </Button>
+              </div>
+
+              {/* Botones de acción */}
+              <div className="flex gap-2 pt-4 border-t">
+                <Button onClick={handleSaveDenominacion} className="flex-1">
+                  {t('save')}
+                </Button>
+                <Button onClick={() => setIsEditModalOpen(false)} variant="outline">
+                  {t('cancel')}
+                </Button>
+              </div>
+            </div>
           )}
-        </Button>
-      </div>
-    </div>
+        </DialogContent>
+      </Dialog>
+
+      <MissingMaintenanceModal
+        isOpen={showMissingModal}
+        onClose={() => setShowMissingModal(false)}
+        onGenerateAnyway={handleGenerateAnyway}
+        missingCount={incompleteDenominaciones.length}
+        language={language}
+      />
+    </>
   );
 };
 

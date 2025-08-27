@@ -4,491 +4,325 @@ export type Theme = 'light' | 'dark';
 
 export const translations = {
   es: {
-    // Navigation
-    language: 'Idioma',
-    home: 'Inicio',
-    talentManagement: 'Gestión de Talento',
-    realEstateManagement: 'Gestión Inmobiliaria',
-    
-    // User Profile
-    userProfile: 'Perfil de Usuario',
-    logout: 'Cerrar Sesión',
-    changePhoto: 'Cambiar Foto',
-    personalInformation: 'Información Personal',
-    name: 'Nombre',
-    email: 'Correo Electrónico',
-    
-    // Permissions - Adding missing keys
-    permissions: 'Permisos',
-    permissionsDescription: 'Permisos asignados a tu cuenta',
-    departmentPermissions: 'Permisos de Departamento',
-    operations: 'Operaciones',
-    technicalManagement: 'Gestión Técnica',
-    actionPermissions: 'Permisos de Acciones',
-    create: 'Crear',
-    modify: 'Modificar',
-    delete: 'Eliminar',
-    view: 'Ver',
-    
-    // Settings
+    // Configuración general
     settings: 'Configuración',
-    profile: 'Perfil',
-    saveChanges: 'Guardar Cambios',
+    language: 'Idioma',
     theme: 'Tema',
-    light: 'Claro',
-    dark: 'Oscuro',
     spanish: 'Español',
     english: 'Inglés',
+    light: 'Claro',
+    dark: 'Oscuro',
     
-    // Bid Analyzer
-    bidAnalyzer: 'Analizador de Licitaciones',
-    uploadDocuments: 'Subir Documentos',
-    analyzeScores: 'Analizar Puntuaciones',
-    calculateEconomicScore: 'Calcular Puntuación Económica',
-    
-    // Real Estate
-    realEstateData: 'Datos Inmobiliarios',
-    uploadRealEstateData: 'Subir Datos Inmobiliarios',
-    realEstateDashboard: 'Panel Inmobiliario',
-    activeProperties: 'Propiedades Activas',
-    inactiveProperties: 'Propiedades Inactivas',
-    totalProperties: 'Total de Propiedades',
-    exportPDF: 'Exportar PDF',
-    realEstateDetails: 'Detalles Inmobiliarios',
-    detailViewPlaceholder: 'Vista de detalles del inmueble',
-    comingSoon: 'Próximamente',
-    
-    // Maintenance Calendar
+    // Navegación y menú
+    technicalManagement: 'Gestión Técnica',
+    talentManagement: 'Gestión de Talento',
     maintenanceCalendar: 'Calendario de Mantenimiento',
-    
-    // Practice Evaluations
-    practiceEvaluations: 'Evaluaciones de Prácticas',
-    createEvaluation: 'Crear Evaluación',
-    
-    // Exit Interviews
-    exitInterviews: 'Entrevistas de Salida',
-    
-    // Change Sheets - Adding all missing keys
-    changeSheets: 'Hojas de Cambio',
-    changeSheetsManagement: 'Gestión de Hojas de Cambio',
-    hojasCambio: 'Hojas de Cambio',
-    employeeName: 'Nombre del Empleado',
-    employeeLastName: 'Apellidos del Empleado',
-    newPosition: 'Nueva Posición',
-    newSupervisorName: 'Nombre del Nuevo Supervisor',
-    newSupervisorLastName: 'Apellidos del Nuevo Supervisor',
-    originCenter: 'Centro de Origen',
-    startDate: 'Fecha de Inicio',
-    status: 'Estado',
-    actions: 'Acciones',
-    createNew: 'Crear Nuevo',
-    duplicateRecord: 'Duplicar Registro',
-    downloadPDF: 'Descargar PDF',
-    
-    // Contract Requests - Adding new fields
     contractRequests: 'Solicitudes de Contrato',
-    contractRequestTitle: 'SOLICITUD DE CONTRATACIÓN',
-    selectedCandidate: 'Candidato Seleccionado',
-    selectedCandidateName: 'Nombre Candidato Seleccionado',
-    selectedCandidateLastName: 'Apellidos Candidato Seleccionado',
-    contractType: 'Tipo de Contrato',
-    salary: 'Salario',
-    observations: 'Observaciones',
-    incorporationDate: 'Fecha de Incorporación',
-    company: 'Empresa',
-    position: 'Puesto de Trabajo',
-    professionalCategory: 'Categoría Profesional',
-    city: 'Población',
-    province: 'Provincia',
-    autonomousCommunity: 'Comunidad Autónoma',
-    workCenter: 'Centro de Trabajo',
-    directSupervisorName: 'Nombre Responsable Directo',
-    directSupervisorLastName: 'Apellidos Responsable Directo',
-    companyFloor: 'Piso de Empresa',
-    otherDataTitle: 'Otros Datos de Interés',
-    language1: 'Idioma',
-    level1: 'Nivel',
-    language2: 'Idioma 2',
-    level2: 'Nivel 2',
-    electromedicalExperience: 'Experiencia Previa en Electromedicina',
-    installationExperience: 'Experiencia Previa en Instalaciones',
-    hiringReason: 'Motivo de la Contratación',
-    commitmentsObservations: 'Observaciones y/o Compromisos',
-    department: 'Departamento',
-    back: 'Volver',
-    yes: 'Sí',
-    no: 'No',
-    
-    // Employee Agreements
-    employeeAgreements: 'Acuerdos de Empleados',
-    recordNotFound: 'Registro no encontrado',
-    employeeInformation: 'Información del Empleado',
-    agreementDetails: 'Detalles del Acuerdo',
-    agreementType: 'Tipo de Acuerdo',
-    endDate: 'Fecha de Fin',
-    benefitsAndConditions: 'Beneficios y Condiciones',
-    benefits: 'Beneficios',
-    conditions: 'Condiciones',
-    employeeAgreementDetails: 'Detalles del Acuerdo de Empleado',
-    
-    // Cost Analysis
+    changeSheets: 'Hojas de Cambio',
+    employeeAgreements: 'Acuerdos con Empleados',
+    realEstateManagement: 'Gestión de Inmuebles',
+    practiceEvaluation: 'Valoración Prácticas',
+    exitInterviews: 'Entrevistas de Salida',
+    users: 'Usuarios',
+    bidAnalyzer: 'Analizador de Licitaciones',
     costAnalysis: 'Análisis de Costos',
     
-    // Authentication
-    signIn: 'Iniciar Sesión',
-    signOut: 'Cerrar Sesión',
-    emailAddress: 'Dirección de Correo',
-    password: 'Contraseña',
-    signInWithEmail: 'Iniciar Sesión con Email',
-    signInWithGoogle: 'Iniciar Sesión con Google',
-    forgotPassword: 'Olvidé mi Contraseña',
-    createNewAccount: 'Crear Nueva Cuenta',
-    alreadyHaveAccount: '¿Ya tienes una cuenta?',
-    dontHaveAccount: '¿No tienes una cuenta?',
-    loading: 'Cargando...',
-    verifyingAccount: 'Verificando Cuenta...',
-    welcome: 'Bienvenido',
-    loginSubtitle: 'Accede a tu cuenta para continuar',
-    loginButton: 'Iniciar Sesión',
-    
-    // PDF Generation
-    generatedOn: 'Generado el',
-    documentGenerated: 'Documento Generado',
-    
-    // Exit Interview Detail View - Adding missing keys
-    notAvailable: 'No Disponible',
-    unknownWorkCenter: 'Centro Desconocido',
-    interviewNotFound: 'Entrevista no encontrada',
-    workCentersLoadingFailed: 'Error al cargar centros de trabajo',
-    interviewDetailTitle: 'Detalle de Entrevista de Salida',
-    
-    // Employee Info Section
-    employeeInfoTitle: 'Información del Empleado',
-    employeeInfoName: 'Nombre',
-    employeeInfoLastName: 'Apellidos',
-    employeeInfoPosition: 'Puesto',
-    employeeInfoWorkCenter: 'Centro de Trabajo',
-    employeeInfoSeniority: 'Antigüedad',
-    
-    // Supervisor Info Section
-    supervisorInfoTitle: 'Información del Supervisor',
-    supervisorInfoName: 'Nombre',
-    supervisorInfoLastName: 'Apellidos',
-    
-    // Exit Details Section
-    exitDetailsTitle: 'Detalles de la Salida',
-    exitDetailsExitType: 'Tipo de Baja',
-    exitDetailsExitDate: 'Fecha de Baja',
-    exitDetailsMainReason: 'Razón Principal',
-    exitDetailsJoiningReasons: 'Razones de Ingreso',
-    exitDetailsOtherFactors: 'Otros Factores',
-    exitDetailsComments: 'Comentarios',
-    
-    // Scores Section
-    scoresTitle: 'Puntuaciones',
-    scoresIntegration: 'Integración',
-    scoresInternalCommunication: 'Comunicación Interna',
-    scoresCompensation: 'Compensación',
-    scoresTraining: 'Formación',
-    scoresWorkSchedule: 'Horario de Trabajo',
-    scoresMentoring: 'Mentoring',
-    scoresWorkPerformed: 'Trabajo Realizado',
-    scoresWorkEnvironment: 'Ambiente de Trabajo',
-    scoresCorporateCulture: 'Cultura Corporativa',
-    scoresSupervisorRelation: 'Relación con Supervisor',
-    scoresGlobalAssessment: 'Evaluación Global',
-    
-    // Common
-    cancel: 'Cancelar',
+    // Botones generales
     save: 'Guardar',
+    cancel: 'Cancelar',
     edit: 'Editar',
+    delete: 'Eliminar',
     add: 'Agregar',
-    remove: 'Eliminar',
+    create: 'Crear',
+    update: 'Actualizar',
     search: 'Buscar',
     filter: 'Filtrar',
     export: 'Exportar',
     import: 'Importar',
     download: 'Descargar',
     upload: 'Subir',
-    submit: 'Enviar',
-    reset: 'Restablecer',
-    clear: 'Limpiar',
+    view: 'Ver',
+    back: 'Volver',
+    next: 'Siguiente',
+    previous: 'Anterior',
+    confirm: 'Confirmar',
     close: 'Cerrar',
-    open: 'Abrir',
-    expand: 'Expandir',
-    collapse: 'Contraer',
     
-    // Status
+    // Calendario de Mantenimiento
+    hospitalInventory: 'Inventario Hospitalario',
+    maintenanceSchedule: 'Calendario de Mantenimiento',
+    uploadFiles: 'Subir Archivos',
+    processFiles: 'Procesar Archivos',
+    generateCalendar: 'Generar Calendario',
+    analysis: 'Análisis',
+    inventory: 'Inventario',
+    calendar: 'Calendario',
+    equipmentTypes: 'Tipos de Equipos',
+    maintenanceType: 'Tipo de Mantenimiento',
+    frequency: 'Frecuencia',
+    estimatedTime: 'Tiempo Estimado',
+    equipmentCount: 'Cantidad de Equipos',
+    missingMaintenanceTitle: 'Denominaciones Pendientes',
+    missingMaintenanceMessage: 'Faltan denominaciones por establecer mantenimiento. ¿Estás seguro de que quieres continuar?',
+    generateAnyway: 'Generar de Todas Formas',
+    completeFirst: 'Completar Primero',
+    addMaintenance: 'Agregar Mantenimiento',
+    
+    // Solicitudes de Contrato
+    contractRequestsTitle: 'Solicitudes de Contrato',
+    newContractRequest: 'Nueva Solicitud',
+    requestNumber: 'Número de Solicitud',
+    requestDate: 'Fecha de Solicitud',
+    department: 'Departamento',
+    priority: 'Prioridad',
+    status: 'Estado',
+    description: 'Descripción',
+    requestor: 'Solicitante',
+    
+    // Hojas de Cambio
+    changeSheetsTitle: 'Hojas de Cambio',
+    newChangeSheet: 'Nueva Hoja de Cambio',
+    changeNumber: 'Número de Cambio',
+    changeDate: 'Fecha de Cambio',
+    changeType: 'Tipo de Cambio',
+    affected: 'Afectados',
+    
+    // Acuerdos con Empleados
+    employeeAgreementsTitle: 'Acuerdos con Empleados',
+    newEmployeeAgreement: 'Nuevo Acuerdo',
+    employeeName: 'Nombre del Empleado',
+    agreementType: 'Tipo de Acuerdo',
+    startDate: 'Fecha de Inicio',
+    endDate: 'Fecha de Fin',
+    
+    // Gestión de Inmuebles
+    realEstateTitle: 'Gestión de Inmuebles',
+    dashboard: 'Dashboard',
+    viewTables: 'Ver Tablas',
+    propertyCode: 'Código de Propiedad',
+    address: 'Dirección',
+    province: 'Provincia',
+    region: 'CCAA',
+    occupancyStatus: 'Estado de Ocupación',
+    workerName: 'Nombre del Trabajador',
+    annualCost: 'Coste Anual',
+    
+    // Valoración de Prácticas
+    practiceEvaluationTitle: 'Valoración de Prácticas',
+    studentName: 'Nombre del Estudiante',
+    evaluationDate: 'Fecha de Evaluación',
+    score: 'Puntuación',
+    supervisor: 'Supervisor',
+    
+    // Entrevistas de Salida
+    exitInterviewsTitle: 'Entrevistas de Salida',
+    interviewDate: 'Fecha de Entrevista',
+    exitReason: 'Motivo de Salida',
+    overallRating: 'Valoración General',
+    
+    // Gestión de Usuarios
+    usersManagement: 'Gestión de Usuarios',
+    searchUsers: 'Buscar usuarios...',
+    userName: 'Nombre de Usuario',
+    userEmail: 'Correo Electrónico',
+    userRole: 'Rol',
+    createdDate: 'Fecha de Creación',
+    
+    // Estados y valores comunes
     active: 'Activo',
     inactive: 'Inactivo',
     pending: 'Pendiente',
+    approved: 'Aprobado',
+    rejected: 'Rechazado',
     completed: 'Completado',
-    draft: 'Borrador',
-    published: 'Publicado',
+    inProgress: 'En Progreso',
+    high: 'Alta',
+    medium: 'Media',
+    low: 'Baja',
     
-    // Errors
+    // Mensajes
+    loading: 'Cargando...',
+    noData: 'No hay datos disponibles',
     error: 'Error',
     success: 'Éxito',
     warning: 'Advertencia',
     info: 'Información',
     
-    // Time
-    today: 'Hoy',
-    yesterday: 'Ayer',
-    tomorrow: 'Mañana',
-    thisWeek: 'Esta Semana',
-    thisMonth: 'Este Mes',
-    thisYear: 'Este Año',
+    // Formularios
+    required: 'Campo requerido',
+    invalidEmail: 'Correo electrónico inválido',
+    passwordTooShort: 'La contraseña es muy corta',
     
-    // File types
-    pdf: 'PDF',
-    excel: 'Excel',
-    word: 'Word',
-    image: 'Imagen',
-    document: 'Documento'
+    // Analizador de Licitaciones
+    bidAnalyzer: 'Analizador de Licitaciones',
+    technicalScore: 'Puntuación Técnica',
+    economicScore: 'Puntuación Económica',
+    totalScore: 'Puntuación Total',
+    
+    // Análisis de Costos
+    costAnalysisTitle: 'Análisis de Costos',
+    costBreakdown: 'Desglose de Costos',
+    scoreAnalysis: 'Análisis de Puntuación'
   },
   en: {
-    // Navigation
-    language: 'Language',
-    home: 'Home',
-    talentManagement: 'Talent Management',
-    realEstateManagement: 'Real Estate Management',
-    
-    // User Profile
-    userProfile: 'User Profile',
-    logout: 'Logout',
-    changePhoto: 'Change Photo',
-    personalInformation: 'Personal Information',
-    name: 'Name',
-    email: 'Email',
-    
-    // Permissions - Adding missing keys
-    permissions: 'Permissions',
-    permissionsDescription: 'Permissions assigned to your account',
-    departmentPermissions: 'Department Permissions',
-    operations: 'Operations',
-    technicalManagement: 'Technical Management',
-    actionPermissions: 'Action Permissions',
-    create: 'Create',
-    modify: 'Modify',
-    delete: 'Delete',
-    view: 'View',
-    
-    // Settings
+    // General configuration
     settings: 'Settings',
-    profile: 'Profile',
-    saveChanges: 'Save Changes',
+    language: 'Language',
     theme: 'Theme',
-    light: 'Light',
-    dark: 'Dark',
     spanish: 'Spanish',
     english: 'English',
+    light: 'Light',
+    dark: 'Dark',
     
-    // Bid Analyzer
-    bidAnalyzer: 'Bid Analyzer',
-    uploadDocuments: 'Upload Documents',
-    analyzeScores: 'Analyze Scores',
-    calculateEconomicScore: 'Calculate Economic Score',
-    
-    // Real Estate
-    realEstateData: 'Real Estate Data',
-    uploadRealEstateData: 'Upload Real Estate Data',
-    realEstateDashboard: 'Real Estate Dashboard',
-    activeProperties: 'Active Properties',
-    inactiveProperties: 'Inactive Properties',
-    totalProperties: 'Total Properties',
-    exportPDF: 'Export PDF',
-    realEstateDetails: 'Real Estate Details',
-    detailViewPlaceholder: 'Property detail view',
-    comingSoon: 'Coming Soon',
-    
-    // Maintenance Calendar
+    // Navigation and menu
+    technicalManagement: 'Technical Management',
+    talentManagement: 'Talent Management',
     maintenanceCalendar: 'Maintenance Calendar',
-    
-    // Practice Evaluations
-    practiceEvaluations: 'Practice Evaluations',
-    createEvaluation: 'Create Evaluation',
-    
-    // Exit Interviews
-    exitInterviews: 'Exit Interviews',
-    
-    // Change Sheets - Adding all missing keys
-    changeSheets: 'Change Sheets',
-    changeSheetsManagement: 'Change Sheets Management',
-    hojasCambio: 'Change Sheets',
-    employeeName: 'Employee Name',
-    employeeLastName: 'Employee Last Name',
-    newPosition: 'New Position',
-    newSupervisorName: 'New Supervisor Name',
-    newSupervisorLastName: 'New Supervisor Last Name',
-    originCenter: 'Origin Center',
-    startDate: 'Start Date',
-    status: 'Status',
-    actions: 'Actions',
-    createNew: 'Create New',
-    duplicateRecord: 'Duplicate Record',
-    downloadPDF: 'Download PDF',
-    
-    // Contract Requests - Adding new fields
     contractRequests: 'Contract Requests',
-    contractRequestTitle: 'CONTRACT REQUEST',
-    selectedCandidate: 'Selected Candidate',
-    selectedCandidateName: 'Selected Candidate Name',
-    selectedCandidateLastName: 'Selected Candidate Last Name',
-    contractType: 'Contract Type',
-    salary: 'Salary',
-    observations: 'Observations',
-    incorporationDate: 'Incorporation Date',
-    company: 'Company',
-    position: 'Position',
-    professionalCategory: 'Professional Category',
-    city: 'City',
-    province: 'Province',
-    autonomousCommunity: 'Autonomous Community',
-    workCenter: 'Work Center',
-    directSupervisorName: 'Direct Supervisor Name',
-    directSupervisorLastName: 'Direct Supervisor Last Name',
-    companyFloor: 'Company Floor',
-    otherDataTitle: 'Other Data of Interest',
-    language1: 'Language',
-    level1: 'Level',
-    language2: 'Language 2',
-    level2: 'Level 2',
-    electromedicalExperience: 'Previous Electromedical Experience',
-    installationExperience: 'Previous Installation Experience',
-    hiringReason: 'Hiring Reason',
-    commitmentsObservations: 'Observations and/or Commitments',
-    department: 'Department',
-    back: 'Back',
-    yes: 'Yes',
-    no: 'No',
-    
-    // Employee Agreements
+    changeSheets: 'Change Sheets',
     employeeAgreements: 'Employee Agreements',
-    recordNotFound: 'Record not found',
-    employeeInformation: 'Employee Information',
-    agreementDetails: 'Agreement Details',
-    agreementType: 'Agreement Type',
-    endDate: 'End Date',
-    benefitsAndConditions: 'Benefits and Conditions',
-    benefits: 'Benefits',
-    conditions: 'Conditions',
-    employeeAgreementDetails: 'Employee Agreement Details',
-    
-    // Cost Analysis
+    realEstateManagement: 'Real Estate Management',
+    practiceEvaluation: 'Practice Evaluation',
+    exitInterviews: 'Exit Interviews',
+    users: 'Users',
+    bidAnalyzer: 'Bid Analyzer',
     costAnalysis: 'Cost Analysis',
     
-    // Authentication
-    signIn: 'Sign In',
-    signOut: 'Sign Out',
-    emailAddress: 'Email Address',
-    password: 'Password',
-    signInWithEmail: 'Sign In with Email',
-    signInWithGoogle: 'Sign In with Google',
-    forgotPassword: 'Forgot Password',
-    createNewAccount: 'Create New Account',
-    alreadyHaveAccount: 'Already have an account?',
-    dontHaveAccount: "Don't have an account?",
-    loading: 'Loading...',
-    verifyingAccount: 'Verifying Account...',
-    welcome: 'Welcome',
-    loginSubtitle: 'Access your account to continue',
-    loginButton: 'Sign In',
-    
-    // PDF Generation
-    generatedOn: 'Generated on',
-    documentGenerated: 'Document Generated',
-    
-    // Exit Interview Detail View - Adding missing keys
-    notAvailable: 'Not Available',
-    unknownWorkCenter: 'Unknown Work Center',
-    interviewNotFound: 'Interview not found',
-    workCentersLoadingFailed: 'Failed to load work centers',
-    interviewDetailTitle: 'Exit Interview Detail',
-    
-    // Employee Info Section
-    employeeInfoTitle: 'Employee Information',
-    employeeInfoName: 'Name',
-    employeeInfoLastName: 'Last Name',
-    employeeInfoPosition: 'Position',
-    employeeInfoWorkCenter: 'Work Center',
-    employeeInfoSeniority: 'Seniority',
-    
-    // Supervisor Info Section
-    supervisorInfoTitle: 'Supervisor Information',
-    supervisorInfoName: 'Name',
-    supervisorInfoLastName: 'Last Name',
-    
-    // Exit Details Section
-    exitDetailsTitle: 'Exit Details',
-    exitDetailsExitType: 'Exit Type',
-    exitDetailsExitDate: 'Exit Date',
-    exitDetailsMainReason: 'Main Reason',
-    exitDetailsJoiningReasons: 'Joining Reasons',
-    exitDetailsOtherFactors: 'Other Factors',
-    exitDetailsComments: 'Comments',
-    
-    // Scores Section
-    scoresTitle: 'Scores',
-    scoresIntegration: 'Integration',
-    scoresInternalCommunication: 'Internal Communication',
-    scoresCompensation: 'Compensation',
-    scoresTraining: 'Training',
-    scoresWorkSchedule: 'Work Schedule',
-    scoresMentoring: 'Mentoring',
-    scoresWorkPerformed: 'Work Performed',
-    scoresWorkEnvironment: 'Work Environment',
-    scoresCorporateCulture: 'Corporate Culture',
-    scoresSupervisorRelation: 'Supervisor Relation',
-    scoresGlobalAssessment: 'Global Assessment',
-    
-    // Common
-    cancel: 'Cancel',
+    // General buttons
     save: 'Save',
+    cancel: 'Cancel',
     edit: 'Edit',
+    delete: 'Delete',
     add: 'Add',
-    remove: 'Remove',
+    create: 'Create',
+    update: 'Update',
     search: 'Search',
     filter: 'Filter',
     export: 'Export',
     import: 'Import',
     download: 'Download',
     upload: 'Upload',
-    submit: 'Submit',
-    reset: 'Reset',
-    clear: 'Clear',
+    view: 'View',
+    back: 'Back',
+    next: 'Next',
+    previous: 'Previous',
+    confirm: 'Confirm',
     close: 'Close',
-    open: 'Open',
-    expand: 'Expand',
-    collapse: 'Collapse',
     
-    // Status
+    // Maintenance Calendar
+    hospitalInventory: 'Hospital Inventory',
+    maintenanceSchedule: 'Maintenance Schedule',
+    uploadFiles: 'Upload Files',
+    processFiles: 'Process Files',
+    generateCalendar: 'Generate Calendar',
+    analysis: 'Analysis',
+    inventory: 'Inventory',
+    calendar: 'Calendar',
+    equipmentTypes: 'Equipment Types',
+    maintenanceType: 'Maintenance Type',
+    frequency: 'Frequency',
+    estimatedTime: 'Estimated Time',
+    equipmentCount: 'Equipment Count',
+    missingMaintenanceTitle: 'Pending Denominations',
+    missingMaintenanceMessage: 'There are denominations missing maintenance setup. Are you sure you want to continue?',
+    generateAnyway: 'Generate Anyway',
+    completeFirst: 'Complete First',
+    addMaintenance: 'Add Maintenance',
+    
+    // Contract Requests
+    contractRequestsTitle: 'Contract Requests',
+    newContractRequest: 'New Request',
+    requestNumber: 'Request Number',
+    requestDate: 'Request Date',
+    department: 'Department',
+    priority: 'Priority',
+    status: 'Status',
+    description: 'Description',
+    requestor: 'Requestor',
+    
+    // Change Sheets
+    changeSheetsTitle: 'Change Sheets',
+    newChangeSheet: 'New Change Sheet',
+    changeNumber: 'Change Number',
+    changeDate: 'Change Date',
+    changeType: 'Change Type',
+    affected: 'Affected',
+    
+    // Employee Agreements
+    employeeAgreementsTitle: 'Employee Agreements',
+    newEmployeeAgreement: 'New Agreement',
+    employeeName: 'Employee Name',
+    agreementType: 'Agreement Type',
+    startDate: 'Start Date',
+    endDate: 'End Date',
+    
+    // Real Estate Management
+    realEstateTitle: 'Real Estate Management',
+    dashboard: 'Dashboard',
+    viewTables: 'View Tables',
+    propertyCode: 'Property Code',
+    address: 'Address',
+    province: 'Province',
+    region: 'Region',
+    occupancyStatus: 'Occupancy Status',
+    workerName: 'Worker Name',
+    annualCost: 'Annual Cost',
+    
+    // Practice Evaluation
+    practiceEvaluationTitle: 'Practice Evaluation',
+    studentName: 'Student Name',
+    evaluationDate: 'Evaluation Date',
+    score: 'Score',
+    supervisor: 'Supervisor',
+    
+    // Exit Interviews
+    exitInterviewsTitle: 'Exit Interviews',
+    interviewDate: 'Interview Date',
+    exitReason: 'Exit Reason',
+    overallRating: 'Overall Rating',
+    
+    // User Management
+    usersManagement: 'User Management',
+    searchUsers: 'Search users...',
+    userName: 'User Name',
+    userEmail: 'Email Address',
+    userRole: 'Role',
+    createdDate: 'Creation Date',
+    
+    // Common states and values
     active: 'Active',
     inactive: 'Inactive',
     pending: 'Pending',
+    approved: 'Approved',
+    rejected: 'Rejected',
     completed: 'Completed',
-    draft: 'Draft',
-    published: 'Published',
+    inProgress: 'In Progress',
+    high: 'High',
+    medium: 'Medium',
+    low: 'Low',
     
-    // Errors
+    // Messages
+    loading: 'Loading...',
+    noData: 'No data available',
     error: 'Error',
     success: 'Success',
     warning: 'Warning',
     info: 'Information',
     
-    // Time
-    today: 'Today',
-    yesterday: 'Yesterday',
-    tomorrow: 'Tomorrow',
-    thisWeek: 'This Week',
-    thisMonth: 'This Month',
-    thisYear: 'This Year',
+    // Forms
+    required: 'Required field',
+    invalidEmail: 'Invalid email address',
+    passwordTooShort: 'Password too short',
     
-    // File types
-    pdf: 'PDF',
-    excel: 'Excel',
-    word: 'Word',
-    image: 'Image',
-    document: 'Document'
+    // Bid Analyzer
+    bidAnalyzer: 'Bid Analyzer',
+    technicalScore: 'Technical Score',
+    economicScore: 'Economic Score',
+    totalScore: 'Total Score',
+    
+    // Cost Analysis
+    costAnalysisTitle: 'Cost Analysis',
+    costBreakdown: 'Cost Breakdown',
+    scoreAnalysis: 'Score Analysis'
   }
 };
