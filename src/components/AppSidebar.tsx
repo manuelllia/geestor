@@ -86,77 +86,77 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
   const menuGroups = [
     {
       id: 'operaciones',
-      label: 'OPERACIONES',
+      label: t('operations'),
       visible: permissions?.Per_Ope ?? true,
       items: [
         {
           id: 'analisis-coste',
-          label: 'Análisis de Coste',
-          shortLabel: 'Análisis',
+          label: t('costAnalysis'),
+          shortLabel: t('costAnalysisShort'),
           icon: BarChart2,
         },
       ]
     },
     {
       id: 'gestion-tecnica',
-      label: 'GESTIÓN TÉCNICA',
-      shortLabel: 'GEST. TÉC.',
+      label: t('technicalManagement'),
+      shortLabel: t('technicalManagementShort'),
       visible: permissions?.Per_GT ?? true,
       items: [
         {
           id: 'calendario-mantenimiento',
-          label: 'Calendario de Mant...',
-          shortLabel: 'Calendario',
+          label: t('calendarManagement'),
+          shortLabel: t('calendarManagementShort'),
           icon: Calendar,
         },
         {
           id: 'comprobadores',
-          label: 'Comprobadores',
-          shortLabel: 'Comprob.',
+          label: t('checkers'),
+          shortLabel: t('checkers'),
           icon: CheckSquare,
         },
       ]
     },
     {
       id: 'gestion-talento',
-      label: 'GESTIÓN DE TALENTO',
-      shortLabel: 'GEST. TAL.',
+      label: t('talentManagement'),
+      shortLabel: t('talentManagementShort'),
       visible: permissions?.Per_GDT ?? true,
       items: [
         {
           id: 'solicitudes-contratacion',
-          label: 'Solicitudes de Cont...',
-          shortLabel: 'Solicitudes',
+          label: t('contractRequests'),
+          shortLabel: t('contractRequests'),
           icon: Users,
         },
         {
           id: 'hojas-cambio',
-          label: 'Hojas de Cambio',
-          shortLabel: 'H. Cambio',
+          label: t('changeSheets'),
+          shortLabel: t('changeSheets'),
           icon: FileText,
         },
         {
           id: 'acuerdo-empleado',
-          label: 'Acuerdo con Emple...',
-          shortLabel: 'Acuerdos',
+          label: t('employeeAgreements'),
+          shortLabel: t('employeeAgreements'),
           icon: UserCheck,
         },
         {
           id: 'gestion-inmuebles',
-          label: 'Gestión de Inmuebles',
-          shortLabel: 'Inmuebles',
+          label: t('realEstateManagement'),
+          shortLabel: t('realEstateManagement'),
           icon: Building2,
         },
         {
           id: 'valoracion-practicas',
-          label: 'Valoración Prácticas',
-          shortLabel: 'V. Prácticas',
+          label: t('practiceEvaluation'),
+          shortLabel: t('practiceEvaluation'),
           icon: ClipboardCheck,
         },
         {
           id: 'entrevista-salida',
-          label: 'Entrevista de Salida',
-          shortLabel: 'E. Salida',
+          label: t('exitInterviews'),
+          shortLabel: t('exitInterviews'),
           icon: MessageSquare,
         },
       ]

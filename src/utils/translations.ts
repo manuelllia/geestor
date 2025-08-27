@@ -13,9 +13,12 @@ export const translations = {
     dark: 'Oscuro',
     
     // Navegación y menú
-    technicalManagement: 'Gestión Técnica',
-    talentManagement: 'Gestión de Talento',
-    maintenanceCalendar: 'Calendario de Mantenimiento',
+    technicalManagement: 'GESTIÓN TÉCNICA',
+    technicalManagementShort: 'GEST. TEC',
+    talentManagement: 'GESTIÓN DE TALENTO',
+    talentManagementShort: 'GEST. TAL',
+    calendarManagement: 'Calendario de Mantenimiento',
+    calendarManagementShort: 'Calendario',
     contractRequests: 'Solicitudes de Contrato',
     changeSheets: 'Hojas de Cambio',
     employeeAgreements: 'Acuerdos con Empleados',
@@ -25,7 +28,9 @@ export const translations = {
     users: 'Usuarios',
     bidAnalyzer: 'Analizador de Licitaciones',
     costAnalysis: 'Análisis de Costos',
+    costAnalysisShort: 'Análisis',
     checkers: 'Comprobadores', // Nueva clave para el menú
+    operations: 'OPERACIONES'
     
     // Botones generales
     save: 'Guardar',
@@ -284,9 +289,12 @@ export const translations = {
     dark: 'Dark',
     
     // Navigation and menu
-    technicalManagement: 'Technical Management',
-    talentManagement: 'Talent Management',
-    maintenanceCalendar: 'Maintenance Calendar',
+    technicalManagement: 'TECHNICAL MANAGEMENT',
+    technicalManagementShort: 'TEC. MAN',
+    talentManagement: 'TALENT MANAGEMENT',
+    talentManagementShort: 'TAL. MAN',
+    calendarManagement: 'Maintenance Calendar',
+    calendarManagementShort: 'Calendar',
     contractRequests: 'Contract Requests',
     changeSheets: 'Change Sheets',
     employeeAgreements: 'Employee Agreements',
@@ -296,7 +304,9 @@ export const translations = {
     users: 'Users',
     bidAnalyzer: 'Bid Analyzer',
     costAnalysis: 'Cost Analysis',
-    checkers: 'Checkers', // New key for menu
+    costAnalysisShort: 'Analysis',
+    checkers: 'Checkers', // Nueva clave para el menú
+    operations: 'OPERATIONS'
     
     // General buttons
     save: 'Save',
