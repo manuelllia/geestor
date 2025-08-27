@@ -1,9 +1,7 @@
 // src/hooks/useBidAnalysis.ts
 import { useState } from 'react';
-// Importamos la función de extracción de texto de nuestro archivo de utilidades
-import { extractPDFText } from '../utils/pdf-utils'; 
-// No necesitamos importar * as pdfjsLib aquí ni configurar GlobalWorkerOptions.workerSrc
-// porque ya lo hemos hecho en pdf-utils.ts
+// Fixed import path to match the actual file location
+import { extractPDFText } from '../utils/pdfUtils'; 
 
 interface BidAnalysisData {
   esPorLotes: boolean;
@@ -52,8 +50,6 @@ export const useBidAnalysis = () => {
   const [analysisResult, setAnalysisResult] = useState<BidAnalysisData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // Eliminamos la función `extractTextFromPDF` de aquí, ya que la importamos de pdf-utils.ts
 
   const generatePrompt = (pcapText: string, pptText: string): string => `
 Actúa como un prestigioso matemático y un experto consultor especializado en licitaciones públicas de electromedicina en España. Tu tarea es analizar el texto extraído de un Pliego de Cláusulas Administrativas Particulares (PCAP) y un Pliego de Prescripciones Técnicas (PPT).
@@ -142,7 +138,6 @@ RESPUESTA REQUERIDA: Proporciona ÚNICAMENTE un objeto JSON válido con la estru
 `;
 
   const callGeminiAPI = async (prompt: string): Promise<BidAnalysisData> => {
-    // ... tu código callGeminiAPI no necesita cambios ...
     const GEMINI_API_KEY = 'AIzaSyANIWvIMRvCW7f0meHRk4SobRz4s0pnxtg';
     const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
     
@@ -262,8 +257,8 @@ RESPUESTA REQUERIDA: Proporciona ÚNICAMENTE un objeto JSON válido con la estru
       
       // Extraer texto real de los PDFs usando la utilidad importada
       console.log('📄 Extrayendo texto de archivos PDF...');
-      const pcapText = await extractPDFText(pcapFile); // <- Usamos la función importada
-      const pptText = await extractPDFText(pptFile);   // <- Usamos la función importada
+      const pcapText = await extractPDFText(pcapFile);
+      const pptText = await extractPDFText(pptFile);
       
       // Verificar que se extrajo contenido
       if (!pcapText.trim() && !pptText.trim()) {
