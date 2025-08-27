@@ -167,7 +167,7 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
   const allItems = [
     { id: 'inicio', label: 'Inicio', shortLabel: 'Inicio', icon: Home },
     // Solo mostrar usuarios si tiene permisos
-    ...(permissions?.Per_User ? [{ id: 'usuarios', label: 'Usuarios', shortLabel: 'Usuarios', icon: Users }] : []),
+    ...(permissions?.Per_User ? [{ id: 'usuarios', label: t('users'), shortLabel: t('users'), icon: Users }] : []),
     ...menuGroups.flatMap(group => group.items)
   ];
 

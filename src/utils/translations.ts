@@ -32,6 +32,7 @@ export const translations = {
     costAnalysisShort: 'Análisis',
     checkers: 'Comprobadores', // Nueva clave para el menú
     operations: 'OPERACIONES',
+    homeMenu: 'Inicio',
     
     // Botones generales
     save: 'Guardar',
@@ -308,6 +309,7 @@ export const translations = {
     costAnalysisShort: 'Analysis',
     checkers: 'Checkers', // Nueva clave para el menú
     operations: 'OPERATIONS',
+    homeMenu: 'Home',
     
     // General buttons
     save: 'Save',
