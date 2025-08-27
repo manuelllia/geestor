@@ -1,31 +1,20 @@
+
 // src/utils/pdf-utils.ts
 import * as pdfjsLib from 'pdfjs-dist';
-
-// Importa el worker de pdfjs-dist directamente desde node_modules
-// Esto requiere que tu bundler (Vite) lo maneje correctamente.
-// Normalmente, Vite debería ser capaz de resolver esto y servirlo.
-// Si esto da problemas, la opción del CDN con una versión fija es el siguiente paso.
-// @ts-ignore
-import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.min.js?url'; // Usa 'url' para que Vite copie el archivo y te dé la URL
 
 let pdfWorkerInitialized = false;
 
 export const initializePDFWorker = () => {
   if (!pdfWorkerInitialized) {
     try {
-      // Usar el worker importado directamente
-      pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
-      console.log('📄 PDF.js worker configurado desde el paquete local');
+      // Usar CDN público con versión específica y estable
+      // Esta versión debe coincidir con la versión de 'pdfjs-dist' en package.json
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.worker.min.js';
+      console.log('📄 PDF.js worker configurado desde CDN público');
       pdfWorkerInitialized = true;
     } catch (error) {
-      console.warn('⚠️ No se pudo configurar worker de pdfjs-dist local, intentando CDN de fallback:', error);
-      // Fallback a un CDN con una versión específica y estable
-      // Es crucial que esta versión exista y sea compatible con tu 'pdfjs-dist' instalado.
-      // Revisa package.json qué versión de 'pdfjs-dist' tienes.
-      // Si en tu package.json tienes "pdfjs-dist": "^4.0.379", usa esa versión.
-      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.worker.min.js';
-      console.log('📄 PDF.js worker configurado desde CDN público (fallback)');
-      pdfWorkerInitialized = true;
+      console.error('❌ Error configurando worker de PDF.js:', error);
+      throw new Error('No se pudo inicializar el worker de PDF.js');
     }
   }
 };
@@ -40,15 +29,8 @@ export const extractPDFText = async (file: File): Promise<string> => {
     const arrayBuffer = await file.arrayBuffer();
     
     // Configuración optimizada para evitar problemas de CORS y mejorar rendimiento
-    // Asegúrate de que estas opciones son compatibles con la versión de pdfjs-dist que tienes.
     const loadingTask = pdfjsLib.getDocument({
       data: arrayBuffer,
-      // useWorkerFetch: false, // Puedes intentar quitar esto si tienes problemas, a veces es necesario
-      // isEvalSupported: false, // Puede causar problemas con algunos PDFs, considera quitar
-      // useSystemFonts: true, // A menudo útil para mejor renderizado
-      // verbosity: 0, // Reducir logs internos
-      // cMapUrl: undefined, // Si tienes problemas con caracteres especiales, podrías necesitar un cMap.
-      // standardFontDataUrl: undefined // Similar a cMapUrl
     });
     
     const pdf = await loadingTask.promise;
