@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react'; // Agregamos useEffect
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,11 +7,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ArrowLeft, Building2, Save, CalendarIcon } from 'lucide-react';
+import { ArrowLeft, Building2, Save, CalendarIcon, PlusCircle } from 'lucide-react'; // Agregamos PlusCircle
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { createPropertyRecord } from '../../services/realEstateService';
+import { getWorkCenters } from '../../services/workCentersService'; // Importamos el servicio para Centros de Trabajo
+import CreateWorkCenterModal from '../Modals/CreateWorkCenterModal'; // Importamos el modal
+import { useWorkCenterModals } from '../../hooks/useWorkCenterModals'; // Importamos el hook para gestionar modales
 
 interface InactivePropertyFormProps {
   onBack: () => void;
@@ -25,7 +27,7 @@ interface InactivePropertyFormData {
   habitaciones: string;
   empresaGee: string;
   empresaGeeCustom: string;
-  centroTrabajo: string;
+  centroTrabajo: string; // Este campo ahora almacenará el ID del centro de trabajo seleccionado
   direccion: string;
   poblacion: string;
   provincia: string;
@@ -49,16 +51,17 @@ const empresasGeeOptions = [
   'OTRA'
 ];
 
-const centrosTrabajoOptions = [
-  'DPTO INFORMATICA',
-  'CENTRO PRINCIPAL',
-  'SUCURSAL MADRID',
-  'OFICINA BARCELONA',
-  'DELEGACIÓN VALENCIA',
-  'CENTRO LOGÍSTICO',
-  'ALMACÉN CENTRAL',
-  'OFICINA TÉCNICA'
-];
+// Eliminamos centrosTrabajoOptions, ya que los cargaremos desde Firebase
+// const centrosTrabajoOptions = [
+//   'DPTO INFORMATICA',
+//   'CENTRO PRINCIPAL',
+//   'SUCURSAL MADRID',
+//   'OFICINA BARCELONA',
+//   'DELEGACIÓN VALENCIA',
+//   'CENTRO LOGÍSTICO',
+//   'ALMACÉN CENTRAL',
+//   'OFICINA TÉCNICA'
+// ];
 
 const InactivePropertyForm: React.FC<InactivePropertyFormProps> = ({ onBack, onSave }) => {
   const [formData, setFormData] = useState<InactivePropertyFormData>({
@@ -67,7 +70,7 @@ const InactivePropertyForm: React.FC<InactivePropertyFormProps> = ({ onBack, onS
     habitaciones: '',
     empresaGee: '',
     empresaGeeCustom: '',
-    centroTrabajo: '',
+    centroTrabajo: '', // Inicializamos vacío para el ID
     direccion: '',
     poblacion: '',
     provincia: '',
@@ -80,12 +83,43 @@ const InactivePropertyForm: React.FC<InactivePropertyFormProps> = ({ onBack, onS
   });
   
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [workCenters, setWorkCenters] = useState<Array<{id: string, name: string}>>([]); // Estado para los centros de trabajo
+
+  // Hook para gestionar los modales de centros de trabajo
+  const {
+    isWorkCenterModalOpen,
+    openWorkCenterModal,
+    closeWorkCenterModal,
+  } = useWorkCenterModals();
+
+  // Función para cargar los centros de trabajo desde Firebase
+  const loadWorkCenters = async () => {
+    try {
+      const data = await getWorkCenters();
+      setWorkCenters(data);
+    } catch (error) {
+      console.error('Error loading work centers:', error);
+      toast.error('Error al cargar los centros de trabajo.');
+    }
+  };
+
+  // Cargar centros de trabajo al montar el componente
+  useEffect(() => {
+    loadWorkCenters();
+  }, []);
+
+  // Callback para cuando se crea un nuevo centro de trabajo desde el modal
+  const handleWorkCenterSuccess = () => {
+    closeWorkCenterModal();
+    loadWorkCenters(); // Recargar la lista para incluir el nuevo centro
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validaciones obligatorias
-    if (!formData.id || !formData.habitaciones || !formData.empresaGee || !formData.provinciaOrigen) {
+    if (!formData.id || !formData.habitaciones || !formData.empresaGee || 
+        !formData.provinciaOrigen || !formData.centroTrabajo) { // Agregada validación para centroTrabajo
       toast.error('Por favor, completa todos los campos obligatorios');
       return;
     }
@@ -104,14 +138,14 @@ const InactivePropertyForm: React.FC<InactivePropertyFormProps> = ({ onBack, onS
         'Motivo': formData.motivoInactividad,
         'Habitaciones': parseInt(formData.habitaciones),
         'Empresa': formData.empresaGee === 'OTRA' ? formData.empresaGeeCustom : formData.empresaGee,
-        'Centro de Trabajo': formData.centroTrabajo,
+        'Centro de Trabajo': formData.centroTrabajo, // Ahora es el ID del centro de trabajo
         'Dirección': formData.direccion,
         'Provincia Destino': formData.poblacion,
         'CCAA': formData.ccaa,
         'Provincia de Origen': formData.provinciaOrigen,
         'Cod. Meta 4': formData.codMeta4,
         'Contrato Proyecto': formData.contratoProyecto,
-        'Código Centro de Trabajo': formData.contratoProyecto,
+        'Código Centro de Trabajo': formData.centroTrabajo, // Coincide con Centro de Trabajo, si es el mismo valor que se espera
         'Fecha Inicio Contrato': formData.fechaInicioContrato ? Math.floor(formData.fechaInicioContrato.getTime() / (1000 * 60 * 60 * 24)) + 25569 : 0, // Excel serial date
         'Fecha Ocupación': formData.fechaOcupacion ? Math.floor(formData.fechaOcupacion.getTime() / (1000 * 60 * 60 * 24)) + 25569 : 0, // Excel serial date
         'DNI': '', // Se puede agregar si es necesario
@@ -209,6 +243,7 @@ const InactivePropertyForm: React.FC<InactivePropertyFormProps> = ({ onBack, onS
                 <Select
                   value={formData.empresaGee}
                   onValueChange={(value) => setFormData(prev => ({ ...prev, empresaGee: value }))}
+                  required
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Seleccionar empresa" />
@@ -227,30 +262,43 @@ const InactivePropertyForm: React.FC<InactivePropertyFormProps> = ({ onBack, onS
                     value={formData.empresaGeeCustom}
                     onChange={(e) => setFormData(prev => ({ ...prev, empresaGeeCustom: e.target.value }))}
                     className="mt-2"
+                    required
                   />
                 )}
               </div>
 
-              {/* Centro de Trabajo */}
+              {/* Centro de Trabajo (¡AHORA ES UN DESPLEGABLE!) */}
               <div className="space-y-2">
                 <Label htmlFor="centroTrabajo" className="text-sm font-medium">
-                  Centro de Trabajo
+                  Centro de Trabajo *
                 </Label>
-                <Select
-                  value={formData.centroTrabajo}
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, centroTrabajo: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar centro" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {centrosTrabajoOptions.map((centro) => (
-                      <SelectItem key={centro} value={centro}>
-                        {centro}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex items-center space-x-2">
+                  <Select
+                    value={formData.centroTrabajo}
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, centroTrabajo: value }))}
+                    required
+                  >
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder="Seleccionar centro" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {workCenters.map((center) => (
+                        <SelectItem key={center.id} value={center.id}>
+                          {center.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={openWorkCenterModal}
+                      title="Añadir nuevo centro de trabajo"
+                  >
+                      <PlusCircle className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
 
               {/* Provincia de Origen */}
@@ -430,6 +478,13 @@ const InactivePropertyForm: React.FC<InactivePropertyFormProps> = ({ onBack, onS
           </form>
         </CardContent>
       </Card>
+
+      {/* Modal para crear nuevo Centro de Trabajo */}
+      <CreateWorkCenterModal
+        isOpen={isWorkCenterModalOpen}
+        onClose={closeWorkCenterModal}
+        onSuccess={handleWorkCenterSuccess}
+      />
     </div>
   );
 };
