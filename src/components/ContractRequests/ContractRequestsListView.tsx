@@ -202,141 +202,165 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
   }
 
   return (
-    <div className="w-full min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="w-full p-4 md:p-6 space-y-6">
-        {/* Header */}
+    <div className="w-full overflow-hidden bg-gray-50 dark:bg-gray-900">
+      <div className="w-full p-2 sm:p-4 md:p-6 space-y-4 sm:space-y-6">
+        {/* Header responsive mejorado */}
         <div className="flex flex-col space-y-4">
-          <div className="flex flex-col space-y-2">
-            <h1 className="text-2xl md:text-3xl font-bold text-blue-900 dark:text-blue-100">
+          <div>
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-blue-900 dark:text-blue-100">
               {t('contractRequests')}
             </h1>
-            <p className="text-sm md:text-base text-gray-600 dark:text-gray-400">
+            <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 mt-1">
               Gestiona las solicitudes de contratación
             </p>
           </div>
           
-          {/* Botones */}
-          <div className="flex flex-wrap gap-3">
+          {/* Botones con iconos siempre visibles */}
+          <div className="flex flex-col sm:flex-row gap-3">
             <Button
               onClick={handleRefresh}
               variant="outline"
-              className="border-blue-300 text-blue-700 hover:bg-blue-50"
+              className="border-blue-300 text-blue-700 hover:bg-blue-50 text-sm"
               disabled={refreshing}
+              size="sm"
             >
-              <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-              Actualizar
+              <RefreshCw className={`w-4 h-4 mr-2 flex-shrink-0 ${refreshing ? 'animate-spin' : ''}`} />
+              <span>Actualizar</span>
             </Button>
             
             <Button
               onClick={() => setShowImportModal(true)}
               variant="outline"
-              className="border-green-300 text-green-700 hover:bg-green-50"
+              className="border-green-300 text-green-700 hover:bg-green-50 text-sm"
+              size="sm"
             >
-              <Upload className="w-4 h-4 mr-2" />
-              Importar
+              <Upload className="w-4 h-4 mr-2 flex-shrink-0" />
+              <span>Importar</span>
             </Button>
             
             <Button
               onClick={() => setShowCreateForm(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
+              className="bg-blue-600 hover:bg-blue-700 text-white text-sm"
+              size="sm"
             >
-              <Plus className="w-4 h-4 mr-2" />
-              Nueva Solicitud
+              <Plus className="w-4 h-4 mr-2 flex-shrink-0" />
+              <span>Nueva Solicitud</span>
             </Button>
           </div>
         </div>
 
-        {/* Card */}
-        <Card className="border-blue-200 dark:border-blue-800">
-          <CardHeader>
-            <CardTitle className="text-lg text-blue-800 dark:text-blue-200 flex items-center justify-between">
+        {/* Card con tabla responsive */}
+        <Card className="border-blue-200 dark:border-blue-800 overflow-hidden">
+          <CardHeader className="p-3 sm:p-4 lg:p-6">
+            <CardTitle className="text-base sm:text-lg text-blue-800 dark:text-blue-200 flex items-center justify-between flex-wrap gap-2">
               <span className="flex items-center gap-2">
-                <FileText className="w-5 h-5" />
-                Lista de Solicitudes
+                <FileText className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+                <span>Lista de Solicitudes</span>
               </span>
-              <Badge variant="secondary">
+              <Badge variant="secondary" className="text-xs sm:text-sm">
                 {requests.length} solicitudes
               </Badge>
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             {/* Información de paginación */}
-            <div className="px-6 pb-3">
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+            <div className="px-3 sm:px-6 pb-3">
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                 Mostrando del {startIndex + 1} al {Math.min(endIndex, totalItems)} de {totalItems} solicitudes
               </p>
             </div>
 
-            {/* Contenedor con scroll horizontal para tablas */}
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="min-w-[150px]">Empleado</TableHead>
-                    <TableHead className="min-w-[120px]">Centro de Trabajo</TableHead>
-                    <TableHead className="min-w-[100px]">Ciudad</TableHead>
-                    <TableHead className="min-w-[120px]">Puesto</TableHead>
-                    <TableHead className="min-w-[120px]">Departamento</TableHead>
-                    <TableHead className="min-w-[120px]">Fecha Inicio</TableHead>
-                    <TableHead className="min-w-[100px]">Estado</TableHead>
-                    <TableHead className="w-[80px]">Acciones</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {requests.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((request) => (
-                    <TableRow key={request.id}>
-                      <TableCell className="font-medium">
-                        {request.requesterName} {request.requesterLastName}
-                      </TableCell>
-                      <TableCell>{request.workCenter}</TableCell>
-                      <TableCell>{request.city}</TableCell>
-                      <TableCell>{request.jobPosition}</TableCell>
-                      <TableCell>{request.professionalCategory}</TableCell>
-                      <TableCell>
-                        {new Date(request.incorporationDate).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="secondary">
-                          Activa
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="bg-white dark:bg-gray-800 border border-blue-200 dark:border-blue-700">
-                            <DropdownMenuItem onClick={() => handleViewRequest(request)} className="cursor-pointer">
-                              <Eye className="mr-2 h-4 w-4" />
-                              Ver detalles
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleEditRequest(request)} className="cursor-pointer">
-                              <Edit className="mr-2 h-4 w-4" />
-                              Editar
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleDuplicateRequest(request)} className="cursor-pointer">
-                              <Copy className="mr-2 h-4 w-4" />
-                              Duplicar
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleDeleteRequest(request)} className="cursor-pointer text-red-600">
-                              <Trash className="mr-2 h-4 w-4" />
-                              Eliminar
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
+            {/* Contenedor con scroll horizontal mejorado */}
+            <div className="w-full overflow-x-auto">
+              <div className="min-w-[900px] w-full">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="min-w-[150px] px-2 sm:px-4 text-xs sm:text-sm">Empleado</TableHead>
+                      <TableHead className="min-w-[120px] px-2 sm:px-4 text-xs sm:text-sm">Centro de Trabajo</TableHead>
+                      <TableHead className="min-w-[100px] px-2 sm:px-4 text-xs sm:text-sm">Ciudad</TableHead>
+                      <TableHead className="min-w-[120px] px-2 sm:px-4 text-xs sm:text-sm">Puesto</TableHead>
+                      <TableHead className="min-w-[120px] px-2 sm:px-4 text-xs sm:text-sm">Departamento</TableHead>
+                      <TableHead className="min-w-[120px] px-2 sm:px-4 text-xs sm:text-sm">Fecha Inicio</TableHead>
+                      <TableHead className="min-w-[100px] px-2 sm:px-4 text-xs sm:text-sm">Estado</TableHead>
+                      <TableHead className="w-[80px] px-2 sm:px-4 text-xs sm:text-sm text-center">Acciones</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {requests.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((request) => (
+                      <TableRow key={request.id}>
+                        <TableCell className="font-medium px-2 sm:px-4 text-xs sm:text-sm">
+                          <div className="truncate">
+                            {request.requesterName} {request.requesterLastName}
+                          </div>
+                        </TableCell>
+                        <TableCell className="px-2 sm:px-4 text-xs sm:text-sm">
+                          <div className="truncate">{request.workCenter}</div>
+                        </TableCell>
+                        <TableCell className="px-2 sm:px-4 text-xs sm:text-sm">
+                          <div className="truncate">{request.city}</div>
+                        </TableCell>
+                        <TableCell className="px-2 sm:px-4 text-xs sm:text-sm">
+                          <div className="truncate">{request.jobPosition}</div>
+                        </TableCell>
+                        <TableCell className="px-2 sm:px-4 text-xs sm:text-sm">
+                          <div className="truncate">{request.professionalCategory}</div>
+                        </TableCell>
+                        <TableCell className="px-2 sm:px-4 text-xs sm:text-sm">
+                          {new Date(request.incorporationDate).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell className="px-2 sm:px-4 text-xs sm:text-sm">
+                          <Badge variant="secondary" className="text-xs">
+                            Activa
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="px-2 sm:px-4">
+                          <div className="flex justify-center">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" className="h-8 w-8 p-0">
+                                  <MoreHorizontal className="h-4 w-4 flex-shrink-0" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="bg-white dark:bg-gray-800 border border-blue-200 dark:border-blue-700">
+                                <DropdownMenuItem onClick={() => handleViewRequest(request)} className="cursor-pointer text-xs sm:text-sm">
+                                  <Eye className="mr-2 h-4 w-4 flex-shrink-0" />
+                                  <span>Ver detalles</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleEditRequest(request)} className="cursor-pointer text-xs sm:text-sm">
+                                  <Edit className="mr-2 h-4 w-4 flex-shrink-0" />
+                                  <span>Editar</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleDuplicateRequest(request)} className="cursor-pointer text-xs sm:text-sm">
+                                  <Copy className="mr-2 h-4 w-4 flex-shrink-0" />
+                                  <span>Duplicar</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleDeleteRequest(request)} className="cursor-pointer text-red-600 text-xs sm:text-sm">
+                                  <Trash className="mr-2 h-4 w-4 flex-shrink-0" />
+                                  <span>Eliminar</span>
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             </div>
 
-            {/* Paginación */}
+            {/* Indicador de scroll en móvil */}
+            <div className="sm:hidden p-4 text-center">
+              <p className="text-xs text-gray-500">
+                ← Desliza horizontalmente para ver más columnas →
+              </p>
+            </div>
+
+            {/* Paginación responsive */}
             {totalPages > 1 && (
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 border-t">
-                <div className="text-sm text-gray-600 dark:text-gray-400">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-3 sm:p-4 border-t">
+                <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                   <span>Página {currentPage} de {totalPages}</span>
                 </div>
                 
@@ -346,6 +370,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
                     size="sm"
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 1}
+                    className="text-xs sm:text-sm px-2 sm:px-3"
                   >
                     Anterior
                   </Button>
@@ -358,7 +383,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
                         size="sm"
                         onClick={() => typeof page === 'number' ? handlePageChange(page) : undefined}
                         disabled={page === '...'}
-                        className="min-w-[32px]"
+                        className="min-w-[32px] text-xs sm:text-sm px-2"
                       >
                         {page}
                       </Button>
@@ -370,6 +395,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
                     size="sm"
                     onClick={() => handlePageChange(currentPage + 1)}
                     disabled={currentPage === totalPages}
+                    className="text-xs sm:text-sm px-2 sm:px-3"
                   >
                     Siguiente
                   </Button>
@@ -403,6 +429,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
             open={showImportModal}
             onClose={() => setShowImportModal(false)}
             language={language}
+            onImportSuccess={handleImportSuccess}
           />
         )}
       </div>
