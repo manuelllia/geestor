@@ -1,4 +1,6 @@
+
 export type Language = 'es' | 'en';
+export type Theme = 'light' | 'dark';
 
 interface Translations {
   theme: string;
@@ -6,6 +8,7 @@ interface Translations {
   dark: string;
   operations: string;
   costAnalysisShort: string;
+  costAnalysis: string;
   technicalManagement: string;
   technicalManagementShort: string;
   calendarManagement: string;
@@ -57,8 +60,8 @@ interface Translations {
   workCenter: string;
   profile: string;
   welcome: string;
-	loginSubtitle: string;
-	loginButton: string;
+  loginSubtitle: string;
+  loginButton: string;
   featureTitleComprobadores: string;
   comingSoon: string;
   confirm: string;
@@ -95,6 +98,19 @@ interface Translations {
   close: string;
   suggestionsReviewTitle: string;
   verifyingAccount: string;
+  loading: string;
+  name: string;
+  settings: string;
+  maintenanceCalendar: string;
+  generateCalendar: string;
+  inventory: string;
+  missingMaintenanceTitle: string;
+  generateAnyway: string;
+  language: string;
+  spanish: string;
+  english: string;
+  logout: string;
+  upload: string;
 }
 
 export const translations: { [key in Language]: Translations } = {
@@ -104,6 +120,7 @@ export const translations: { [key in Language]: Translations } = {
     dark: 'Oscuro',
     operations: 'Operaciones',
     costAnalysisShort: 'Análisis de Costos',
+    costAnalysis: 'Análisis de Costos',
     technicalManagement: 'Gestión Técnica',
     technicalManagementShort: 'Gestión Técnica',
     calendarManagement: 'Gestión de Calendarios',
@@ -192,7 +209,20 @@ export const translations: { [key in Language]: Translations } = {
     cancel: 'Cancelar',
     close: 'Cerrar',
     suggestionsReviewTitle: 'Revisar Sugerencias de IA',
-    verifyingAccount: 'Verificando cuenta...'
+    verifyingAccount: 'Verificando cuenta...',
+    loading: 'Cargando...',
+    name: 'Nombre',
+    settings: 'Configuración',
+    maintenanceCalendar: 'Calendario de Mantenimiento',
+    generateCalendar: 'Generar Calendario',
+    inventory: 'Inventario',
+    missingMaintenanceTitle: 'Mantenimientos Faltantes',
+    generateAnyway: 'Generar de todas formas',
+    language: 'Idioma',
+    spanish: 'Español',
+    english: 'Inglés',
+    logout: 'Cerrar Sesión',
+    upload: 'Subir'
   },
   en: {
     theme: 'Theme',
@@ -200,6 +230,7 @@ export const translations: { [key in Language]: Translations } = {
     dark: 'Dark',
     operations: 'Operations',
     costAnalysisShort: 'Cost Analysis',
+    costAnalysis: 'Cost Analysis',
     technicalManagement: 'Technical Management',
     technicalManagementShort: 'Technical Mgmt',
     calendarManagement: 'Calendar Management',
@@ -251,8 +282,8 @@ export const translations: { [key in Language]: Translations } = {
     workCenter: 'Work Center',
     profile: 'Profile',
     welcome: 'Welcome',
-		loginSubtitle: 'Access your account to continue',
-		loginButton: 'Sign In',
+    loginSubtitle: 'Access your account to continue',
+    loginButton: 'Sign In',
     featureTitleComprobadores: 'Checkers',
     comingSoon: 'Coming Soon',
     confirm: 'Confirm',
@@ -288,6 +319,19 @@ export const translations: { [key in Language]: Translations } = {
     cancel: 'Cancel',
     close: 'Close',
     suggestionsReviewTitle: 'Review AI Suggestions',
-    verifyingAccount: 'Verifying account...'
+    verifyingAccount: 'Verifying account...',
+    loading: 'Loading...',
+    name: 'Name',
+    settings: 'Settings',
+    maintenanceCalendar: 'Maintenance Calendar',
+    generateCalendar: 'Generate Calendar',
+    inventory: 'Inventory',
+    missingMaintenanceTitle: 'Missing Maintenances',
+    generateAnyway: 'Generate Anyway',
+    language: 'Language',
+    spanish: 'Spanish',
+    english: 'English',
+    logout: 'Logout',
+    upload: 'Upload'
   }
 };
