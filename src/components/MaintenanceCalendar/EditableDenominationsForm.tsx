@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
@@ -6,10 +5,12 @@ import { Badge } from '../ui/badge';
 import { Input } from '../ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
-import { Plus, Edit3, Trash2, Clock, Wrench, AlertTriangle } from 'lucide-react';
+import { Plus, Edit3, Trash2, Clock, Wrench, AlertTriangle, Sparkles, CheckCircle } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Language } from '../../utils/translations';
 import MissingMaintenanceModal from './MissingMaintenanceModal';
+import { useMaintenanceSuggestions } from '../../hooks/useMaintenanceSuggestions';
+import { toast } from 'react-hot-toast';
 
 interface MaintenanceTask {
   id: string;
@@ -51,11 +52,22 @@ const EditableDenominationsForm: React.FC<EditableDenominationsFormProps> = ({
   const [selectedDenominacion, setSelectedDenominacion] = useState<DenominacionHomogeneaData | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [showMissingModal, setShowMissingModal] = useState(false);
+  const [showSuggestionsModal, setShowSuggestionsModal] = useState(false);
   const [newMaintenanceForm, setNewMaintenanceForm] = useState({
     tipoMantenimiento: '',
     frecuencia: '',
     tiempo: '2'
   });
+
+  // Hook para sugerencias de mantenimiento
+  const {
+    getSuggestions,
+    applySuggestions,
+    clearSuggestions,
+    suggestions,
+    isLoading: isLoadingSuggestions,
+    error: suggestionsError
+  } = useMaintenanceSuggestions();
 
   // Identificar denominaciones sin mantenimientos completos
   const incompleteDenominaciones = denominaciones.filter(d => {
@@ -71,6 +83,30 @@ const EditableDenominationsForm: React.FC<EditableDenominationsFormProps> = ({
       maintenanceTasks: denominacion.maintenanceTasks || []
     });
     setIsEditModalOpen(true);
+  };
+
+  const handleSuggestMaintenances = async () => {
+    console.log('🤖 Iniciando proceso de sugerencias de mantenimiento...');
+    
+    try {
+      await getSuggestions(denominaciones, tipoOptions);
+      setShowSuggestionsModal(true);
+      toast.success('¡Sugerencias de mantenimiento obtenidas exitosamente!');
+    } catch (error) {
+      console.error('❌ Error obteniendo sugerencias:', error);
+      toast.error('Error al obtener sugerencias de mantenimiento');
+    }
+  };
+
+  const handleApplySuggestions = (selectedSuggestions: any[]) => {
+    console.log('✅ Aplicando sugerencias seleccionadas...');
+    
+    const updatedDenominaciones = applySuggestions(denominaciones, selectedSuggestions);
+    onUpdate(updatedDenominaciones);
+    setShowSuggestionsModal(false);
+    clearSuggestions();
+    
+    toast.success(`¡${selectedSuggestions.length} sugerencias aplicadas exitosamente!`);
   };
 
   const handleAddMaintenanceTask = () => {
@@ -143,8 +179,17 @@ const EditableDenominationsForm: React.FC<EditableDenominationsFormProps> = ({
                 </Badge>
               )}
               <Button 
+                onClick={handleSuggestMaintenances}
+                disabled={isLoadingSuggestions || isGenerating}
+                variant="outline"
+                className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white border-0"
+              >
+                <Sparkles className="h-4 w-4 mr-2" />
+                {isLoadingSuggestions ? 'Analizando...' : 'Sugerir Mantenimientos'}
+              </Button>
+              <Button 
                 onClick={handleGenerateCalendar}
-                disabled={isGenerating}
+                disabled={isGenerating || isLoadingSuggestions}
                 className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
               >
                 {isGenerating ? t('loading') : t('generateCalendar')}
@@ -352,6 +397,39 @@ const EditableDenominationsForm: React.FC<EditableDenominationsFormProps> = ({
                 </Button>
               </div>
             </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de sugerencias de mantenimiento */}
+      <Dialog open={showSuggestionsModal} onOpenChange={setShowSuggestionsModal}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-purple-600" />
+              Sugerencias de Mantenimiento IA
+            </DialogTitle>
+          </DialogHeader>
+          
+          {suggestionsError && (
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+              <p className="text-red-700 dark:text-red-300">
+                Error: {suggestionsError}
+              </p>
+            </div>
+          )}
+
+          {suggestions.length > 0 && (
+            <SuggestionsReviewModal
+              suggestions={suggestions}
+              denominaciones={denominaciones}
+              onApply={handleApplySuggestions}
+              onClose={() => {
+                setShowSuggestionsModal(false);
+                clearSuggestions();
+              }}
+              language={language}
+            />
           )}
         </DialogContent>
       </Dialog>
