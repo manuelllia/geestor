@@ -1,4 +1,3 @@
-
 export type Language = 'es' | 'en';
 export type Theme = 'light' | 'dark';
 
@@ -31,7 +30,7 @@ export const translations = {
     costAnalysis: 'Análisis de Costos',
     costAnalysisShort: 'Análisis',
     checkers: 'Comprobadores', // Nueva clave para el menú
-    operations: 'OPERACIONES',
+    operations: 'OPERACIONES'
     
     // Botones generales
     save: 'Guardar',
@@ -307,7 +306,7 @@ export const translations = {
     costAnalysis: 'Cost Analysis',
     costAnalysisShort: 'Analysis',
     checkers: 'Checkers', // Nueva clave para el menú
-    operations: 'OPERATIONS',
+    operations: 'OPERATIONS'
     
     // General buttons
     save: 'Save',
