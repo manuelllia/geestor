@@ -1,20 +1,20 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react'; // Importar useMemo
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Eye, Copy, Download, Plus, Upload, FileDown, RefreshCw, AlertCircle, Edit, ArrowUp, ArrowDown } from 'lucide-react';
+import { Eye, Copy, Download, Plus, Upload, FileDown, RefreshCw, AlertCircle, Edit, ArrowUp, ArrowDown } from 'lucide-react'; // Importar ArrowUp y ArrowDown
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Language } from '../../utils/translations';
-import { ResponsiveTable, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/responsive-table';
 import ChangeSheetCreateForm from './ChangeSheetCreateForm';
 import ChangeSheetDetailView from './ChangeSheetDetailView';
 import ImportChangeSheetsModal from './ImportChangeSheetsModal';
 import { getChangeSheets, ChangeSheetRecord, duplicateChangeSheet, exportChangeSheetsToCSV } from '../../services/changeSheetsService';
 import { useUserPermissions } from '../../hooks/useUserPermissions';
-import { useResponsive } from '../../hooks/useResponsive';
 import jsPDF from 'jspdf';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils'; // Asegúrate de que tienes esta utilidad (para combinar clases)
+
 
 interface ChangeSheetsListViewProps {
   language: Language;
@@ -29,8 +29,6 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({
 }) => {
   const { t } = useTranslation(language);
   const { permissions, isLoading: permissionsLoading } = useUserPermissions();
-  const { isMobile, isTablet } = useResponsive();
-  
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const [showDetailView, setShowDetailView] = useState(false);
@@ -44,8 +42,9 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({
   const [error, setError] = useState<string | null>(null);
   const itemsPerPage = 30;
 
+  // NUEVOS ESTADOS DE ORDENACIÓN
   const [sortColumn, setSortColumn] = useState<string | null>(null);
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc'); // Por defecto ascendente
 
   const canCreate = permissions?.Per_Create ?? true;
   const canDelete = permissions?.Per_Delete ?? true;
@@ -71,49 +70,57 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({
     loadChangeSheets();
   }, []);
 
+  // LÓGICA DE ORDENACIÓN
   const handleSort = (column: string) => {
     if (sortColumn === column) {
+      // Si se hace clic en la misma columna, se cambia la dirección
       setSortDirection(prevDir => (prevDir === 'asc' ? 'desc' : 'asc'));
     } else {
+      // Si se hace clic en una nueva columna, se ordena por esa columna en ascendente
       setSortColumn(column);
       setSortDirection('asc');
     }
-    setCurrentPage(1);
+    setCurrentPage(1); // Siempre volver a la primera página al ordenar
   };
 
+  // DATOS ORDENADOS Y MEMORIZADOS
   const sortedChangeSheets = useMemo(() => {
     if (!sortColumn) {
-      return changeSheets;
+      return changeSheets; // Si no hay columna de ordenación, devuelve los datos sin ordenar
     }
 
     const sortedData = [...changeSheets].sort((a, b) => {
+      // Accede a los valores dinámicamente. Asegúrate de que los nombres de columna existen en ChangeSheetRecord.
       const aValue = (a as any)[sortColumn];
       const bValue = (b as any)[sortColumn];
 
+      // Manejo de valores nulos o indefinidos para una ordenación consistente
       if (aValue == null && bValue == null) return 0;
-      if (aValue == null) return sortDirection === 'asc' ? -1 : 1;
+      if (aValue == null) return sortDirection === 'asc' ? -1 : 1; // Nulos al principio en asc, al final en desc
       if (bValue == null) return sortDirection === 'asc' ? 1 : -1;
 
       let comparison = 0;
       if (typeof aValue === 'string' && typeof bValue === 'string') {
-        comparison = aValue.localeCompare(bValue);
+        comparison = aValue.localeCompare(bValue); // Comparación de cadenas sensible a la configuración regional
       } else if (aValue instanceof Date && bValue instanceof Date) {
-        comparison = aValue.getTime() - bValue.getTime();
+        comparison = aValue.getTime() - bValue.getTime(); // Comparación de fechas
       } else if (typeof aValue === 'number' && typeof bValue === 'number') {
-        comparison = aValue - bValue;
+        comparison = aValue - bValue; // Comparación de números
       } else {
+        // En caso de tipos mixtos o no manejados, intenta una conversión a string como fallback
         comparison = String(aValue).localeCompare(String(bValue));
       }
 
-      return sortDirection === 'asc' ? comparison : -comparison;
+      return sortDirection === 'asc' ? comparison : -comparison; // Aplica la dirección
     });
     return sortedData;
-  }, [changeSheets, sortColumn, sortDirection]);
+  }, [changeSheets, sortColumn, sortDirection]); // Re-calcula solo si estos cambian
+
 
   const totalPages = Math.ceil(sortedChangeSheets.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = Math.min(startIndex + itemsPerPage, sortedChangeSheets.length);
-  const currentData = sortedChangeSheets.slice(startIndex, endIndex);
+  const currentData = sortedChangeSheets.slice(startIndex, endIndex); // La paginación se aplica AHORA a los datos ordenados
 
   const handleViewDetails = (id: string) => {
     setSelectedSheetId(id);
@@ -137,7 +144,7 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({
       await duplicateChangeSheet(duplicatingId);
       setShowDuplicateModal(false);
       setDuplicatingId(null);
-      await loadChangeSheets();
+      await loadChangeSheets(); // Recargar la lista
       console.log('Registro duplicado correctamente');
     } catch (error) {
       console.error('Error al duplicar:', error);
@@ -150,11 +157,13 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({
     const pageWidth = pdf.internal.pageSize.getWidth();
     let yPosition = 20;
 
+    // Título
     pdf.setFontSize(18);
     pdf.setFont('helvetica', 'bold');
     pdf.text('Hoja de Cambio de Empleado', pageWidth / 2, yPosition, { align: 'center' });
     yPosition += 20;
 
+    // Información del empleado
     pdf.setFontSize(14);
     pdf.setFont('helvetica', 'bold');
     pdf.text('INFORMACIÓN DEL EMPLEADO', 20, yPosition);
@@ -169,6 +178,7 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({
     pdf.text(`Posición Actual: ${sheet.currentPosition}`, 20, yPosition);
     yPosition += 15;
 
+    // Supervisor actual
     pdf.setFontSize(14);
     pdf.setFont('helvetica', 'bold');
     pdf.text('SUPERVISOR ACTUAL', 20, yPosition);
@@ -179,6 +189,7 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({
     pdf.text(`Nombre: ${sheet.currentSupervisorName} ${sheet.currentSupervisorLastName}`, 20, yPosition);
     yPosition += 15;
 
+    // Nueva posición
     pdf.setFontSize(14);
     pdf.setFont('helvetica', 'bold');
     pdf.text('NUEVA POSICIÓN', 20, yPosition);
@@ -193,6 +204,7 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({
     pdf.text(`Fecha de Inicio: ${sheet.startDate ? sheet.startDate.toLocaleDateString() : 'No especificada'}`, 20, yPosition);
     yPosition += 15;
 
+    // Detalles del cambio
     pdf.setFontSize(14);
     pdf.setFont('helvetica', 'bold');
     pdf.text('DETALLES DEL CAMBIO', 20, yPosition);
@@ -209,6 +221,7 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({
     pdf.text(`Estado: ${sheet.status}`, 20, yPosition);
     yPosition += 15;
 
+    // Necesidades
     if (sheet.needs.length > 0) {
       pdf.setFontSize(14);
       pdf.setFont('helvetica', 'bold');
@@ -224,6 +237,7 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({
       yPosition += 7;
     }
 
+    // Observaciones
     if (sheet.observations) {
       pdf.setFontSize(14);
       pdf.setFont('helvetica', 'bold');
@@ -237,6 +251,7 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({
       yPosition += splitObservations.length * 6;
     }
 
+    // Información de creación
     yPosition += 10;
     pdf.setFontSize(10);
     pdf.setFont('helvetica', 'italic');
@@ -244,6 +259,7 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({
     yPosition += 6;
     pdf.text(`Última actualización: ${sheet.updatedAt.toLocaleDateString()}`, 20, yPosition);
 
+    // Descargar
     pdf.save(`Hoja_Cambio_${sheet.employeeName}_${sheet.employeeLastName}_${sheet.id}.pdf`);
   };
 
@@ -259,7 +275,7 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({
 
   const handleRefresh = () => {
     loadChangeSheets();
-    setSortColumn(null);
+    setSortColumn(null); // Resetear ordenación al actualizar
     setSortDirection('asc');
     setCurrentPage(1);
   };
@@ -285,7 +301,7 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({
         onBack={() => {
           setShowDetailView(false);
           setSelectedSheetId(null);
-          loadChangeSheets();
+          loadChangeSheets(); // Recargar en caso de que se haya eliminado
         }}
         onDelete={() => {
           setShowDetailView(false);
@@ -304,356 +320,339 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({
         onBack={() => {
           setShowCreateForm(false);
           setEditingSheet(null);
-          loadChangeSheets();
+          loadChangeSheets(); // Recargar datos después de crear/editar
         }}
         onSave={() => {
           setShowCreateForm(false);
           setEditingSheet(null);
-          loadChangeSheets();
+          loadChangeSheets(); // Recargar datos después de guardar
         }}
       />
     );
   }
 
   return (
-    <div className="w-full overflow-hidden">
-      <div className="responsive-container responsive-padding space-y-4 sm:space-y-6">
-        <div className="flex flex-col space-y-4 sm:flex-row sm:justify-between sm:items-start sm:space-y-0">
-          <h1 className="responsive-title font-semibold text-primary">
-            {t('changeSheetsManagement')}
-          </h1>
+    <div className="space-y-6">
+      {/* Header con botones de acción */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <h1 className="text-2xl font-semibold text-blue-800 dark:text-blue-200">
+          {t('changeSheetsManagement')}
+        </h1>
+        
+        <div className="flex flex-wrap gap-2">
+          <Button
+            onClick={handleRefresh}
+            variant="outline"
+            disabled={isLoading}
+            className="border-blue-300 text-blue-700 hover:bg-blue-50"
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+            Actualizar
+          </Button>
           
-          <div className="flex flex-wrap gap-2">
+          {canCreate && (
             <Button
-              onClick={handleRefresh}
-              variant="outline"
-              disabled={isLoading}
-              className="button-responsive border-primary/30 text-primary hover:bg-primary/10"
+              onClick={() => {
+                setEditingSheet(null);
+                setShowCreateForm(true);
+              }}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
             >
-              <RefreshCw className={`icon-responsive mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-              <span className="hidden xs:inline">Actualizar</span>
+              <Plus className="w-4 h-4 mr-2" />
+              {t('createNew')}
             </Button>
-            
-            {canCreate && (
-              <Button
-                onClick={() => {
-                  setEditingSheet(null);
-                  setShowCreateForm(true);
-                }}
-                className="button-responsive bg-primary hover:bg-primary/90 text-primary-foreground"
-              >
-                <Plus className="icon-responsive mr-2 flex-shrink-0" />
-                <span className="hidden xs:inline">{t('createNew')}</span>
-              </Button>
-            )}
-            
-            <Button
-              variant="outline"
-              onClick={handleExport}
-              className="button-responsive border-primary/30 text-primary hover:bg-primary/10"
-            >
-              <FileDown className="icon-responsive mr-2 flex-shrink-0" />
-              <span className="hidden sm:inline">{t('export')}</span>
-            </Button>
-            
-            <Button
-              variant="outline"
-              onClick={() => setShowImportModal(true)}
-              className="button-responsive border-primary/30 text-primary hover:bg-primary/10"
-            >
-              <Upload className="icon-responsive mr-2 flex-shrink-0" />
-              <span className="hidden sm:inline">{t('import')}</span>
-            </Button>
-          </div>
+          )}
+          
+          <Button
+            variant="outline"
+            onClick={handleExport}
+            className="border-blue-300 text-blue-700 hover:bg-blue-50"
+          >
+            <FileDown className="w-4 h-4 mr-2" />
+            {t('export')}
+          </Button>
+          
+          <Button
+            variant="outline"
+            onClick={() => setShowImportModal(true)}
+            className="border-blue-300 text-blue-700 hover:bg-blue-50"
+          >
+            <Upload className="w-4 h-4 mr-2" />
+            {t('import')}
+          </Button>
         </div>
+      </div>
 
-        <Card className="border-primary/20">
-          <CardHeader className="responsive-padding">
-            <CardTitle className="responsive-subtitle text-primary">
-              {t('hojasCambio')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            {error && (
-              <div className="text-center py-8 responsive-padding">
-                <div className="mx-auto w-16 h-16 bg-destructive/10 rounded-lg flex items-center justify-center mb-4">
-                  <AlertCircle className="w-8 h-8 text-destructive" />
-                </div>
-                <h3 className="responsive-text font-medium text-destructive mb-2">
-                  Error al cargar datos
-                </h3>
-                <p className="responsive-text text-destructive/80 mb-4">
-                  {error}
-                </p>
-                <Button onClick={handleRefresh} className="bg-primary hover:bg-primary/90 text-primary-foreground">
-                  Intentar de nuevo
+      {/* Tabla de hojas de cambio */}
+      <Card className="border-blue-200 dark:border-blue-800">
+        <CardHeader>
+          <CardTitle className="text-blue-800 dark:text-blue-200">
+            {t('hojasCambio')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {error && (
+            <div className="text-center py-8">
+              <div className="mx-auto w-16 h-16 bg-red-100 dark:bg-red-800 rounded-lg flex items-center justify-center mb-4">
+                <AlertCircle className="w-8 h-8 text-red-400" />
+              </div>
+              <h3 className="text-lg font-medium text-red-900 dark:text-red-100 mb-2">
+                Error al cargar datos
+              </h3>
+              <p className="text-red-600 dark:text-red-400 mb-4">
+                {error}
+              </p>
+              <Button onClick={handleRefresh} className="bg-blue-600 hover:bg-blue-700 text-white">
+                Intentar de nuevo
+              </Button>
+            </div>
+          )}
+          
+          {isLoading && (
+            <div className="text-center py-12">
+              <div className="mx-auto w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center mb-4">
+                <RefreshCw className="w-8 h-8 text-gray-400 animate-spin" />
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+                Cargando hojas de cambio...
+              </h3>
+            </div>
+          )}
+          
+          {!isLoading && !error && changeSheets.length === 0 && (
+            <div className="text-center py-12">
+              <div className="mx-auto w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center mb-4">
+                <Upload className="w-8 h-8 text-gray-400" />
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+                No hay hojas de cambio
+              </h3>
+              <p className="text-gray-500 dark:text-gray-400 mb-4">
+                Comienza creando una nueva hoja de cambio o importa datos desde un archivo.
+              </p>
+              <div className="flex justify-center space-x-2">
+                <Button
+                  onClick={() => setShowCreateForm(true)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Crear Nueva
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowImportModal(true)}
+                  className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                >
+                  <Upload className="w-4 h-4 mr-2" />
+                  Importar Datos
                 </Button>
               </div>
-            )}
-            
-            {isLoading && (
-              <div className="text-center py-12 responsive-padding">
-                <div className="mx-auto w-16 h-16 bg-muted rounded-lg flex items-center justify-center mb-4">
-                  <RefreshCw className="w-8 h-8 text-muted-foreground animate-spin" />
-                </div>
-                <h3 className="responsive-text font-medium text-foreground mb-2">
-                  Cargando hojas de cambio...
-                </h3>
-              </div>
-            )}
-            
-            {!isLoading && !error && changeSheets.length === 0 && (
-              <div className="text-center py-12 responsive-padding">
-                <div className="mx-auto w-16 h-16 bg-muted rounded-lg flex items-center justify-center mb-4">
-                  <Upload className="w-8 h-8 text-muted-foreground" />
-                </div>
-                <h3 className="responsive-text font-medium text-foreground mb-2">
-                  No hay hojas de cambio
-                </h3>
-                <p className="responsive-text text-muted-foreground mb-4">
-                  Comienza creando una nueva hoja de cambio o importa datos desde un archivo.
-                </p>
-                <div className="flex flex-col sm:flex-row justify-center gap-2">
-                  <Button
-                    onClick={() => setShowCreateForm(true)}
-                    className="bg-primary hover:bg-primary/90 text-primary-foreground"
-                  >
-                    <Plus className="icon-responsive mr-2 flex-shrink-0" />
-                    Crear Nueva
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowImportModal(true)}
-                    className="border-primary/30 text-primary hover:bg-primary/10"
-                  >
-                    <Upload className="icon-responsive mr-2 flex-shrink-0" />
-                    Importar Datos
-                  </Button>
-                </div>
-              </div>
-            )}
-            
-            {!isLoading && !error && changeSheets.length > 0 && (
-              <div className="w-full">
-                <ResponsiveTable minWidth="900px">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead 
-                          className="cursor-pointer select-none min-w-[140px]"
-                          onClick={() => handleSort('employeeName')}
-                        >
-                          <div className="flex items-center">
-                            <span className="responsive-text font-medium">{t('employeeName')}</span>
-                            {sortColumn === 'employeeName' && (
-                              <span className="ml-1 flex-shrink-0">
-                                {sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
-                              </span>
-                            )}
-                          </div>
-                        </TableHead>
-                        <TableHead 
-                          className="cursor-pointer select-none min-w-[120px]"
-                          onClick={() => handleSort('originCenter')}
-                        >
-                          <div className="flex items-center">
-                            <span className="responsive-text font-medium">{t('originCenter')}</span>
-                            {sortColumn === 'originCenter' && (
-                              <span className="ml-1 flex-shrink-0">
-                                {sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
-                              </span>
-                            )}
-                          </div>
-                        </TableHead>
-                        <TableHead 
-                          className="cursor-pointer select-none min-w-[120px]"
-                          onClick={() => handleSort('newPosition')}
-                        >
-                          <div className="flex items-center">
-                            <span className="responsive-text font-medium">Nuevo Puesto</span>
-                            {sortColumn === 'newPosition' && (
-                              <span className="ml-1 flex-shrink-0">
-                                {sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
-                              </span>
-                            )}
-                          </div>
-                        </TableHead>
-                        <TableHead 
-                          className="cursor-pointer select-none min-w-[100px]"
-                          onClick={() => handleSort('startDate')}
-                        >
-                          <div className="flex items-center">
-                            <span className="responsive-text font-medium">{t('startDate')}</span>
-                            {sortColumn === 'startDate' && (
-                              <span className="ml-1 flex-shrink-0">
-                                {sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
-                              </span>
-                            )}
-                          </div>
-                        </TableHead>
-                        <TableHead 
-                          className="cursor-pointer select-none min-w-[100px]"
-                          onClick={() => handleSort('status')}
-                        >
-                          <div className="flex items-center">
-                            <span className="responsive-text font-medium">{t('status')}</span>
-                            {sortColumn === 'status' && (
-                              <span className="ml-1 flex-shrink-0">
-                                {sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
-                              </span>
-                            )}
-                          </div>
-                        </TableHead>
-                        <TableHead className="text-center min-w-[150px]">
-                          <span className="responsive-text font-medium">{t('actions')}</span>
-                        </TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {currentData.map((sheet) => (
-                        <TableRow key={sheet.id} className="hover:bg-muted/50">
-                          <TableCell className="font-medium">
-                            <div className="responsive-text truncate max-w-[120px]">
-                              {sheet.employeeName} {sheet.employeeLastName}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="responsive-text truncate max-w-[100px]">
-                              {sheet.originCenter}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="responsive-text truncate max-w-[100px]">
-                              {sheet.newPosition}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="responsive-text">
-                              {sheet.startDate ? formatDate(sheet.startDate) : 'No especificada'}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge className={`${getStatusBadge(sheet.status)} text-xs`}>
-                              {sheet.status}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex justify-center space-x-1">
-                              {canView && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleViewDetails(sheet.id)}
-                                  title={t('view')}
-                                  className="hover:bg-primary/10"
-                                >
-                                  <Eye className="icon-responsive flex-shrink-0" />
-                                </Button>
-                              )}
-                              {canModify && (
-                                <>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => handleEdit(sheet)}
-                                    title="Editar registro"
-                                    className="hover:bg-primary/10"
-                                  >
-                                    <Edit className="icon-responsive flex-shrink-0" />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => handleDuplicate(sheet.id)}
-                                    title={t('duplicateRecord')}
-                                    className="hover:bg-primary/10"
-                                  >
-                                    <Copy className="icon-responsive flex-shrink-0" />
-                                  </Button>
-                                </>
-                              )}
+            </div>
+          )}
+          
+          {!isLoading && !error && changeSheets.length > 0 && (
+            <>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      {/* Cabeceras ordenables */}
+                      <TableHead 
+                        className="cursor-pointer select-none"
+                        onClick={() => handleSort('employeeName')}
+                      >
+                        <div className="flex items-center">
+                          {t('employeeName')}
+                          {sortColumn === 'employeeName' && (
+                            <span className="ml-1">
+                              {sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+                            </span>
+                          )}
+                        </div>
+                      </TableHead>
+                      <TableHead 
+                        className="cursor-pointer select-none"
+                        onClick={() => handleSort('originCenter')}
+                      >
+                        <div className="flex items-center">
+                          {t('originCenter')}
+                          {sortColumn === 'originCenter' && (
+                            <span className="ml-1">
+                              {sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+                            </span>
+                          )}
+                        </div>
+                      </TableHead>
+                      <TableHead 
+                        className="cursor-pointer select-none"
+                        onClick={() => handleSort('newPosition')}
+                      >
+                        <div className="flex items-center">
+                          Nuevo Puesto
+                          {sortColumn === 'newPosition' && (
+                            <span className="ml-1">
+                              {sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+                            </span>
+                          )}
+                        </div>
+                      </TableHead>
+                      <TableHead 
+                        className="cursor-pointer select-none"
+                        onClick={() => handleSort('startDate')}
+                      >
+                        <div className="flex items-center">
+                          {t('startDate')}
+                          {sortColumn === 'startDate' && (
+                            <span className="ml-1">
+                              {sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+                            </span>
+                          )}
+                        </div>
+                      </TableHead>
+                      <TableHead 
+                        className="cursor-pointer select-none"
+                        onClick={() => handleSort('status')}
+                      >
+                        <div className="flex items-center">
+                          {t('status')}
+                          {sortColumn === 'status' && (
+                            <span className="ml-1">
+                              {sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+                            </span>
+                          )}
+                        </div>
+                      </TableHead>
+                      <TableHead className="text-center">{t('actions')}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {currentData.map((sheet) => (
+                      <TableRow key={sheet.id}>
+                        <TableCell className="font-medium">
+                          {sheet.employeeName} {sheet.employeeLastName}
+                        </TableCell>
+                        <TableCell>{sheet.originCenter}</TableCell>
+                        <TableCell>{sheet.newPosition}</TableCell>
+                        <TableCell>
+                          {sheet.startDate ? formatDate(sheet.startDate) : 'No especificada'}
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={getStatusBadge(sheet.status)}>
+                            {sheet.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex justify-center space-x-1">
+                            {canView && (
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => handleDownloadPDF(sheet)}
-                                title={t('downloadPDF')}
-                                className="hover:bg-primary/10"
+                                onClick={() => handleViewDetails(sheet.id)}
+                                title={t('view')}
                               >
-                                <Download className="icon-responsive flex-shrink-0" />
+                                <Eye className="w-4 h-4" />
                               </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </ResponsiveTable>
+                            )}
+                            {canModify && (
+                              <>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleEdit(sheet)}
+                                  title="Editar registro"
+                                >
+                                  <Edit className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleDuplicate(sheet.id)}
+                                  title={t('duplicateRecord')}
+                                >
+                                  <Copy className="w-4 h-4" />
+                                </Button>
+                              </>
+                            )}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDownloadPDF(sheet)}
+                              title={t('downloadPDF')}
+                            >
+                              <Download className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
 
-                {changeSheets.length > itemsPerPage && (
-                  <div className="flex flex-col sm:flex-row justify-between items-center responsive-padding responsive-gap">
-                    <div className="responsive-text text-muted-foreground">
-                      Mostrando {startIndex + 1} a {endIndex} de {sortedChangeSheets.length} registros
+              {/* Paginación */}
+              {changeSheets.length > itemsPerPage && (
+                <div className="flex flex-col sm:flex-row justify-between items-center mt-4 gap-4">
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    Mostrando {startIndex + 1} a {endIndex} de {sortedChangeSheets.length} registros
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                      disabled={currentPage === 1}
+                    >
+                      Anterior
+                    </Button>
+                    
+                    <div className="flex space-x-1">
+                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        let pageNumber;
+                        if (totalPages <= 5) {
+                          pageNumber = i + 1;
+                        } else if (currentPage <= 3) {
+                          pageNumber = i + 1;
+                        } else if (currentPage >= totalPages - 2) {
+                          pageNumber = totalPages - 4 + i;
+                        } else {
+                          pageNumber = currentPage - 2 + i;
+                        }
+                        
+                        return (
+                          <Button
+                            key={pageNumber}
+                            variant={currentPage === pageNumber ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => setCurrentPage(pageNumber)}
+                            className={cn(
+                                currentPage === pageNumber ? "bg-blue-600 text-white" : "",
+                                "dark:bg-gray-700 dark:hover:bg-gray-600" // Añadir estilos de modo oscuro si usas shadcn
+                            )}
+                          >
+                            {pageNumber}
+                          </Button>
+                        );
+                      })}
                     </div>
                     
-                    <div className="flex items-center space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                        disabled={currentPage === 1}
-                        className="responsive-text"
-                      >
-                        Anterior
-                      </Button>
-                      
-                      <div className="flex space-x-1">
-                        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                          let pageNumber;
-                          if (totalPages <= 5) {
-                            pageNumber = i + 1;
-                          } else if (currentPage <= 3) {
-                            pageNumber = i + 1;
-                          } else if (currentPage >= totalPages - 2) {
-                            pageNumber = totalPages - 4 + i;
-                          } else {
-                            pageNumber = currentPage - 2 + i;
-                          }
-                          
-                          return (
-                            <Button
-                              key={pageNumber}
-                              variant={currentPage === pageNumber ? "default" : "outline"}
-                              size="sm"
-                              onClick={() => setCurrentPage(pageNumber)}
-                              className={cn(
-                                "responsive-text",
-                                currentPage === pageNumber ? "bg-primary text-primary-foreground" : ""
-                              )}
-                            >
-                              {pageNumber}
-                            </Button>
-                          );
-                        })}
-                      </div>
-                      
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                        disabled={currentPage === totalPages}
-                        className="responsive-text"
-                      >
-                        Siguiente
-                      </Button>
-                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                      disabled={currentPage === totalPages}
+                    >
+                      Siguiente
+                    </Button>
                   </div>
-                )}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+                </div>
+              )}
+            </>
+          )}
+        </CardContent>
+      </Card>
 
+      {/* Modal de confirmación de duplicado */}
       <Dialog open={showDuplicateModal} onOpenChange={setShowDuplicateModal}>
         <DialogContent>
           <DialogHeader>
@@ -666,18 +665,19 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({
             <Button variant="outline" onClick={() => setShowDuplicateModal(false)}>
               Cancelar
             </Button>
-            <Button onClick={confirmDuplicate} className="bg-primary hover:bg-primary/90">
+            <Button onClick={confirmDuplicate} className="bg-blue-600 hover:bg-blue-700">
               Duplicar
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
+      {/* Modal de importación */}
       <ImportChangeSheetsModal
         open={showImportModal}
         onClose={() => {
           setShowImportModal(false);
-          loadChangeSheets();
+          loadChangeSheets(); // Recargar datos después de importar
         }}
         language={language}
       />

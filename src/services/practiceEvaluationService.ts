@@ -197,68 +197,6 @@ export const getPracticeEvaluationById = async (id: string): Promise<PracticeEva
 };
 */
 
-// --- FUNCIÓN para exportar evaluaciones de prácticas a CSV ---
-export const exportPracticeEvaluationsToCSV = async (): Promise<void> => {
-  try {
-    const evaluations = await getPracticeEvaluations();
-    
-    // Crear headers del CSV
-    const headers = [
-      'Nombre del Tutor',
-      'Apellidos del Tutor',
-      'Centro de Trabajo',
-      'Nombre del Estudiante',
-      'Apellidos del Estudiante',
-      'Formación',
-      'Institución',
-      'Prácticas',
-      'Universidad',
-      'Fecha de Inicio',
-      'Puntuación General',
-      'Fecha de Evaluación',
-      'Evaluador'
-    ];
-
-    // Convertir datos a formato CSV
-    const csvData = evaluations.map(evaluation => [
-      evaluation.tutorName || '',
-      evaluation.tutorLastName || '',
-      evaluation.workCenter || '',
-      evaluation.studentName || '',
-      evaluation.studentLastName || '',
-      evaluation.formation || '',
-      evaluation.institution || '',
-      evaluation.practices || '',
-      evaluation.institution || '', // Usar institution como university
-      evaluation.evaluationDate ? evaluation.evaluationDate.toLocaleDateString() : '',
-      evaluation.performanceRating ? evaluation.performanceRating.toString() : '', // Usar performanceRating como puntuación
-      evaluation.evaluationDate ? evaluation.evaluationDate.toLocaleDateString() : '',
-      evaluation.evaluatorName || ''
-    ]);
-
-    // Crear contenido CSV
-    const csvContent = [headers, ...csvData]
-      .map(row => row.map(field => `"${field.toString().replace(/"/g, '""')}"`).join(','))
-      .join('\n');
-
-    // Descargar archivo
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `evaluaciones_practicas_${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    console.log('Evaluaciones de prácticas exportadas a CSV correctamente');
-  } catch (error) {
-    console.error('Error al exportar evaluaciones de prácticas a CSV:', error);
-    throw error;
-  }
-};
-
 // Mantenemos esta función si la usas para listar todas las evaluaciones en otro lugar
 export const getPracticeEvaluations = async (): Promise<PracticeEvaluationRecord[]> => {
   try {
