@@ -18,6 +18,10 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({
 }) => {
   const [selectedType, setSelectedType] = useState<'active' | 'inactive' | ''>('');
 
+  const handleValueChange = (value: string) => {
+    setSelectedType(value as 'active' | 'inactive' | '');
+  };
+
   const handleConfirm = () => {
     if (selectedType) {
       onConfirm(selectedType as 'active' | 'inactive');
@@ -46,7 +50,7 @@ const AddPropertyModal: React.FC<AddPropertyModalProps> = ({
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Tipo de Inmueble
             </label>
-            <Select value={selectedType} onValueChange={setSelectedType}>
+            <Select value={selectedType} onValueChange={handleValueChange}>
               <SelectTrigger>
                 <SelectValue placeholder="Selecciona el tipo de inmueble" />
               </SelectTrigger>

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -61,7 +62,7 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({
               <div className="flex items-center gap-2">
                 <Building2 className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 text-primary flex-shrink-0" />
                 <CardTitle className="text-base sm:text-lg lg:text-xl font-semibold text-blue-800 dark:text-blue-200">
-                  {t('realEstate.title')}
+                  Gestión de Inmuebles
                 </CardTitle>
               </div>
               <div className="flex flex-col sm:flex-row gap-2">
@@ -82,7 +83,7 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({
                   className="border-blue-300 text-blue-700 hover:bg-blue-50 text-xs sm:text-sm"
                 >
                   <Upload className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                  {t('realEstate.importData')}
+                  Importar Datos
                 </Button>
                 <Button
                   onClick={onViewTables}
@@ -91,7 +92,7 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({
                   className="border-blue-300 text-blue-700 hover:bg-blue-50 text-xs sm:text-sm"
                 >
                   <Table className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                  {t('realEstate.viewTables')}
+                  Ver Tablas
                 </Button>
               </div>
             </div>
@@ -104,7 +105,7 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({
           <Card className="border-green-200 dark:border-green-800">
             <CardHeader>
               <CardTitle className="text-sm sm:text-base font-semibold text-green-700 dark:text-green-300">
-                {t('realEstate.activeProperties')}
+                Inmuebles Activos
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -118,7 +119,7 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({
           <Card className="border-red-200 dark:border-red-800">
             <CardHeader>
               <CardTitle className="text-sm sm:text-base font-semibold text-red-700 dark:text-red-300">
-                {t('realEstate.inactiveProperties')}
+                Inmuebles Inactivos
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -132,7 +133,7 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({
           <Card className="border-blue-200 dark:border-blue-800">
             <CardHeader>
               <CardTitle className="text-sm sm:text-base font-semibold text-blue-700 dark:text-blue-300">
-                {t('realEstate.totalProperties')}
+                Total Inmuebles
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -146,7 +147,7 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({
            <Card className="border-yellow-200 dark:border-yellow-800">
             <CardHeader>
               <CardTitle className="text-sm sm:text-base font-semibold text-yellow-700 dark:text-yellow-300">
-                {t('realEstate.totalRooms')}
+                Total Habitaciones
               </CardTitle>
             </CardHeader>
             <CardContent>
