@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Language } from '../utils/translations';
+import { useTranslation } from '../hooks/useTranslation';
 import CostAnalysisView from './CostAnalysis/CostAnalysisView';
 import MaintenanceCalendarView from './MaintenanceCalendar/MaintenanceCalendarView';
 import ContractRequestsListView from './ContractRequests/ContractRequestsListView';
@@ -18,6 +19,8 @@ interface MainContentProps {
 }
 
 const MainContent: React.FC<MainContentProps> = ({ activeSection, language }) => {
+  const { t } = useTranslation(language);
+
   const renderContent = () => {
     switch (activeSection) {
       case 'inicio':
@@ -30,31 +33,31 @@ const MainContent: React.FC<MainContentProps> = ({ activeSection, language }) =>
                 className="h-16 sm:h-20 lg:h-24 w-auto mx-auto mb-6 sm:mb-8"
               />
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-blue-900 dark:text-blue-100 mb-3 sm:mb-4">
-                Bienvenido a GEESTOR
+                {t('welcome')}
               </h1>
               <p className="text-base sm:text-lg text-gray-600 dark:text-gray-400 mb-6 sm:mb-8 max-w-3xl mx-auto">
-                Sistema integral de gestión empresarial del Grupo Empresarial Electromédico
+                {t('loginSubtitle')}
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mt-8 sm:mt-12">
                 <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg shadow-md border border-blue-200 dark:border-blue-800">
                   <h3 className="text-lg sm:text-xl font-semibold text-blue-800 dark:text-blue-200 mb-2">
-                    Operaciones
+                    {t('operations')}
                   </h3>
                   <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
-                    Análisis de costes y gestión operativa
+                    {t('costAnalysis')} y gestión operativa
                   </p>
                 </div>
                 <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg shadow-md border border-blue-200 dark:border-blue-800">
                   <h3 className="text-lg sm:text-xl font-semibold text-blue-800 dark:text-blue-200 mb-2">
-                    Gestión Técnica
+                    {t('technicalManagement')}
                   </h3>
                   <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
-                    Mantenimiento y control de equipos
+                    {t('maintenanceCalendar')} y control de equipos
                   </p>
                 </div>
                 <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg shadow-md border border-blue-200 dark:border-blue-800 sm:col-span-2 lg:col-span-1">
                   <h3 className="text-lg sm:text-xl font-semibold text-blue-800 dark:text-blue-200 mb-2">
-                    Gestión de Talento
+                    {t('talentManagement')}
                   </h3>
                   <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
                     Recursos humanos y desarrollo profesional
@@ -72,7 +75,7 @@ const MainContent: React.FC<MainContentProps> = ({ activeSection, language }) =>
         return (
           <div className="text-center py-12 sm:py-16 px-4">
             <h2 className="text-xl sm:text-2xl font-bold text-blue-900 dark:text-blue-100">Comprobadores</h2>
-            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-4">Funcionalidad en desarrollo</p>
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-4">{t('comingSoon')}</p>
           </div>
         );
       case 'solicitudes-contratacion':
@@ -96,7 +99,7 @@ const MainContent: React.FC<MainContentProps> = ({ activeSection, language }) =>
       default:
         return (
           <div className="text-center py-12 sm:py-16 px-4">
-            <h2 className="text-xl sm:text-2xl font-bold text-blue-900 dark:text-blue-100">Sección no encontrada</h2>
+            <h2 className="text-xl sm:text-2xl font-bold text-blue-900 dark:text-blue-100">{t('recordNotFound')}</h2>
             <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-4">La sección solicitada no existe</p>
           </div>
         );
@@ -105,8 +108,10 @@ const MainContent: React.FC<MainContentProps> = ({ activeSection, language }) =>
 
   return (
     <div className="flex flex-col min-h-screen">
-      <main className="flex-1 p-2 sm:p-4 lg:p-6 xl:p-8 bg-gray-50 dark:bg-gray-900">
-        {renderContent()}
+      <main className="flex-1 p-2 sm:p-4 lg:p-6 xl:p-8 bg-gray-50 dark:bg-gray-900 overflow-x-auto">
+        <div className="min-w-0 w-full">
+          {renderContent()}
+        </div>
       </main>
       <Footer />
     </div>

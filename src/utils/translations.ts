@@ -50,6 +50,26 @@ export const translations = {
     close: 'Cerrar',
     actions: 'Acciones',
     
+    // Login y autenticación
+    welcome: 'Bienvenido a GEESTOR',
+    loginSubtitle: 'Sistema integral de gestión empresarial',
+    loginButton: 'Iniciar Sesión',
+    email: 'Correo Electrónico',
+    password: 'Contraseña',
+    profile: 'Perfil',
+    logout: 'Cerrar Sesión',
+    
+    // Perfil de usuario
+    userProfile: 'Perfil de Usuario',
+    personalInformation: 'Información Personal',
+    changePhoto: 'Cambiar Foto',
+    permissions: 'Permisos',
+    permissionsDescription: 'Permisos asignados al usuario',
+    departmentPermissions: 'Permisos de Departamento',
+    operations: 'Operaciones',
+    actionPermissions: 'Permisos de Acciones',
+    userManagement: 'Gestión de Usuarios',
+    
     // Calendario de Mantenimiento
     hospitalInventory: 'Inventario Hospitalario',
     maintenanceSchedule: 'Calendario de Mantenimiento',
@@ -112,6 +132,7 @@ export const translations = {
     
     // Gestión de Inmuebles
     realEstateTitle: 'Gestión de Inmuebles',
+    realEstateDashboard: 'Dashboard de Inmuebles',
     dashboard: 'Dashboard',
     viewTables: 'Ver Tablas',
     propertyCode: 'Código de Propiedad',
@@ -122,6 +143,13 @@ export const translations = {
     workerName: 'Nombre del Trabajador',
     annualCost: 'Coste Anual',
     workCenter: 'Centro de Trabajo',
+    activeProperties: 'Propiedades Activas',
+    inactiveProperties: 'Propiedades Inactivas',
+    totalProperties: 'Total de Propiedades',
+    realEstateDetails: 'Detalles del Inmueble',
+    exportPDF: 'Exportar PDF',
+    detailViewPlaceholder: 'Vista de detalles del inmueble',
+    comingSoon: 'Próximamente disponible',
     
     // Valoración de Prácticas
     practiceEvaluationTitle: 'Valoración de Prácticas',
@@ -190,7 +218,51 @@ export const translations = {
     // Detalles específicos
     employeeAgreementDetails: 'Detalles del Acuerdo de Empleado',
     contractRequestDetails: 'Detalles de la Solicitud de Contrato',
-    exitInterviewDetails: 'Detalles de la Entrevista de Salida'
+    exitInterviewDetails: 'Detalles de la Entrevista de Salida',
+    
+    // Campos adicionales para formularios
+    firstName: 'Nombre',
+    lastName: 'Apellidos',
+    phoneNumber: 'Número de Teléfono',
+    birthDate: 'Fecha de Nacimiento',
+    
+    // Nuevas traducciones para responsive
+    menu: 'Menú',
+    noResults: 'No hay resultados',
+    selectAll: 'Seleccionar Todo',
+    clearAll: 'Limpiar Todo',
+    
+    // Campos específicos de inmuebles
+    ccaaDestination: 'CCAA Destino',
+    workingCenter: 'Centro de Trabajo',
+    codMeta4: 'Cód. Meta 4',
+    workCenterCode: 'Código Centro Trabajo',
+    projectContract: 'Contrato Proyecto',
+    dni: 'DNI',
+    geeCompany: 'Empresa GEE',
+    state: 'Estado',
+    occupancyDate: 'Fecha de Ocupación',
+    contractStartDate: 'Fecha Inicio Contrato',
+    rooms: 'Habitaciones',
+    workerNames: 'Nombre Trabajadores',
+    originProvince: 'Provincia de Origen',
+    
+    // Acciones de tabla
+    editRecord: 'Editar Registro',
+    deleteRecord: 'Eliminar Registro',
+    viewRecord: 'Ver Registro',
+    
+    // Confirmaciones
+    confirmDelete: 'Confirmar Eliminación',
+    deleteConfirmation: '¿Estás seguro de que quieres eliminar este registro?',
+    deleteSuccess: 'Registro eliminado exitosamente',
+    updateSuccess: 'Registro actualizado exitosamente',
+    
+    // Responsive
+    showMore: 'Mostrar Más',
+    showLess: 'Mostrar Menos',
+    mobileView: 'Vista Móvil',
+    desktopView: 'Vista Escritorio'
   },
   en: {
     // General configuration  
@@ -238,6 +310,26 @@ export const translations = {
     confirm: 'Confirm',
     close: 'Close',
     actions: 'Actions',
+    
+    // Login and authentication
+    welcome: 'Welcome to GEESTOR',
+    loginSubtitle: 'Comprehensive business management system',
+    loginButton: 'Sign In',
+    email: 'Email Address',
+    password: 'Password',
+    profile: 'Profile',
+    logout: 'Sign Out',
+    
+    // User profile
+    userProfile: 'User Profile',
+    personalInformation: 'Personal Information',
+    changePhoto: 'Change Photo',
+    permissions: 'Permissions',
+    permissionsDescription: 'User assigned permissions',
+    departmentPermissions: 'Department Permissions',
+    operations: 'Operations',
+    actionPermissions: 'Action Permissions',
+    userManagement: 'User Management',
     
     // Maintenance Calendar
     hospitalInventory: 'Hospital Inventory',
@@ -301,6 +393,7 @@ export const translations = {
     
     // Real Estate Management
     realEstateTitle: 'Real Estate Management',
+    realEstateDashboard: 'Real Estate Dashboard',
     dashboard: 'Dashboard',
     viewTables: 'View Tables',
     propertyCode: 'Property Code',
@@ -311,6 +404,13 @@ export const translations = {
     workerName: 'Worker Name',
     annualCost: 'Annual Cost',
     workCenter: 'Work Center',
+    activeProperties: 'Active Properties',
+    inactiveProperties: 'Inactive Properties',
+    totalProperties: 'Total Properties',
+    realEstateDetails: 'Real Estate Details',
+    exportPDF: 'Export PDF',
+    detailViewPlaceholder: 'Real estate detail view',
+    comingSoon: 'Coming soon',
     
     // Practice Evaluation
     practiceEvaluationTitle: 'Practice Evaluation',
@@ -379,6 +479,50 @@ export const translations = {
     // Specific details
     employeeAgreementDetails: 'Employee Agreement Details',
     contractRequestDetails: 'Contract Request Details',
-    exitInterviewDetails: 'Exit Interview Details'
+    exitInterviewDetails: 'Exit Interview Details',
+    
+    // Additional form fields
+    firstName: 'First Name',
+    lastName: 'Last Name',
+    phoneNumber: 'Phone Number',
+    birthDate: 'Birth Date',
+    
+    // New translations for responsive
+    menu: 'Menu',
+    noResults: 'No results',
+    selectAll: 'Select All',
+    clearAll: 'Clear All',
+    
+    // Specific real estate fields
+    ccaaDestination: 'Destination Region',
+    workingCenter: 'Working Center',
+    codMeta4: 'Meta 4 Code',
+    workCenterCode: 'Work Center Code',
+    projectContract: 'Project Contract',
+    dni: 'ID Number',
+    geeCompany: 'GEE Company',
+    state: 'State',
+    occupancyDate: 'Occupancy Date',
+    contractStartDate: 'Contract Start Date',
+    rooms: 'Rooms',
+    workerNames: 'Worker Names',
+    originProvince: 'Origin Province',
+    
+    // Table actions
+    editRecord: 'Edit Record',
+    deleteRecord: 'Delete Record',
+    viewRecord: 'View Record',
+    
+    // Confirmations
+    confirmDelete: 'Confirm Deletion',
+    deleteConfirmation: 'Are you sure you want to delete this record?',
+    deleteSuccess: 'Record deleted successfully',
+    updateSuccess: 'Record updated successfully',
+    
+    // Responsive
+    showMore: 'Show More',
+    showLess: 'Show Less',
+    mobileView: 'Mobile View',
+    desktopView: 'Desktop View'
   }
 };
