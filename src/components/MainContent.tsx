@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Language } from '../utils/translations';
 import { useTranslation } from '../hooks/useTranslation';
@@ -12,6 +11,8 @@ import PracticeEvaluationsListView from './PracticeEvaluations/PracticeEvaluatio
 import ExitInterviewsListView from './ExitInterviews/ExitInterviewsListView';
 import UsersManagementView from './Users/UsersManagementView';
 import Footer from './Footer';
+// Importamos los iconos necesarios de lucide-react
+import { Hammer, Hourglass, Wrench } from 'lucide-react'; 
 
 interface MainContentProps {
   activeSection: string;
@@ -73,9 +74,31 @@ const MainContent: React.FC<MainContentProps> = ({ activeSection, language }) =>
         return <MaintenanceCalendarView language={language} />;
       case 'comprobadores':
         return (
-          <div className="text-center py-12 sm:py-16 px-4">
-            <h2 className="text-xl sm:text-2xl font-bold text-blue-900 dark:text-blue-100">Comprobadores</h2>
-            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-4">{t('comingSoon')}</p>
+          // Contenedor principal con centrado y altura para llenar el espacio disponible
+          <div className="flex flex-col items-center justify-center h-full min-h-[50vh] p-6 text-center bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-900 dark:to-gray-800 rounded-lg shadow-2xl transition-all duration-300 ease-in-out">
+            {/* Icono principal, grande y con animación de rebote para "en construcción" */}
+            <Hammer className="h-28 w-28 text-orange-600 dark:text-orange-400 mb-8 animate-bounce-slow" /> 
+            
+            {/* Título de la sección */}
+            <h2 className="text-4xl sm:text-5xl font-extrabold text-blue-900 dark:text-blue-100 mb-4 tracking-tight">
+              {t('featureTitleComprobadores') || 'Módulo de Comprobadores'}
+            </h2>
+            
+            {/* Descripción detallada */}
+            <p className="text-xl text-gray-700 dark:text-gray-300 mb-10 max-w-2xl leading-relaxed">
+              {t('comingSoonDescriptionComprobadores') || 'Esta sección está actualmente en desarrollo. ¡Pronto estará disponible con nuevas funcionalidades avanzadas para la gestión de tus procesos de verificación y control!'}
+            </p>
+            
+            {/* Indicador de "Próximamente" con icono y estilo destacado */}
+            <div className="flex items-center space-x-4 text-blue-700 dark:text-blue-300 bg-white dark:bg-gray-900/50 p-4 px-6 rounded-full border border-blue-300 dark:border-blue-700 shadow-lg transform hover:scale-105 transition-transform duration-300">
+                <Hourglass className="h-8 w-8 animate-spin-slow" /> {/* Reloj de arena girando suavemente */}
+                <span className="text-2xl font-bold">{t('comingSoon') || 'Próximamente...'}</span>
+            </div>
+
+            {/* Opcional: una barra de progreso sutil o un mensaje extra */}
+            {/* <div className="w-64 bg-gray-200 rounded-full h-2.5 dark:bg-gray-700 mt-10">
+                <div className="bg-blue-600 h-2.5 rounded-full w-[45%]" style={{ width: '45%' }}></div>
+            </div> */}
           </div>
         );
       case 'solicitudes-contratacion':
@@ -98,9 +121,10 @@ const MainContent: React.FC<MainContentProps> = ({ activeSection, language }) =>
         return <UsersManagementView language={language} />;
       default:
         return (
-          <div className="text-center py-12 sm:py-16 px-4">
+          <div className="flex flex-col items-center justify-center h-full min-h-[50vh] p-6 text-center bg-white dark:bg-gray-800 rounded-lg shadow-md">
+            <Wrench className="h-20 w-20 text-red-500 dark:text-red-400 mb-6" />
             <h2 className="text-xl sm:text-2xl font-bold text-blue-900 dark:text-blue-100">{t('recordNotFound')}</h2>
-            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-4">La sección solicitada no existe</p>
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-4">La sección solicitada no existe o está en mantenimiento.</p>
           </div>
         );
     }
@@ -108,8 +132,9 @@ const MainContent: React.FC<MainContentProps> = ({ activeSection, language }) =>
 
   return (
     <div className="flex flex-col min-h-screen">
-      <main className="flex-1 p-2 sm:p-4 lg:p-6 xl:p-8 bg-gray-50 dark:bg-gray-900 overflow-x-auto">
-        <div className="min-w-0 w-full">
+      <main className="flex-1 p-2 sm:p-4 lg:p-6 xl:p-8 bg-gray-50 dark:bg-gray-900 overflow-auto">
+        {/* Aseguramos que este div ocupe todo el espacio vertical disponible */}
+        <div className="min-w-0 w-full h-full"> 
           {renderContent()}
         </div>
       </main>

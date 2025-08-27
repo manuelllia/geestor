@@ -25,6 +25,7 @@ export const translations = {
     users: 'Usuarios',
     bidAnalyzer: 'Analizador de Licitaciones',
     costAnalysis: 'Análisis de Costos',
+    checkers: 'Comprobadores', // Nueva clave para el menú
     
     // Botones generales
     save: 'Guardar',
@@ -153,7 +154,6 @@ export const translations = {
     realEstateDetails: 'Detalles del Inmueble',
     exportPDF: 'Exportar PDF',
     detailViewPlaceholder: 'Vista de detalles del inmueble',
-    comingSoon: 'Próximamente disponible',
     
     // Valoración de Prácticas
     practiceEvaluationTitle: 'Valoración de Prácticas',
@@ -177,7 +177,7 @@ export const translations = {
     createdDate: 'Fecha de Creación',
     name: 'Nombre',
     
-    // Estados y valores comunes
+    // Common states and values
     active: 'Activo',
     inactive: 'Inactivo',
     pending: 'Pendiente',
@@ -266,7 +266,12 @@ export const translations = {
     showMore: 'Mostrar Más',
     showLess: 'Mostrar Menos',
     mobileView: 'Vista Móvil',
-    desktopView: 'Vista Escritorio'
+    desktopView: 'Vista Escritorio',
+
+    // --- Nuevas claves para la sección 'Comprobadores' ---
+    comingSoon: 'Próximamente',
+    featureTitleComprobadores: 'Módulo de Comprobadores',
+    comingSoonDescriptionComprobadores: 'Esta sección está actualmente en desarrollo. ¡Pronto estará disponible con nuevas funcionalidades avanzadas para la gestión de tus procesos de verificación y control!',
   },
   en: {
     // General configuration  
@@ -291,6 +296,7 @@ export const translations = {
     users: 'Users',
     bidAnalyzer: 'Bid Analyzer',
     costAnalysis: 'Cost Analysis',
+    checkers: 'Checkers', // New key for menu
     
     // General buttons
     save: 'Save',
@@ -419,7 +425,6 @@ export const translations = {
     realEstateDetails: 'Real Estate Details',
     exportPDF: 'Export PDF',
     detailViewPlaceholder: 'Real estate detail view',
-    comingSoon: 'Coming soon',
     
     // Practice Evaluation
     practiceEvaluationTitle: 'Practice Evaluation',
@@ -532,6 +537,11 @@ export const translations = {
     showMore: 'Show More',
     showLess: 'Show Less',
     mobileView: 'Mobile View',
-    desktopView: 'Desktop View'
+    desktopView: 'Desktop View',
+
+    // --- New keys for 'Checkers' section ---
+    comingSoon: 'Coming Soon',
+    featureTitleComprobadores: 'Checkers Module',
+    comingSoonDescriptionComprobadores: 'This section is currently under development. It will soon be available with advanced new functionalities for managing your verification and control processes!',
   }
 };
