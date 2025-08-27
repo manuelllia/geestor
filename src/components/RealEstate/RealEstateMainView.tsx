@@ -1,9 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import RealEstateDashboard from './RealEstateDashboard';
 import RealEstateListView from './RealEstateListView';
 import RealEstateUploadView from './RealEstateUploadView';
-import RealEstatePropertyForm from './RealEstatePropertyForm';
+import PropertyTypeSelectionModal from './PropertyTypeSelectionModal';
+import ActivePropertyForm from './ActivePropertyForm';
+import InactivePropertyForm from './InactivePropertyForm';
 import { Language } from '../../utils/translations';
 import { checkRealEstateDocument } from '../../services/realEstateService';
 
@@ -11,12 +12,13 @@ interface RealEstateMainViewProps {
   language: Language;
 }
 
-type ViewType = 'dashboard' | 'list' | 'upload' | 'addProperty';
+type ViewType = 'dashboard' | 'list' | 'upload' | 'addActiveProperty' | 'addInactiveProperty';
 
 const RealEstateMainView: React.FC<RealEstateMainViewProps> = ({ language }) => {
   const [currentView, setCurrentView] = useState<ViewType>('dashboard');
   const [hasData, setHasData] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [showPropertyTypeModal, setShowPropertyTypeModal] = useState(false);
 
   useEffect(() => {
     const checkData = async () => {
@@ -49,8 +51,8 @@ const RealEstateMainView: React.FC<RealEstateMainViewProps> = ({ language }) => 
   };
 
   const handleAddProperty = () => {
-    console.log('🏠 Navegando a agregar propiedad');
-    setCurrentView('addProperty');
+    console.log('🏠 Abriendo modal de selección de tipo de propiedad');
+    setShowPropertyTypeModal(true);
   };
 
   const handleBackToDashboard = () => {
@@ -60,6 +62,16 @@ const RealEstateMainView: React.FC<RealEstateMainViewProps> = ({ language }) => 
       setHasData(documentExists);
     };
     recheckData();
+  };
+
+  const handlePropertyTypeConfirm = (propertyType: 'active' | 'inactive') => {
+    console.log(`🏠 Tipo seleccionado: ${propertyType}`);
+    if (propertyType === 'active') {
+      setCurrentView('addActiveProperty');
+    } else {
+      setCurrentView('addInactiveProperty');
+    }
+    setShowPropertyTypeModal(false);
   };
 
   if (isLoading) {
@@ -89,11 +101,19 @@ const RealEstateMainView: React.FC<RealEstateMainViewProps> = ({ language }) => 
           />
         </div>
       );
-    case 'addProperty':
+    case 'addActiveProperty':
       return (
         <div className="w-full min-h-screen bg-gray-50 dark:bg-gray-900">
-          <RealEstatePropertyForm
-            language={language}
+          <ActivePropertyForm
+            onBack={handleBackToDashboard}
+            onSave={handleBackToDashboard}
+          />
+        </div>
+      );
+    case 'addInactiveProperty':
+      return (
+        <div className="w-full min-h-screen bg-gray-50 dark:bg-gray-900">
+          <InactivePropertyForm
             onBack={handleBackToDashboard}
             onSave={handleBackToDashboard}
           />
@@ -107,6 +127,11 @@ const RealEstateMainView: React.FC<RealEstateMainViewProps> = ({ language }) => 
             onImportData={handleImportData}
             onViewTables={handleViewTables}
             onAddProperty={handleAddProperty}
+          />
+          <PropertyTypeSelectionModal
+            isOpen={showPropertyTypeModal}
+            onClose={() => setShowPropertyTypeModal(false)}
+            onConfirm={handlePropertyTypeConfirm}
           />
         </div>
       );
