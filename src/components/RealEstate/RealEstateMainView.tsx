@@ -49,6 +49,7 @@ const RealEstateMainView: React.FC<RealEstateMainViewProps> = ({ language }) => 
   };
 
   const handleAddProperty = () => {
+    console.log('🏠 Navegando a agregar propiedad');
     setCurrentView('addProperty');
   };
 

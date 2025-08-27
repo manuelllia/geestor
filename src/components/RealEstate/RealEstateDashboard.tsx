@@ -121,16 +121,21 @@ const RealEstateDashboard: React.FC<RealEstateDashboardProps> = ({
         </div>
         {/* Contenedor de botones */}
         <div className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-3">
-          {/* Botón Agregar Inmueble */}
-          {onAddProperty && (
-            <Button
-              onClick={onAddProperty}
-              className="bg-green-600 hover:bg-green-700 text-white px-3 sm:px-4 lg:px-6 py-2 rounded-lg shadow-lg text-sm sm:text-base flex items-center justify-center"
-            >
-              <Plus className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-              Agregar Inmueble
-            </Button>
-          )}
+          {/* Botón Agregar Inmueble - Siempre visible */}
+          <Button
+            onClick={() => {
+              console.log('🔥 Botón Agregar Inmueble clickeado');
+              if (onAddProperty) {
+                onAddProperty();
+              } else {
+                console.error('⚠️ onAddProperty no está definido');
+              }
+            }}
+            className="bg-green-600 hover:bg-green-700 text-white px-3 sm:px-4 lg:px-6 py-2 rounded-lg shadow-lg text-sm sm:text-base flex items-center justify-center"
+          >
+            <Plus className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+            Agregar Inmueble
+          </Button>
 
           <Button 
             onClick={onImportData} 
