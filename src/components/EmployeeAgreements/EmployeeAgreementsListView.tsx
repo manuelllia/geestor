@@ -282,7 +282,7 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
                           <span className="responsive-text font-medium">{t('department')}</span>
                         </TableHead>
                         <TableHead className="min-w-[120px]">
-                          <span className="responsive-text font-medium">Tipo de Contrato</span>
+                          <span className="responsive-text font-medium">Tipo de Acuerdo</span>
                         </TableHead>
                         <TableHead className="min-w-[100px]">
                           <span className="responsive-text font-medium">{t('startDate')}</span>
@@ -315,7 +315,7 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
                           </TableCell>
                           <TableCell>
                             <div className="responsive-text truncate max-w-[100px]">
-                              {agreement.contractType}
+                              {agreement.agreementType}
                             </div>
                           </TableCell>
                           <TableCell>
