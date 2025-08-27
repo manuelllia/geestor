@@ -60,7 +60,7 @@ export const useExportToPDF = () => {
       const metrics = [
         { label: 'Pisos Activos', value: data.propertyCounts.active.toLocaleString(), color: [34, 197, 94] },
         { label: 'Pisos de Baja', value: data.propertyCounts.inactive.toLocaleString(), color: [239, 68, 68] },
-        { label: 'Total Propiedades', value: data.propertyCounts.total.toLocaleString(), color: [59, 130, 246] },
+        { label: 'Total Historial', value: data.propertyCounts.total.toLocaleString(), color: [59, 130, 246] },
         { label: 'Total Habitaciones', value: data.propertyCounts.totalRooms.toLocaleString(), color: [147, 51, 234] }
       ];
 
