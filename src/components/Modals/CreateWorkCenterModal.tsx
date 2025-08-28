@@ -172,7 +172,7 @@ const CreateWorkCenterModal: React.FC<CreateWorkCenterModalProps> = ({
           <AlertDialogHeader>
             <AlertDialogTitle>{t('confirmCreationTitle')}</AlertDialogTitle> {/* Traducido */}
             <AlertDialogDescription>
-              {t('confirmCreationDescription', { name: formData.Nombre, id: formData.Id })} {/* Traducido con interpolación */}
+              {t('confirmCreationDescription').replace('{name}', formData.Nombre).replace('{id}', formData.Id)}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -189,7 +189,7 @@ const CreateWorkCenterModal: React.FC<CreateWorkCenterModalProps> = ({
           <AlertDialogHeader>
             <AlertDialogTitle>{t('workCenterExistsTitle')}</AlertDialogTitle> {/* Traducido */}
             <AlertDialogDescription>
-              {t('workCenterExistsDescription', { id: formData.Id })} {/* Traducido con interpolación */}
+              {t('workCenterExistsDescription').replace('{id}', formData.Id)}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

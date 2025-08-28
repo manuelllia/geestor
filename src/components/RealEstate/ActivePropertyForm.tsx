@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -66,6 +65,7 @@ const empresasGeeOptions = [
 
 const ActivePropertyForm: React.FC<ActivePropertyFormProps> = ({ onBack, onSave, language }) => {
   const { t } = useTranslation(language); // Inicializa el hook de traducción
+  
   const [formData, setFormData] = useState<ActivePropertyFormData>({
     id: '',
     workers: [{ id: '1', name: '', dni: '' }],
@@ -526,7 +526,7 @@ const ActivePropertyForm: React.FC<ActivePropertyFormProps> = ({ onBack, onSave,
                 />
               </div>
 
-              {/* Contrato Proyecto (ahora es solo para el string del contrato) */}
+              {/* Contrato Proyecto */}
               <div className="space-y-2">
                 <Label htmlFor="contratoProyecto" className="text-sm font-medium">
                   {t('projectContractLabel')}
@@ -539,7 +539,7 @@ const ActivePropertyForm: React.FC<ActivePropertyFormProps> = ({ onBack, onSave,
                 />
               </div>
 
-              {/* Código Centro Trabajo (¡NUEVO DESPLEGABLE!) */}
+              {/* Código Centro Trabajo */}
               <div className="space-y-2">
                 <Label htmlFor="workCenterCode" className="text-sm font-medium">
                   {t('workCenterCodeLabel')} *
