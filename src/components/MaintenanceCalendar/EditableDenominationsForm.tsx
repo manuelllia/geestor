@@ -32,6 +32,7 @@ const EditableDenominationsForm: React.FC<EditableDenominationsFormProps> = ({
 }) => {
   const { t } = useTranslation(language);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
   const {
     suggestions,
     getSuggestions,
@@ -40,22 +41,22 @@ const EditableDenominationsForm: React.FC<EditableDenominationsFormProps> = ({
   } = useMaintenanceSuggestions();
 
   const handleGetSuggestions = useCallback(async () => {
-    const incompleteDenominaciones = denominaciones.filter(den => 
-      !den.tipoMantenimiento || den.tipoMantenimiento === ''
-    );
-    
-    if (incompleteDenominaciones.length === 0) {
-      console.log('No hay denominaciones incompletas');
+    // Ahora siempre permitimos obtener sugerencias
+    if (denominaciones.length === 0) {
+      console.log('No hay denominaciones para analizar');
       return;
     }
 
+    setIsLoadingSuggestions(true);
     const tiposMantenimientoInteres = tipoOptions.filter(tipo => tipo && tipo.trim() !== '');
     
     try {
-      await getSuggestions(incompleteDenominaciones, tiposMantenimientoInteres);
+      await getSuggestions(denominaciones, tiposMantenimientoInteres);
       setShowSuggestions(true);
     } catch (error) {
       console.error('Error al obtener sugerencias:', error);
+    } finally {
+      setIsLoadingSuggestions(false);
     }
   }, [denominaciones, tipoOptions, getSuggestions]);
 
@@ -106,15 +107,16 @@ const EditableDenominationsForm: React.FC<EditableDenominationsFormProps> = ({
           <CardTitle className="flex items-center justify-between">
             <span>Denominaciones Homogéneas</span>
             <div className="flex gap-2">
-              {incompleteDenominaciones.length > 0 && (
+              {denominaciones.length > 0 && (
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={handleGetSuggestions}
+                  disabled={isLoadingSuggestions}
                   className="flex items-center gap-2"
                 >
                   <Wand2 className="w-4 h-4" />
-                  Obtener Sugerencias IA ({incompleteDenominaciones.length})
+                  {isLoadingSuggestions ? 'Analizando...' : 'Sugerir Mantenimientos IA'}
                 </Button>
               )}
               <Button

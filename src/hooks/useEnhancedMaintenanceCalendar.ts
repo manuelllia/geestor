@@ -188,41 +188,16 @@ export const useEnhancedMaintenanceCalendar = (denominaciones: DenominacionHomog
 
   const exportCalendarToCSV = () => {
     try {
-      // Convertir eventos a formato CSV
-      const csvData = events.map(event => ({
-        fecha: event.fecha.toISOString().split('T')[0],
-        denominacion: event.denominacion,
-        codigo: event.codigo,
-        tipoMantenimiento: event.tipoMantenimiento,
-        tiempo: event.tiempo,
-        cantidad: event.cantidad,
-        estado: event.estado,
-        prioridad: event.prioridad,
-        tecnico: event.tecnico || 'Sin asignar',
-        notas: event.notas || ''
-      }));
-
-      // Crear el CSV
-      const csvContent = [
-        // Encabezados
-        ['Fecha', 'Denominación', 'Código', 'Tipo de Mantenimiento', 'Tiempo (h)', 'Cantidad', 'Estado', 'Prioridad', 'Técnico', 'Notas'].join(','),
-        // Datos
-        ...csvData.map(row => Object.values(row).map(val => `"${val}"`).join(','))
-      ].join('\n');
-
-      // Descargar archivo
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      const url = URL.createObjectURL(blob);
-      link.setAttribute('href', url);
-      link.setAttribute('download', `calendario_mantenimiento_${new Date().getFullYear()}.csv`);
-      link.style.visibility = 'hidden';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      console.log('📊 CSV exportado exitosamente');
-      return true;
+      // Usar el nuevo exportador CSV con las columnas especificadas
+      const result = MaintenanceCSVExporter.exportToCSV(denominaciones);
+      
+      if (result) {
+        console.log('📊 CSV exportado exitosamente con distribución mensual');
+        return true;
+      } else {
+        console.warn('⚠️ No se pudo exportar el CSV - datos insuficientes');
+        return false;
+      }
     } catch (error) {
       console.error('❌ Error exportando CSV:', error);
       return null;

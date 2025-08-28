@@ -100,7 +100,7 @@ export class MaintenanceSuggestionsService {
 Actúa como un ingeniero biomédico experto y/o un técnico de mantenimiento especializado en equipos de electromedicina, con acceso ilimitado y capacidad para realizar búsquedas exhaustivas en internet. Tu misión es investigar, compilar y estructurar información crítica sobre los requisitos de mantenimiento y preventivos para equipos médicos específicos.
 
 **Objetivo de la Tarea:**
-Para una lista de equipos de electromedicina que se te proporcionará, y basándote en un conjunto de tipos de mantenimiento de interés, deberás realizar una búsqueda exhaustiva en fuentes fiables para identificar los mantenimientos/preventivos asociados, su frecuencia recomendada y el tiempo estimado para su ejecución.
+Para una lista de equipos de electromedicina que se te proporcionará, y basándote en un conjunto de tipos de mantenimiento de interés, deberás realizar una búsqueda exhaustiva en fuentes fiables para identificar los mantenimientos/preventivos adicionales que podrían estar faltando, su frecuencia recomendada y el tiempo estimado para su ejecución.
 
 **LISTA_DENOMINACIONES:**
 ${JSON.stringify(denominaciones, null, 2)}
@@ -120,35 +120,38 @@ ${JSON.stringify(tiposMantenimientoInteres, null, 2)}
    - Publicaciones Técnicas Especializadas y Artículos Científicos
 
 3. **Extracción de Mantenimientos:**
-   - Identifica todos los mantenimientos preventivos y tareas recomendadas
+   - Identifica todos los mantenimientos preventivos y tareas recomendadas que podrían faltar
    - Presta especial atención a los que coincidan con LISTA_MANTENIMIENTOS_INTERES
    - Un mismo equipo puede tener múltiples mantenimientos (regístrarlos por separado)
+   - Sugiere mantenimientos adicionales aunque ya existan algunos básicos
 
 4. **Extracción de Detalles:** Para cada mantenimiento identificado:
    - Descripción del Mantenimiento: Descripción clara y concisa
-   - Frecuencia Recomendada: Periodicidad (Anual, Semestral, Mensual, etc.)
-   - Tiempo Estimado: Duración aproximada (ej: "2 horas", "30 minutos", "1 día")
+   - Frecuencia Recomendada: EXACTAMENTE uno de estos valores: "Mensual", "Bimensual", "Trimestral", "Cuatrimestral", "Semestral", "Anual", "Cada 15 días", "Cada 3 meses"
+   - Tiempo Estimado: EXACTAMENTE en formato "X horas" o "X minutos" (ej: "2 horas", "30 minutos")
 
 **FORMATO DE RESPUESTA REQUERIDO:**
-Responde ÚNICAMENTE con un objeto JSON válido con la siguiente estructura:
+Responde ÚNICAMENTE con un objeto JSON válido con la siguiente estructura EXACTA:
 
 {
   "suggestions": [
     {
       "denominacion": "Nombre exacto del equipo de la lista",
       "tipoMantenimiento": "Tipo de mantenimiento identificado",
-      "frecuencia": "Frecuencia recomendada",
-      "tiempoEstimado": "Tiempo estimado para completar",
-      "descripcion": "Descripción detallada del mantenimiento (opcional)"
+      "frecuencia": "Una de las frecuencias válidas mencionadas arriba",
+      "tiempoEstimado": "Tiempo en formato horas o minutos",
+      "descripcion": "Descripción detallada del mantenimiento"
     }
   ]
 }
 
 **INSTRUCCIONES CRÍTICAS:**
 - Responde SOLO con el JSON, sin explicaciones adicionales
-- Incluye TODOS los mantenimientos encontrados para cada equipo
-- Si no encuentras información específica, usa "No especificado" para ese campo
+- Incluye TODOS los mantenimientos sugeridos para cada equipo
+- Si no encuentras información específica, usa valores por defecto razonables
 - Asegúrate de que el JSON sea válido y parseable
+- OBLIGATORIO: Usa EXACTAMENTE las frecuencias listadas arriba
+- OBLIGATORIO: Usa EXACTAMENTE el formato de tiempo especificado
 - Prioriza la información de fuentes oficiales del fabricante
 
 Inicia la búsqueda exhaustiva ahora:
@@ -179,13 +182,46 @@ Inicia la búsqueda exhaustiva ahora:
         throw new Error('La respuesta no contiene un array de sugerencias válido');
       }
       
-      return parsedResult.suggestions.map(suggestion => ({
-        denominacion: String(suggestion.denominacion || ''),
-        tipoMantenimiento: String(suggestion.tipoMantenimiento || ''),
-        frecuencia: String(suggestion.frecuencia || 'No especificado'),
-        tiempoEstimado: String(suggestion.tiempoEstimado || 'No especificado'),
-        descripcion: suggestion.descripcion ? String(suggestion.descripcion) : undefined
-      }));
+      // Validar y normalizar cada sugerencia
+      return parsedResult.suggestions.map(suggestion => {
+        // Normalizar frecuencia a valores válidos
+        let normalizedFrecuencia = String(suggestion.frecuencia || 'Trimestral');
+        const validFrecuencias = ['Mensual', 'Bimensual', 'Trimestral', 'Cuatrimestral', 'Semestral', 'Anual', 'Cada 15 días', 'Cada 3 meses'];
+        
+        if (!validFrecuencias.includes(normalizedFrecuencia)) {
+          // Intentar mapear frecuencias similares
+          const frecLower = normalizedFrecuencia.toLowerCase();
+          if (frecLower.includes('mes') || frecLower.includes('month')) normalizedFrecuencia = 'Mensual';
+          else if (frecLower.includes('trimest') || frecLower.includes('quarter')) normalizedFrecuencia = 'Trimestral';
+          else if (frecLower.includes('semest') || frecLower.includes('six')) normalizedFrecuencia = 'Semestral';
+          else if (frecLower.includes('año') || frecLower.includes('anual') || frecLower.includes('year')) normalizedFrecuencia = 'Anual';
+          else normalizedFrecuencia = 'Trimestral'; // Por defecto
+        }
+
+        // Normalizar tiempo estimado
+        let normalizedTiempo = String(suggestion.tiempoEstimado || '2 horas');
+        if (!normalizedTiempo.includes('hora') && !normalizedTiempo.includes('minuto')) {
+          // Si no tiene unidades, asumir horas
+          const numMatch = normalizedTiempo.match(/\d+/);
+          if (numMatch) {
+            normalizedTiempo = `${numMatch[0]} horas`;
+          } else {
+            normalizedTiempo = '2 horas';
+          }
+        }
+
+        return {
+          denominacion: String(suggestion.denominacion || ''),
+          tipoMantenimiento: String(suggestion.tipoMantenimiento || ''),
+          frecuencia: normalizedFrecuencia,
+          tiempoEstimado: normalizedTiempo,
+          descripcion: suggestion.descripcion ? String(suggestion.descripcion) : undefined
+        };
+      }).filter(suggestion => 
+        suggestion.denominacion && 
+        suggestion.tipoMantenimiento && 
+        suggestion.frecuencia
+      );
       
     } catch (parseError) {
       console.error('❌ Error parseando respuesta de Gemini:', parseError);
