@@ -383,6 +383,6 @@ export const translations: { [key in Language]: Translations } = {
     costespdf: 'Costs',
     puntuacionPdf: 'Score',
     asistChat: 'Analysis Assistant',
-    bienvenidaChat: 'Hello! I'm Geenio, your tender analysis assistant. How can I help you?'
+    bienvenidaChat: 'Hello! Im Geenio, your tender analysis assistant. How can I help you?'
   }
 };
