@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
@@ -239,6 +238,7 @@ const CostAnalysisView: React.FC<CostAnalysisViewProps> = ({ language }) => {
         isOpen={isChatbotOpen} 
         onToggle={() => setIsChatbotOpen(!isChatbotOpen)}
         context={analysisResult}
+        language={language}
       />
     </div>
   );
