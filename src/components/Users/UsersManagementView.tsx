@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,8 +7,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { MoreHorizontal, Eye, Users, Loader2, RefreshCw, Search } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Language } from '../../utils/translations'; // Asegúrate de que esta ruta sea correcta
-import { useTranslation } from '../../hooks/useTranslation'; // Asegúrate de que esta ruta sea correcta
+import { Language } from '../../utils/translations';
+import { useTranslation } from '../../hooks/useTranslation';
 import { getUsersList, updateUserPermissions, UserData } from '../../services/usersService';
 import UserPermissionsModal from './UserPermissionsModal';
 import { toast } from 'sonner';
@@ -17,7 +18,7 @@ interface UsersManagementViewProps {
 }
 
 const UsersManagementView: React.FC<UsersManagementViewProps> = ({ language }) => {
-  const { t } = useTranslation(language); // Inicializa el hook de traducción
+  const { t } = useTranslation(language);
   const [users, setUsers] = useState<UserData[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
@@ -36,7 +37,7 @@ const UsersManagementView: React.FC<UsersManagementViewProps> = ({ language }) =
       setUsers(usersData);
     } catch (error) {
       console.error('Error loading users:', error);
-      toast.error(t('errorLoadingUsers')); // Mensaje traducido
+      toast.error(t('errorLoadingUsers'));
     } finally {
       setLoading(false);
     }
@@ -61,14 +62,13 @@ const UsersManagementView: React.FC<UsersManagementViewProps> = ({ language }) =
       ));
       setIsModalOpen(false);
       setSelectedUser(null);
-      toast.success(t('userPermissionsUpdatedSuccessfully')); // Mensaje traducido
+      toast.success(t('userPermissionsUpdatedSuccessfully'));
     } catch (error) {
       console.error('Error updating user:', error);
-      toast.error(t('errorUpdatingUserPermissions')); // Mensaje traducido
+      toast.error(t('errorUpdatingUserPermissions'));
     }
   };
 
-  // Función para filtrar usuarios basada en la búsqueda
   const filteredUsers = useMemo(() => {
     if (!searchTerm.trim()) {
       return users;
@@ -81,7 +81,6 @@ const UsersManagementView: React.FC<UsersManagementViewProps> = ({ language }) =
     );
   }, [users, searchTerm]);
 
-  // Función para resaltar el texto coincidente
   const highlightMatch = (text: string, searchTerm: string) => {
     if (!searchTerm.trim()) {
       return text;
@@ -101,7 +100,6 @@ const UsersManagementView: React.FC<UsersManagementViewProps> = ({ language }) =
     );
   };
 
-  // Función para obtener el texto de booleano traducido
   const getBooleanText = (value: boolean): string => {
     return value ? t('yes') : t('no');
   };
@@ -116,15 +114,15 @@ const UsersManagementView: React.FC<UsersManagementViewProps> = ({ language }) =
 
   if (loading) {
     return (
-      <div className="w-full max-w-full overflow-hidden">
-        <div className="space-y-4 sm:space-y-6 p-2 sm:p-4 lg:p-6">
+      <div className="flex flex-col h-screen">
+        <div className="space-y-4 sm:space-y-6 p-2 sm:p-4 lg:p-6 flex-1">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
               <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-blue-900 dark:text-blue-100">
-                {t('usersGestion')} {/* Traducido */}
+                {t('usersGestion')}
               </h1>
               <p className="text-xs sm:text-sm lg:text-base text-gray-600 dark:text-gray-400 mt-1">
-                {t('userGestSub')} {/* Traducido */}
+                {t('userGestSub')}
               </p>
             </div>
           </div>
@@ -140,20 +138,18 @@ const UsersManagementView: React.FC<UsersManagementViewProps> = ({ language }) =
   }
 
   return (
-    <div className="w-full overflow-hidden">
-      <div className="space-y-4 sm:space-y-6 p-2 sm:p-4 lg:p-6">
-        {/* Header responsive */}
+    <div className="flex flex-col h-screen">
+      <div className="space-y-4 sm:space-y-6 p-2 sm:p-4 lg:p-6 flex-1 overflow-hidden">
         <div className="flex flex-col space-y-4">
           <div>
             <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-blue-900 dark:text-blue-100">
-              {t('usersGestion')} {/* Traducido */}
+              {t('usersGestion')}
             </h1>
             <p className="text-xs sm:text-sm lg:text-base text-gray-600 dark:text-gray-400 mt-1">
-              {t('userGestSub')} {/* Traducido */}
+              {t('userGestSub')}
             </p>
           </div>
           
-          {/* Botones con iconos siempre visibles */}
           <div className="flex flex-col sm:flex-row gap-3">
             <Button
               onClick={handleRefresh}
@@ -163,19 +159,18 @@ const UsersManagementView: React.FC<UsersManagementViewProps> = ({ language }) =
               size="sm"
             >
               <RefreshCw className={`w-4 h-4 mr-2 flex-shrink-0 ${refreshing ? 'animate-spin' : ''}`} />
-              <span>{t('recargar')}</span> {/* Traducido */}
+              <span>{t('recargar')}</span>
             </Button>
           </div>
         </div>
 
-        {/* Buscador */}
         <Card className="border-blue-200 dark:border-blue-800">
           <CardContent className="p-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 flex-shrink-0" />
               <Input
                 type="text"
-                placeholder={t('buscadorUsers')} {/* Traducido */}
+                placeholder={t('buscadorUsers')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 border-blue-200 focus:border-blue-500 focus:ring-blue-500"
@@ -184,36 +179,34 @@ const UsersManagementView: React.FC<UsersManagementViewProps> = ({ language }) =
           </CardContent>
         </Card>
 
-        {/* Tabla con scroll horizontal mejorado */}
-        <Card className="border-blue-200 dark:border-blue-800 w-full overflow-hidden">
+        <Card className="border-blue-200 dark:border-blue-800 flex-1 overflow-hidden">
           <CardHeader className="p-3 sm:p-4 lg:p-6">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-2 sm:space-y-0">
               <CardTitle className="text-sm sm:text-base lg:text-lg text-blue-800 dark:text-blue-200 flex items-center gap-2">
                 <Users className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
-                <span>{t('listaUsers')}</span> {/* Traducido */}
+                <span>{t('listaUsers')}</span>
               </CardTitle>
               <Badge variant="secondary" className="text-xs sm:text-sm w-fit">
-                {filteredUsers.length} {t('usersCount')} {users.length} {t('users')} {/* Traducido: "X de Y usuarios" / "X of Y users" */}
+                {filteredUsers.length} {t('usersCount')} {users.length} {t('users')}
               </Badge>
             </div>
           </CardHeader>
-          <CardContent className="p-0">
-            {/* Contenedor con scroll horizontal forzado */}
-            <div className="w-full overflow-x-auto">
+          <CardContent className="p-0 flex-1 overflow-hidden">
+            <div className="h-full overflow-auto">
               <div className="min-w-[1200px] w-full">
                 <Table>
-                  <TableHeader>
+                  <TableHeader className="sticky top-0 bg-white dark:bg-gray-800 z-10">
                     <TableRow>
-                      <TableHead className="text-xs sm:text-sm min-w-[150px] px-2 sm:px-4">{t('name')}</TableHead> {/* Traducido */}
-                      <TableHead className="text-xs sm:text-sm min-w-[180px] px-2 sm:px-4">{t('email')}</TableHead> {/* Traducido */}
-                      <TableHead className="text-xs sm:text-sm min-w-[120px] px-2 sm:px-4 text-center">{t('create')}</TableHead> {/* Traducido */}
-                      <TableHead className="text-xs sm:text-sm min-w-[120px] px-2 sm:px-4 text-center">{t('delete')}</TableHead> {/* Traducido */}
-                      <TableHead className="text-xs sm:text-sm min-w-[120px] px-2 sm:px-4 text-center">{t('modify')}</TableHead> {/* Traducido */}
-                      <TableHead className="text-xs sm:text-sm min-w-[120px] px-2 sm:px-4 text-center">{t('view')}</TableHead> {/* Traducido */}
-                      <TableHead className="text-xs sm:text-sm min-w-[120px] px-2 sm:px-4 text-center">{t('operations')}</TableHead> {/* Traducido */}
-                      <TableHead className="text-xs sm:text-sm min-w-[140px] px-2 sm:px-4 text-center">{t('technicalManagementShort')}</TableHead> {/* Traducido */}
-                      <TableHead className="text-xs sm:text-sm min-w-[150px] px-2 sm:px-4 text-center">{t('talentManagementShort')}</TableHead> {/* Traducido */}
-                      <TableHead className="w-[80px] text-xs sm:text-sm text-center">{t('actions')}</TableHead> {/* Traducido */}
+                      <TableHead className="text-xs sm:text-sm min-w-[150px] px-2 sm:px-4">{t('name')}</TableHead>
+                      <TableHead className="text-xs sm:text-sm min-w-[180px] px-2 sm:px-4">{t('email')}</TableHead>
+                      <TableHead className="text-xs sm:text-sm min-w-[120px] px-2 sm:px-4 text-center">{t('create')}</TableHead>
+                      <TableHead className="text-xs sm:text-sm min-w-[120px] px-2 sm:px-4 text-center">{t('delete')}</TableHead>
+                      <TableHead className="text-xs sm:text-sm min-w-[120px] px-2 sm:px-4 text-center">{t('modify')}</TableHead>
+                      <TableHead className="text-xs sm:text-sm min-w-[120px] px-2 sm:px-4 text-center">{t('view')}</TableHead>
+                      <TableHead className="text-xs sm:text-sm min-w-[120px] px-2 sm:px-4 text-center">{t('operations')}</TableHead>
+                      <TableHead className="text-xs sm:text-sm min-w-[140px] px-2 sm:px-4 text-center">{t('technicalManagementShort')}</TableHead>
+                      <TableHead className="text-xs sm:text-sm min-w-[150px] px-2 sm:px-4 text-center">{t('talentManagementShort')}</TableHead>
+                      <TableHead className="w-[80px] text-xs sm:text-sm text-center">{t('actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -261,7 +254,7 @@ const UsersManagementView: React.FC<UsersManagementViewProps> = ({ language }) =
                               <DropdownMenuContent align="end" className="bg-white dark:bg-gray-800 border border-blue-200 dark:border-blue-700">
                                 <DropdownMenuItem onClick={() => handleEditUser(user)} className="cursor-pointer text-xs sm:text-sm">
                                   <Eye className="mr-2 h-4 w-4 flex-shrink-0" />
-                                  <span>{t('editPermissions')}</span> {/* Traducido */}
+                                  <span>{t('editPermissions')}</span>
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
@@ -274,10 +267,9 @@ const UsersManagementView: React.FC<UsersManagementViewProps> = ({ language }) =
               </div>
             </div>
             
-            {/* Indicador de scroll en móvil */}
             <div className="sm:hidden p-4 text-center">
               <p className="text-xs text-gray-500">
-                {t('swipeToViewMore')} {/* Traducido */}
+                {t('swipeToViewMore')}
               </p>
             </div>
           </CardContent>
@@ -292,7 +284,7 @@ const UsersManagementView: React.FC<UsersManagementViewProps> = ({ language }) =
               setSelectedUser(null);
             }}
             onSave={handleSaveUser}
-            language={language} {/* ¡Importante! Pasa la prop de idioma al modal también */}
+            language={language}
           />
         )}
       </div>
