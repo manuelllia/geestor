@@ -9,20 +9,20 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ArrowLeft, Building2, Save, Plus, Trash2, CalendarIcon, PlusCircle } from 'lucide-react'; 
 import { format } from 'date-fns';
-import { es, enUS } from 'date-fns/locale'; // Importa enUS
+import { es, enUS } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { createPropertyRecord } from '../../services/realEstateService';
 import { getWorkCenters } from '../../services/workCentersService';
 import CreateWorkCenterModal from '../Modals/CreateWorkCenterModal';
 import { useWorkCenterModals } from '../../hooks/useWorkCenterModals';
-import { useTranslation } from '../../hooks/useTranslation'; // Ajusta la ruta
-import { Language, Translations } from '../../utils/translations'; // Ajusta la ruta
+import { useTranslation } from '../../hooks/useTranslation';
+import { Language, Translations } from '../../utils/translations';
 
 interface ActivePropertyFormProps {
   onBack: () => void;
   onSave: () => void;
-  language: Language; // Añade la prop de idioma
+  language: Language;
 }
 
 interface Worker {
@@ -64,7 +64,7 @@ const empresasGeeOptions = [
 ];
 
 const ActivePropertyForm: React.FC<ActivePropertyFormProps> = ({ onBack, onSave, language }) => {
-  const { t } = useTranslation(language); // Inicializa el hook de traducción
+  const { t } = useTranslation(language);
   
   const [formData, setFormData] = useState<ActivePropertyFormData>({
     id: '',
@@ -95,26 +95,23 @@ const ActivePropertyForm: React.FC<ActivePropertyFormProps> = ({ onBack, onSave,
     closeWorkCenterModal,
   } = useWorkCenterModals();
 
-  // Memoiza loadWorkCenters para que su referencia sea estable
   const loadWorkCenters = React.useMemo(() => async () => {
     try {
       const data = await getWorkCenters();
       setWorkCenters(data);
     } catch (error) {
       console.error('Error loading work centers:', error);
-      toast.error(t('errorLoadingWorkCenters')); // Traducido
+      toast.error(t('errorLoadingWorkCenters'));
     }
-  }, [t]); // Dependencia de `t` para que se recree si el idioma cambia
+  }, [t]);
 
-  // Cargar centros de trabajo al montar el componente o al cambiar `loadWorkCenters`
   useEffect(() => {
     loadWorkCenters();
-  }, [loadWorkCenters]); // <-- Dependencia de la función memoizada
+  }, [loadWorkCenters]);
 
-  // Callback para cuando se crea un nuevo centro de trabajo desde el modal
   const handleWorkCenterSuccess = () => {
     closeWorkCenterModal();
-    loadWorkCenters(); // Recargar la lista para incluir el nuevo centro
+    loadWorkCenters();
   };
 
   const addWorker = () => {
@@ -150,29 +147,26 @@ const ActivePropertyForm: React.FC<ActivePropertyFormProps> = ({ onBack, onSave,
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validaciones obligatorias
     if (!formData.id || !formData.empresaGee || !formData.estadoPiso || 
         !formData.habitaciones || !formData.provinciaOrigen || !formData.workCenterCode) {
-      toast.error(t('requiredFieldsError')); // Traducido
+      toast.error(t('requiredFieldsError'));
       return;
     }
 
-    // Validar trabajadores
     const validWorkers = formData.workers.filter(w => w.name.trim() && w.dni.trim());
     if (validWorkers.length === 0) {
-      toast.error(t('addWorkerError')); // Traducido
+      toast.error(t('addWorkerError'));
       return;
     }
 
     if (formData.empresaGee === 'OTRA' && !formData.empresaGeeCustom.trim()) {
-      toast.error(t('specifyCustomCompanyError')); // Traducido
+      toast.error(t('specifyCustomCompanyError'));
       return;
     }
 
     try {
       setIsSubmitting(true);
       
-      // Formatear datos según la estructura requerida
       const workerNames = validWorkers.map(w => w.name).join('. ');
       const workerDnis = validWorkers.map(w => w.dni).join(', ');
       
@@ -189,18 +183,18 @@ const ActivePropertyForm: React.FC<ActivePropertyFormProps> = ({ onBack, onSave,
         'PROVINCIA DE ORIGEN': formData.provinciaOrigen,
         'COSTE ANUAL': formData.costeAnual ? parseFloat(formData.costeAnual) : 0,
         'FECHA DE OCUPACIÓN': formData.fechaOcupacion ? format(formData.fechaOcupacion, 'dd/MM/yyyy') : '',
-        'FECHA INICIO CONTRATO': formData.fechaInicioContrato ? Math.floor(formData.fechaInicioContrato.getTime() / (1000 * 60 * 60 * 24)) + 25569 : 0, // Excel serial date
+        'FECHA INICIO CONTRATO': formData.fechaInicioContrato ? Math.floor(formData.fechaInicioContrato.getTime() / (1000 * 60 * 60 * 24)) + 25569 : 0,
         'COD. META 4': formData.codMeta4,
         'CONTRATO PROYECTO': formData.contratoProyecto,
         'CODIGO CENTRO TRABAJO': formData.workCenterCode
       };
 
       await createPropertyRecord(propertyData, 'PISOS ACTIVOS');
-      toast.success(t('propertyAddedSuccess')); // Traducido
+      toast.success(t('propertyAddedSuccess'));
       onSave();
     } catch (error) {
       console.error('Error al agregar inmueble activo:', error);
-      toast.error(t('errorAddingProperty')); // Traducido
+      toast.error(t('errorAddingProperty'));
     } finally {
       setIsSubmitting(false);
     }
@@ -222,12 +216,12 @@ const ActivePropertyForm: React.FC<ActivePropertyFormProps> = ({ onBack, onSave,
           className="flex items-center gap-2"
         >
           <ArrowLeft className="h-4 w-4" />
-          {t('back')} {/* Traducido */}
+          {t('back')}
         </Button>
         <div className="flex items-center gap-2">
           <Building2 className="h-6 w-6 text-blue-600" />
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            {t('addActivePropertyTitle')} {/* Traducido */}
+            {t('addActivePropertyTitle')}
           </h1>
         </div>
       </div>
@@ -235,13 +229,12 @@ const ActivePropertyForm: React.FC<ActivePropertyFormProps> = ({ onBack, onSave,
       <Card className="border-blue-200 dark:border-blue-800">
         <CardHeader>
           <CardTitle className="text-lg text-blue-800 dark:text-blue-200">
-            {t('activePropertyInfoTitle')} {/* Traducido */}
+            {t('activePropertyInfoTitle')}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* ID */}
               <div className="space-y-2">
                 <Label htmlFor="id" className="text-sm font-medium">
                   {t('idLabel')} *
@@ -251,12 +244,11 @@ const ActivePropertyForm: React.FC<ActivePropertyFormProps> = ({ onBack, onSave,
                   type="number"
                   value={formData.id}
                   onChange={(e) => setFormData(prev => ({ ...prev, id: e.target.value }))}
-                  placeholder={t('idLabel')} // Usamos la misma clave para placeholder si aplica
+                  placeholder={t('idLabel')}
                   required
                 />
               </div>
 
-              {/* Habitaciones */}
               <div className="space-y-2">
                 <Label htmlFor="habitaciones" className="text-sm font-medium">
                   {t('numRoomsLabel')} *
@@ -271,10 +263,9 @@ const ActivePropertyForm: React.FC<ActivePropertyFormProps> = ({ onBack, onSave,
                 />
               </div>
 
-              {/* Trabajadores */}
               <div className="space-y-2 md:col-span-2">
                 <div className="flex justify-between items-center">
-                  <Label className="text-sm font-medium">{t('workersLabel')} *</Label> {/* Traducido */}
+                  <Label className="text-sm font-medium">{t('workersLabel')} *</Label>
                   <Button
                     type="button"
                     variant="outline"
@@ -283,18 +274,18 @@ const ActivePropertyForm: React.FC<ActivePropertyFormProps> = ({ onBack, onSave,
                     className="flex items-center gap-1"
                   >
                     <Plus className="h-3 w-3" />
-                    {t('addWorkerButton')} {/* Traducido */}
+                    {t('addWorkerButton')}
                   </Button>
                 </div>
                 {formData.workers.map((worker, index) => (
                   <div key={worker.id} className="grid grid-cols-1 md:grid-cols-3 gap-3 p-3 border rounded">
                     <Input
-                      placeholder={t('workerNamePlaceholder')} {/* Traducido */}
+                      placeholder={t('workerNamePlaceholder')}
                       value={worker.name}
                       onChange={(e) => updateWorker(worker.id, 'name', e.target.value)}
                     />
                     <Input
-                      placeholder={t('dniPlaceholder')} {/* Traducido */}
+                      placeholder={t('dniPlaceholder')}
                       value={worker.dni}
                       onChange={(e) => updateWorker(worker.id, 'dni', e.target.value)}
                     />
@@ -307,14 +298,13 @@ const ActivePropertyForm: React.FC<ActivePropertyFormProps> = ({ onBack, onSave,
                         className="flex items-center gap-1"
                       >
                         <Trash2 className="h-3 w-3" />
-                        {t('removeWorkerButton')} {/* Traducido */}
+                        {t('removeWorkerButton')}
                       </Button>
                     )}
                   </div>
                 ))}
               </div>
 
-              {/* Empresa GEE */}
               <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="empresaGee" className="text-sm font-medium">
                   {t('geeCompanyLabel')} *
@@ -325,19 +315,19 @@ const ActivePropertyForm: React.FC<ActivePropertyFormProps> = ({ onBack, onSave,
                   required
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder={t('selectCompanyPlaceholder')} /> {/* Traducido */}
+                    <SelectValue placeholder={t('selectCompanyPlaceholder')} />
                   </SelectTrigger>
                   <SelectContent>
                     {empresasGeeOptions.map((empresa) => (
                       <SelectItem key={empresa} value={empresa}>
-                        {empresa === 'OTRA' ? t('otherCompanyOption') : empresa} {/* Traducir "OTRA" */}
+                        {empresa === 'OTRA' ? t('otherCompanyOption') : empresa}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
                 {formData.empresaGee === 'OTRA' && (
                   <Input
-                    placeholder={t('specifyCompanyPlaceholder')} {/* Traducido */}
+                    placeholder={t('specifyCompanyPlaceholder')}
                     value={formData.empresaGeeCustom}
                     onChange={(e) => setFormData(prev => ({ ...prev, empresaGeeCustom: e.target.value }))}
                     className="mt-2"
@@ -346,9 +336,8 @@ const ActivePropertyForm: React.FC<ActivePropertyFormProps> = ({ onBack, onSave,
                 )}
               </div>
 
-              {/* Estado del Piso */}
               <div className="space-y-2 md:col-span-2">
-                <Label className="text-sm font-medium">{t('propertyStatusLabel')} *</Label> {/* Traducido */}
+                <Label className="text-sm font-medium">{t('propertyStatusLabel')} *</Label>
                 <RadioGroup
                   value={formData.estadoPiso}
                   onValueChange={(value) => setFormData(prev => ({ ...prev, estadoPiso: value }))}
@@ -357,16 +346,15 @@ const ActivePropertyForm: React.FC<ActivePropertyFormProps> = ({ onBack, onSave,
                 >
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="Ocupado" id="ocupado" />
-                    <Label htmlFor="ocupado">{t('occupiedStatus')}</Label> {/* Traducido */}
+                    <Label htmlFor="ocupado">{t('occupiedStatus')}</Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="Vacio" id="vacio" />
-                    <Label htmlFor="vacio">{t('emptyStatus')}</Label> {/* Traducido */}
+                    <Label htmlFor="vacio">{t('emptyStatus')}</Label>
                   </div>
                 </RadioGroup>
               </div>
 
-              {/* Dirección */}
               <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="direccion" className="text-sm font-medium">
                   {t('addressLabel')}
@@ -375,11 +363,10 @@ const ActivePropertyForm: React.FC<ActivePropertyFormProps> = ({ onBack, onSave,
                   id="direccion"
                   value={formData.direccion}
                   onChange={(e) => setFormData(prev => ({ ...prev, direccion: e.target.value }))}
-                  placeholder={t('addressPlaceholder')} {/* Traducido */}
+                  placeholder={t('addressPlaceholder')}
                 />
               </div>
 
-              {/* Población */}
               <div className="space-y-2">
                 <Label htmlFor="poblacion" className="text-sm font-medium">
                   {t('cityLabel')}
@@ -388,11 +375,10 @@ const ActivePropertyForm: React.FC<ActivePropertyFormProps> = ({ onBack, onSave,
                   id="poblacion"
                   value={formData.poblacion}
                   onChange={(e) => setFormData(prev => ({ ...prev, poblacion: e.target.value }))}
-                  placeholder={t('cityLabel')} // Usamos la misma clave para placeholder si aplica
+                  placeholder={t('cityLabel')}
                 />
               </div>
 
-              {/* Provincia */}
               <div className="space-y-2">
                 <Label htmlFor="provincia" className="text-sm font-medium">
                   {t('provinceLabel')}
@@ -401,11 +387,10 @@ const ActivePropertyForm: React.FC<ActivePropertyFormProps> = ({ onBack, onSave,
                   id="provincia"
                   value={formData.provincia}
                   onChange={(e) => setFormData(prev => ({ ...prev, provincia: e.target.value }))}
-                  placeholder={t('provinceLabel')} // Usamos la misma clave para placeholder si aplica
+                  placeholder={t('provinceLabel')}
                 />
               </div>
 
-              {/* CCAA */}
               <div className="space-y-2">
                 <Label htmlFor="ccaa" className="text-sm font-medium">
                   {t('ccaaLabel')}
@@ -414,11 +399,10 @@ const ActivePropertyForm: React.FC<ActivePropertyFormProps> = ({ onBack, onSave,
                   id="ccaa"
                   value={formData.ccaa}
                   onChange={(e) => setFormData(prev => ({ ...prev, ccaa: e.target.value }))}
-                  placeholder={t('ccaaLabel')} // Usamos la misma clave para placeholder si aplica
+                  placeholder={t('ccaaLabel')}
                 />
               </div>
 
-              {/* Provincia de Origen */}
               <div className="space-y-2">
                 <Label htmlFor="provinciaOrigen" className="text-sm font-medium">
                   {t('originProvinceLabel')} *
@@ -427,12 +411,11 @@ const ActivePropertyForm: React.FC<ActivePropertyFormProps> = ({ onBack, onSave,
                   id="provinciaOrigen"
                   value={formData.provinciaOrigen}
                   onChange={(e) => setFormData(prev => ({ ...prev, provinciaOrigen: e.target.value }))}
-                  placeholder={t('originProvinceLabel')} // Usamos la misma clave para placeholder si aplica
+                  placeholder={t('originProvinceLabel')}
                   required
                 />
               </div>
 
-              {/* Coste Anual */}
               <div className="space-y-2">
                 <Label htmlFor="costeAnual" className="text-sm font-medium">
                   {t('annualCostLabel')} *
@@ -443,13 +426,12 @@ const ActivePropertyForm: React.FC<ActivePropertyFormProps> = ({ onBack, onSave,
                   step="0.01"
                   value={formData.costeAnual}
                   onChange={(e) => setFormData(prev => ({ ...prev, costeAnual: e.target.value }))}
-                  placeholder={t('annualCostLabel')} // Usamos la misma clave para placeholder si aplica
+                  placeholder={t('annualCostLabel')}
                 />
               </div>
 
-              {/* Fecha de Ocupación */}
               <div className="space-y-2">
-                <Label className="text-sm font-medium">{t('occupancyDateLabel')}</Label> {/* Traducido */}
+                <Label className="text-sm font-medium">{t('occupancyDateLabel')}</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -473,16 +455,15 @@ const ActivePropertyForm: React.FC<ActivePropertyFormProps> = ({ onBack, onSave,
                       selected={formData.fechaOcupacion}
                       onSelect={(date) => setFormData(prev => ({ ...prev, fechaOcupacion: date }))}
                       initialFocus
-                      locale={language === 'es' ? es : enUS} // Pasa el locale al calendario
+                      locale={language === 'es' ? es : enUS}
                       className={cn("p-3 pointer-events-auto")}
                     />
                   </PopoverContent>
                 </Popover>
               </div>
 
-              {/* Fecha Inicio de Contrato */}
               <div className="space-y-2">
-                <Label className="text-sm font-medium">{t('contractStartDateLabel')}</Label> {/* Traducido */}
+                <Label className="text-sm font-medium">{t('contractStartDateLabel')}</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -506,14 +487,13 @@ const ActivePropertyForm: React.FC<ActivePropertyFormProps> = ({ onBack, onSave,
                       selected={formData.fechaInicioContrato}
                       onSelect={(date) => setFormData(prev => ({ ...prev, fechaInicioContrato: date }))}
                       initialFocus
-                      locale={language === 'es' ? es : enUS} // Pasa el locale al calendario
+                      locale={language === 'es' ? es : enUS}
                       className={cn("p-3 pointer-events-auto")}
                     />
                   </PopoverContent>
                 </Popover>
               </div>
 
-              {/* Cod. Meta 4 */}
               <div className="space-y-2">
                 <Label htmlFor="codMeta4" className="text-sm font-medium">
                   {t('meta4CodeLabel')}
@@ -522,11 +502,10 @@ const ActivePropertyForm: React.FC<ActivePropertyFormProps> = ({ onBack, onSave,
                   id="codMeta4"
                   value={formData.codMeta4}
                   onChange={(e) => setFormData(prev => ({ ...prev, codMeta4: e.target.value }))}
-                  placeholder={t('meta4CodePlaceholder')} {/* Traducido */}
+                  placeholder={t('meta4CodePlaceholder')}
                 />
               </div>
 
-              {/* Contrato Proyecto */}
               <div className="space-y-2">
                 <Label htmlFor="contratoProyecto" className="text-sm font-medium">
                   {t('projectContractLabel')}
@@ -535,11 +514,10 @@ const ActivePropertyForm: React.FC<ActivePropertyFormProps> = ({ onBack, onSave,
                   id="contratoProyecto"
                   value={formData.contratoProyecto}
                   onChange={(e) => setFormData(prev => ({ ...prev, contratoProyecto: e.target.value }))}
-                  placeholder={t('projectContractPlaceholder')} {/* Traducido */}
+                  placeholder={t('projectContractPlaceholder')}
                 />
               </div>
 
-              {/* Código Centro Trabajo */}
               <div className="space-y-2">
                 <Label htmlFor="workCenterCode" className="text-sm font-medium">
                   {t('workCenterCodeLabel')} *
@@ -551,7 +529,7 @@ const ActivePropertyForm: React.FC<ActivePropertyFormProps> = ({ onBack, onSave,
                         required
                     >
                         <SelectTrigger className="flex-1">
-                            <SelectValue placeholder={t('selectWorkCenterPlaceholder')} /> {/* Traducido */}
+                            <SelectValue placeholder={t('selectWorkCenterPlaceholder')} />
                         </SelectTrigger>
                         <SelectContent>
                             {workCenters.map((center) => (
@@ -566,7 +544,7 @@ const ActivePropertyForm: React.FC<ActivePropertyFormProps> = ({ onBack, onSave,
                         variant="outline"
                         size="icon"
                         onClick={openWorkCenterModal}
-                        title={t('addWorkCenterButtonTitle')} {/* Traducido */}
+                        title={t('addWorkCenterButtonTitle')}
                     >
                         <PlusCircle className="h-4 w-4" />
                     </Button>
@@ -581,7 +559,7 @@ const ActivePropertyForm: React.FC<ActivePropertyFormProps> = ({ onBack, onSave,
                 onClick={onBack}
                 disabled={isSubmitting}
               >
-                {t('cancel')} {/* Traducido */}
+                {t('cancel')}
               </Button>
               <Button
                 type="submit"
@@ -589,19 +567,18 @@ const ActivePropertyForm: React.FC<ActivePropertyFormProps> = ({ onBack, onSave,
                 className="bg-green-600 hover:bg-green-700"
               >
                 <Save className="h-4 w-4 mr-2" />
-                {isSubmitting ? t('saving') : t('saveProperty')} {/* Traducido */}
+                {isSubmitting ? t('saving') : t('saveProperty')}
               </Button>
             </div>
           </form>
         </CardContent>
       </Card>
 
-      {/* Modal para crear nuevo Centro de Trabajo */}
       <CreateWorkCenterModal
         isOpen={isWorkCenterModalOpen}
         onClose={closeWorkCenterModal}
         onSuccess={handleWorkCenterSuccess}
-        language={language} {/* Pasa el idioma al modal */}
+        language={language}
       />
     </div>
   );
