@@ -133,6 +133,22 @@ interface Translations {
   exportarEntre: string;
   importarEntre: string;
 
+  // Cost Analysis specific translations
+  errorAnalyzingCosts: string;
+  chatbotContextUpdated: string;
+  pcapFileLabel: string;
+  pcapFileTitle: string;
+  pcapFileDescription: string;
+  pptFileLabel: string;
+  pptFileTitle: string;
+  pptFileDescription: string;
+  professionalCostAnalysisTitle: string;
+  filesReadyForAnalysis: string;
+  analysisDescription: string;
+  analyzingWithAI: string;
+  startProfessionalCostAnalysis: string;
+  analysisErrorTitle: string;
+
   exitInterviewsLoaded: string;
   errorLoadingExitInterviews: string;
   linkCopiedTitle: string;
@@ -332,6 +348,22 @@ export const translations: { [key in Language]: Translations } = {
     exportarEntre: 'Exportar',
     importarEntre: 'Importar',
 
+    // Cost Analysis specific translations
+    errorAnalyzingCosts: 'Error al analizar costos',
+    chatbotContextUpdated: 'Contexto del chatbot actualizado',
+    pcapFileLabel: 'Archivo PCAP',
+    pcapFileTitle: 'Pliego de Condiciones Administrativas Particulares',
+    pcapFileDescription: 'Sube el archivo PCAP de la licitación',
+    pptFileLabel: 'Archivo PPT',
+    pptFileTitle: 'Pliego de Prescripciones Técnicas',
+    pptFileDescription: 'Sube el archivo PPT de la licitación',
+    professionalCostAnalysisTitle: 'Análisis Profesional de Costos',
+    filesReadyForAnalysis: 'Archivos listos para análisis',
+    analysisDescription: 'El sistema analizará ambos documentos para generar un informe completo',
+    analyzingWithAI: 'Analizando con IA...',
+    startProfessionalCostAnalysis: 'Iniciar Análisis Profesional de Costos',
+    analysisErrorTitle: 'Error en el análisis',
+
     exitInterviewsLoaded: 'Entrevistas de salida cargadas',
     errorLoadingExitInterviews: 'Error al cargar las entrevistas de salida',
     linkCopiedTitle: 'Enlace copiado',
@@ -528,6 +560,22 @@ export const translations: { [key in Language]: Translations } = {
     generarEnla1: 'Generate Link',
     exportarEntre: 'Export',
     importarEntre: 'Import',
+
+    // Cost Analysis specific translations
+    errorAnalyzingCosts: 'Error analyzing costs',
+    chatbotContextUpdated: 'Chatbot context updated',
+    pcapFileLabel: 'PCAP File',
+    pcapFileTitle: 'Particular Administrative Conditions Document',
+    pcapFileDescription: 'Upload the PCAP file from the tender',
+    pptFileLabel: 'PPT File',
+    pptFileTitle: 'Technical Prescriptions Document',
+    pptFileDescription: 'Upload the PPT file from the tender',
+    professionalCostAnalysisTitle: 'Professional Cost Analysis',
+    filesReadyForAnalysis: 'Files ready for analysis',
+    analysisDescription: 'The system will analyze both documents to generate a complete report',
+    analyzingWithAI: 'Analyzing with AI...',
+    startProfessionalCostAnalysis: 'Start Professional Cost Analysis',
+    analysisErrorTitle: 'Analysis error',
 
     exitInterviewsLoaded: 'Exit interviews loaded',
     errorLoadingExitInterviews: 'Error loading exit interviews',
