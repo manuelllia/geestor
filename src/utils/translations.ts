@@ -129,35 +129,20 @@ interface Translations {
   asistChat: string;
   bienvenidaChat: string;
 
-  // Missing translation keys for UsersManagementView
-  errorLoadingUsers: string;
-  userPermissionsUpdatedSuccessfully: string;
-  errorUpdatingUserPermissions: string;
-  yes: string;
-  no: string;
-  usersCount: string;
-  editPermissions: string;
-  swipeToViewMore: string;
-
-  // N U E V A S   C L A V E S   P A R A   E L   C H A T B O T
-  botErrorResponse: string;
-  thinking: string;
-  openGeenioChatbot: string;
-  typeYourMessage: string;
-  send: string;
-  // Respuestas básicas del bot (más detalladas para el ejemplo)
-  greetingHello: string;
-  greetingGoodMorning: string;
-  greetingGoodAfternoon: string;
-  greetingGoodEvening: string;
-  greetingHowAreYou: string;
-  greetingIAmFine: string;
-  greetingThanks: string;
-  greetingYouAreWelcome: string;
-  helpMessage: string;
-  processingErrorMessage: string;
-  // Prompt para el modelo de IA (si el idioma del bot cambia)
-  aiSystemPrompt: string;
+  pcapFileLabel: string;
+  pcapFileTitle: string;
+  pcapFileDescription: string;
+  pptFileLabel: string;
+  pptFileTitle: string;
+  pptFileDescription: string;
+  professionalCostAnalysisTitle: string;
+  filesReadyForAnalysis: string;
+  analysisDescription: string;
+  analyzingWithAI: string;
+  startProfessionalCostAnalysis: string;
+  analysisErrorTitle: string;
+  errorAnalyzingCosts: string;
+  chatbotContextUpdated: string;
 }
 
 export const translations: { [key in Language]: Translations } = {
@@ -288,40 +273,20 @@ export const translations: { [key in Language]: Translations } = {
     asistChat: 'Asistente de Análisis',
     bienvenidaChat: '¡Hola! Soy Geenio, tu asistente para análisis de licitaciones. ¿En qué puedo ayudarte?',
 
-    // Missing translation keys for UsersManagementView
-    errorLoadingUsers: 'Error al cargar usuarios',
-    userPermissionsUpdatedSuccessfully: 'Permisos de usuario actualizados correctamente',
-    errorUpdatingUserPermissions: 'Error al actualizar permisos de usuario',
-    yes: 'Sí',
-    no: 'No',
-    usersCount: 'de',
-    editPermissions: 'Editar Permisos',
-    swipeToViewMore: 'Desliza para ver más información',
-
-    botErrorResponse: 'Lo siento, no pude generar una respuesta.',
-    thinking: 'Pensando',
-    openGeenioChatbot: 'Abrir Geenio Chatbot',
-    typeYourMessage: 'Escribe tu mensaje...',
-    send: 'Enviar',
-    greetingHello: '¡Hola! 👋 Soy Geenio, tu asistente de análisis de licitaciones. ¿En qué puedo ayudarte hoy?',
-    greetingGoodMorning: '¡Buenos días! 🌅 ¿Cómo puedo asistirte con el análisis de licitaciones?',
-    greetingGoodAfternoon: '¡Buenas tardes! 🌇 ¿En qué puedo ayudarte con tu análisis?',
-    greetingGoodEvening: '¡Buenas noches! 🌙 ¿Necesitas ayuda con algún análisis?',
-    greetingHowAreYou: '¡Todo bien por aquí! 😊 Listo para ayudarte con cualquier análisis de licitaciones.',
-    greetingIAmFine: '¡Muy bien, gracias! 🤖 Preparado para analizar documentos y responder tus preguntas.',
-    greetingThanks: '¡De nada! 😊 Siempre estoy aquí para ayudarte con tus análisis.',
-    greetingYouAreWelcome: 'De nada.', // Simplified for generic use, specific for chat
-    helpMessage: '¡Por supuesto! 🆘 Puedo ayudarte a:\n• Analizar documentos de licitación\n• Explicar criterios de evaluación\n• Calcular puntuaciones\n• Interpretar resultados\n\n¿Qué necesitas específicamente?',
-    processingErrorMessage: 'Lo siento, hubo un error al procesar tu mensaje. ¿Podrías intentarlo de nuevo?',
-    aiSystemPrompt: `Eres Geenio, un asistente especializado en análisis de licitaciones públicas españolas. 
-      
-      Características:
-      - Eres amigable, profesional y experto en licitaciones
-      - Puedes responder saludos de manera cordial
-      - Tu especialidad es analizar documentos PCAP y PPT
-      - Ayudas a interpretar criterios de evaluación, calcular puntuaciones y entender resultados
-      - Siempre respondes en español, de manera clara y concisa
-      - Puedes mantener conversaciones casuales pero siempre volviendo al tema de licitaciones`
+    pcapFileLabel: 'Archivo PCAP',
+    pcapFileTitle: 'Pliego de Cláusulas Administrativas Particulares',
+    pcapFileDescription: 'Sube el archivo PCAP en formato PDF',
+    pptFileLabel: 'Archivo PPT',
+    pptFileTitle: 'Pliego de Prescripciones Técnicas',
+    pptFileDescription: 'Sube el archivo PPT en formato PDF',
+    professionalCostAnalysisTitle: 'Análisis Profesional de Costes',
+    filesReadyForAnalysis: 'Archivos listos para análisis profesional',
+    analysisDescription: 'El análisis será realizado por IA especializada en licitaciones de electromedicina españolas, proporcionando un informe exhaustivo con análisis económico, criterios de adjudicación y recomendaciones estratégicas.',
+    analyzingWithAI: 'Analizando con IA Especializada...',
+    startProfessionalCostAnalysis: 'Iniciar Análisis Profesional de Costes',
+    analysisErrorTitle: 'Error en el Análisis',
+    errorAnalyzingCosts: 'Error al analizar los costes',
+    chatbotContextUpdated: 'Contexto del chatbot actualizado con nuevo análisis de costes'
   },
   en: {
     theme: 'Theme',
@@ -450,39 +415,19 @@ export const translations: { [key in Language]: Translations } = {
     asistChat: 'Analysis Assistant',
     bienvenidaChat: 'Hello! Im Geenio, your tender analysis assistant. How can I help you?',
 
-    // Missing translation keys for UsersManagementView
-    errorLoadingUsers: 'Error loading users',
-    userPermissionsUpdatedSuccessfully: 'User permissions updated successfully',
-    errorUpdatingUserPermissions: 'Error updating user permissions',
-    yes: 'Yes',
-    no: 'No',
-    usersCount: 'of',
-    editPermissions: 'Edit Permissions',
-    swipeToViewMore: 'Swipe to view more information',
-
-    botErrorResponse: 'Sorry, I couldn\'t generate a response.',
-    thinking: 'Thinking',
-    openGeenioChatbot: 'Open Geenio Chatbot',
-    typeYourMessage: 'Type your message...',
-    send: 'Send',
-    greetingHello: 'Hello! 👋 I\'m Geenio, your tender analysis assistant. How can I help you today?',
-    greetingGoodMorning: 'Good morning! 🌅 How can I assist you with tender analysis?',
-    greetingGoodAfternoon: 'Good afternoon! 🌇 How can I help with your analysis?',
-    greetingGoodEvening: 'Good evening! 🌙 Do you need help with any analysis?',
-    greetingHowAreYou: 'All good here! 😊 Ready to help you with any tender analysis.',
-    greetingIAmFine: 'Very well, thank you! 🤖 Prepared to analyze documents and answer your questions.',
-    greetingThanks: 'You\'re welcome! 😊 I\'m always here to help with your analysis.',
-    greetingYouAreWelcome: 'You\'re welcome.', // Simplified for generic use, specific for chat
-    helpMessage: 'Of course! 🆘 I can help you with:\n• Analyzing tender documents\n• Explaining evaluation criteria\n• Calculating scores\n• Interpreting results\n\nWhat do you need specifically?',
-    processingErrorMessage: 'Sorry, there was an error processing your message. Could you please try again?',
-    aiSystemPrompt: `You are Geenio, an assistant specialized in the analysis of Spanish public tenders. 
-      
-      Characteristics:
-      - You are friendly, professional, and an expert in tenders
-      - You can respond to greetings cordially
-      - Your specialty is analyzing PCAP and PPT documents
-      - You help interpret evaluation criteria, calculate scores, and understand results
-      - You always respond in English, clearly and concisely
-      - You can maintain casual conversations but always return to the topic of tenders`
+    pcapFileLabel: 'PCAP File',
+    pcapFileTitle: 'Terms of Administrative Clauses',
+    pcapFileDescription: 'Upload the PCAP file in PDF format',
+    pptFileLabel: 'PPT File',
+    pptFileTitle: 'Terms of Technical Specifications',
+    pptFileDescription: 'Upload the PPT file in PDF format',
+    professionalCostAnalysisTitle: 'Professional Cost Analysis',
+    filesReadyForAnalysis: 'Files ready for professional analysis',
+    analysisDescription: 'The analysis will be carried out by AI specialized in Spanish electromedicine tenders, providing a comprehensive report with economic analysis, award criteria, and strategic recommendations.',
+    analyzingWithAI: 'Analyzing with Specialized AI...',
+    startProfessionalCostAnalysis: 'Start Professional Cost Analysis',
+    analysisErrorTitle: 'Analysis Error',
+    errorAnalyzingCosts: 'Error analyzing costs',
+    chatbotContextUpdated: 'Chatbot context updated with new cost analysis'
   }
 };
