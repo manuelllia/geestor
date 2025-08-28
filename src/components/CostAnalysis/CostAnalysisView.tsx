@@ -52,9 +52,8 @@ const CostAnalysisView: React.FC<CostAnalysisViewProps> = ({ language }) => {
           reportData: result
         });
         console.log('🤖 Contexto del chatbot actualizado con nuevo análisis de costes');
+        setActiveTab('report');
       }
-      
-      setActiveTab('report');
     } catch (error) {
       console.error('Error analyzing costs:', error);
     }
