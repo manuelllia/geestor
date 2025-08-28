@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -462,7 +463,7 @@ const ActivePropertyForm: React.FC<ActivePropertyFormProps> = ({ onBack, onSave,
                       {formData.fechaOcupacion ? (
                         formatDate(formData.fechaOcupacion)
                       ) : (
-                        <span>{t('selectDate')}</span> {/* Traducido */}
+                        <span>{t('selectDate')}</span>
                       )}
                     </Button>
                   </PopoverTrigger>
@@ -495,7 +496,7 @@ const ActivePropertyForm: React.FC<ActivePropertyFormProps> = ({ onBack, onSave,
                       {formData.fechaInicioContrato ? (
                         formatDate(formData.fechaInicioContrato)
                       ) : (
-                        <span>{t('selectDate')}</span> {/* Traducido */}
+                        <span>{t('selectDate')}</span>
                       )}
                     </Button>
                   </PopoverTrigger>
