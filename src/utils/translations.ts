@@ -115,6 +115,19 @@ interface Translations {
   mensajeCsvMantenimmiento: string;
   formatosCsv: string;
   arrastraArchivo: string;
+  usersGestion: string;
+  userGestSub: string;
+  recargar: string;
+  buscadorUsers: string;
+  listaUsers: string;
+  tituloAnalisis: string;
+  subtiAnalisis: string;
+  subirPdf: string;
+  informepdf: string;
+  costespdf: string;
+  puntuacionPdf: string;
+  asistChat: string;
+  bienvenidaChat: string;
 }
 
 export const translations: { [key in Language]: Translations } = {
@@ -230,7 +243,20 @@ export const translations: { [key in Language]: Translations } = {
     arrastraArchivo: 'Arrastra tu archivo aquí',
     mensajeCsvInventario: 'Sube un archivo Excel o CSV con el inventario de equipos médicos',
     mensajeCsvMantenimmiento: 'Sube un archivo Excel o CSV con la programación de mantenimiento',
-    formatosCsv: 'Formatos soportados: Excel(.xlsx, .xls) y CSV (.csv)'
+    formatosCsv: 'Formatos soportados: Excel(.xlsx, .xls) y CSV (.csv)',
+    usersGestion: 'Gestión de Usuarios',
+    userGestSub: 'Administra los usuarios y sus permisos en el sistema',
+    recargar: 'Actualizar',
+    buscadorUsers: 'Buscar usuarios por nombre o correo...',
+    listaUsers: 'Lista de Usuarios',
+    tituloAnalisis: 'Análisis de Costes Profesional',
+    subtiAnalisis: 'Análisis exhaustivo de licitaciones de electromedicina con IA especializada',
+    subirPdf: 'Subir Archivos',
+    informepdf: 'Informe',
+    costespdf: 'Costes',
+    puntuacionPdf: 'Puntuación',
+    asistChat: 'Asistente de Análisis',
+    bienvenidaChat: '¡Hola! Soy Geenio, tu asistente para análisis de licitaciones. ¿En qué puedo ayudarte?'
   },
   en: {
     theme: 'Theme',
@@ -344,6 +370,19 @@ export const translations: { [key in Language]: Translations } = {
     arrastraArchivo: 'Drag your file here',
     mensajeCsvInventario: 'Upload an Excel or CSV file with your medical equipment inventory',
     mensajeCsvMantenimmiento: 'Upload an Excel or CSV file with the maintenance schedule',
-    formatosCsv: 'Supported formats: Excel (.xlsx, .xls) and CSV (.csv)'
+    formatosCsv: 'Supported formats: Excel (.xlsx, .xls) and CSV (.csv)',
+    usersGestion: 'User Management',
+    userGestSub: 'Manage users and their permissions in the system',
+    recargar: 'Update',
+    buscadorUsers: 'Search for users by name or email...',
+    listaUsers: 'User List',
+    tituloAnalisis: 'Professional Cost Analysis',
+    subtiAnalisis: 'Comprehensive analysis of electromedicine tenders with specialized AI',
+    subirPdf: 'Upload Files',
+    informepdf: 'Report',
+    costespdf: 'Costs',
+    puntuacionPdf: 'Score',
+    asistChat: 'Analysis Assistant',
+    bienvenidaChat: 'Hello! I'm Geenio, your tender analysis assistant. How can I help you?'
   }
 };
