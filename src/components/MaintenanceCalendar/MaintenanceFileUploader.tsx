@@ -3,6 +3,8 @@ import React, { useRef, useState } from 'react';
 import { Upload, FileSpreadsheet, CheckCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { useTranslation } from '../../hooks/useTranslation';
+import { Language } from '../../utils/translations';
 
 interface MaintenanceFileUploaderProps {
   title: string;
@@ -21,6 +23,7 @@ const MaintenanceFileUploader: React.FC<MaintenanceFileUploaderProps> = ({
   isLoading,
   icon
 }) => {
+  const { t } = useTranslation(language);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
@@ -120,13 +123,13 @@ const MaintenanceFileUploader: React.FC<MaintenanceFileUploaderProps> = ({
               <Upload className="h-12 w-12 text-gray-400" />
               <div>
                 <p className="text-lg font-medium text-gray-900 dark:text-gray-100">
-                  Arrastra tu archivo aquí
+                  {t('arrastraArchivo')}
                 </p>
                 <p className="text-gray-600 dark:text-gray-300 mt-2">
                   {description}
                 </p>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                  Formatos soportados: Excel (.xlsx, .xls) y CSV (.csv)
+                  {t('formatosCsv')}
                 </p>
               </div>
               <Button variant="outline">
