@@ -14,6 +14,8 @@ interface Translations {
   calendarManagement: string;
   calendarManagementShort: string;
   checkers: string;
+  homeMenu: string;
+  users: string;
   talentManagement: string;
   talentManagementShort: string;
   contractRequests: string;
@@ -126,6 +128,8 @@ export const translations: { [key in Language]: Translations } = {
     calendarManagement: 'Gestión de Calendarios',
     calendarManagementShort: 'Calendarios',
     checkers: 'Comprobadores',
+    homeMenu: 'Inicio',
+    users: 'Usuarios',
     talentManagement: 'Gestión del Talento',
     talentManagementShort: 'Talento',
     contractRequests: 'Solicitudes de Contratos',
@@ -236,6 +240,8 @@ export const translations: { [key in Language]: Translations } = {
     calendarManagement: 'Calendar Management',
     calendarManagementShort: 'Calendars',
     checkers: 'Checkers',
+    homeMenu: 'Home',
+    users: 'Users',
     talentManagement: 'Talent Management',
     talentManagementShort: 'Talent',
     contractRequests: 'Contract Requests',
