@@ -132,6 +132,7 @@ const RealEstateMainView: React.FC<RealEstateMainViewProps> = ({ language }) => 
             isOpen={showPropertyTypeModal}
             onClose={() => setShowPropertyTypeModal(false)}
             onConfirm={handlePropertyTypeConfirm}
+            language={language}
           />
         </div>
       );

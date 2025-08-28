@@ -1,4 +1,3 @@
-
 export type Language = 'es' | 'en';
 export type Theme = 'light' | 'dark';
 
@@ -218,10 +217,6 @@ export interface Translations {
   valoPracTit: string;
   valoPracSub: string;
   generarEnlaceVal: string;
-
-  valoPracTit: string; // Ya existe: "Valoración de Prácticas"
-  valoPracSub: string; // Ya existe: "Gestiona las valoraciones de prácticas realizadas por los tutores de GEE"
-  generarEnlaceVal: string; // Ya existe: "Generar Enlace de Valoración"
   student: string;
   tutor: string;
   formation: string;
@@ -229,11 +224,11 @@ export interface Translations {
   evaluationDate: string;
   performanceRating: string;
   institution: string;
-  apto: string; // Valor del badge 'Apto'
-  noApto: string; // Valor del badge 'No Apto'
-  performanceRatingScore: string; // Para "X/10"
+  apto: string;
+  noApto: string;
+  performanceRatingScore: string;
   deleteEvaluationConfirmationTitle: string;
-  deleteEvaluationConfirmationDescription: string; // Con interpolación {{studentName}} {{studentLastName}}
+  deleteEvaluationConfirmationDescription: string;
   noEvaluationsRegistered: string;
   generateLinkToStartReceivingEvaluations: string;
   evaluationDeletedToastTitle: string;
@@ -247,32 +242,33 @@ export interface Translations {
   importFunctionComingSoonTitle: string;
   importFunctionComingSoonDescription: string;
 
-  // N U E V A S   C L A V E S   P A R A   PropertyTypeSelectionModal y RealEstateDashboard
+  // Real Estate specific translations
   selectPropertyType: string;
-  propertyTypeLabel: string; // Etiqueta para el Select
+  propertyTypeLabel: string;
   selectTypePlaceholder: string;
-  activeProperty: string; // Item del Select
-  inactiveProperty: string; // Item del Select
-  accept: string; // Botón "Aceptar" del modal
-  // RealEstateDashboard
+  activeProperty: string;
+  inactiveProperty: string;
+  accept: string;
   realEstateManagementDescription: string;
   addProperty: string;
-  importDataButton: string; // Para el botón "Importar Datos"
+  importDataButton: string;
   propertiesOperational: string;
   propertiesPaused: string;
-  totalRooms: string; // Ya existe, pero se usa aquí como texto
+  totalRooms: string;
   availableRooms: string;
-  totalAnnualCost: string; // Ya existe, pero se usa aquí como texto
+  totalAnnualCost: string;
   operatingExpenses: string;
   averageCost: string;
   perProperty: string;
   annualCostByProvince: string;
   propertyStatus: string;
-  properties: string; // Para el tooltip de la tarta "X propiedades"
+  properties: string;
   errorLoadingDashboardData: string;
-  totalRoomsKPI: string; // "Total Habitaciones" como KPI
-  annualTotalCostKPI: string; // "Coste Anual Total" como KPI
-  averageCostKPI: string; // "Coste Promedio" como KPI
+  totalRoomsKPI: string;
+  annualTotalCostKPI: string;
+  averageCostKPI: string;
+  totalPortfolio: string;
+  notImplemented: string;
 }
 
 export const translations: { [key in Language]: Translations } = {
@@ -489,7 +485,6 @@ export const translations: { [key in Language]: Translations } = {
     typeYourMessage: 'Escribe tu mensaje...',
     send: 'Enviar',
 
-    // N U E V A S   T R A D U C C I O N E S   P A R A   PracticeEvaluationsListView
     valoPracTit: 'Valoración de Prácticas',
     valoPracSub: 'Gestiona las valoraciones de prácticas realizadas por los tutores de GEE',
     generarEnlaceVal: 'Generar Enlace de Valoración',
@@ -518,7 +513,7 @@ export const translations: { [key in Language]: Translations } = {
     importFunctionComingSoonTitle: 'Función de importación',
     importFunctionComingSoonDescription: 'Esta función se implementará próximamente',
 
-    // N U E V A S   T R A D U C C I O N E S   P A R A   PropertyTypeSelectionModal y RealEstateDashboard
+    // Real Estate specific translations
     selectPropertyType: 'Seleccionar Tipo de Inmueble',
     propertyTypeLabel: 'Tipo de Inmueble',
     selectTypePlaceholder: 'Seleccionar tipo...',
@@ -542,7 +537,9 @@ export const translations: { [key in Language]: Translations } = {
     errorLoadingDashboardData: 'Error cargando datos del dashboard',
     totalRoomsKPI: 'Total Habitaciones',
     annualTotalCostKPI: 'Coste Anual Total',
-    averageCostKPI: 'Coste Promedio'
+    averageCostKPI: 'Coste Promedio',
+    totalPortfolio: 'Portafolio total',
+    notImplemented: 'no implementado'
   },
   en: {
     theme: 'Theme',
@@ -785,7 +782,7 @@ export const translations: { [key in Language]: Translations } = {
     importFunctionComingSoonTitle: 'Import function',
     importFunctionComingSoonDescription: 'This function will be implemented soon',
 
-    // N E W   T R A N S L A T I O N S   P A R A   PropertyTypeSelectionModal y RealEstateDashboard
+    // Real Estate specific translations
     selectPropertyType: 'Select Property Type',
     propertyTypeLabel: 'Property Type',
     selectTypePlaceholder: 'Select type...',
@@ -809,6 +806,8 @@ export const translations: { [key in Language]: Translations } = {
     errorLoadingDashboardData: 'Error loading dashboard data',
     totalRoomsKPI: 'Total Rooms',
     annualTotalCostKPI: 'Total Annual Cost',
-    averageCostKPI: 'Average Cost'
+    averageCostKPI: 'Average Cost',
+    totalPortfolio: 'Total portfolio',
+    notImplemented: 'not implemented'
   }
 };
