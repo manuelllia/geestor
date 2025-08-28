@@ -10,17 +10,19 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { getPracticeEvaluations, deletePracticeEvaluation, generatePracticeEvaluationToken, PracticeEvaluationRecord } from '../../services/practiceEvaluationService';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
-import { Language } from '../../utils/translations';
-import PracticeEvaluationDetailView from './PracticeEvaluationDetailView';
+import { es, enUS } from 'date-fns/locale'; // Importa enUS
+import { Language, Translations } from '../../utils/translations'; // Importa Translations
+import { useTranslation } from '../../hooks/useTranslation'; // Importa useTranslation
+import PracticeEvaluationDetailView from './PracticeEvaluationDetailView'; // Este componente también debería recibir `language`
 
 interface PracticeEvaluationsListViewProps {
-  language?: Language;
+  language?: Language; // Permite un valor por defecto
 }
 
 export default function PracticeEvaluationsListView({ language = 'es' }: PracticeEvaluationsListViewProps) {
+  const { t } = useTranslation(language); // Inicializa el hook de traducción
   const queryClient = useQueryClient();
-  const { data: evaluations = [], isLoading, refetch } = useQuery({
+  const { data: evaluations = [], isLoading, refetch } = useQuery<PracticeEvaluationRecord[]>({ // Tipado de useQuery
     queryKey: ['practice-evaluations'],
     queryFn: getPracticeEvaluations,
   });
@@ -29,7 +31,7 @@ export default function PracticeEvaluationsListView({ language = 'es' }: Practic
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [selectedEvaluation, setSelectedEvaluation] = useState<PracticeEvaluationRecord | null>(null);
   const [isDetailViewOpen, setIsDetailViewOpen] = useState(false);
-  const [evaluationToDelete, setEvaluationToDelete] = useState<string | null>(null);
+  // No necesitamos evaluationToDelete como estado si lo pasamos directamente al AlertDialogTrigger
 
   // LÓGICA DE ORDENACIÓN
   const handleSort = (column: string) => {
@@ -63,10 +65,14 @@ export default function PracticeEvaluationsListView({ language = 'es' }: Practic
           break;
         case 'workCenter':
         case 'formation':
-        case 'finalEvaluation':
           aValue = (a as any)[sortColumn];
           bValue = (b as any)[sortColumn];
           break;
+        case 'finalEvaluation':
+            // Traducir los valores 'Apto'/'No Apto' para una correcta ordenación si se desea
+            aValue = t(a.finalEvaluation as keyof Translations);
+            bValue = t(b.finalEvaluation as keyof Translations);
+            break;
         case 'evaluationDate':
           aValue = a.evaluationDate instanceof Date ? a.evaluationDate.getTime() : new Date(a.evaluationDate).getTime();
           bValue = b.evaluationDate instanceof Date ? b.evaluationDate.getTime() : new Date(b.evaluationDate).getTime();
@@ -98,15 +104,15 @@ export default function PracticeEvaluationsListView({ language = 'es' }: Practic
       return sortDirection === 'asc' ? comparison : -comparison;
     });
     return sortedData;
-  }, [evaluations, sortColumn, sortDirection, language]);
+  }, [evaluations, sortColumn, sortDirection, language, t]); // Añadir `t` a las dependencias por la traducción de finalEvaluation
 
   const handleGenerateLink = () => {
     const token = generatePracticeEvaluationToken();
     const link = `${window.location.origin}/valoracion-practicas/${token}`; 
     
     navigator.clipboard.writeText(link);
-    toast.success('Enlace copiado al portapapeles', {
-      description: 'Comparte este enlace para que se complete la valoración de prácticas',
+    toast.success(t('linkCopiedToClipboardToastTitle'), { // Traducido
+      description: t('linkCopiedToClipboardToastDescription'), // Traducido
     });
   };
 
@@ -118,73 +124,82 @@ export default function PracticeEvaluationsListView({ language = 'es' }: Practic
   const handleDeleteEvaluation = async (id: string) => {
     try {
       await deletePracticeEvaluation(id);
-      toast.success('Valoración eliminada', {
-        description: 'La valoración de prácticas ha sido eliminada correctamente',
+      toast.success(t('evaluationDeletedToastTitle'), { // Traducido
+        description: t('evaluationDeletedToastDescription'), // Traducido
       });
       queryClient.invalidateQueries({ queryKey: ['practice-evaluations'] });
-      setEvaluationToDelete(null);
     } catch (error) {
-      toast.error('Error al eliminar', {
-        description: 'No se pudo eliminar la valoración de prácticas',
+      toast.error(t('errorDeletingEvaluationToastTitle'), { // Traducido
+        description: t('errorDeletingEvaluationToastDescription'), // Traducido
       });
     }
   };
 
   const handleExport = () => {
-    toast.info('Función de exportación', {
-      description: 'Esta función se implementará próximamente',
+    toast.info(t('exportFunctionComingSoonTitle'), { // Traducido
+      description: t('exportFunctionComingSoonDescription'), // Traducido
     });
   };
 
   const handleImport = () => {
-    toast.info('Función de importación', {
-      description: 'Esta función se implementará próximamente',
+    toast.info(t('importFunctionComingSoonTitle'), { // Traducido
+      description: t('importFunctionComingSoonDescription'), // Traducido
     });
   };
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-4 p-4"> {/* Añadido p-4 para mejor espaciado */}
         <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
         <div className="h-64 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
       </div>
     );
   }
 
+  // Helper para traducir 'Apto'/'No Apto'
+  const getFinalEvaluationText = (value: string) => {
+    return t(value as keyof Translations); // Asume que 'Apto' y 'No Apto' son claves en Translations
+  };
+
+  const formatDate = (date: Date) => {
+    const locale = language === 'es' ? es : enUS;
+    return format(date, 'dd/MM/yyyy', { locale });
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-4"> {/* Añadido p-4 aquí también */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-blue-600 dark:text-blue-300">Valoración de Prácticas</CardTitle>
+          <CardTitle className="text-blue-600 dark:text-blue-300">{t('valoPracTit')}</CardTitle> {/* Traducido */}
           <CardDescription>
-            Gestiona las valoraciones de prácticas realizadas por los tutores de GEE
+            {t('valoPracSub')} {/* Traducido */}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-2 mb-6">
             <Button onClick={handleGenerateLink} className="bg-blue-600 hover:bg-blue-700">
               <Plus className="w-4 h-4 mr-2" />
-              Generar Enlace de Valoración
+              {t('generarEnlaceVal')} {/* Traducido */}
             </Button>
             <Button variant="outline" onClick={handleExport}>
               <Download className="w-4 h-4 mr-2" />
-              Exportar
+              {t('export')} {/* Traducido */}
             </Button>
             <Button variant="outline" onClick={handleImport}>
               <FileUp className="w-4 h-4 mr-2" />
-              Importar
+              {t('import')} {/* Traducido */}
             </Button>
             <Button variant="outline" onClick={() => refetch()}>
               <RefreshCw className="w-4 h-4 mr-2" />
-              Actualizar
+              {t('recargar')} {/* Traducido */}
             </Button>
           </div>
 
           {evaluations.length === 0 ? (
             <div className="text-center py-8 text-gray-500 dark:text-gray-400">
               <Calendar className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p>No hay valoraciones de prácticas registradas</p>
-              <p className="text-sm">Genera un enlace para comenzar a recibir valoraciones</p>
+              <p>{t('noEvaluationsRegistered')}</p> {/* Traducido */}
+              <p className="text-sm">{t('generateLinkToStartReceivingEvaluations')}</p> {/* Traducido */}
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -196,7 +211,7 @@ export default function PracticeEvaluationsListView({ language = 'es' }: Practic
                       onClick={() => handleSort('studentName')}
                     >
                       <div className="flex items-center">
-                        Estudiante
+                        {t('student')} {/* Traducido */}
                         {sortColumn === 'studentName' && (
                           <span className="ml-1">
                             {sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
@@ -209,7 +224,7 @@ export default function PracticeEvaluationsListView({ language = 'es' }: Practic
                       onClick={() => handleSort('tutorName')}
                     >
                       <div className="flex items-center">
-                        Tutor
+                        {t('tutor')} {/* Traducido */}
                         {sortColumn === 'tutorName' && (
                           <span className="ml-1">
                             {sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
@@ -222,7 +237,7 @@ export default function PracticeEvaluationsListView({ language = 'es' }: Practic
                       onClick={() => handleSort('workCenter')}
                     >
                       <div className="flex items-center">
-                        Centro de Trabajo
+                        {t('workCenter')} {/* Traducido */}
                         {sortColumn === 'workCenter' && (
                           <span className="ml-1">
                             {sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
@@ -235,7 +250,7 @@ export default function PracticeEvaluationsListView({ language = 'es' }: Practic
                       onClick={() => handleSort('formation')}
                     >
                       <div className="flex items-center">
-                        Formación
+                        {t('formation')} {/* Traducido */}
                         {sortColumn === 'formation' && (
                           <span className="ml-1">
                             {sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
@@ -248,7 +263,7 @@ export default function PracticeEvaluationsListView({ language = 'es' }: Practic
                       onClick={() => handleSort('finalEvaluation')}
                     >
                       <div className="flex items-center">
-                        Evaluación Final
+                        {t('finalEvaluation')} {/* Traducido */}
                         {sortColumn === 'finalEvaluation' && (
                           <span className="ml-1">
                             {sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
@@ -261,7 +276,7 @@ export default function PracticeEvaluationsListView({ language = 'es' }: Practic
                       onClick={() => handleSort('evaluationDate')}
                     >
                       <div className="flex items-center">
-                        Fecha
+                        {t('evaluationDate')} {/* Traducido */}
                         {sortColumn === 'evaluationDate' && (
                           <span className="ml-1">
                             {sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
@@ -274,7 +289,7 @@ export default function PracticeEvaluationsListView({ language = 'es' }: Practic
                       onClick={() => handleSort('performanceRating')}
                     >
                       <div className="flex items-center justify-center">
-                        Valoración
+                        {t('performanceRating')} {/* Traducido */}
                         {sortColumn === 'performanceRating' && (
                           <span className="ml-1">
                             {sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
@@ -282,7 +297,7 @@ export default function PracticeEvaluationsListView({ language = 'es' }: Practic
                         )}
                       </div>
                     </TableHead>
-                    <TableHead className="w-[120px]">Acciones</TableHead>
+                    <TableHead className="w-[120px]">{t('actions')}</TableHead> {/* Traducido */}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -294,7 +309,7 @@ export default function PracticeEvaluationsListView({ language = 'es' }: Practic
                             {evaluation.studentName} {evaluation.studentLastName}
                           </div>
                           <div className="text-sm text-gray-500">
-                            {evaluation.institution}
+                            {evaluation.institution} {/* Asumiendo que `institution` es un dato y no necesita traducción */}
                           </div>
                         </div>
                       </TableCell>
@@ -304,19 +319,19 @@ export default function PracticeEvaluationsListView({ language = 'es' }: Practic
                       <TableCell>{evaluation.workCenter}</TableCell>
                       <TableCell>{evaluation.formation}</TableCell>
                       <TableCell>
-                        <Badge variant={evaluation.finalEvaluation === 'Apto' ? 'default' : 'destructive'}>
-                          {evaluation.finalEvaluation}
+                        <Badge variant={evaluation.finalEvaluation === 'Apto' || evaluation.finalEvaluation === 'Apt' ? 'default' : 'destructive'}>
+                          {getFinalEvaluationText(evaluation.finalEvaluation)} {/* Traducido */}
                         </Badge>
                       </TableCell>
                       <TableCell>
                         {evaluation.evaluationDate instanceof Date 
-                           ? format(evaluation.evaluationDate, 'dd/MM/yyyy', { locale: es })
-                           : 'Fecha no válida'}
+                           ? formatDate(evaluation.evaluationDate)
+                           : t('invalidDate')} {/* Traducido */}
                       </TableCell>
                       <TableCell>
                         <div className="text-center">
                           <div className="text-lg font-bold text-blue-600 dark:text-blue-300">
-                            {evaluation.performanceRating}/10
+                            {t('performanceRatingScore', { rating: evaluation.performanceRating })} {/* Traducido con interpolación */}
                           </div>
                         </div>
                       </TableCell>
@@ -326,31 +341,34 @@ export default function PracticeEvaluationsListView({ language = 'es' }: Practic
                             variant="ghost"
                             size="sm"
                             onClick={() => handleViewEvaluation(evaluation)}
+                            title={t('viewDetails')} // Traducido
                           >
                             <Eye className="w-4 h-4" />
                           </Button>
                           
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
-                              <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700">
+                              <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700" title={t('delete')}> {/* Traducido */}
                                 <Trash2 className="w-4 h-4" />
                               </Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent>
                               <AlertDialogHeader>
-                                <AlertDialogTitle>¿Eliminar valoración?</AlertDialogTitle>
+                                <AlertDialogTitle>{t('deleteEvaluationConfirmationTitle')}</AlertDialogTitle> {/* Traducido */}
                                 <AlertDialogDescription>
-                                  Esta acción no se puede deshacer. Se eliminará permanentemente la valoración 
-                                  de {evaluation.studentName} {evaluation.studentLastName}.
+                                  {t('deleteEvaluationConfirmationDescription', { 
+                                    studentName: evaluation.studentName, 
+                                    studentLastName: evaluation.studentLastName 
+                                  })} {/* Traducido con interpolación */}
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
-                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                <AlertDialogCancel>{t('cancel')}</AlertDialogCancel> {/* Traducido */}
                                 <AlertDialogAction
                                   onClick={() => handleDeleteEvaluation(evaluation.id)}
                                   className="bg-red-600 hover:bg-red-700"
                                 >
-                                  Eliminar
+                                  {t('delete')} {/* Traducido */}
                                 </AlertDialogAction>
                               </AlertDialogFooter>
                             </AlertDialogContent>
@@ -374,6 +392,7 @@ export default function PracticeEvaluationsListView({ language = 'es' }: Practic
             setIsDetailViewOpen(false);
             setSelectedEvaluation(null);
           }}
+          language={language} // Pasa la prop de idioma al detalle
         />
       )}
     </div>

@@ -214,6 +214,38 @@ export interface Translations {
   thinking: string;
   typeYourMessage: string;
   send: string;
+
+  valoPracTit: string;
+  valoPracSub: string;
+  generarEnlaceVal: string;
+
+  valoPracTit: string; // Ya existe: "Valoración de Prácticas"
+  valoPracSub: string; // Ya existe: "Gestiona las valoraciones de prácticas realizadas por los tutores de GEE"
+  generarEnlaceVal: string; // Ya existe: "Generar Enlace de Valoración"
+  student: string;
+  tutor: string;
+  formation: string;
+  finalEvaluation: string;
+  evaluationDate: string;
+  performanceRating: string;
+  institution: string;
+  apto: string; // Valor del badge 'Apto'
+  noApto: string; // Valor del badge 'No Apto'
+  performanceRatingScore: string; // Para "X/10"
+  deleteEvaluationConfirmationTitle: string;
+  deleteEvaluationConfirmationDescription: string; // Con interpolación {{studentName}} {{studentLastName}}
+  noEvaluationsRegistered: string;
+  generateLinkToStartReceivingEvaluations: string;
+  evaluationDeletedToastTitle: string;
+  evaluationDeletedToastDescription: string;
+  errorDeletingEvaluationToastTitle: string;
+  errorDeletingEvaluationToastDescription: string;
+  linkCopiedToClipboardToastTitle: string;
+  linkCopiedToClipboardToastDescription: string;
+  exportFunctionComingSoonTitle: string;
+  exportFunctionComingSoonDescription: string;
+  importFunctionComingSoonTitle: string;
+  importFunctionComingSoonDescription: string;
 }
 
 export const translations: { [key in Language]: Translations } = {
@@ -428,7 +460,36 @@ export const translations: { [key in Language]: Translations } = {
     openGeenioChatbot: 'Abrir chat de Geenio',
     thinking: 'Pensando...',
     typeYourMessage: 'Escribe tu mensaje...',
-    send: 'Enviar'
+    send: 'Enviar',
+
+    // N U E V A S   T R A D U C C I O N E S   P A R A   PracticeEvaluationsListView
+    valoPracTit: 'Valoración de Prácticas',
+    valoPracSub: 'Gestiona las valoraciones de prácticas realizadas por los tutores de GEE',
+    generarEnlaceVal: 'Generar Enlace de Valoración',
+    student: 'Estudiante',
+    tutor: 'Tutor',
+    formation: 'Formación',
+    finalEvaluation: 'Evaluación Final',
+    evaluationDate: 'Fecha',
+    performanceRating: 'Valoración',
+    institution: 'Institución',
+    apto: 'Apto',
+    noApto: 'No Apto',
+    performanceRatingScore: '{{rating}}/10',
+    deleteEvaluationConfirmationTitle: '¿Eliminar valoración?',
+    deleteEvaluationConfirmationDescription: 'Esta acción no se puede deshacer. Se eliminará permanentemente la valoración de {{studentName}} {{studentLastName}}.',
+    noEvaluationsRegistered: 'No hay valoraciones de prácticas registradas',
+    generateLinkToStartReceivingEvaluations: 'Genera un enlace para comenzar a recibir valoraciones',
+    evaluationDeletedToastTitle: 'Valoración eliminada',
+    evaluationDeletedToastDescription: 'La valoración de prácticas ha sido eliminada correctamente',
+    errorDeletingEvaluationToastTitle: 'Error al eliminar',
+    errorDeletingEvaluationToastDescription: 'No se pudo eliminar la valoración de prácticas',
+    linkCopiedToClipboardToastTitle: 'Enlace copiado al portapapeles',
+    linkCopiedToClipboardToastDescription: 'Comparte este enlace para que se complete la valoración de prácticas',
+    exportFunctionComingSoonTitle: 'Función de exportación',
+    exportFunctionComingSoonDescription: 'Esta función se implementará próximamente',
+    importFunctionComingSoonTitle: 'Función de importación',
+    importFunctionComingSoonDescription: 'Esta función se implementará próximamente'
   },
   en: {
     theme: 'Theme',
@@ -641,6 +702,34 @@ export const translations: { [key in Language]: Translations } = {
     openGeenioChatbot: 'Open Geenio chat',
     thinking: 'Thinking...',
     typeYourMessage: 'Type your message...',
-    send: 'Send'
+    send: 'Send',
+
+    valoPracTit: 'Internship Assessment',
+    valoPracSub: 'Manages the evaluations of practices carried out by GEE tutors',
+    generarEnlaceVal: 'Generate Assessment Link',
+    student: 'Student',
+    tutor: 'Tutor',
+    formation: 'Formation',
+    finalEvaluation: 'Final Assessment',
+    evaluationDate: 'Date',
+    performanceRating: 'Rating',
+    institution: 'Institution',
+    apto: 'Apt',
+    noApto: 'Not Apt',
+    performanceRatingScore: '{{rating}}/10',
+    deleteEvaluationConfirmationTitle: 'Delete assessment?',
+    deleteEvaluationConfirmationDescription: 'This action cannot be undone. The assessment for {{studentName}} {{studentLastName}} will be permanently deleted.',
+    noEvaluationsRegistered: 'No internship assessments registered',
+    generateLinkToStartReceivingEvaluations: 'Generate a link to start receiving assessments',
+    evaluationDeletedToastTitle: 'Assessment deleted',
+    evaluationDeletedToastDescription: 'The internship assessment has been successfully deleted',
+    errorDeletingEvaluationToastTitle: 'Error deleting',
+    errorDeletingEvaluationToastDescription: 'Could not delete the internship assessment',
+    linkCopiedToClipboardToastTitle: 'Link copied to clipboard',
+    linkCopiedToClipboardToastDescription: 'Share this link for internship assessment completion',
+    exportFunctionComingSoonTitle: 'Export function',
+    exportFunctionComingSoonDescription: 'This function will be implemented soon',
+    importFunctionComingSoonTitle: 'Import function',
+    importFunctionComingSoonDescription: 'This function will be implemented soon'
   }
 };
