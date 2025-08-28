@@ -133,8 +133,8 @@ interface Translations {
   exportarEntre: string;
   importarEntre: string;
 
-  exitInterviewsLoaded: string; // "Entrevistas de salida cargadas:"
-  errorLoadingExitInterviews: string; // "Error al cargar las entrevistas de salida"
+  exitInterviewsLoaded: string;
+  errorLoadingExitInterviews: string;
   linkCopiedTitle: string;
   linkCopiedDescription: string;
   errorCopyingLinkTitle: string;
@@ -150,7 +150,7 @@ interface Translations {
   errorDeletingDescription: string;
   functionNotImplementedTitle: string;
   downloadPdfNotAvailable: string;
-  noDataTitle: string; // "Sin datos" para exportar
+  noDataTitle: string;
   noDataToExportDescription: string;
   exportCompletedTitle: string;
   exportCompletedDescription: string;
@@ -160,20 +160,44 @@ interface Translations {
   loadingExitInterviews: string;
   noExitInterviewsFound: string;
   generateLinkToStart: string;
-  importData: string; // "Importar Datos" botón
-  positionShort: string; // Puesto
-  workCenterShort: string; // Centro
-  exitType: string; // Tipo de Baja
-  exitDate: string; // Fecha de Baja
+  importData: string;
+  positionShort: string;
+  workCenterShort: string;
+  exitType: string;
+  exitDate: string;
   viewDetails: string;
   duplicate: string;
   voluntary: string;
   leaveOfAbsence: string;
   invalidDate: string;
-  showingRecords: string; // "Mostrando {start} a {end} de {total} registros"
+  showingRecords: string;
   previous: string;
   next: string;
   typeOfLeave: string;
+  errorLoadingUsers: string;
+  userPermissionsUpdatedSuccessfully: string;
+  errorUpdatingUserPermissions: string;
+  yes: string;
+  no: string;
+  usersCount: string;
+  editPermissions: string;
+  swipeToViewMore: string;
+  botErrorResponse: string;
+  greetingHello: string;
+  greetingGoodMorning: string;
+  greetingGoodAfternoon: string;
+  greetingGoodEvening: string;
+  greetingHowAreYou: string;
+  greetingIAmFine: string;
+  greetingThanks: string;
+  greetingYouAreWelcome: string;
+  helpMessage: string;
+  aiSystemPrompt: string;
+  processingErrorMessage: string;
+  openGeenioChatbot: string;
+  thinking: string;
+  typeYourMessage: string;
+  send: string;
 }
 
 export const translations: { [key in Language]: Translations } = {
@@ -348,7 +372,31 @@ export const translations: { [key in Language]: Translations } = {
     showingRecords: 'Mostrando {{start}} a {{end}} de {{total}} registros',
     previous: 'Anterior',
     next: 'Siguiente',
-    typeOfLeave: 'Tipo de Baja
+    typeOfLeave: 'Tipo de Baja',
+    errorLoadingUsers: 'Error al cargar usuarios',
+    userPermissionsUpdatedSuccessfully: 'Permisos de usuario actualizados correctamente',
+    errorUpdatingUserPermissions: 'Error al actualizar permisos de usuario',
+    yes: 'Sí',
+    no: 'No',
+    usersCount: '{{count}} usuarios',
+    editPermissions: 'Editar Permisos',
+    swipeToViewMore: 'Desliza para ver más',
+    botErrorResponse: 'Lo siento, ha ocurrido un error. Por favor, inténtalo de nuevo.',
+    greetingHello: 'Hola',
+    greetingGoodMorning: 'Buenos días',
+    greetingGoodAfternoon: 'Buenas tardes',
+    greetingGoodEvening: 'Buenas noches',
+    greetingHowAreYou: '¿Cómo estás?',
+    greetingIAmFine: 'Estoy bien',
+    greetingThanks: 'Gracias',
+    greetingYouAreWelcome: 'De nada',
+    helpMessage: '¿En qué puedo ayudarte?',
+    aiSystemPrompt: 'Eres Geenio, el asistente especializado en análisis de licitaciones de electromedicina del Grupo Empresarial Electromédico (GEE).',
+    processingErrorMessage: 'Error al procesar tu solicitud',
+    openGeenioChatbot: 'Abrir chat de Geenio',
+    thinking: 'Pensando...',
+    typeYourMessage: 'Escribe tu mensaje...',
+    send: 'Enviar'
   },
   en: {
     theme: 'Theme',
@@ -408,7 +456,7 @@ export const translations: { [key in Language]: Translations } = {
     workCenter: 'Work Center',
     profile: 'Profile',
     welcome: 'Welcome to GEESTOR',
-    loginSubtitle: 'Enjoy all the processes at your fingertips..',
+    loginSubtitle: 'Enjoy all the processes at your fingertips.',
     loginButton: 'Sign In',
     featureTitleComprobadores: 'Checkers',
     comingSoon: 'Coming Soon',
@@ -475,7 +523,7 @@ export const translations: { [key in Language]: Translations } = {
     costespdf: 'Costs',
     puntuacionPdf: 'Score',
     asistChat: 'Analysis Assistant',
-    bienvenidaChat: 'Hello! Im Geenio, your tender analysis assistant. How can I help you?',
+    bienvenidaChat: 'Hello! I\'m Geenio, your tender analysis assistant. How can I help you?',
     entrevistaTit: 'Exit Interviews',
     generarEnla1: 'Generate Link',
     exportarEntre: 'Export',
@@ -521,6 +569,30 @@ export const translations: { [key in Language]: Translations } = {
     showingRecords: 'Showing {{start}} to {{end}} of {{total}} records',
     previous: 'Previous',
     next: 'Next',
-    typeOfLeave: 'Type of Leave'
+    typeOfLeave: 'Type of Leave',
+    errorLoadingUsers: 'Error loading users',
+    userPermissionsUpdatedSuccessfully: 'User permissions updated successfully',
+    errorUpdatingUserPermissions: 'Error updating user permissions',
+    yes: 'Yes',
+    no: 'No',
+    usersCount: '{{count}} users',
+    editPermissions: 'Edit Permissions',
+    swipeToViewMore: 'Swipe to view more',
+    botErrorResponse: 'Sorry, an error occurred. Please try again.',
+    greetingHello: 'Hello',
+    greetingGoodMorning: 'Good morning',
+    greetingGoodAfternoon: 'Good afternoon',
+    greetingGoodEvening: 'Good evening',
+    greetingHowAreYou: 'How are you?',
+    greetingIAmFine: 'I\'m fine',
+    greetingThanks: 'Thanks',
+    greetingYouAreWelcome: 'You\'re welcome',
+    helpMessage: 'How can I help you?',
+    aiSystemPrompt: 'You are Geenio, the specialized assistant for electromedicine tender analysis at Grupo Empresarial Electromédico (GEE).',
+    processingErrorMessage: 'Error processing your request',
+    openGeenioChatbot: 'Open Geenio chat',
+    thinking: 'Thinking...',
+    typeYourMessage: 'Type your message...',
+    send: 'Send'
   }
 };
