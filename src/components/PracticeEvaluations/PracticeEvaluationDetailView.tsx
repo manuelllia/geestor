@@ -7,14 +7,23 @@ import { Separator } from '@/components/ui/separator';
 import { X, Calendar, MapPin, GraduationCap, User, Star } from 'lucide-react';
 import { PracticeEvaluationRecord } from '../../services/practiceEvaluationService';
 import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { es, enUS } from 'date-fns/locale';
+import { Language } from '../../utils/translations';
+import { useTranslation } from '../../hooks/useTranslation';
 
 interface PracticeEvaluationDetailViewProps {
   evaluation: PracticeEvaluationRecord;
   onClose: () => void;
+  language?: Language;
 }
 
-export default function PracticeEvaluationDetailView({ evaluation, onClose }: PracticeEvaluationDetailViewProps) {
+export default function PracticeEvaluationDetailView({ 
+  evaluation, 
+  onClose, 
+  language = 'es' 
+}: PracticeEvaluationDetailViewProps) {
+  const { t } = useTranslation(language);
+
   const renderSkillSection = (title: string, skills: { [key: string]: number }, icon: React.ReactNode) => (
     <Card className="border-blue-200 dark:border-blue-800">
       <CardHeader>
@@ -52,13 +61,22 @@ export default function PracticeEvaluationDetailView({ evaluation, onClose }: Pr
     </Card>
   );
 
+  const formatDate = (date: Date) => {
+    const locale = language === 'es' ? es : enUS;
+    return format(date, 'dd/MM/yyyy', { locale });
+  };
+
+  const isAptEvaluation = (finalEvaluation: string) => {
+    return finalEvaluation === 'Apto' || finalEvaluation === 'Apt';
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
       <div className="bg-white dark:bg-gray-900 rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 p-6 flex justify-between items-center">
           <div>
             <h2 className="text-2xl font-bold text-blue-900 dark:text-blue-100">
-              Valoración de Prácticas
+              {t('valoPracTit')}
             </h2>
             <p className="text-gray-600 dark:text-gray-400">
               {evaluation.studentName} {evaluation.studentLastName}
@@ -76,20 +94,20 @@ export default function PracticeEvaluationDetailView({ evaluation, onClose }: Pr
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-blue-800 dark:text-blue-200">
                   <User className="w-5 h-5" />
-                  Información del Estudiante
+                  {t('employeeInformation')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Nombre Completo</p>
+                  <p className="text-sm font-medium text-gray-500">{t('name')}</p>
                   <p className="font-semibold">{evaluation.studentName} {evaluation.studentLastName}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Institución</p>
+                  <p className="text-sm font-medium text-gray-500">{t('institution')}</p>
                   <p>{evaluation.institution}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Formación</p>
+                  <p className="text-sm font-medium text-gray-500">{t('formation')}</p>
                   <p>{evaluation.formation}</p>
                 </div>
               </CardContent>
@@ -99,16 +117,16 @@ export default function PracticeEvaluationDetailView({ evaluation, onClose }: Pr
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-blue-800 dark:text-blue-200">
                   <MapPin className="w-5 h-5" />
-                  Información del Tutor
+                  {t('tutor')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Tutor</p>
+                  <p className="text-sm font-medium text-gray-500">{t('tutor')}</p>
                   <p className="font-semibold">{evaluation.tutorName} {evaluation.tutorLastName}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Centro de Trabajo</p>
+                  <p className="text-sm font-medium text-gray-500">{t('workCenter')}</p>
                   <p>{evaluation.workCenter}</p>
                 </div>
                 <div>
@@ -122,24 +140,24 @@ export default function PracticeEvaluationDetailView({ evaluation, onClose }: Pr
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-blue-800 dark:text-blue-200">
                   <Calendar className="w-5 h-5" />
-                  Información de Evaluación
+                  {t('finalEvaluation')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Fecha de Evaluación</p>
+                  <p className="text-sm font-medium text-gray-500">{t('evaluationDate')}</p>
                   <p className="font-semibold">
-                    {format(evaluation.evaluationDate, 'dd/MM/yyyy', { locale: es })}
+                    {formatDate(evaluation.evaluationDate)}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Evaluación Final</p>
-                  <Badge variant={evaluation.finalEvaluation === 'Apto' ? 'default' : 'destructive'}>
-                    {evaluation.finalEvaluation}
+                  <p className="text-sm font-medium text-gray-500">{t('finalEvaluation')}</p>
+                  <Badge variant={isAptEvaluation(evaluation.finalEvaluation) ? 'default' : 'destructive'}>
+                    {t(evaluation.finalEvaluation as keyof import('../../utils/translations').Translations)}
                   </Badge>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Valoración General</p>
+                  <p className="text-sm font-medium text-gray-500">{t('performanceRating')}</p>
                   <div className="flex items-center gap-2">
                     <div className="text-2xl font-bold text-blue-600 dark:text-blue-300">
                       {evaluation.performanceRating}/10

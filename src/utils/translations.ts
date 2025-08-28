@@ -1,4 +1,3 @@
-
 export type Language = 'es' | 'en';
 export type Theme = 'light' | 'dark';
 
@@ -215,13 +214,10 @@ export interface Translations {
   typeYourMessage: string;
   send: string;
 
+  // Practice Evaluations translations
   valoPracTit: string;
   valoPracSub: string;
   generarEnlaceVal: string;
-
-  valoPracTit: string; // Ya existe: "Valoración de Prácticas"
-  valoPracSub: string; // Ya existe: "Gestiona las valoraciones de prácticas realizadas por los tutores de GEE"
-  generarEnlaceVal: string; // Ya existe: "Generar Enlace de Valoración"
   student: string;
   tutor: string;
   formation: string;
@@ -229,11 +225,11 @@ export interface Translations {
   evaluationDate: string;
   performanceRating: string;
   institution: string;
-  apto: string; // Valor del badge 'Apto'
-  noApto: string; // Valor del badge 'No Apto'
-  performanceRatingScore: string; // Para "X/10"
+  apto: string;
+  noApto: string;
+  performanceRatingScore: string;
   deleteEvaluationConfirmationTitle: string;
-  deleteEvaluationConfirmationDescription: string; // Con interpolación {{studentName}} {{studentLastName}}
+  deleteEvaluationConfirmationDescription: string;
   noEvaluationsRegistered: string;
   generateLinkToStartReceivingEvaluations: string;
   evaluationDeletedToastTitle: string;
@@ -462,7 +458,7 @@ export const translations: { [key in Language]: Translations } = {
     typeYourMessage: 'Escribe tu mensaje...',
     send: 'Enviar',
 
-    // N U E V A S   T R A D U C C I O N E S   P A R A   PracticeEvaluationsListView
+    // Practice Evaluations translations
     valoPracTit: 'Valoración de Prácticas',
     valoPracSub: 'Gestiona las valoraciones de prácticas realizadas por los tutores de GEE',
     generarEnlaceVal: 'Generar Enlace de Valoración',

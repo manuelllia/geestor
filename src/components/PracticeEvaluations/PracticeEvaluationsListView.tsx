@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -10,19 +11,19 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { getPracticeEvaluations, deletePracticeEvaluation, generatePracticeEvaluationToken, PracticeEvaluationRecord } from '../../services/practiceEvaluationService';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
-import { es, enUS } from 'date-fns/locale'; // Importa enUS
-import { Language, Translations } from '../../utils/translations'; // Importa Translations
-import { useTranslation } from '../../hooks/useTranslation'; // Importa useTranslation
-import PracticeEvaluationDetailView from './PracticeEvaluationDetailView'; // Este componente también debería recibir `language`
+import { es, enUS } from 'date-fns/locale';
+import { Language, Translations } from '../../utils/translations';
+import { useTranslation } from '../../hooks/useTranslation';
+import PracticeEvaluationDetailView from './PracticeEvaluationDetailView';
 
 interface PracticeEvaluationsListViewProps {
-  language?: Language; // Permite un valor por defecto
+  language?: Language;
 }
 
 export default function PracticeEvaluationsListView({ language = 'es' }: PracticeEvaluationsListViewProps) {
-  const { t } = useTranslation(language); // Inicializa el hook de traducción
+  const { t } = useTranslation(language);
   const queryClient = useQueryClient();
-  const { data: evaluations = [], isLoading, refetch } = useQuery<PracticeEvaluationRecord[]>({ // Tipado de useQuery
+  const { data: evaluations = [], isLoading, refetch } = useQuery<PracticeEvaluationRecord[]>({
     queryKey: ['practice-evaluations'],
     queryFn: getPracticeEvaluations,
   });
@@ -31,7 +32,6 @@ export default function PracticeEvaluationsListView({ language = 'es' }: Practic
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [selectedEvaluation, setSelectedEvaluation] = useState<PracticeEvaluationRecord | null>(null);
   const [isDetailViewOpen, setIsDetailViewOpen] = useState(false);
-  // No necesitamos evaluationToDelete como estado si lo pasamos directamente al AlertDialogTrigger
 
   // LÓGICA DE ORDENACIÓN
   const handleSort = (column: string) => {
@@ -104,15 +104,15 @@ export default function PracticeEvaluationsListView({ language = 'es' }: Practic
       return sortDirection === 'asc' ? comparison : -comparison;
     });
     return sortedData;
-  }, [evaluations, sortColumn, sortDirection, language, t]); // Añadir `t` a las dependencias por la traducción de finalEvaluation
+  }, [evaluations, sortColumn, sortDirection, language, t]);
 
   const handleGenerateLink = () => {
     const token = generatePracticeEvaluationToken();
     const link = `${window.location.origin}/valoracion-practicas/${token}`; 
     
     navigator.clipboard.writeText(link);
-    toast.success(t('linkCopiedToClipboardToastTitle'), { // Traducido
-      description: t('linkCopiedToClipboardToastDescription'), // Traducido
+    toast.success(t('linkCopiedToClipboardToastTitle'), {
+      description: t('linkCopiedToClipboardToastDescription'),
     });
   };
 
@@ -124,32 +124,32 @@ export default function PracticeEvaluationsListView({ language = 'es' }: Practic
   const handleDeleteEvaluation = async (id: string) => {
     try {
       await deletePracticeEvaluation(id);
-      toast.success(t('evaluationDeletedToastTitle'), { // Traducido
-        description: t('evaluationDeletedToastDescription'), // Traducido
+      toast.success(t('evaluationDeletedToastTitle'), {
+        description: t('evaluationDeletedToastDescription'),
       });
       queryClient.invalidateQueries({ queryKey: ['practice-evaluations'] });
     } catch (error) {
-      toast.error(t('errorDeletingEvaluationToastTitle'), { // Traducido
-        description: t('errorDeletingEvaluationToastDescription'), // Traducido
+      toast.error(t('errorDeletingEvaluationToastTitle'), {
+        description: t('errorDeletingEvaluationToastDescription'),
       });
     }
   };
 
   const handleExport = () => {
-    toast.info(t('exportFunctionComingSoonTitle'), { // Traducido
-      description: t('exportFunctionComingSoonDescription'), // Traducido
+    toast.info(t('exportFunctionComingSoonTitle'), {
+      description: t('exportFunctionComingSoonDescription'),
     });
   };
 
   const handleImport = () => {
-    toast.info(t('importFunctionComingSoonTitle'), { // Traducido
-      description: t('importFunctionComingSoonDescription'), // Traducido
+    toast.info(t('importFunctionComingSoonTitle'), {
+      description: t('importFunctionComingSoonDescription'),
     });
   };
 
   if (isLoading) {
     return (
-      <div className="space-y-4 p-4"> {/* Añadido p-4 para mejor espaciado */}
+      <div className="space-y-4 p-4">
         <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
         <div className="h-64 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
       </div>
@@ -158,7 +158,12 @@ export default function PracticeEvaluationsListView({ language = 'es' }: Practic
 
   // Helper para traducir 'Apto'/'No Apto'
   const getFinalEvaluationText = (value: string) => {
-    return t(value as keyof Translations); // Asume que 'Apto' y 'No Apto' son claves en Translations
+    return t(value as keyof Translations);
+  };
+
+  // Helper to check if evaluation is apt
+  const isAptEvaluation = (finalEvaluation: string) => {
+    return finalEvaluation === 'Apto' || finalEvaluation === 'Apt';
   };
 
   const formatDate = (date: Date) => {
@@ -167,39 +172,39 @@ export default function PracticeEvaluationsListView({ language = 'es' }: Practic
   };
 
   return (
-    <div className="space-y-6 p-4"> {/* Añadido p-4 aquí también */}
+    <div className="space-y-6 p-4">
       <Card>
         <CardHeader>
-          <CardTitle className="text-blue-600 dark:text-blue-300">{t('valoPracTit')}</CardTitle> {/* Traducido */}
+          <CardTitle className="text-blue-600 dark:text-blue-300">{t('valoPracTit')}</CardTitle>
           <CardDescription>
-            {t('valoPracSub')} {/* Traducido */}
+            {t('valoPracSub')}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-2 mb-6">
             <Button onClick={handleGenerateLink} className="bg-blue-600 hover:bg-blue-700">
               <Plus className="w-4 h-4 mr-2" />
-              {t('generarEnlaceVal')} {/* Traducido */}
+              {t('generarEnlaceVal')}
             </Button>
             <Button variant="outline" onClick={handleExport}>
               <Download className="w-4 h-4 mr-2" />
-              {t('export')} {/* Traducido */}
+              {t('export')}
             </Button>
             <Button variant="outline" onClick={handleImport}>
               <FileUp className="w-4 h-4 mr-2" />
-              {t('import')} {/* Traducido */}
+              {t('import')}
             </Button>
             <Button variant="outline" onClick={() => refetch()}>
               <RefreshCw className="w-4 h-4 mr-2" />
-              {t('recargar')} {/* Traducido */}
+              {t('recargar')}
             </Button>
           </div>
 
           {evaluations.length === 0 ? (
             <div className="text-center py-8 text-gray-500 dark:text-gray-400">
               <Calendar className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p>{t('noEvaluationsRegistered')}</p> {/* Traducido */}
-              <p className="text-sm">{t('generateLinkToStartReceivingEvaluations')}</p> {/* Traducido */}
+              <p>{t('noEvaluationsRegistered')}</p>
+              <p className="text-sm">{t('generateLinkToStartReceivingEvaluations')}</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -211,7 +216,7 @@ export default function PracticeEvaluationsListView({ language = 'es' }: Practic
                       onClick={() => handleSort('studentName')}
                     >
                       <div className="flex items-center">
-                        {t('student')} {/* Traducido */}
+                        {t('student')}
                         {sortColumn === 'studentName' && (
                           <span className="ml-1">
                             {sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
@@ -224,7 +229,7 @@ export default function PracticeEvaluationsListView({ language = 'es' }: Practic
                       onClick={() => handleSort('tutorName')}
                     >
                       <div className="flex items-center">
-                        {t('tutor')} {/* Traducido */}
+                        {t('tutor')}
                         {sortColumn === 'tutorName' && (
                           <span className="ml-1">
                             {sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
@@ -237,7 +242,7 @@ export default function PracticeEvaluationsListView({ language = 'es' }: Practic
                       onClick={() => handleSort('workCenter')}
                     >
                       <div className="flex items-center">
-                        {t('workCenter')} {/* Traducido */}
+                        {t('workCenter')}
                         {sortColumn === 'workCenter' && (
                           <span className="ml-1">
                             {sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
@@ -250,7 +255,7 @@ export default function PracticeEvaluationsListView({ language = 'es' }: Practic
                       onClick={() => handleSort('formation')}
                     >
                       <div className="flex items-center">
-                        {t('formation')} {/* Traducido */}
+                        {t('formation')}
                         {sortColumn === 'formation' && (
                           <span className="ml-1">
                             {sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
@@ -263,7 +268,7 @@ export default function PracticeEvaluationsListView({ language = 'es' }: Practic
                       onClick={() => handleSort('finalEvaluation')}
                     >
                       <div className="flex items-center">
-                        {t('finalEvaluation')} {/* Traducido */}
+                        {t('finalEvaluation')}
                         {sortColumn === 'finalEvaluation' && (
                           <span className="ml-1">
                             {sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
@@ -276,7 +281,7 @@ export default function PracticeEvaluationsListView({ language = 'es' }: Practic
                       onClick={() => handleSort('evaluationDate')}
                     >
                       <div className="flex items-center">
-                        {t('evaluationDate')} {/* Traducido */}
+                        {t('evaluationDate')}
                         {sortColumn === 'evaluationDate' && (
                           <span className="ml-1">
                             {sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
@@ -289,7 +294,7 @@ export default function PracticeEvaluationsListView({ language = 'es' }: Practic
                       onClick={() => handleSort('performanceRating')}
                     >
                       <div className="flex items-center justify-center">
-                        {t('performanceRating')} {/* Traducido */}
+                        {t('performanceRating')}
                         {sortColumn === 'performanceRating' && (
                           <span className="ml-1">
                             {sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
@@ -297,7 +302,7 @@ export default function PracticeEvaluationsListView({ language = 'es' }: Practic
                         )}
                       </div>
                     </TableHead>
-                    <TableHead className="w-[120px]">{t('actions')}</TableHead> {/* Traducido */}
+                    <TableHead className="w-[120px]">{t('actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -309,7 +314,7 @@ export default function PracticeEvaluationsListView({ language = 'es' }: Practic
                             {evaluation.studentName} {evaluation.studentLastName}
                           </div>
                           <div className="text-sm text-gray-500">
-                            {evaluation.institution} {/* Asumiendo que `institution` es un dato y no necesita traducción */}
+                            {evaluation.institution}
                           </div>
                         </div>
                       </TableCell>
@@ -319,19 +324,19 @@ export default function PracticeEvaluationsListView({ language = 'es' }: Practic
                       <TableCell>{evaluation.workCenter}</TableCell>
                       <TableCell>{evaluation.formation}</TableCell>
                       <TableCell>
-                        <Badge variant={evaluation.finalEvaluation === 'Apto' || evaluation.finalEvaluation === 'Apt' ? 'default' : 'destructive'}>
-                          {getFinalEvaluationText(evaluation.finalEvaluation)} {/* Traducido */}
+                        <Badge variant={isAptEvaluation(evaluation.finalEvaluation) ? 'default' : 'destructive'}>
+                          {getFinalEvaluationText(evaluation.finalEvaluation)}
                         </Badge>
                       </TableCell>
                       <TableCell>
                         {evaluation.evaluationDate instanceof Date 
                            ? formatDate(evaluation.evaluationDate)
-                           : t('invalidDate')} {/* Traducido */}
+                           : t('invalidDate')}
                       </TableCell>
                       <TableCell>
                         <div className="text-center">
                           <div className="text-lg font-bold text-blue-600 dark:text-blue-300">
-                            {t('performanceRatingScore', { rating: evaluation.performanceRating })} {/* Traducido con interpolación */}
+                            {t('performanceRatingScore', { rating: evaluation.performanceRating })}
                           </div>
                         </div>
                       </TableCell>
@@ -341,34 +346,34 @@ export default function PracticeEvaluationsListView({ language = 'es' }: Practic
                             variant="ghost"
                             size="sm"
                             onClick={() => handleViewEvaluation(evaluation)}
-                            title={t('viewDetails')} // Traducido
+                            title={t('viewDetails')}
                           >
                             <Eye className="w-4 h-4" />
                           </Button>
                           
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
-                              <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700" title={t('delete')}> {/* Traducido */}
+                              <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700" title={t('delete')}>
                                 <Trash2 className="w-4 h-4" />
                               </Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent>
                               <AlertDialogHeader>
-                                <AlertDialogTitle>{t('deleteEvaluationConfirmationTitle')}</AlertDialogTitle> {/* Traducido */}
+                                <AlertDialogTitle>{t('deleteEvaluationConfirmationTitle')}</AlertDialogTitle>
                                 <AlertDialogDescription>
                                   {t('deleteEvaluationConfirmationDescription', { 
                                     studentName: evaluation.studentName, 
                                     studentLastName: evaluation.studentLastName 
-                                  })} {/* Traducido con interpolación */}
+                                  })}
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
-                                <AlertDialogCancel>{t('cancel')}</AlertDialogCancel> {/* Traducido */}
+                                <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
                                 <AlertDialogAction
                                   onClick={() => handleDeleteEvaluation(evaluation.id)}
                                   className="bg-red-600 hover:bg-red-700"
                                 >
-                                  {t('delete')} {/* Traducido */}
+                                  {t('delete')}
                                 </AlertDialogAction>
                               </AlertDialogFooter>
                             </AlertDialogContent>
@@ -392,7 +397,6 @@ export default function PracticeEvaluationsListView({ language = 'es' }: Practic
             setIsDetailViewOpen(false);
             setSelectedEvaluation(null);
           }}
-          language={language} // Pasa la prop de idioma al detalle
         />
       )}
     </div>
