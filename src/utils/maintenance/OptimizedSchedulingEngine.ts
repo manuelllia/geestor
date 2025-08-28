@@ -1,4 +1,3 @@
-
 import { differenceInDays, addDays, format, startOfDay, startOfYear, endOfYear } from 'date-fns';
 
 interface MaintenanceTask {
@@ -12,7 +11,8 @@ interface MaintenanceTask {
   prioridad: 'critica' | 'alta' | 'media' | 'baja';
   equipos: string[];
   isSeasonalSensitive?: boolean;
-  preferredMonths?: number[]; // 0-11 (enero-diciembre)
+  preferredMonths?: number[];
+  frecuenciaTexto?: string; // Nueva propiedad para mantener la frecuencia original
 }
 
 interface ScheduledMaintenance extends MaintenanceTask {
@@ -31,8 +31,7 @@ interface WorkingConstraints {
 }
 
 /**
- * Motor de programación optimizado por lotes
- * Procesa múltiples tareas simultáneamente para mayor eficiencia
+ * Motor de programación optimizado que asegura el cumplimiento de todos los mantenimientos
  */
 export class OptimizedSchedulingEngine {
   private constraints: WorkingConstraints;
@@ -92,13 +91,9 @@ export class OptimizedSchedulingEngine {
     });
   }
 
-  /**
-   * Determina meses preferidos para equipos estacionales
-   */
   private getPreferredMonths(denominacion: string, tipoMantenimiento: string): number[] {
     const denomLower = denominacion.toLowerCase();
     
-    // Equipos de frío - mantenimiento pre-verano
     if (denomLower.includes('frigorífico') || 
         denomLower.includes('refrigerador') || 
         denomLower.includes('aire acondicionado') ||
@@ -106,262 +101,209 @@ export class OptimizedSchedulingEngine {
       return [3, 4, 5]; // Abril, mayo, junio
     }
     
-    // Equipos de quirófano - mantenimiento en verano
     if (denomLower.includes('quirófano') ||
         denomLower.includes('cirugía') ||
         denomLower.includes('quirúrgico')) {
       return [6, 7, 8]; // Julio, agosto, septiembre
     }
     
-    // Sin preferencia específica
     return [];
   }
 
   /**
-   * Busca fechas óptimas considerando estacionalidad y carga
+   * Calcula el número exacto de instancias necesarias basado en la frecuencia
    */
-  private findOptimalDatesBatch(
-    tasks: MaintenanceTask[], 
-    instancesPerTask: number
-  ): Map<string, Date[]> {
+  private calculateRequiredInstances(task: MaintenanceTask): number {
+    const periodDays = differenceInDays(this.endDate, this.startDate);
+    let instances = Math.floor(periodDays / task.frecuenciaDias);
     
-    const results = new Map<string, Date[]>();
-    const availableDays = [...this.workingDays];
+    // Asegurar al menos una instancia por tarea
+    if (instances === 0) instances = 1;
     
-    console.log(`🔍 Búsqueda por lotes para ${tasks.length} tareas`);
-    
-    // Agrupar tareas por preferencia estacional
-    const seasonalTasks = tasks.filter(task => {
-      const preferredMonths = this.getPreferredMonths(task.denominacion, task.tipoMantenimiento);
-      return preferredMonths.length > 0;
-    });
-    
-    const regularTasks = tasks.filter(task => {
-      const preferredMonths = this.getPreferredMonths(task.denominacion, task.tipoMantenimiento);
-      return preferredMonths.length === 0;
-    });
-    
-    // Procesar primero tareas estacionales
-    seasonalTasks.forEach(task => {
-      const preferredMonths = this.getPreferredMonths(task.denominacion, task.tipoMantenimiento);
-      const taskDates = this.scheduleTaskInPreferredMonths(task, instancesPerTask, preferredMonths);
-      results.set(task.id, taskDates);
-    });
-    
-    // Luego tareas regulares
-    regularTasks.forEach(task => {
-      const taskDates = this.scheduleTaskUniformly(task, instancesPerTask);
-      results.set(task.id, taskDates);
-    });
-    
-    return results;
-  }
-
-  private scheduleTaskInPreferredMonths(
-    task: MaintenanceTask, 
-    instances: number, 
-    preferredMonths: number[]
-  ): Date[] {
-    
-    const scheduledDates: Date[] = [];
-    const candidateDays = this.workingDays.filter(day => 
-      preferredMonths.includes(day.getMonth())
-    );
-    
-    if (candidateDays.length === 0) {
-      console.warn(`⚠️ No hay días disponibles en meses preferidos para ${task.denominacion}`);
-      return this.scheduleTaskUniformly(task, instances);
+    // Para frecuencias específicas, ajustar según el tipo
+    if (task.frecuenciaTexto) {
+      const frecuenciaLower = task.frecuenciaTexto.toLowerCase();
+      if (frecuenciaLower.includes('mensual')) instances = 12;
+      else if (frecuenciaLower.includes('trimestral')) instances = 4;
+      else if (frecuenciaLower.includes('semestral')) instances = 2;
+      else if (frecuenciaLower.includes('anual')) instances = 1;
     }
     
-    const intervalDays = Math.max(1, Math.floor(candidateDays.length / instances));
+    console.log(`📋 ${task.denominacion}: ${instances} instancias requeridas`);
+    return instances;
+  }
+
+  /**
+   * Programa una tarea asegurando que todas las horas se asignen el mismo día
+   */
+  private scheduleTaskWithFullTimeBlocks(task: MaintenanceTask, requiredInstances: number): Date[] {
+    const scheduledDates: Date[] = [];
+    const totalHorasNecesarias = task.tiempoHoras * task.cantidad; // Todas las horas juntas
     
-    for (let i = 0; i < instances; i++) {
+    console.log(`🔧 Programando ${task.denominacion}: ${totalHorasNecesarias} horas por instancia`);
+    
+    // Verificar si es posible técnicamente
+    const maxHorasDiarias = this.constraints.horasPorDia - this.constraints.horasEmergencia;
+    if (totalHorasNecesarias > maxHorasDiarias * this.constraints.tecnicos) {
+      console.warn(`⚠️ ${task.denominacion} requiere ${totalHorasNecesarias}h pero máximo disponible es ${maxHorasDiarias * this.constraints.tecnicos}h`);
+    }
+    
+    const preferredMonths = this.getPreferredMonths(task.denominacion, task.tipoMantenimiento);
+    const candidateDays = preferredMonths.length > 0 
+      ? this.workingDays.filter(day => preferredMonths.includes(day.getMonth()))
+      : this.workingDays;
+    
+    // Distribuir instancias a lo largo del período
+    const intervalDays = Math.max(1, Math.floor(candidateDays.length / requiredInstances));
+    
+    for (let i = 0; i < requiredInstances; i++) {
       const targetIndex = Math.min(i * intervalDays, candidateDays.length - 1);
-      const optimalDate = this.findBestDateNear(candidateDays[targetIndex], task, candidateDays);
+      const optimalDate = this.findBestDateForFullTimeBlock(
+        candidateDays[targetIndex], 
+        totalHorasNecesarias, 
+        candidateDays
+      );
       
       if (optimalDate) {
         scheduledDates.push(optimalDate);
-        this.updateWorkload(optimalDate, task);
-      }
-    }
-    
-    console.log(`   📅 ${task.denominacion}: ${scheduledDates.length}/${instances} en meses preferidos`);
-    return scheduledDates;
-  }
-
-  private scheduleTaskUniformly(task: MaintenanceTask, instances: number): Date[] {
-    const scheduledDates: Date[] = [];
-    const intervalDays = Math.max(1, Math.floor(this.workingDays.length / instances));
-    
-    for (let i = 0; i < instances; i++) {
-      const targetIndex = Math.min(i * intervalDays, this.workingDays.length - 1);
-      const optimalDate = this.findBestDateNear(this.workingDays[targetIndex], task, this.workingDays);
-      
-      if (optimalDate) {
-        scheduledDates.push(optimalDate);
-        this.updateWorkload(optimalDate, task);
+        this.updateWorkloadWithFullBlock(optimalDate, totalHorasNecesarias);
+        console.log(`✅ ${task.denominacion} instancia ${i+1}: ${format(optimalDate, 'dd/MM/yyyy')} (${totalHorasNecesarias}h)`);
+      } else {
+        console.warn(`❌ No se pudo programar instancia ${i+1} de ${task.denominacion}`);
       }
     }
     
     return scheduledDates;
   }
 
-  private findBestDateNear(targetDate: Date, task: MaintenanceTask, candidateDays: Date[]): Date | null {
+  private findBestDateForFullTimeBlock(targetDate: Date, horasNecesarias: number, candidateDays: Date[]): Date | null {
     const targetIndex = candidateDays.findIndex(day => 
       format(day, 'yyyy-MM-dd') === format(targetDate, 'yyyy-MM-dd')
     );
     
     if (targetIndex === -1) return null;
     
-    const searchWindow = 10; // Ventana de búsqueda de ±10 días
+    const searchWindow = 15; // Ventana de búsqueda ampliada
     const startIndex = Math.max(0, targetIndex - searchWindow);
     const endIndex = Math.min(candidateDays.length - 1, targetIndex + searchWindow);
     
-    let bestDate: Date | null = null;
-    let bestScore = Infinity;
+    const maxHorasDiarias = (this.constraints.horasPorDia - this.constraints.horasEmergencia) * this.constraints.tecnicos;
     
     for (let i = startIndex; i <= endIndex; i++) {
       const date = candidateDays[i];
       const dateKey = format(date, 'yyyy-MM-dd');
       const workload = this.dailyWorkload.get(dateKey) || { horas: 0, eventos: 0 };
       
-      const horasNecesarias = task.tiempoHoras * task.cantidad;
-      const availableHours = this.constraints.horasPorDia - this.constraints.horasEmergencia;
-      
-      // Verificar si cabe
-      if (workload.horas + horasNecesarias <= availableHours && 
+      if (workload.horas + horasNecesarias <= maxHorasDiarias && 
           workload.eventos < this.constraints.eventosMaxPorDia) {
-        
-        const utilizacion = (workload.horas + horasNecesarias) / availableHours;
-        const distanceFromTarget = Math.abs(i - targetIndex);
-        const score = utilizacion + (distanceFromTarget * 0.1);
-        
-        if (score < bestScore) {
-          bestScore = score;
-          bestDate = date;
-        }
+        return date;
       }
     }
     
-    return bestDate;
+    return null;
   }
 
-  private updateWorkload(date: Date, task: MaintenanceTask): void {
+  private updateWorkloadWithFullBlock(date: Date, horas: number): void {
     const dateKey = format(date, 'yyyy-MM-dd');
     const currentWorkload = this.dailyWorkload.get(dateKey) || { horas: 0, eventos: 0 };
     
-    currentWorkload.horas += task.tiempoHoras * task.cantidad;
+    currentWorkload.horas += horas;
     currentWorkload.eventos += 1;
     
     this.dailyWorkload.set(dateKey, currentWorkload);
   }
 
   /**
-   * Genera calendario completo optimizado por lotes
+   * Ajusta automáticamente el número de técnicos si es necesario
+   */
+  private adjustTechniciansIfNeeded(totalHorasAnuales: number): void {
+    const diasLaborablesPorAno = this.workingDays.length;
+    const horasDisponiblesPorAno = diasLaborablesPorAno * (this.constraints.horasPorDia - this.constraints.horasEmergencia) * this.constraints.tecnicos;
+    
+    if (totalHorasAnuales > horasDisponiblesPorAno) {
+      const tecnicosNecesarios = Math.ceil(totalHorasAnuales / (diasLaborablesPorAno * (this.constraints.horasPorDia - this.constraints.horasEmergencia)));
+      
+      console.log(`🔧 AJUSTE AUTOMÁTICO DE TÉCNICOS:`);
+      console.log(`   Horas totales requeridas: ${totalHorasAnuales}h`);
+      console.log(`   Capacidad actual: ${horasDisponiblesPorAno}h con ${this.constraints.tecnicos} técnicos`);
+      console.log(`   Técnicos necesarios: ${tecnicosNecesarios}`);
+      
+      this.constraints.tecnicos = tecnicosNecesarios;
+      this.initializeDailyWorkload(); // Reinicializar con nueva capacidad
+      
+      console.log(`✅ Número de técnicos ajustado a ${this.constraints.tecnicos}`);
+    }
+  }
+
+  /**
+   * Genera calendario completo asegurando el cumplimiento de todos los mantenimientos
    */
   public async generateOptimizedSchedule(tasks: MaintenanceTask[]): Promise<ScheduledMaintenance[]> {
-    console.log('🚀 GENERANDO CALENDARIO OPTIMIZADO POR LOTES');
+    console.log('🚀 GENERANDO CALENDARIO CON CUMPLIMIENTO GARANTIZADO');
     console.log(`📋 Procesando ${tasks.length} tipos de mantenimiento...`);
     
-    // Reiniciar estado
     this.scheduledTasks = [];
     this.initializeDailyWorkload();
     
     if (tasks.length === 0) return [];
     
-    // Calcular instancias necesarias por tarea
-    const instancesPerTask = tasks.map(task => {
-      const periodDays = differenceInDays(this.endDate, this.startDate);
-      return Math.max(1, Math.floor(periodDays / task.frecuenciaDias));
-    });
+    // Calcular total de horas necesarias para ajustar técnicos si es necesario
+    const totalHorasAnuales = tasks.reduce((sum, task) => {
+      const instances = this.calculateRequiredInstances(task);
+      return sum + (instances * task.tiempoHoras * task.cantidad);
+    }, 0);
     
-    // Procesar por lotes para optimizar rendimiento
-    const batchSize = 10; // Procesar 10 tareas a la vez
-    const batches = [];
+    this.adjustTechniciansIfNeeded(totalHorasAnuales);
     
-    for (let i = 0; i < tasks.length; i += batchSize) {
-      const batch = tasks.slice(i, i + batchSize);
-      batches.push(batch);
-    }
-    
-    console.log(`📦 Procesando en ${batches.length} lotes de máximo ${batchSize} tareas`);
-    
-    // Procesar cada lote
-    for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
-      const batch = batches[batchIndex];
-      console.log(`🔄 Procesando lote ${batchIndex + 1}/${batches.length}...`);
+    // Procesar cada tarea asegurando cumplimiento
+    for (const task of tasks) {
+      const requiredInstances = this.calculateRequiredInstances(task);
+      const scheduledDates = this.scheduleTaskWithFullTimeBlocks(task, requiredInstances);
       
-      const batchResults = this.findOptimalDatesBatch(batch, 4); // Máximo 4 instancias por tarea
-      
-      // Convertir resultados a ScheduledMaintenance
-      batch.forEach((task, taskIndex) => {
-        const taskDates = batchResults.get(task.id) || [];
+      scheduledDates.forEach((date, instanceIndex) => {
+        const scheduledTask: ScheduledMaintenance = {
+          ...task,
+          id: `${task.id}-${instanceIndex + 1}`,
+          fechaProgramada: date,
+          estado: 'programado',
+          notas: `${task.frecuenciaTexto || 'Frecuencia personalizada'} - ${task.tiempoHoras * task.cantidad}h total`,
+          tecnicoAsignado: `Técnico ${(instanceIndex % this.constraints.tecnicos) + 1}`
+        };
         
-        taskDates.forEach((date, instanceIndex) => {
-          const scheduledTask: ScheduledMaintenance = {
-            ...task,
-            id: `${task.id}-${instanceIndex + 1}`,
-            fechaProgramada: date,
-            estado: 'programado',
-            notas: `Instancia ${instanceIndex + 1}/${taskDates.length} - Optimizado`,
-            tecnicoAsignado: `Técnico ${(instanceIndex % this.constraints.tecnicos) + 1}`
-          };
-          
-          this.scheduledTasks.push(scheduledTask);
-        });
-        
-        console.log(`   ✅ ${task.denominacion}: ${taskDates.length} mantenimientos programados`);
+        this.scheduledTasks.push(scheduledTask);
       });
       
-      // Simular progreso para UI responsiva
-      if (batchIndex < batches.length - 1) {
-        await new Promise(resolve => setTimeout(resolve, 100));
-      }
+      console.log(`✅ ${task.denominacion}: ${scheduledDates.length}/${requiredInstances} mantenimientos programados`);
     }
     
-    // Ordenar por fecha
     this.scheduledTasks.sort((a, b) => 
       a.fechaProgramada.getTime() - b.fechaProgramada.getTime()
     );
     
-    console.log(`✅ CALENDARIO OPTIMIZADO GENERADO: ${this.scheduledTasks.length} mantenimientos`);
-    this.printOptimizedAnalysis();
+    console.log(`✅ CALENDARIO GENERADO: ${this.scheduledTasks.length} mantenimientos con ${this.constraints.tecnicos} técnicos`);
+    this.printComplianceAnalysis(totalHorasAnuales);
     
     return [...this.scheduledTasks];
   }
 
-  private printOptimizedAnalysis(): void {
-    console.log('\n📊 ANÁLISIS DEL CALENDARIO OPTIMIZADO:');
+  private printComplianceAnalysis(totalHorasRequeridas: number): void {
+    console.log('\n📊 ANÁLISIS DE CUMPLIMIENTO:');
     
-    const totalHours = this.scheduledTasks.reduce((sum, task) => 
+    const totalHorasProgramadas = this.scheduledTasks.reduce((sum, task) => 
       sum + (task.tiempoHoras * task.cantidad), 0
     );
     
-    const activeDays = new Set(this.scheduledTasks.map(task => 
-      format(task.fechaProgramada, 'yyyy-MM-dd')
-    )).size;
+    const diasLaborables = this.workingDays.length;
+    const capacidadTotal = diasLaborables * (this.constraints.horasPorDia - this.constraints.horasEmergencia) * this.constraints.tecnicos;
+    const utilizacion = (totalHorasProgramadas / capacidadTotal) * 100;
     
-    const availableCapacity = this.workingDays.length * 
-      (this.constraints.horasPorDia - this.constraints.horasEmergencia);
-    
-    const utilization = (totalHours / availableCapacity) * 100;
-    
-    console.log(`⚡ Estadísticas globales:`);
-    console.log(`   Total mantenimientos: ${this.scheduledTasks.length}`);
-    console.log(`   Días con actividad: ${activeDays}/${this.workingDays.length} (${((activeDays/this.workingDays.length)*100).toFixed(1)}%)`);
-    console.log(`   Horas totales programadas: ${totalHours}h`);
-    console.log(`   Capacidad anual disponible: ${availableCapacity}h`);
-    console.log(`   Utilización de recursos: ${utilization.toFixed(1)}%`);
-    
-    // Análisis de carga máxima diaria
-    const dailyLoads = Array.from(this.dailyWorkload.values());
-    const maxDailyHours = Math.max(...dailyLoads.map(d => d.horas));
-    const avgDailyHours = dailyLoads.reduce((sum, d) => sum + d.horas, 0) / dailyLoads.length;
-    
-    console.log(`📈 Distribución de carga:`);
-    console.log(`   Máximo horas/día: ${maxDailyHours.toFixed(1)}h`);
-    console.log(`   Promedio horas/día: ${avgDailyHours.toFixed(1)}h`);
-    console.log(`   Capacidad diaria: ${this.constraints.horasPorDia}h`);
+    console.log(`📈 Estadísticas de cumplimiento:`);
+    console.log(`   Horas requeridas: ${totalHorasRequeridas}h`);
+    console.log(`   Horas programadas: ${totalHorasProgramadas}h`);
+    console.log(`   Capacidad total: ${capacidadTotal}h`);
+    console.log(`   Utilización: ${utilizacion.toFixed(1)}%`);
+    console.log(`   Técnicos necesarios: ${this.constraints.tecnicos}`);
+    console.log(`   Cumplimiento: ${totalHorasProgramadas >= totalHorasRequeridas ? '✅ COMPLETO' : '❌ PARCIAL'}`);
   }
 
   public getScheduledTasks(): ScheduledMaintenance[] {
@@ -378,7 +320,8 @@ export class OptimizedSchedulingEngine {
       maxHours: Math.max(...dailyLoads.map(d => d.horas)),
       avgHours: dailyLoads.reduce((sum, d) => sum + d.horas, 0) / dailyLoads.length,
       totalHours: dailyLoads.reduce((sum, d) => sum + d.horas, 0),
-      activeDays: dailyLoads.filter(d => d.horas > 0).length
+      activeDays: dailyLoads.filter(d => d.horas > 0).length,
+      techniciansUsed: this.constraints.tecnicos
     };
   }
 }

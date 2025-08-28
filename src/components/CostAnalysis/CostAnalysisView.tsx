@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
@@ -11,6 +10,7 @@ import CostAnalysisReport from './CostAnalysisReport';
 import CostBreakdownView from './CostBreakdownView';
 import ScoreAnalysisView from './ScoreAnalysisView';
 import GeenioChatbot from '../BidAnalyzer/GeenioChatbot';
+import { useChatbotContext } from '../../hooks/useChatbotContext';
 
 interface CostAnalysisViewProps {
   language: Language;
@@ -24,6 +24,7 @@ const CostAnalysisView: React.FC<CostAnalysisViewProps> = ({ language }) => {
   const [isChatbotOpen, setIsChatbotOpen] = useState(false);
   
   const { analyzeCosts, analysisResult, isLoading, error } = useCostAnalysis();
+  const { updateAnalysisContext } = useChatbotContext();
 
   const handlePcapUpload = (file: File) => {
     setPcapFile(file);
@@ -39,7 +40,19 @@ const CostAnalysisView: React.FC<CostAnalysisViewProps> = ({ language }) => {
     if (!pcapFile || !pptFile) return;
     
     try {
-      await analyzeCosts(pcapFile, pptFile);
+      const result = await analyzeCosts(pcapFile, pptFile);
+      
+      // Actualizar contexto del chatbot cuando se complete el análisis
+      if (result) {
+        updateAnalysisContext({
+          pcapData: { fileName: pcapFile.name, size: pcapFile.size },
+          pptData: { fileName: pptFile.name, size: pptFile.size },
+          analysisResults: result,
+          reportData: result
+        });
+        console.log('🤖 Contexto del chatbot actualizado con nuevo análisis de costes');
+      }
+      
       setActiveTab('report');
     } catch (error) {
       console.error('Error analyzing costs:', error);

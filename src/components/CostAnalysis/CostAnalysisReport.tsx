@@ -2,84 +2,246 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
+import { Separator } from '../ui/separator';
+import { Calendar, Users, GraduationCap, Euro, FileText, Clock, MapPin } from 'lucide-react';
+
+interface CostAnalysisData {
+  licitacionInfo?: {
+    fechaInscripcion?: string;
+    plazoLimite?: string;
+    numeroLotes?: number;
+    valorEstimado?: string;
+    criteriosSeleccion?: string[];
+  };
+  personalRequerido?: {
+    totalPersonas?: number;
+    personalPorLote?: { lote: string; personas: number }[];
+    estudiosRequeridos?: string[];
+    experienciaMinima?: string;
+    estimacionCostePorPersona?: number;
+    costoTotalEstimado?: number;
+  };
+  formulas?: {
+    puntuacionTecnica?: string;
+    puntuacionEconomica?: string;
+    puntuacionTotal?: string;
+  };
+  detallesAdicionales?: {
+    ubicacion?: string;
+    duracionContrato?: string;
+    condicionesEspeciales?: string[];
+  };
+}
 
 interface CostAnalysisReportProps {
-  data: any;
+  data: CostAnalysisData;
 }
 
 const CostAnalysisReport: React.FC<CostAnalysisReportProps> = ({ data }) => {
-  if (!data) {
-    return (
-      <div className="text-center py-8">
-        <p className="text-gray-500">No hay datos de análisis disponibles</p>
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-4 md:space-y-6">
-      {/* Información General */}
+    <div className="space-y-6">
+      {/* Información General de la Licitación */}
       <Card className="shadow-lg border-0 bg-white dark:bg-gray-800">
-        <CardHeader>
-          <CardTitle className="text-lg md:text-xl">📊 Información General</CardTitle>
+        <CardHeader className="pb-4">
+          <CardTitle className="text-xl font-bold text-blue-900 dark:text-blue-100 flex items-center gap-2">
+            <FileText className="w-6 h-6" />
+            Información General de la Licitación
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Presupuesto General:</label>
-              <p className="text-lg md:text-xl font-semibold text-blue-600">
-                €{Number(data.presupuestoGeneral || 0).toLocaleString()}
-              </p>
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Dividida por Lotes:</label>
-              <Badge variant={data.esPorLotes ? "default" : "secondary"} className="text-xs md:text-sm">
-                {data.esPorLotes ? "Sí" : "No"}
-              </Badge>
-            </div>
+            {data.licitacionInfo?.fechaInscripcion && (
+              <div className="flex items-center gap-3 p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
+                <Calendar className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                <div>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Fecha de Inscripción</p>
+                  <p className="text-lg font-semibold text-blue-900 dark:text-blue-100">
+                    {data.licitacionInfo.fechaInscripcion}
+                  </p>
+                </div>
+              </div>
+            )}
+            
+            {data.licitacionInfo?.plazoLimite && (
+              <div className="flex items-center gap-3 p-3 bg-red-50 dark:bg-red-900/30 rounded-lg">
+                <Clock className="w-5 h-5 text-red-600 dark:text-red-400" />
+                <div>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Plazo Límite</p>
+                  <p className="text-lg font-semibold text-red-900 dark:text-red-100">
+                    {data.licitacionInfo.plazoLimite}
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
-          
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Umbral Baja Temeraria:</label>
-            <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
-              {data.umbralBajaTemeraria}
-            </p>
-          </div>
+
+          {data.licitacionInfo?.numeroLotes && (
+            <div className="flex items-center gap-3 p-3 bg-green-50 dark:bg-green-900/30 rounded-lg">
+              <div className="w-5 h-5 bg-green-600 dark:bg-green-400 rounded-full flex items-center justify-center">
+                <span className="text-white text-xs font-bold">{data.licitacionInfo.numeroLotes}</span>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Número de Lotes</p>
+                <p className="text-lg font-semibold text-green-900 dark:text-green-100">
+                  {data.licitacionInfo.numeroLotes} lotes identificados
+                </p>
+              </div>
+            </div>
+          )}
+
+          {data.licitacionInfo?.valorEstimado && (
+            <div className="flex items-center gap-3 p-3 bg-purple-50 dark:bg-purple-900/30 rounded-lg">
+              <Euro className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+              <div>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Valor Estimado</p>
+                <p className="text-lg font-semibold text-purple-900 dark:text-purple-100">
+                  {data.licitacionInfo.valorEstimado}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {data.detallesAdicionales?.ubicacion && (
+            <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <MapPin className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+              <div>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Ubicación</p>
+                <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                  {data.detallesAdicionales.ubicacion}
+                </p>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
-      {/* Lotes */}
-      {data.esPorLotes && data.lotes && data.lotes.length > 0 && (
+      {/* Personal Requerido */}
+      <Card className="shadow-lg border-0 bg-white dark:bg-gray-800">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-xl font-bold text-blue-900 dark:text-blue-100 flex items-center gap-2">
+            <Users className="w-6 h-6" />
+            Personal Requerido
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {data.personalRequerido?.totalPersonas && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-indigo-50 dark:bg-indigo-900/30 p-4 rounded-lg">
+                <h4 className="font-semibold text-indigo-900 dark:text-indigo-100 mb-2">Total de Personas</h4>
+                <p className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
+                  {data.personalRequerido.totalPersonas}
+                </p>
+              </div>
+              
+              {data.personalRequerido.costoTotalEstimado && (
+                <div className="bg-green-50 dark:bg-green-900/30 p-4 rounded-lg">
+                  <h4 className="font-semibold text-green-900 dark:text-green-100 mb-2">Costo Total Estimado</h4>
+                  <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                    {data.personalRequerido.costoTotalEstimado.toLocaleString('es-ES')} €
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {data.personalRequerido?.personalPorLote && data.personalRequerido.personalPorLote.length > 0 && (
+            <div>
+              <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-3">Personal por Lote</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {data.personalRequerido.personalPorLote.map((lote, index) => (
+                  <div key={index} className="bg-blue-50 dark:bg-blue-900/30 p-3 rounded-lg">
+                    <p className="font-medium text-blue-900 dark:text-blue-100">{lote.lote}</p>
+                    <p className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                      {lote.personas} personas
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <Separator />
+
+          {data.personalRequerido?.estudiosRequeridos && (
+            <div>
+              <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
+                <GraduationCap className="w-5 h-5" />
+                Estudios Requeridos
+              </h4>
+              <div className="flex flex-wrap gap-2">
+                {data.personalRequerido.estudiosRequeridos.map((estudio, index) => (
+                  <Badge key={index} variant="secondary" className="bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-100">
+                    {estudio}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {data.personalRequerido?.experienciaMinima && (
+            <div className="bg-orange-50 dark:bg-orange-900/30 p-4 rounded-lg">
+              <h4 className="font-semibold text-orange-900 dark:text-orange-100 mb-2">Experiencia Mínima</h4>
+              <p className="text-orange-800 dark:text-orange-200">{data.personalRequerido.experienciaMinima}</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Fórmulas de Puntuación */}
+      {data.formulas && (
         <Card className="shadow-lg border-0 bg-white dark:bg-gray-800">
-          <CardHeader>
-            <CardTitle className="text-lg md:text-xl">📦 Lotes Identificados</CardTitle>
+          <CardHeader className="pb-4">
+            <CardTitle className="text-xl font-bold text-blue-900 dark:text-blue-100">
+              Fórmulas de Puntuación
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {data.formulas.puntuacionTecnica && (
+              <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg">
+                <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">Puntuación Técnica</h4>
+                <code className="bg-white dark:bg-gray-700 p-2 rounded text-sm block">
+                  {data.formulas.puntuacionTecnica}
+                </code>
+              </div>
+            )}
+
+            {data.formulas.puntuacionEconomica && (
+              <div className="bg-green-50 dark:bg-green-900/30 p-4 rounded-lg">
+                <h4 className="font-semibold text-green-900 dark:text-green-100 mb-2">Puntuación Económica</h4>
+                <code className="bg-white dark:bg-gray-700 p-2 rounded text-sm block">
+                  {data.formulas.puntuacionEconomica}
+                </code>
+              </div>
+            )}
+
+            {data.formulas.puntuacionTotal && (
+              <div className="bg-purple-50 dark:bg-purple-900/30 p-4 rounded-lg">
+                <h4 className="font-semibold text-purple-900 dark:text-purple-100 mb-2">Puntuación Total</h4>
+                <code className="bg-white dark:bg-gray-700 p-2 rounded text-sm block">
+                  {data.formulas.puntuacionTotal}
+                </code>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Criterios de Selección */}
+      {data.licitacionInfo?.criteriosSeleccion && data.licitacionInfo.criteriosSeleccion.length > 0 && (
+        <Card className="shadow-lg border-0 bg-white dark:bg-gray-800">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-xl font-bold text-blue-900 dark:text-blue-100">
+              Criterios de Selección
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {data.lotes.map((lote: any, index: number) => (
-                <div key={index} className="border rounded-lg p-3 md:p-4 bg-gray-50 dark:bg-gray-700">
-                  <h4 className="font-semibold text-sm md:text-lg mb-2">{lote.nombre}</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4 text-xs md:text-sm">
-                    <div>
-                      <span className="font-medium">Centro:</span> {lote.centroAsociado}
-                    </div>
-                    <div>
-                      <span className="font-medium">Presupuesto:</span> €{Number(lote.presupuesto || 0).toLocaleString()}
-                    </div>
+            <div className="space-y-2">
+              {data.licitacionInfo.criteriosSeleccion.map((criterio, index) => (
+                <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                  <div className="w-6 h-6 bg-blue-600 dark:bg-blue-400 rounded-full flex items-center justify-center">
+                    <span className="text-white text-xs font-bold">{index + 1}</span>
                   </div>
-                  <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400 mt-2">{lote.descripcion}</p>
-                  {lote.requisitosClave && lote.requisitosClave.length > 0 && (
-                    <div className="mt-2">
-                      <span className="font-medium text-xs md:text-sm">Requisitos:</span>
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        {lote.requisitosClave.map((req: string, reqIndex: number) => (
-                          <Badge key={reqIndex} variant="outline" className="text-xs">
-                            {req}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                  <p className="text-gray-800 dark:text-gray-200">{criterio}</p>
                 </div>
               ))}
             </div>
@@ -87,142 +249,26 @@ const CostAnalysisReport: React.FC<CostAnalysisReportProps> = ({ data }) => {
         </Card>
       )}
 
-      {/* Variables Dinámicas */}
-      {data.variablesDinamicas && data.variablesDinamicas.length > 0 && (
+      {/* Condiciones Especiales */}
+      {data.detallesAdicionales?.condicionesEspeciales && data.detallesAdicionales.condicionesEspeciales.length > 0 && (
         <Card className="shadow-lg border-0 bg-white dark:bg-gray-800">
-          <CardHeader>
-            <CardTitle className="text-lg md:text-xl">🔢 Variables Dinámicas Identificadas</CardTitle>
+          <CardHeader className="pb-4">
+            <CardTitle className="text-xl font-bold text-blue-900 dark:text-blue-100">
+              Condiciones Especiales
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
-              {data.variablesDinamicas.map((variable: any, index: number) => (
-                <div key={index} className="border rounded-lg p-3 bg-blue-50 dark:bg-blue-900/30">
-                  <h5 className="font-semibold text-sm md:text-base">{variable.nombre}</h5>
-                  <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400 mt-1">{variable.descripcion}</p>
-                  <span className="text-xs bg-blue-100 dark:bg-blue-900 px-2 py-1 rounded mt-2 inline-block">
-                    {variable.mapeo}
-                  </span>
+            <div className="space-y-2">
+              {data.detallesAdicionales.condicionesEspeciales.map((condicion, index) => (
+                <div key={index} className="flex items-start gap-3 p-3 bg-yellow-50 dark:bg-yellow-900/30 rounded-lg">
+                  <div className="w-2 h-2 bg-yellow-500 rounded-full mt-2"></div>
+                  <p className="text-yellow-800 dark:text-yellow-200">{condicion}</p>
                 </div>
               ))}
             </div>
           </CardContent>
         </Card>
       )}
-
-      {/* Fórmulas Detectadas */}
-      {data.formulasDetectadas && data.formulasDetectadas.length > 0 && (
-        <Card className="shadow-lg border-0 bg-white dark:bg-gray-800">
-          <CardHeader>
-            <CardTitle className="text-lg md:text-xl">🧮 Fórmulas Matemáticas Detectadas</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4 md:space-y-6">
-              {data.formulasDetectadas.map((formula: any, index: number) => (
-                <div key={index} className="border rounded-lg p-3 md:p-4 bg-purple-50 dark:bg-purple-900/30">
-                  <h5 className="font-semibold mb-3 text-sm md:text-base">Fórmula {index + 1}</h5>
-                  <div className="space-y-2 md:space-y-3">
-                    <div>
-                      <span className="font-medium text-xs md:text-sm">Original:</span>
-                      <code className="ml-2 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-xs md:text-sm break-all">
-                        {formula.formulaOriginal}
-                      </code>
-                    </div>
-                    <div>
-                      <span className="font-medium text-xs md:text-sm">LaTeX:</span>
-                      <code className="ml-2 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-xs md:text-sm break-all">
-                        {formula.representacionLatex}
-                      </code>
-                    </div>
-                    <div>
-                      <span className="font-medium text-xs md:text-sm">Variables:</span>
-                      <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400 mt-1 bg-gray-50 dark:bg-gray-700 p-2 rounded">
-                        {formula.descripcionVariables}
-                      </p>
-                    </div>
-                    {formula.condicionesLogicas && (
-                      <div>
-                        <span className="font-medium text-xs md:text-sm">Condiciones:</span>
-                        <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400 mt-1 bg-gray-50 dark:bg-gray-700 p-2 rounded">
-                          {formula.condicionesLogicas}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Criterios de Evaluación */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
-        {/* Criterios Automáticos */}
-        <Card className="shadow-lg border-0 bg-white dark:bg-gray-800">
-          <CardHeader>
-            <CardTitle className="text-base md:text-lg">⚙️ Criterios Automáticos</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {data.criteriosAutomaticos && data.criteriosAutomaticos.length > 0 ? (
-                data.criteriosAutomaticos.map((criterio: any, index: number) => (
-                  <div key={index} className="border-l-4 border-blue-500 pl-3">
-                    <h6 className="font-medium text-xs md:text-sm">{criterio.nombre}</h6>
-                    <p className="text-xs text-gray-600 dark:text-gray-400">{criterio.descripcion}</p>
-                    <p className="text-xs md:text-sm font-semibold text-blue-600">{criterio.puntuacionMaxima} puntos</p>
-                  </div>
-                ))
-              ) : (
-                <p className="text-xs md:text-sm text-gray-500">No especificados</p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Criterios Subjetivos */}
-        <Card className="shadow-lg border-0 bg-white dark:bg-gray-800">
-          <CardHeader>
-            <CardTitle className="text-base md:text-lg">👥 Criterios Subjetivos</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {data.criteriosSubjetivos && data.criteriosSubjetivos.length > 0 ? (
-                data.criteriosSubjetivos.map((criterio: any, index: number) => (
-                  <div key={index} className="border-l-4 border-green-500 pl-3">
-                    <h6 className="font-medium text-xs md:text-sm">{criterio.nombre}</h6>
-                    <p className="text-xs text-gray-600 dark:text-gray-400">{criterio.descripcion}</p>
-                    <p className="text-xs md:text-sm font-semibold text-green-600">{criterio.puntuacionMaxima} puntos</p>
-                  </div>
-                ))
-              ) : (
-                <p className="text-xs md:text-sm text-gray-500">No especificados</p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Otros Criterios */}
-        <Card className="shadow-lg border-0 bg-white dark:bg-gray-800">
-          <CardHeader>
-            <CardTitle className="text-base md:text-lg">📋 Otros Criterios</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {data.otrosCriterios && data.otrosCriterios.length > 0 ? (
-                data.otrosCriterios.map((criterio: any, index: number) => (
-                  <div key={index} className="border-l-4 border-purple-500 pl-3">
-                    <h6 className="font-medium text-xs md:text-sm">{criterio.nombre}</h6>
-                    <p className="text-xs text-gray-600 dark:text-gray-400">{criterio.descripcion}</p>
-                    <p className="text-xs md:text-sm font-semibold text-purple-600">{criterio.puntuacionMaxima} puntos</p>
-                  </div>
-                ))
-              ) : (
-                <p className="text-xs md:text-sm text-gray-500">No especificados</p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
     </div>
   );
 };
