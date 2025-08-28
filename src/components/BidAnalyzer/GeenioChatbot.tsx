@@ -5,10 +5,15 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Send, MessageCircle, X } from 'lucide-react';
 
+// --- IMPORTA TUS TRADUCCIONES Y EL HOOK ---
+import { Language } from '../../utils/translations'; // Ajusta la ruta a tu archivo de translations.ts
+import { useTranslation } from '../../hooks/useTranslation'; // Ajusta la ruta a tu hook useTranslation
+
 interface GeenioChatbotProps {
   isOpen: boolean;
   onToggle: () => void;
   context?: any;
+  language: Language; // Agrega la prop language
 }
 
 interface Message {
@@ -16,19 +21,18 @@ interface Message {
   text: string;
 }
 
-const GeenioChatbot: React.FC<GeenioChatbotProps> = ({ isOpen, onToggle, context }) => {
+const GeenioChatbot: React.FC<GeenioChatbotProps> = ({ isOpen, onToggle, context, language }) => {
+  const { t } = useTranslation(language); // Inicializa el hook de traducción
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
-  const [showThinkingIndicator, setShowThinkingIndicator] = useState(false); // Nuevo estado para el indicador
+  const [showThinkingIndicator, setShowThinkingIndicator] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Scroll to bottom whenever messages or thinking indicator changes
-    // This ensures the thinking indicator is visible as it appears
     if (isOpen && chatContainerRef.current) {
       scrollToBottom();
     }
-  }, [isOpen, messages, showThinkingIndicator]); // Añadir showThinkingIndicator a las dependencias
+  }, [isOpen, messages, showThinkingIndicator]);
 
   const scrollToBottom = () => {
     if (chatContainerRef.current) {
@@ -43,16 +47,16 @@ const GeenioChatbot: React.FC<GeenioChatbotProps> = ({ isOpen, onToggle, context
     setMessages(prevMessages => [...prevMessages, { sender: 'user', text: userMessage }]);
     setNewMessage('');
 
-    setShowThinkingIndicator(true); // Mostrar el indicador de "pensando"
+    setShowThinkingIndicator(true);
 
     try {
       const botResponse = await generateResponse(userMessage);
       setMessages(prevMessages => [...prevMessages, { sender: 'bot', text: botResponse }]);
     } catch (error) {
       console.error('Error generating response:', error);
-      setMessages(prevMessages => [...prevMessages, { sender: 'bot', text: 'Lo siento, no pude generar una respuesta.' }]);
+      setMessages(prevMessages => [...prevMessages, { sender: 'bot', text: t('botErrorResponse') }]); // Traducido
     } finally {
-      setShowThinkingIndicator(false); // Ocultar el indicador de "pensando"
+      setShowThinkingIndicator(false);
     }
   };
 
@@ -60,50 +64,49 @@ const GeenioChatbot: React.FC<GeenioChatbotProps> = ({ isOpen, onToggle, context
     try {
       console.log('🤖 Generando respuesta para:', userMessage);
       
-      // Respuestas a saludos y mensajes básicos
+      // Respuestas a saludos y mensajes básicos, ahora usando las traducciones
+      // Las claves de coincidencia siguen siendo universales (hola, hello, etc.)
+      // pero las respuestas provienen de `t()`
       const basicResponses: { [key: string]: string } = {
-        'hola': '¡Hola! 👋 Soy Geenio, tu asistente de análisis de licitaciones. ¿En qué puedo ayudarte hoy?',
-        'hello': 'Hello! 👋 I\'m Geenio, your tender analysis assistant. How can I help you today?',
-        'buenos días': '¡Buenos días! 🌅 ¿Cómo puedo asistirte con el análisis de licitaciones?',
-        'buenas tardes': '¡Buenas tardes! 🌇 ¿En qué puedo ayudarte con tu análisis?',
-        'buenas noches': '¡Buenas noches! 🌙 ¿Necesitas ayuda con algún análisis?',
-        'que tal': '¡Todo bien por aquí! 😊 Listo para ayudarte con cualquier análisis de licitaciones.',
-        'como estas': '¡Muy bien, gracias! 🤖 Preparado para analizar documentos y responder tus preguntas.',
-        'gracias': '¡De nada! 😊 Siempre estoy aquí para ayudarte con tus análisis.',
-        'thank you': 'You\'re welcome! 😊 I\'m always here to help with your analysis.',
-        'ayuda': '¡Por supuesto! 🆘 Puedo ayudarte a:\n• Analizar documentos de licitación\n• Explicar criterios de evaluación\n• Calcular puntuaciones\n• Interpretar resultados\n\n¿Qué necesitas específicamente?'
+        'hola': t('greetingHello'),
+        'hello': t('greetingHello'),
+        'buenos días': t('greetingGoodMorning'),
+        'good morning': t('greetingGoodMorning'),
+        'buenas tardes': t('greetingGoodAfternoon'),
+        'good afternoon': t('greetingGoodAfternoon'),
+        'buenas noches': t('greetingGoodEvening'),
+        'good evening': t('greetingGoodEvening'),
+        'que tal': t('greetingHowAreYou'),
+        'how are you': t('greetingHowAreYou'),
+        'como estas': t('greetingIAmFine'),
+        'gracias': t('greetingThanks'),
+        'thank you': t('greetingThanks'),
+        'de nada': t('greetingYouAreWelcome'),
+        'you are welcome': t('greetingYouAreWelcome'),
+        'ayuda': t('helpMessage'),
+        'help': t('helpMessage'),
       };
 
-      // Verificar si es un saludo o mensaje básico
       const lowerMessage = userMessage.toLowerCase().trim();
       for (const [key, response] of Object.entries(basicResponses)) {
         if (lowerMessage.includes(key)) {
           console.log('✅ Respuesta básica encontrada para:', key);
-          // Opcional: añade un pequeño delay para que el indicador sea visible
           await new Promise(resolve => setTimeout(resolve, 500)); 
           return response;
         }
       }
 
-      // Si no es un saludo, proceder con el análisis normal
-      let systemPrompt = `Eres Geenio, un asistente especializado en análisis de licitaciones públicas españolas. 
-      
-      Características:
-      - Eres amigable, profesional y experto en licitaciones
-      - Puedes responder saludos de manera cordial
-      - Tu especialidad es analizar documentos PCAP y PPT
-      - Ayudas a interpretar criterios de evaluación, calcular puntuaciones y entender resultados
-      - Siempre respondes en español, de manera clara y concisa
-      - Puedes mantener conversaciones casuales pero siempre volviendo al tema de licitaciones`;
+      // El prompt del sistema ahora se traduce
+      let systemPrompt = t('aiSystemPrompt');
 
       if (context) {
-        systemPrompt += `\n\nTienes acceso al siguiente contexto de análisis:
-        - Presupuesto: ${context.presupuestoGeneral}
-        - Por lotes: ${context.esPorLotes ? 'Sí' : 'No'}
-        - Fórmula económica: ${context.formulaEconomica}
-        - Criterios automáticos: ${context.criteriosAutomaticos?.length || 0}
-        - Criterios subjetivos: ${context.criteriosSubjetivos?.length || 0}
-        - Lotes: ${context.lotes?.length || 0}`;
+        systemPrompt += `\n\n${language === 'es' ? 'Tienes acceso al siguiente contexto de análisis:' : 'You have access to the following analysis context:'}
+        - ${language === 'es' ? 'Presupuesto' : 'Budget'}: ${context.presupuestoGeneral}
+        - ${language === 'es' ? 'Por lotes' : 'By lots'}: ${context.esPorLotes ? (language === 'es' ? 'Sí' : 'Yes') : (language === 'es' ? 'No' : 'No')}
+        - ${language === 'es' ? 'Fórmula económica' : 'Economic formula'}: ${context.formulaEconomica}
+        - ${language === 'es' ? 'Criterios automáticos' : 'Automatic criteria'}: ${context.criteriosAutomaticos?.length || 0}
+        - ${language === 'es' ? 'Criterios subjetivos' : 'Subjective criteria'}: ${context.criteriosSubjetivos?.length || 0}
+        - ${language === 'es' ? 'Lotes' : 'Lots'}: ${context.lotes?.length || 0}`;
       }
 
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=AIzaSyANIWvIMRvCW7f0meHRk4SobRz4s0pnxtg`, {
@@ -111,7 +114,7 @@ const GeenioChatbot: React.FC<GeenioChatbotProps> = ({ isOpen, onToggle, context
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: [{
-            parts: [{ text: `${systemPrompt}\n\nUsuario: ${userMessage}` }]
+            parts: [{ text: `${systemPrompt}\n\nUser: ${userMessage}` }]
           }],
           generationConfig: {
             temperature: 0.7,
@@ -123,18 +126,18 @@ const GeenioChatbot: React.FC<GeenioChatbotProps> = ({ isOpen, onToggle, context
       });
 
       if (!response.ok) {
-        throw new Error(`Error en la API: ${response.status}`);
+        throw new Error(`${language === 'es' ? 'Error en la API:' : 'API error:'} ${response.status}`);
       }
 
       const data = await response.json();
-      const botResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Lo siento, no pude generar una respuesta.';
+      const botResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || t('botErrorResponse');
       
       console.log('✅ Respuesta generada exitosamente');
       return botResponse;
 
     } catch (error) {
       console.error('❌ Error generando respuesta:', error);
-      return 'Lo siento, hubo un error al procesar tu mensaje. ¿Podrías intentarlo de nuevo?';
+      return t('processingErrorMessage'); // Traducido
     }
   };
 
@@ -147,7 +150,7 @@ const GeenioChatbot: React.FC<GeenioChatbotProps> = ({ isOpen, onToggle, context
           size="icon"
         >
           <MessageCircle className="h-5 w-5 sm:h-6 sm:w-6" />
-          <span className="sr-only">Abrir Geenio Chatbot</span>
+          <span className="sr-only">{t('openGeenioChatbot')}</span> {/* Traducido */}
         </Button>
       </div>
     );
@@ -164,7 +167,7 @@ const GeenioChatbot: React.FC<GeenioChatbotProps> = ({ isOpen, onToggle, context
             </div>
             <div>
               <h5 className="text-sm font-semibold">Geenio</h5>
-              <p className="text-xs text-blue-100">Asistente de Análisis</p>
+              <p className="text-xs text-blue-100">{t('asistChat')}</p> {/* Traducido */}
             </div>
           </div>
           <Button 
@@ -182,13 +185,12 @@ const GeenioChatbot: React.FC<GeenioChatbotProps> = ({ isOpen, onToggle, context
           ref={chatContainerRef} 
           className="p-3 sm:p-4 h-64 sm:h-80 overflow-y-auto flex-grow bg-gray-50 dark:bg-gray-900 space-y-3"
         >
-          {messages.length === 0 && !showThinkingIndicator && ( // Añadido !showThinkingIndicator
+          {messages.length === 0 && !showThinkingIndicator && (
             <div className="text-center text-gray-500 dark:text-gray-400 text-sm">
               <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-2">
                 <span className="text-blue-600 dark:text-blue-400 font-bold">G</span>
               </div>
-              <p>¡Hola! Soy Geenio, tu asistente para análisis de licitaciones.</p>
-              <p className="mt-1">¿En qué puedo ayudarte?</p>
+              <p>{t('bienvenidaChat')}</p> {/* Traducido */}
             </div>
           )}
           
@@ -217,7 +219,7 @@ const GeenioChatbot: React.FC<GeenioChatbotProps> = ({ isOpen, onToggle, context
               </div>
               <div className={`rounded-2xl px-3 py-2 text-sm max-w-[85%] bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 shadow-sm border border-gray-200 dark:border-gray-700`}>
                 <div className="whitespace-pre-wrap break-words">
-                  Pensando<span className="typing-dots"></span>
+                  {t('thinking')}<span className="typing-dots"></span> {/* Traducido */}
                 </div>
               </div>
             </div>
@@ -229,7 +231,7 @@ const GeenioChatbot: React.FC<GeenioChatbotProps> = ({ isOpen, onToggle, context
           <div className="flex items-center gap-2">
             <Input
               type="text"
-              placeholder="Escribe tu mensaje..."
+              placeholder={t('typeYourMessage')} {/* Traducido */}
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               onKeyDown={(e) => {
@@ -239,16 +241,16 @@ const GeenioChatbot: React.FC<GeenioChatbotProps> = ({ isOpen, onToggle, context
                 }
               }}
               className="flex-1 text-sm border-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400"
-              disabled={showThinkingIndicator} // Deshabilitar input mientras el bot piensa
+              disabled={showThinkingIndicator}
             />
             <Button 
               size="sm" 
               onClick={handleSendMessage}
-              disabled={!newMessage.trim() || showThinkingIndicator} // Deshabilitar botón
+              disabled={!newMessage.trim() || showThinkingIndicator}
               className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2"
             >
               <Send className="h-4 w-4" />
-              <span className="sr-only">Enviar</span>
+              <span className="sr-only">{t('send')}</span> {/* Traducido */}
             </Button>
           </div>
         </div>

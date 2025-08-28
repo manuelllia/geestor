@@ -129,14 +129,25 @@ interface Translations {
   asistChat: string;
   bienvenidaChat: string;
 
-  errorLoadingUsers: string;
-  userPermissionsUpdatedSuccessfully: string;
-  errorUpdatingUserPermissions: string;
-  usersCount: string;
-  editPermissions: string;
-  yes: string;
-  no: string;
-  swipeToViewMore: string;
+  // N U E V A S   C L A V E S   P A R A   E L   C H A T B O T
+  botErrorResponse: string;
+  thinking: string;
+  openGeenioChatbot: string;
+  typeYourMessage: string;
+  send: string;
+  // Respuestas básicas del bot (más detalladas para el ejemplo)
+  greetingHello: string;
+  greetingGoodMorning: string;
+  greetingGoodAfternoon: string;
+  greetingGoodEvening: string;
+  greetingHowAreYou: string;
+  greetingIAmFine: string;
+  greetingThanks: string;
+  greetingYouAreWelcome: string;
+  helpMessage: string;
+  processingErrorMessage: string;
+  // Prompt para el modelo de IA (si el idioma del bot cambia)
+  aiSystemPrompt: string;
 }
 
 export const translations: { [key in Language]: Translations } = {
@@ -267,14 +278,30 @@ export const translations: { [key in Language]: Translations } = {
     asistChat: 'Asistente de Análisis',
     bienvenidaChat: '¡Hola! Soy Geenio, tu asistente para análisis de licitaciones. ¿En qué puedo ayudarte?',
 
-    errorLoadingUsers: 'Error al cargar los usuarios',
-    userPermissionsUpdatedSuccessfully: 'Permisos de usuario actualizados correctamente',
-    'errorUpdatingUserPermissions': 'Error al actualizar los permisos del usuario',
-    usersCount: 'de',
-    editPermissions: 'Editar permisos',
-    yes: 'Sí',
-    no: 'No',
-    swipeToViewMore: '← Desliza horizontalmente para ver más columnas →',
+    botErrorResponse: 'Lo siento, no pude generar una respuesta.',
+    thinking: 'Pensando',
+    openGeenioChatbot: 'Abrir Geenio Chatbot',
+    typeYourMessage: 'Escribe tu mensaje...',
+    send: 'Enviar',
+    greetingHello: '¡Hola! 👋 Soy Geenio, tu asistente de análisis de licitaciones. ¿En qué puedo ayudarte hoy?',
+    greetingGoodMorning: '¡Buenos días! 🌅 ¿Cómo puedo asistirte con el análisis de licitaciones?',
+    greetingGoodAfternoon: '¡Buenas tardes! 🌇 ¿En qué puedo ayudarte con tu análisis?',
+    greetingGoodEvening: '¡Buenas noches! 🌙 ¿Necesitas ayuda con algún análisis?',
+    greetingHowAreYou: '¡Todo bien por aquí! 😊 Listo para ayudarte con cualquier análisis de licitaciones.',
+    greetingIAmFine: '¡Muy bien, gracias! 🤖 Preparado para analizar documentos y responder tus preguntas.',
+    greetingThanks: '¡De nada! 😊 Siempre estoy aquí para ayudarte con tus análisis.',
+    greetingYouAreWelcome: 'De nada.', // Simplified for generic use, specific for chat
+    helpMessage: '¡Por supuesto! 🆘 Puedo ayudarte a:\n• Analizar documentos de licitación\n• Explicar criterios de evaluación\n• Calcular puntuaciones\n• Interpretar resultados\n\n¿Qué necesitas específicamente?',
+    processingErrorMessage: 'Lo siento, hubo un error al procesar tu mensaje. ¿Podrías intentarlo de nuevo?',
+    aiSystemPrompt: `Eres Geenio, un asistente especializado en análisis de licitaciones públicas españolas. 
+      
+      Características:
+      - Eres amigable, profesional y experto en licitaciones
+      - Puedes responder saludos de manera cordial
+      - Tu especialidad es analizar documentos PCAP y PPT
+      - Ayudas a interpretar criterios de evaluación, calcular puntuaciones y entender resultados
+      - Siempre respondes en español, de manera clara y concisa
+      - Puedes mantener conversaciones casuales pero siempre volviendo al tema de licitaciones`
   },
   en: {
     theme: 'Theme',
@@ -402,14 +429,29 @@ export const translations: { [key in Language]: Translations } = {
     puntuacionPdf: 'Score',
     asistChat: 'Analysis Assistant',
     bienvenidaChat: 'Hello! Im Geenio, your tender analysis assistant. How can I help you?',
-
-    errorLoadingUsers: 'Error loading users',
-    userPermissionsUpdatedSuccessfully: 'User permissions updated successfully',
-    errorUpdatingUserPermissions: 'Error updating user permissions',
-    usersCount: 'of',
-    editPermissions: 'Edit permissions',
-    yes: 'Yes',
-    no: 'No',
-    swipeToViewMore: '← Swipe horizontally to view more columns →',
+    botErrorResponse: 'Sorry, I couldn\'t generate a response.',
+    thinking: 'Thinking',
+    openGeenioChatbot: 'Open Geenio Chatbot',
+    typeYourMessage: 'Type your message...',
+    send: 'Send',
+    greetingHello: 'Hello! 👋 I\'m Geenio, your tender analysis assistant. How can I help you today?',
+    greetingGoodMorning: 'Good morning! 🌅 How can I assist you with tender analysis?',
+    greetingGoodAfternoon: 'Good afternoon! 🌇 How can I help with your analysis?',
+    greetingGoodEvening: 'Good evening! 🌙 Do you need help with any analysis?',
+    greetingHowAreYou: 'All good here! 😊 Ready to help you with any tender analysis.',
+    greetingIAmFine: 'Very well, thank you! 🤖 Prepared to analyze documents and answer your questions.',
+    greetingThanks: 'You\'re welcome! 😊 I\'m always here to help with your analysis.',
+    greetingYouAreWelcome: 'You\'re welcome.', // Simplified for generic use, specific for chat
+    helpMessage: 'Of course! 🆘 I can help you with:\n• Analyzing tender documents\n• Explaining evaluation criteria\n• Calculating scores\n• Interpreting results\n\nWhat do you need specifically?',
+    processingErrorMessage: 'Sorry, there was an error processing your message. Could you please try again?',
+    aiSystemPrompt: `You are Geenio, an assistant specialized in the analysis of Spanish public tenders. 
+      
+      Characteristics:
+      - You are friendly, professional, and an expert in tenders
+      - You can respond to greetings cordially
+      - Your specialty is analyzing PCAP and PPT documents
+      - You help interpret evaluation criteria, calculate scores, and understand results
+      - You always respond in English, clearly and concisely
+      - You can maintain casual conversations but always return to the topic of tenders`
   }
 };
