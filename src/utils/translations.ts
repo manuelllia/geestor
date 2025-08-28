@@ -129,6 +129,16 @@ interface Translations {
   asistChat: string;
   bienvenidaChat: string;
 
+  // Missing translation keys for UsersManagementView
+  errorLoadingUsers: string;
+  userPermissionsUpdatedSuccessfully: string;
+  errorUpdatingUserPermissions: string;
+  yes: string;
+  no: string;
+  usersCount: string;
+  editPermissions: string;
+  swipeToViewMore: string;
+
   // N U E V A S   C L A V E S   P A R A   E L   C H A T B O T
   botErrorResponse: string;
   thinking: string;
@@ -277,6 +287,16 @@ export const translations: { [key in Language]: Translations } = {
     puntuacionPdf: 'Puntuación',
     asistChat: 'Asistente de Análisis',
     bienvenidaChat: '¡Hola! Soy Geenio, tu asistente para análisis de licitaciones. ¿En qué puedo ayudarte?',
+
+    // Missing translation keys for UsersManagementView
+    errorLoadingUsers: 'Error al cargar usuarios',
+    userPermissionsUpdatedSuccessfully: 'Permisos de usuario actualizados correctamente',
+    errorUpdatingUserPermissions: 'Error al actualizar permisos de usuario',
+    yes: 'Sí',
+    no: 'No',
+    usersCount: 'de',
+    editPermissions: 'Editar Permisos',
+    swipeToViewMore: 'Desliza para ver más información',
 
     botErrorResponse: 'Lo siento, no pude generar una respuesta.',
     thinking: 'Pensando',
@@ -429,6 +449,17 @@ export const translations: { [key in Language]: Translations } = {
     puntuacionPdf: 'Score',
     asistChat: 'Analysis Assistant',
     bienvenidaChat: 'Hello! Im Geenio, your tender analysis assistant. How can I help you?',
+
+    // Missing translation keys for UsersManagementView
+    errorLoadingUsers: 'Error loading users',
+    userPermissionsUpdatedSuccessfully: 'User permissions updated successfully',
+    errorUpdatingUserPermissions: 'Error updating user permissions',
+    yes: 'Yes',
+    no: 'No',
+    usersCount: 'of',
+    editPermissions: 'Edit Permissions',
+    swipeToViewMore: 'Swipe to view more information',
+
     botErrorResponse: 'Sorry, I couldn\'t generate a response.',
     thinking: 'Thinking',
     openGeenioChatbot: 'Open Geenio Chatbot',
