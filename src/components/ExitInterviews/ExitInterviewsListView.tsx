@@ -8,7 +8,7 @@ import {
   Share, Link, Edit, Trash2, ArrowUp, ArrowDown
 } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
-import { Language, type Translations } from '../../utils/translations';
+import { Language, Translations } from '../../utils/translations';
 import { 
   getExitInterviews, 
   ExitInterviewRecord,
@@ -62,16 +62,17 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
 
   // Helper function to safely translate exit types
   const translateExitType = (exitType: string): string => {
-    // Map exit types to translation keys
-    const exitTypeMap: Record<string, keyof Translations> = {
-      'Voluntaria': 'voluntary',
-      'Voluntary': 'voluntary',
-      'Excedencia': 'leaveOfAbsence',
-      'Leave of Absence': 'leaveOfAbsence'
-    };
-    
-    const translationKey = exitTypeMap[exitType];
-    return translationKey ? t(translationKey) : exitType;
+    // Map exit types to known translation keys
+    switch (exitType.toLowerCase()) {
+      case 'voluntaria':
+      case 'voluntary':
+        return t('voluntary');
+      case 'excedencia':
+      case 'leave of absence':
+        return t('leaveOfAbsence');
+      default:
+        return exitType; // Return original if no translation found
+    }
   };
 
   const handleSort = (column: string) => {

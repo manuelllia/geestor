@@ -2,7 +2,7 @@
 export type Language = 'es' | 'en';
 export type Theme = 'light' | 'dark';
 
-interface Translations {
+export interface Translations {
   theme: string;
   light: string;
   dark: string;
@@ -132,6 +132,7 @@ interface Translations {
   generarEnla1: string;
   exportarEntre: string;
   importarEntre: string;
+  typeOfLeave: string;
 
   // Cost Analysis specific translations
   errorAnalyzingCosts: string;
@@ -189,7 +190,6 @@ interface Translations {
   showingRecords: string;
   previous: string;
   next: string;
-  typeOfLeave: string;
   errorLoadingUsers: string;
   userPermissionsUpdatedSuccessfully: string;
   errorUpdatingUserPermissions: string;
