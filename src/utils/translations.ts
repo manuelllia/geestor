@@ -1,3 +1,4 @@
+
 export type Language = 'es' | 'en';
 export type Theme = 'light' | 'dark';
 
@@ -217,6 +218,10 @@ export interface Translations {
   valoPracTit: string;
   valoPracSub: string;
   generarEnlaceVal: string;
+
+  valoPracTit: string; // Ya existe: "Valoración de Prácticas"
+  valoPracSub: string; // Ya existe: "Gestiona las valoraciones de prácticas realizadas por los tutores de GEE"
+  generarEnlaceVal: string; // Ya existe: "Generar Enlace de Valoración"
   student: string;
   tutor: string;
   formation: string;
@@ -224,11 +229,11 @@ export interface Translations {
   evaluationDate: string;
   performanceRating: string;
   institution: string;
-  apto: string;
-  noApto: string;
-  performanceRatingScore: string;
+  apto: string; // Valor del badge 'Apto'
+  noApto: string; // Valor del badge 'No Apto'
+  performanceRatingScore: string; // Para "X/10"
   deleteEvaluationConfirmationTitle: string;
-  deleteEvaluationConfirmationDescription: string;
+  deleteEvaluationConfirmationDescription: string; // Con interpolación {{studentName}} {{studentLastName}}
   noEvaluationsRegistered: string;
   generateLinkToStartReceivingEvaluations: string;
   evaluationDeletedToastTitle: string;
@@ -242,33 +247,60 @@ export interface Translations {
   importFunctionComingSoonTitle: string;
   importFunctionComingSoonDescription: string;
 
-  // Real Estate specific translations
-  selectPropertyType: string;
-  propertyTypeLabel: string;
-  selectTypePlaceholder: string;
-  activeProperty: string;
-  inactiveProperty: string;
-  accept: string;
-  realEstateManagementDescription: string;
-  addProperty: string;
-  importDataButton: string;
-  propertiesOperational: string;
-  propertiesPaused: string;
-  totalRooms: string;
-  availableRooms: string;
-  totalAnnualCost: string;
-  operatingExpenses: string;
-  averageCost: string;
-  perProperty: string;
-  annualCostByProvince: string;
-  propertyStatus: string;
-  properties: string;
-  errorLoadingDashboardData: string;
-  totalRoomsKPI: string;
-  annualTotalCostKPI: string;
-  averageCostKPI: string;
-  totalPortfolio: string;
-  notImplemented: string;
+  // N U E V A S   C L A V E S   P A R A   ActivePropertyForm y CreateWorkCenterModal
+  addActivePropertyTitle: string;
+  activePropertyInfoTitle: string;
+  requiredFieldsError: string;
+  addWorkerError: string;
+  specifyCustomCompanyError: string;
+  propertyAddedSuccess: string;
+  errorAddingProperty: string;
+  idLabel: string;
+  numRoomsLabel: string;
+  workersLabel: string;
+  addWorkerButton: string;
+  workerNamePlaceholder: string;
+  dniPlaceholder: string;
+  removeWorkerButton: string;
+  geeCompanyLabel: string;
+  selectCompanyPlaceholder: string;
+  otherCompanyOption: string;
+  specifyCompanyPlaceholder: string;
+  propertyStatusLabel: string;
+  occupiedStatus: string;
+  emptyStatus: string;
+  addressLabel: string;
+  addressPlaceholder: string;
+  cityLabel: string;
+  provinceLabel: string;
+  ccaaLabel: string;
+  originProvinceLabel: string;
+  annualCostLabel: string;
+  occupancyDateLabel: string;
+  selectDate: string; // Reutilizada para ambos selectores de fecha
+  contractStartDateLabel: string;
+  meta4CodeLabel: string;
+  meta4CodePlaceholder: string;
+  projectContractLabel: string;
+  projectContractPlaceholder: string;
+  workCenterCodeLabel: string;
+  selectWorkCenterPlaceholder: string;
+  addWorkCenterButtonTitle: string;
+  saving: string;
+  saveProperty: string;
+  // Para CreateWorkCenterModal
+  createWorkCenterTitle: string;
+  workCenterNameLabel: string;
+  workCenterNamePlaceholder: string;
+  workCenterCodeInputLabel: string; // No es el mismo que `workCenterCodeLabel`
+  workCenterCodeInputPlaceholder: string;
+  descriptionLabel: string;
+  descriptionPlaceholder: string;
+  errorLoadingWorkCenters: string;
+  workCenterCreatedSuccess: string;
+  errorCreatingWorkCenter: string;
+  // Mensaje para onAddProperty no definido
+  onAddPropertyNotDefined: string;
 }
 
 export const translations: { [key in Language]: Translations } = {
@@ -485,6 +517,7 @@ export const translations: { [key in Language]: Translations } = {
     typeYourMessage: 'Escribe tu mensaje...',
     send: 'Enviar',
 
+    // N U E V A S   T R A D U C C I O N E S   P A R A   PracticeEvaluationsListView
     valoPracTit: 'Valoración de Prácticas',
     valoPracSub: 'Gestiona las valoraciones de prácticas realizadas por los tutores de GEE',
     generarEnlaceVal: 'Generar Enlace de Valoración',
@@ -513,33 +546,59 @@ export const translations: { [key in Language]: Translations } = {
     importFunctionComingSoonTitle: 'Función de importación',
     importFunctionComingSoonDescription: 'Esta función se implementará próximamente',
 
-    // Real Estate specific translations
-    selectPropertyType: 'Seleccionar Tipo de Inmueble',
-    propertyTypeLabel: 'Tipo de Inmueble',
-    selectTypePlaceholder: 'Seleccionar tipo...',
-    activeProperty: 'Inmueble Activo',
-    inactiveProperty: 'Inmueble dado de baja',
-    accept: 'Aceptar',
-    realEstateManagementDescription: 'Gestión completa de propiedades inmobiliarias',
-    addProperty: 'Agregar Inmueble',
-    importDataButton: 'Importar Datos',
-    propertiesOperational: 'Propiedades operativas',
-    propertiesPaused: 'Propiedades pausadas',
-    totalRooms: 'Total Habitaciones',
-    availableRooms: 'Habitaciones disponibles',
-    totalAnnualCost: 'Coste Anual Total',
-    operatingExpenses: 'Gastos operativos',
-    averageCost: 'Coste Promedio',
-    perProperty: 'Por propiedad',
-    annualCostByProvince: 'Coste Anual por Provincia',
-    propertyStatus: 'Estado de Propiedades',
-    properties: 'Propiedades',
-    errorLoadingDashboardData: 'Error cargando datos del dashboard',
-    totalRoomsKPI: 'Total Habitaciones',
-    annualTotalCostKPI: 'Coste Anual Total',
-    averageCostKPI: 'Coste Promedio',
-    totalPortfolio: 'Portafolio total',
-    notImplemented: 'no implementado'
+    // N U E V A S   T R A D U C C I O N E S   P A R A   ActivePropertyForm y CreateWorkCenterModal
+    addActivePropertyTitle: 'Agregar Inmueble Activo',
+    activePropertyInfoTitle: 'Información del Inmueble Activo',
+    requiredFieldsError: 'Por favor, completa todos los campos obligatorios',
+    addWorkerError: 'Debe agregar al menos un trabajador con nombre y DNI',
+    specifyCustomCompanyError: 'Por favor, especifica la empresa personalizada',
+    propertyAddedSuccess: 'Inmueble activo agregado correctamente',
+    errorAddingProperty: 'Error al agregar el inmueble activo',
+    idLabel: 'ID',
+    numRoomsLabel: 'Nº Habitaciones',
+    workersLabel: 'Trabajadores',
+    addWorkerButton: 'Agregar',
+    workerNamePlaceholder: 'Nombre del trabajador',
+    dniPlaceholder: 'DNI',
+    removeWorkerButton: 'Eliminar',
+    geeCompanyLabel: 'Empresa GEE',
+    selectCompanyPlaceholder: 'Seleccionar empresa',
+    otherCompanyOption: 'OTRA', // El valor del SelectItem puede ser la clave de traducción
+    specifyCompanyPlaceholder: 'Especificar empresa',
+    propertyStatusLabel: 'Estado del Piso',
+    occupiedStatus: 'Ocupado',
+    emptyStatus: 'Vacío',
+    addressLabel: 'Dirección',
+    addressPlaceholder: 'Ej: C/ Isaac Peral, 37, 3ºB',
+    cityLabel: 'Población',
+    provinceLabel: 'Provincia',
+    ccaaLabel: 'CCAA',
+    originProvinceLabel: 'Provincia de Origen',
+    annualCostLabel: 'Coste Anual (€)',
+    occupancyDateLabel: 'Fecha de Ocupación',
+    selectDate: 'Seleccionar fecha',
+    contractStartDateLabel: 'Fecha Inicio de Contrato',
+    meta4CodeLabel: 'Cod. Meta 4',
+    meta4CodePlaceholder: 'Ej: 39-5',
+    projectContractLabel: 'Contrato Proyecto',
+    projectContractPlaceholder: 'Ej: 06005',
+    workCenterCodeLabel: 'Código Centro Trabajo',
+    selectWorkCenterPlaceholder: 'Seleccione un centro de trabajo',
+    addWorkCenterButtonTitle: 'Añadir nuevo centro de trabajo',
+    saving: 'Guardando...',
+    saveProperty: 'Guardar Inmueble',
+    // Para CreateWorkCenterModal
+    createWorkCenterTitle: 'Crear Nuevo Centro de Trabajo',
+    workCenterNameLabel: 'Nombre del Centro',
+    workCenterNamePlaceholder: 'Ej: Hospital General',
+    workCenterCodeInputLabel: 'Código del Centro',
+    workCenterCodeInputPlaceholder: 'Ej: HOGE001',
+    descriptionLabel: 'Descripción',
+    descriptionPlaceholder: 'Descripción opcional del centro de trabajo',
+    errorLoadingWorkCenters: 'Error al cargar los centros de trabajo.',
+    workCenterCreatedSuccess: 'Centro de trabajo creado correctamente.',
+    errorCreatingWorkCenter: 'Error al crear el centro de trabajo.',
+    onAddPropertyNotDefined: 'onAddProperty no está definido'
   },
   en: {
     theme: 'Theme',
@@ -782,32 +841,58 @@ export const translations: { [key in Language]: Translations } = {
     importFunctionComingSoonTitle: 'Import function',
     importFunctionComingSoonDescription: 'This function will be implemented soon',
 
-    // Real Estate specific translations
-    selectPropertyType: 'Select Property Type',
-    propertyTypeLabel: 'Property Type',
-    selectTypePlaceholder: 'Select type...',
-    activeProperty: 'Active Property',
-    inactiveProperty: 'Inactive Property',
-    accept: 'Accept',
-    realEstateManagementDescription: 'Complete property management',
-    addProperty: 'Add Property',
-    importDataButton: 'Import Data',
-    propertiesOperational: 'Operational properties',
-    propertiesPaused: 'Paused properties',
-    totalRooms: 'Total Rooms',
-    availableRooms: 'Available rooms',
-    totalAnnualCost: 'Total Annual Cost',
-    operatingExpenses: 'Operating expenses',
-    averageCost: 'Average Cost',
-    perProperty: 'Per property',
-    annualCostByProvince: 'Annual Cost by Province',
-    propertyStatus: 'Property Status',
-    properties: 'Properties',
-    errorLoadingDashboardData: 'Error loading dashboard data',
-    totalRoomsKPI: 'Total Rooms',
-    annualTotalCostKPI: 'Total Annual Cost',
-    averageCostKPI: 'Average Cost',
-    totalPortfolio: 'Total portfolio',
-    notImplemented: 'not implemented'
+    // N E W   T R A N S L A T I O N S   P A R A   ActivePropertyForm y CreateWorkCenterModal
+    addActivePropertyTitle: 'Add Active Property',
+    activePropertyInfoTitle: 'Active Property Information',
+    requiredFieldsError: 'Please complete all required fields',
+    addWorkerError: 'You must add at least one worker with name and DNI',
+    specifyCustomCompanyError: 'Please specify the custom company',
+    propertyAddedSuccess: 'Active property added successfully',
+    errorAddingProperty: 'Error adding active property',
+    idLabel: 'ID',
+    numRoomsLabel: 'Number of Rooms',
+    workersLabel: 'Workers',
+    addWorkerButton: 'Add',
+    workerNamePlaceholder: 'Worker Name',
+    dniPlaceholder: 'DNI',
+    removeWorkerButton: 'Remove',
+    geeCompanyLabel: 'GEE Company',
+    selectCompanyPlaceholder: 'Select company',
+    otherCompanyOption: 'OTHER',
+    specifyCompanyPlaceholder: 'Specify company',
+    propertyStatusLabel: 'Property Status',
+    occupiedStatus: 'Occupied',
+    emptyStatus: 'Empty',
+    addressLabel: 'Address',
+    addressPlaceholder: 'E.g.: 123 Main St, Apt 4B',
+    cityLabel: 'City',
+    provinceLabel: 'Province',
+    ccaaLabel: 'Autonomous Community',
+    originProvinceLabel: 'Origin Province',
+    annualCostLabel: 'Annual Cost (€)',
+    occupancyDateLabel: 'Occupancy Date',
+    selectDate: 'Select date',
+    contractStartDateLabel: 'Contract Start Date',
+    meta4CodeLabel: 'Meta 4 Code',
+    meta4CodePlaceholder: 'E.g.: 39-5',
+    projectContractLabel: 'Project Contract',
+    projectContractPlaceholder: 'E.g.: 06005',
+    workCenterCodeLabel: 'Work Center Code',
+    selectWorkCenterPlaceholder: 'Select a work center',
+    addWorkCenterButtonTitle: 'Add new work center',
+    saving: 'Saving...',
+    saveProperty: 'Save Property',
+    // Para CreateWorkCenterModal
+    createWorkCenterTitle: 'Create New Work Center',
+    workCenterNameLabel: 'Center Name',
+    workCenterNamePlaceholder: 'E.g.: General Hospital',
+    workCenterCodeInputLabel: 'Center Code',
+    workCenterCodeInputPlaceholder: 'E.g.: HOGE001',
+    descriptionLabel: 'Description',
+    descriptionPlaceholder: 'Optional description of the work center',
+    errorLoadingWorkCenters: 'Error loading work centers.',
+    workCenterCreatedSuccess: 'Work center created successfully.',
+    errorCreatingWorkCenter: 'Error creating work center.',
+    onAddPropertyNotDefined: 'onAddProperty is not defined'
   }
 };
