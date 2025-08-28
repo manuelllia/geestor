@@ -128,6 +128,15 @@ interface Translations {
   puntuacionPdf: string;
   asistChat: string;
   bienvenidaChat: string;
+
+  errorLoadingUsers: string;
+  userPermissionsUpdatedSuccessfully: string;
+  errorUpdatingUserPermissions: string;
+  usersCount: string;
+  editPermissions: string;
+  yes: string;
+  no: string;
+  swipeToViewMore: string;
 }
 
 export const translations: { [key in Language]: Translations } = {
@@ -256,7 +265,16 @@ export const translations: { [key in Language]: Translations } = {
     costespdf: 'Costes',
     puntuacionPdf: 'Puntuación',
     asistChat: 'Asistente de Análisis',
-    bienvenidaChat: '¡Hola! Soy Geenio, tu asistente para análisis de licitaciones. ¿En qué puedo ayudarte?'
+    bienvenidaChat: '¡Hola! Soy Geenio, tu asistente para análisis de licitaciones. ¿En qué puedo ayudarte?',
+
+    errorLoadingUsers: 'Error al cargar los usuarios',
+    userPermissionsUpdatedSuccessfully: 'Permisos de usuario actualizados correctamente',
+    'errorUpdatingUserPermissions': 'Error al actualizar los permisos del usuario',
+    usersCount: 'de',
+    editPermissions: 'Editar permisos',
+    yes: 'Sí',
+    no: 'No',
+    swipeToViewMore: '← Desliza horizontalmente para ver más columnas →',
   },
   en: {
     theme: 'Theme',
@@ -383,6 +401,15 @@ export const translations: { [key in Language]: Translations } = {
     costespdf: 'Costs',
     puntuacionPdf: 'Score',
     asistChat: 'Analysis Assistant',
-    bienvenidaChat: 'Hello! Im Geenio, your tender analysis assistant. How can I help you?'
+    bienvenidaChat: 'Hello! Im Geenio, your tender analysis assistant. How can I help you?',
+
+    errorLoadingUsers: 'Error loading users',
+    userPermissionsUpdatedSuccessfully: 'User permissions updated successfully',
+    errorUpdatingUserPermissions: 'Error updating user permissions',
+    usersCount: 'of',
+    editPermissions: 'Edit permissions',
+    yes: 'Yes',
+    no: 'No',
+    swipeToViewMore: '← Swipe horizontally to view more columns →',
   }
 };
