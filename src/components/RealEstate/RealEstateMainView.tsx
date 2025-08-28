@@ -107,6 +107,7 @@ const RealEstateMainView: React.FC<RealEstateMainViewProps> = ({ language }) => 
           <ActivePropertyForm
             onBack={handleBackToDashboard}
             onSave={handleBackToDashboard}
+            language={language}
           />
         </div>
       );
@@ -116,6 +117,7 @@ const RealEstateMainView: React.FC<RealEstateMainViewProps> = ({ language }) => 
           <InactivePropertyForm
             onBack={handleBackToDashboard}
             onSave={handleBackToDashboard}
+            language={language}
           />
         </div>
       );
