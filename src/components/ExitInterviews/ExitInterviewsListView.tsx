@@ -7,8 +7,8 @@ import {
   Eye, Copy, Download, Plus, Upload, FileDown, RefreshCw, AlertCircle, 
   Share, Link, Edit, Trash2, ArrowUp, ArrowDown
 } from 'lucide-react';
-import { useTranslation } from '../../hooks/useTranslation';
-import { Language } from '../../utils/translations';
+import { useTranslation } from '../../hooks/useTranslation'; // Ajusta la ruta
+import { Language } from '../../utils/translations'; // Ajusta la ruta
 import { 
   getExitInterviews, 
   ExitInterviewRecord,
@@ -18,9 +18,9 @@ import {
   exportExitInterviewsToCSV
 } from '../../services/exitInterviewService';
 import { useToast } from '@/hooks/use-toast';
-import ExitInterviewDetailView from './ExitInterviewDetailView';
+import ExitInterviewDetailView from './ExitInterviewDetailView'; // Este componente también debería recibir `language` si tiene texto interno
 import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { es, enUS } from 'date-fns/locale'; // Importar locales de date-fns
 import { cn } from '@/lib/utils';
 
 interface ExitInterviewsListViewProps {
@@ -28,7 +28,7 @@ interface ExitInterviewsListViewProps {
 }
 
 const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ language }) => {
-  const { t } = useTranslation(language);
+  const { t } = useTranslation(language); // Inicializa el hook de traducción
   const { toast } = useToast();
   const [currentPage, setCurrentPage] = useState(1);
   const [exitInterviews, setExitInterviews] = useState<ExitInterviewRecord[]>([]);
@@ -47,10 +47,10 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
     try {
       const interviews = await getExitInterviews();
       setExitInterviews(interviews);
-      console.log('Entrevistas de salida cargadas:', interviews.length);
+      console.log(`${t('exitInterviewsLoaded')}: ${interviews.length}`); // Traducido
     } catch (err) {
       console.error('Error cargando entrevistas de salida:', err);
-      setError('Error al cargar las entrevistas de salida');
+      setError(t('errorLoadingExitInterviews')); // Traducido
     } finally {
       setIsLoading(false);
     }
@@ -58,7 +58,7 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
 
   useEffect(() => {
     loadExitInterviews();
-  }, []);
+  }, [t]); // Añadir `t` a las dependencias por si el idioma cambia y el error cargado necesita actualizarse
 
   const handleSort = (column: string) => {
     if (sortColumn === column) {
@@ -89,6 +89,11 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
         case 'exitType':
           aValue = (a as any)[sortColumn];
           bValue = (b as any)[sortColumn];
+          // Para `exitType`, usar la traducción para la comparación
+          if (sortColumn === 'exitType') {
+            aValue = t(aValue as keyof Translations);
+            bValue = t(bValue as keyof Translations);
+          }
           break;
         case 'exitDate':
           aValue = a.exitDate instanceof Date ? a.exitDate.getTime() : new Date(a.exitDate).getTime();
@@ -116,7 +121,7 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
       return sortDirection === 'asc' ? comparison : -comparison;
     });
     return sortedData;
-  }, [exitInterviews, sortColumn, sortDirection, language]);
+  }, [exitInterviews, sortColumn, sortDirection, language, t]); // Añadir `t` aquí también
 
   const totalPages = Math.ceil(sortedExitInterviews.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -140,13 +145,13 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
     
     navigator.clipboard.writeText(link).then(() => {
       toast({
-        title: 'Enlace copiado',
-        description: 'El enlace de la entrevista de salida ha sido copiado al portapapeles.',
+        title: t('linkCopiedTitle'), // Traducido
+        description: t('linkCopiedDescription'), // Traducido
       });
     }).catch(() => {
       toast({
-        title: 'Error al copiar enlace',
-        description: 'El enlace no pudo copiarse. Por favor, cópielo manualmente: ' + link,
+        title: t('errorCopyingLinkTitle'), // Traducido
+        description: `${t('errorCopyingLinkDescription')} ${link}`, // Traducido
         variant: 'destructive',
       });
     });
@@ -156,32 +161,32 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
     try {
       await duplicateExitInterview(id);
       toast({
-        title: 'Entrevista duplicada',
-        description: 'La entrevista de salida ha sido duplicada exitosamente.',
+        title: t('interviewDuplicatedTitle'), // Traducido
+        description: t('interviewDuplicatedDescription'), // Traducido
       });
       loadExitInterviews();
     } catch (error) {
       toast({
-        title: 'Error al duplicar',
-        description: 'No se pudo duplicar la entrevista de salida.',
+        title: t('errorDuplicatingTitle'), // Traducido
+        description: t('errorDuplicatingDescription'), // Traducido
         variant: 'destructive',
       });
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm('¿Estás seguro de que deseas eliminar esta entrevista de salida?')) {
+    if (confirm(t('confirmDeleteInterview'))) { // Traducido
       try {
         await deleteExitInterview(id);
         toast({
-          title: 'Entrevista eliminada',
-          description: 'La entrevista de salida ha sido eliminada exitosamente.',
+          title: t('interviewDeletedTitle'), // Traducido
+          description: t('interviewDeletedDescription'), // Traducido
         });
         loadExitInterviews();
       } catch (error) {
         toast({
-          title: 'Error al eliminar',
-          description: 'No se pudo eliminar la entrevista de salida.',
+          title: t('errorDeletingTitle'), // Traducido
+          description: t('errorDeletingDescription'), // Traducido
           variant: 'destructive',
         });
       }
@@ -191,8 +196,8 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
   const handleDownloadPDF = (id: string) => {
     console.log(`Simulando descarga de PDF para entrevista con ID: ${id}`);
     toast({
-      title: "Función no implementada",
-      description: "La descarga de PDF para esta entrevista aún no está disponible.",
+      title: t('functionNotImplementedTitle'), // Traducido
+      description: t('downloadPdfNotAvailable'), // Traducido
       variant: "default",
     });
   };
@@ -200,8 +205,8 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
   const handleExport = () => {
     if (exitInterviews.length === 0) {
       toast({
-        title: 'Sin datos',
-        description: 'No hay entrevistas de salida para exportar.',
+        title: t('noDataTitle'), // Traducido
+        description: t('noDataToExportDescription'), // Traducido
         variant: 'destructive',
       });
       return;
@@ -214,23 +219,23 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
     if (link.download !== undefined) {
       const url = URL.createObjectURL(blob);
       link.setAttribute('href', url);
-      link.setAttribute('download', `entrevistas_salida_${new Date().toISOString().split('T')[0]}.csv`);
+      link.setAttribute('download', `exit_interviews_${new Date().toISOString().split('T')[0]}.csv`); // Nombre del archivo puede ser genérico o también traducible
       link.style.visibility = 'hidden';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       
       toast({
-        title: 'Exportación completada',
-        description: 'Las entrevistas de salida han sido exportadas exitosamente.',
+        title: t('exportCompletedTitle'), // Traducido
+        description: t('exportCompletedDescription'), // Traducido
       });
     }
   };
 
   const handleImport = () => {
     toast({
-      title: "Función no implementada",
-      description: "La importación de datos aún no está disponible.",
+      title: t('functionNotImplementedTitle'), // Traducido
+      description: t('importNotAvailable'), // Traducido
       variant: "default",
     });
   };
@@ -242,16 +247,22 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
     setCurrentPage(1);
   };
 
-  const getExitTypeBadge = (exitType: string) => {
+  // Función para obtener la clase del badge (no necesita traducción del texto en sí, solo clases)
+  const getExitTypeBadgeClass = (exitType: string) => {
+    // Aquí el `exitType` real (e.g., 'Voluntaria') se usa para mapear a clases CSS
+    // El texto mostrado en el badge se traducirá aparte.
     const typeConfig = {
       'Voluntaria': 'bg-blue-100 text-blue-800 border-blue-300',
-      'Excedencia': 'bg-orange-100 text-orange-800 border-orange-300'
+      'Excedencia': 'bg-orange-100 text-orange-800 border-orange-300',
+      'Voluntary': 'bg-blue-100 text-blue-800 border-blue-300', // para el caso en que el valor ya venga en inglés
+      'Leave of Absence': 'bg-orange-100 text-orange-800 border-orange-300', // para el caso en que el valor ya venga en inglés
     };
     return typeConfig[exitType as keyof typeof typeConfig] || 'bg-gray-100 text-gray-800 border-gray-300';
   };
 
   const formatDate = (date: Date) => {
-    return date.toLocaleDateString(language === 'es' ? 'es-ES' : 'en-US');
+    const locale = language === 'es' ? es : enUS;
+    return format(date, 'P', { locale }); // 'P' es un formato corto de fecha dependiente del locale
   };
 
   if (viewMode === 'detail' && selectedInterviewId) {
@@ -271,7 +282,7 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
         <div className="flex flex-col space-y-3 sm:space-y-4">
           <div className="flex flex-col space-y-2">
             <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-blue-900 dark:text-blue-100 leading-tight">
-              Entrevistas de Salida
+              {t('entrevistaTit')} {/* Traducido */}
             </h1>
           </div>
           
@@ -284,7 +295,7 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
               className="border-blue-300 text-blue-700 hover:bg-blue-50 text-xs sm:text-sm h-8 sm:h-9 px-2 sm:px-3"
             >
               <RefreshCw className={`w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-              <span className="hidden sm:inline">Actualizar</span>
+              <span className="hidden sm:inline">{t('recargar')}</span> {/* Traducido */}
             </Button>
             
             <Button
@@ -292,7 +303,7 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
               className="bg-green-600 hover:bg-green-700 text-white text-xs sm:text-sm h-8 sm:h-9 px-2 sm:px-3"
             >
               <Share className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-              <span className="hidden sm:inline">Generar Enlace</span>
+              <span className="hidden sm:inline">{t('generarEnla1')}</span> {/* Traducido */}
             </Button>
             
             <Button
@@ -301,7 +312,7 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
               className="border-blue-300 text-blue-700 hover:bg-blue-50 text-xs sm:text-sm h-8 sm:h-9 px-2 sm:px-3"
             >
               <FileDown className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-              <span className="hidden sm:inline">Exportar</span>
+              <span className="hidden sm:inline">{t('exportarEntre')}</span> {/* Traducido */}
             </Button>
             
             <Button
@@ -310,7 +321,7 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
               className="border-blue-300 text-blue-700 hover:bg-blue-50 text-xs sm:text-sm h-8 sm:h-9 px-2 sm:px-3"
             >
               <Upload className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-              <span className="hidden sm:inline">Importar</span>
+              <span className="hidden sm:inline">{t('importarEntre')}</span> {/* Traducido */}
             </Button>
           </div>
         </div>
@@ -319,7 +330,7 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
         <Card className="border-blue-200 dark:border-blue-800 w-full">
           <CardHeader className="p-3 sm:p-4 md:p-6">
             <CardTitle className="text-sm sm:text-base md:text-lg text-blue-800 dark:text-blue-200">
-              Entrevistas de Salida
+              {t('entrevistaTit')} {/* Traducido */}
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
@@ -329,13 +340,13 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
                   <AlertCircle className="w-6 h-6 sm:w-8 sm:h-8 text-red-400" />
                 </div>
                 <h3 className="text-base sm:text-lg font-medium text-red-900 dark:text-red-100 mb-2">
-                  Error al cargar datos
+                  {t('errorLoadingData')} {/* Traducido */}
                 </h3>
                 <p className="text-sm sm:text-base text-red-600 dark:text-red-400 mb-4">
                   {error}
                 </p>
                 <Button onClick={handleRefresh} className="bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm">
-                  Intentar de nuevo
+                  {t('tryAgain')} {/* Traducido */}
                 </Button>
               </div>
             )}
@@ -346,7 +357,7 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
                   <RefreshCw className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400 animate-spin" />
                 </div>
                 <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
-                  Cargando entrevistas de salida...
+                  {t('loadingExitInterviews')} {/* Traducido */}
                 </h3>
               </div>
             )}
@@ -357,10 +368,10 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
                   <Upload className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400" />
                 </div>
                 <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
-                  No hay entrevistas de salida
+                  {t('noExitInterviewsFound')} {/* Traducido */}
                 </h3>
                 <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mb-4">
-                  Genera un enlace para comenzar a recibir entrevistas de salida.
+                  {t('generateLinkToStart')} {/* Traducido */}
                 </p>
                 <div className="flex flex-col sm:flex-row justify-center gap-2">
                   <Button
@@ -368,7 +379,7 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
                     className="bg-green-600 hover:bg-green-700 text-white text-xs sm:text-sm"
                   >
                     <Share className="w-4 h-4 mr-2" />
-                    Generar Enlace
+                    {t('generarEnla1')} {/* Traducido */}
                   </Button>
                   <Button
                     variant="outline"
@@ -376,7 +387,7 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
                     className="border-blue-300 text-blue-700 hover:bg-blue-50 text-xs sm:text-sm"
                   >
                     <Upload className="w-4 h-4 mr-2" />
-                    Importar Datos
+                    {t('importData')} {/* Traducido */}
                   </Button>
                 </div>
               </div>
@@ -394,7 +405,7 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
                           onClick={() => handleSort('employeeName')}
                         >
                           <div className="flex items-center">
-                            <span className="truncate">Nombre Empleado</span>
+                            <span className="truncate">{t('employeeName')}</span> {/* Traducido */}
                             {sortColumn === 'employeeName' && (
                               <span className="ml-1 flex-shrink-0">
                                 {sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
@@ -407,7 +418,7 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
                           onClick={() => handleSort('position')}
                         >
                           <div className="flex items-center">
-                            <span className="truncate">Puesto</span>
+                            <span className="truncate">{t('positionShort')}</span> {/* Traducido */}
                             {sortColumn === 'position' && (
                               <span className="ml-1 flex-shrink-0">
                                 {sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
@@ -420,7 +431,7 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
                           onClick={() => handleSort('workCenter')}
                         >
                           <div className="flex items-center">
-                            <span className="truncate">Centro</span>
+                            <span className="truncate">{t('workCenterShort')}</span> {/* Traducido */}
                             {sortColumn === 'workCenter' && (
                               <span className="ml-1 flex-shrink-0">
                                 {sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
@@ -433,7 +444,7 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
                           onClick={() => handleSort('exitType')}
                         >
                           <div className="flex items-center">
-                            <span className="truncate">Tipo de Baja</span>
+                            <span className="truncate">{t('exitType')}</span> {/* Traducido */}
                             {sortColumn === 'exitType' && (
                               <span className="ml-1 flex-shrink-0">
                                 {sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
@@ -446,7 +457,7 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
                           onClick={() => handleSort('exitDate')}
                         >
                           <div className="flex items-center">
-                            <span className="truncate">Fecha de Baja</span>
+                            <span className="truncate">{t('exitDate')}</span> {/* Traducido */}
                             {sortColumn === 'exitDate' && (
                               <span className="ml-1 flex-shrink-0">
                                 {sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
@@ -454,7 +465,7 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
                             )}
                           </div>
                         </TableHead>
-                        <TableHead className="text-center text-xs sm:text-sm">Acciones</TableHead>
+                        <TableHead className="text-center text-xs sm:text-sm">{t('actions')}</TableHead> {/* Traducido */}
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -476,15 +487,15 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
                             </div>
                           </TableCell>
                           <TableCell>
-                            <Badge className={`${getExitTypeBadge(interview.exitType)} text-xs`}>
-                              {interview.exitType}
+                            <Badge className={`${getExitTypeBadgeClass(interview.exitType)} text-xs`}>
+                              {t(interview.exitType as keyof Translations)} {/* Traducido */}
                             </Badge>
                           </TableCell>
                           <TableCell className="text-xs sm:text-sm">
                             <div className="truncate">
                               {interview.exitDate instanceof Date 
                                 ? formatDate(interview.exitDate) 
-                                : 'Fecha no válida'}
+                                : t('invalidDate')} {/* Traducido */}
                             </div>
                           </TableCell>
                           <TableCell>
@@ -493,7 +504,7 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => handleViewDetails(interview.id)}
-                                title="Ver detalles"
+                                title={t('viewDetails')} // Traducido
                                 className="h-6 w-6 sm:h-8 sm:w-8 p-0"
                               >
                                 <Eye className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -502,7 +513,7 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => handleDuplicate(interview.id)}
-                                title="Duplicar"
+                                title={t('duplicate')} // Traducido
                                 className="h-6 w-6 sm:h-8 sm:w-8 p-0"
                               >
                                 <Copy className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -511,7 +522,7 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => handleDownloadPDF(interview.id)}
-                                title="Descargar PDF"
+                                title={t('downloadPDF')} // Traducido
                                 className="h-6 w-6 sm:h-8 sm:w-8 p-0"
                               >
                                 <Download className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -520,7 +531,7 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => handleDelete(interview.id)}
-                                title="Eliminar"
+                                title={t('delete')} // Traducido
                                 className="text-red-600 hover:text-red-800 h-6 w-6 sm:h-8 sm:w-8 p-0"
                               >
                                 <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -537,7 +548,11 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
                 {exitInterviews.length > itemsPerPage && (
                   <div className="flex flex-col sm:flex-row justify-between items-center mt-4 gap-4 p-3 sm:p-4 border-t">
                     <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 order-2 sm:order-1">
-                      Mostrando {startIndex + 1} a {endIndex} de {sortedExitInterviews.length} registros
+                      {t('showingRecords', { 
+                        start: startIndex + 1, 
+                        end: endIndex, 
+                        total: sortedExitInterviews.length 
+                      })} {/* Traducido con interpolación */}
                     </div>
                     
                     <div className="flex items-center space-x-1 sm:space-x-2 order-1 sm:order-2">
@@ -548,7 +563,7 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
                         disabled={currentPage === 1}
                         className="text-xs h-7 px-2"
                       >
-                        Anterior
+                        {t('previous')} {/* Traducido */}
                       </Button>
                       
                       <div className="flex space-x-1 max-w-[200px] overflow-x-auto">
@@ -588,7 +603,7 @@ const ExitInterviewsListView: React.FC<ExitInterviewsListViewProps> = ({ languag
                         disabled={currentPage === totalPages}
                         className="text-xs h-7 px-2"
                       >
-                        Siguiente
+                        {t('next')} {/* Traducido */}
                       </Button>
                     </div>
                   </div>

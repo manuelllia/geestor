@@ -1,3 +1,4 @@
+
 export type Language = 'es' | 'en';
 export type Theme = 'light' | 'dark';
 
@@ -127,47 +128,52 @@ interface Translations {
   puntuacionPdf: string;
   asistChat: string;
   bienvenidaChat: string;
+  entrevistaTit: string;
+  generarEnla1: string;
+  exportarEntre: string;
+  importarEntre: string;
 
-  pcapFileLabel: string;
-  pcapFileTitle: string;
-  pcapFileDescription: string;
-  pptFileLabel: string;
-  pptFileTitle: string;
-  pptFileDescription: string;
-  professionalCostAnalysisTitle: string;
-  filesReadyForAnalysis: string;
-  analysisDescription: string;
-  analyzingWithAI: string;
-  startProfessionalCostAnalysis: string;
-  analysisErrorTitle: string;
-  errorAnalyzingCosts: string;
-  chatbotContextUpdated: string;
-  errorLoadingUsers: string;
-  userPermissionsUpdatedSuccessfully: string;
-  errorUpdatingUserPermissions: string;
-  yes: string;
-  no: string;
-  usersCount: string;
-  editPermissions: string;
-  swipeToViewMore: string;
-
-  // Chatbot translations
-  botErrorResponse: string;
-  greetingHello: string;
-  greetingGoodMorning: string;
-  greetingGoodAfternoon: string;
-  greetingGoodEvening: string;
-  greetingHowAreYou: string;
-  greetingIAmFine: string;
-  greetingThanks: string;
-  greetingYouAreWelcome: string;
-  helpMessage: string;
-  aiSystemPrompt: string;
-  processingErrorMessage: string;
-  openGeenioChatbot: string;
-  thinking: string;
-  typeYourMessage: string;
-  send: string;
+  exitInterviewsLoaded: string; // "Entrevistas de salida cargadas:"
+  errorLoadingExitInterviews: string; // "Error al cargar las entrevistas de salida"
+  linkCopiedTitle: string;
+  linkCopiedDescription: string;
+  errorCopyingLinkTitle: string;
+  errorCopyingLinkDescription: string;
+  interviewDuplicatedTitle: string;
+  interviewDuplicatedDescription: string;
+  errorDuplicatingTitle: string;
+  errorDuplicatingDescription: string;
+  confirmDeleteInterview: string;
+  interviewDeletedTitle: string;
+  interviewDeletedDescription: string;
+  errorDeletingTitle: string;
+  errorDeletingDescription: string;
+  functionNotImplementedTitle: string;
+  downloadPdfNotAvailable: string;
+  noDataTitle: string; // "Sin datos" para exportar
+  noDataToExportDescription: string;
+  exportCompletedTitle: string;
+  exportCompletedDescription: string;
+  importNotAvailable: string;
+  errorLoadingData: string;
+  tryAgain: string;
+  loadingExitInterviews: string;
+  noExitInterviewsFound: string;
+  generateLinkToStart: string;
+  importData: string; // "Importar Datos" botón
+  positionShort: string; // Puesto
+  workCenterShort: string; // Centro
+  exitType: string; // Tipo de Baja
+  exitDate: string; // Fecha de Baja
+  viewDetails: string;
+  duplicate: string;
+  voluntary: string;
+  leaveOfAbsence: string;
+  invalidDate: string;
+  showingRecords: string; // "Mostrando {start} a {end} de {total} registros"
+  previous: string;
+  next: string;
+  typeOfLeave: string;
 }
 
 export const translations: { [key in Language]: Translations } = {
@@ -297,47 +303,52 @@ export const translations: { [key in Language]: Translations } = {
     puntuacionPdf: 'Puntuación',
     asistChat: 'Asistente de Análisis',
     bienvenidaChat: '¡Hola! Soy Geenio, tu asistente para análisis de licitaciones. ¿En qué puedo ayudarte?',
+    entrevistaTit: 'Entrevistas de Salida',
+    generarEnla1: 'Generar Enlace',
+    exportarEntre: 'Exportar',
+    importarEntre: 'Importar',
 
-    pcapFileLabel: 'Archivo PCAP',
-    pcapFileTitle: 'Pliego de Cláusulas Administrativas Particulares',
-    pcapFileDescription: 'Sube el archivo PCAP en formato PDF',
-    pptFileLabel: 'Archivo PPT',
-    pptFileTitle: 'Pliego de Prescripciones Técnicas',
-    pptFileDescription: 'Sube el archivo PPT en formato PDF',
-    professionalCostAnalysisTitle: 'Análisis Profesional de Costes',
-    filesReadyForAnalysis: 'Archivos listos para análisis profesional',
-    analysisDescription: 'El análisis será realizado por IA especializada en licitaciones de electromedicina españolas, proporcionando un informe exhaustivo con análisis económico, criterios de adjudicación y recomendaciones estratégicas.',
-    analyzingWithAI: 'Analizando con IA Especializada...',
-    startProfessionalCostAnalysis: 'Iniciar Análisis Profesional de Costes',
-    analysisErrorTitle: 'Error en el Análisis',
-    errorAnalyzingCosts: 'Error al analizar los costes',
-    chatbotContextUpdated: 'Contexto del chatbot actualizado con nuevo análisis de costes',
-    errorLoadingUsers: 'Error al cargar usuarios',
-    userPermissionsUpdatedSuccessfully: 'Permisos de usuario actualizados correctamente',
-    errorUpdatingUserPermissions: 'Error al actualizar permisos de usuario',
-    yes: 'Sí',
-    no: 'No',
-    usersCount: 'de',
-    editPermissions: 'Editar Permisos',
-    swipeToViewMore: 'Desliza para ver más',
-
-    // Chatbot translations
-    botErrorResponse: 'Lo siento, ha ocurrido un error. ¿Puedes intentar reformular tu pregunta?',
-    greetingHello: '¡Hola! Soy Geenio, tu asistente para análisis de licitaciones. ¿En qué puedo ayudarte hoy?',
-    greetingGoodMorning: '¡Buenos días! Soy Geenio, listo para ayudarte con tus análisis de licitaciones.',
-    greetingGoodAfternoon: '¡Buenas tardes! ¿En qué puedo asistirte con tu análisis de licitación?',
-    greetingGoodEvening: '¡Buenas noches! Estoy aquí para ayudarte con cualquier consulta sobre licitaciones.',
-    greetingHowAreYou: '¡Muy bien, gracias por preguntar! Estoy listo para ayudarte con tus análisis de licitaciones.',
-    greetingIAmFine: '¡Perfecto! ¿En qué puedo ayudarte con tu análisis de licitación?',
-    greetingThanks: '¡De nada! Estoy aquí para ayudarte siempre que lo necesites.',
-    greetingYouAreWelcome: '¡Un placer ayudarte! ¿Hay algo más en lo que pueda asistirte?',
-    helpMessage: 'Puedo ayudarte con: análisis de documentos PCAP y PPT, criterios de evaluación, puntuación económica, recomendaciones estratégicas y más. ¿Qué necesitas?',
-    aiSystemPrompt: 'Eres Geenio, un asistente especializado en análisis de licitaciones de electromedicina en España. Ayudas a los usuarios a comprender documentos de licitación, criterios de evaluación, puntuación económica y estrategias de presentación. Responde de manera profesional, precisa y útil.',
-    processingErrorMessage: 'Error al procesar tu solicitud. Por favor, intenta de nuevo.',
-    openGeenioChatbot: 'Abrir Geenio Chatbot',
-    thinking: 'Pensando',
-    typeYourMessage: 'Escribe tu mensaje...',
-    send: 'Enviar'
+    exitInterviewsLoaded: 'Entrevistas de salida cargadas',
+    errorLoadingExitInterviews: 'Error al cargar las entrevistas de salida',
+    linkCopiedTitle: 'Enlace copiado',
+    linkCopiedDescription: 'El enlace de la entrevista de salida ha sido copiado al portapapeles.',
+    errorCopyingLinkTitle: 'Error al copiar enlace',
+    errorCopyingLinkDescription: 'El enlace no pudo copiarse. Por favor, cópielo manualmente: ',
+    interviewDuplicatedTitle: 'Entrevista duplicada',
+    interviewDuplicatedDescription: 'La entrevista de salida ha sido duplicada exitosamente.',
+    errorDuplicatingTitle: 'Error al duplicar',
+    errorDuplicatingDescription: 'No se pudo duplicar la entrevista de salida.',
+    confirmDeleteInterview: '¿Estás seguro de que deseas eliminar esta entrevista de salida?',
+    interviewDeletedTitle: 'Entrevista eliminada',
+    interviewDeletedDescription: 'La entrevista de salida ha sido eliminada exitosamente.',
+    errorDeletingTitle: 'Error al eliminar',
+    errorDeletingDescription: 'No se pudo eliminar la entrevista de salida.',
+    functionNotImplementedTitle: 'Función no implementada',
+    downloadPdfNotAvailable: 'La descarga de PDF para esta entrevista aún no está disponible.',
+    noDataTitle: 'Sin datos',
+    noDataToExportDescription: 'No hay entrevistas de salida para exportar.',
+    exportCompletedTitle: 'Exportación completada',
+    exportCompletedDescription: 'Las entrevistas de salida han sido exportadas exitosamente.',
+    importNotAvailable: 'La importación de datos aún no está disponible.',
+    errorLoadingData: 'Error al cargar datos',
+    tryAgain: 'Intentar de nuevo',
+    loadingExitInterviews: 'Cargando entrevistas de salida...',
+    noExitInterviewsFound: 'No hay entrevistas de salida',
+    generateLinkToStart: 'Genera un enlace para comenzar a recibir entrevistas de salida.',
+    importData: 'Importar Datos',
+    positionShort: 'Puesto',
+    workCenterShort: 'Centro',
+    exitType: 'Tipo de Baja',
+    exitDate: 'Fecha de Baja',
+    viewDetails: 'Ver detalles',
+    duplicate: 'Duplicar',
+    voluntary: 'Voluntaria',
+    leaveOfAbsence: 'Excedencia',
+    invalidDate: 'Fecha no válida',
+    showingRecords: 'Mostrando {{start}} a {{end}} de {{total}} registros',
+    previous: 'Anterior',
+    next: 'Siguiente',
+    typeOfLeave: 'Tipo de Baja
   },
   en: {
     theme: 'Theme',
@@ -465,46 +476,51 @@ export const translations: { [key in Language]: Translations } = {
     puntuacionPdf: 'Score',
     asistChat: 'Analysis Assistant',
     bienvenidaChat: 'Hello! Im Geenio, your tender analysis assistant. How can I help you?',
+    entrevistaTit: 'Exit Interviews',
+    generarEnla1: 'Generate Link',
+    exportarEntre: 'Export',
+    importarEntre: 'Import',
 
-    pcapFileLabel: 'PCAP File',
-    pcapFileTitle: 'Terms of Administrative Clauses',
-    pcapFileDescription: 'Upload the PCAP file in PDF format',
-    pptFileLabel: 'PPT File',
-    pptFileTitle: 'Terms of Technical Specifications',
-    pptFileDescription: 'Upload the PPT file in PDF format',
-    professionalCostAnalysisTitle: 'Professional Cost Analysis',
-    filesReadyForAnalysis: 'Files ready for professional analysis',
-    analysisDescription: 'The analysis will be carried out by AI specialized in Spanish electromedicine tenders, providing a comprehensive report with economic analysis, award criteria, and strategic recommendations.',
-    analyzingWithAI: 'Analyzing with Specialized AI...',
-    startProfessionalCostAnalysis: 'Start Professional Cost Analysis',
-    analysisErrorTitle: 'Analysis Error',
-    errorAnalyzingCosts: 'Error analyzing costs',
-    chatbotContextUpdated: 'Chatbot context updated with new cost analysis',
-    errorLoadingUsers: 'Error loading users',
-    userPermissionsUpdatedSuccessfully: 'User permissions updated successfully',
-    errorUpdatingUserPermissions: 'Error updating user permissions',
-    yes: 'Yes',
-    no: 'No',
-    usersCount: 'of',
-    editPermissions: 'Edit Permissions',
-    swipeToViewMore: 'Swipe to view more',
-
-    // Chatbot translations
-    botErrorResponse: 'Sorry, an error occurred. Can you try rephrasing your question?',
-    greetingHello: 'Hello! I\'m Geenio, your tender analysis assistant. How can I help you today?',
-    greetingGoodMorning: 'Good morning! I\'m Geenio, ready to help you with your tender analysis.',
-    greetingGoodAfternoon: 'Good afternoon! How can I assist you with your tender analysis?',
-    greetingGoodEvening: 'Good evening! I\'m here to help with any tender-related questions.',
-    greetingHowAreYou: 'I\'m doing great, thanks for asking! Ready to help you with your tender analysis.',
-    greetingIAmFine: 'Perfect! How can I help you with your tender analysis?',
-    greetingThanks: 'You\'re welcome! I\'m here to help whenever you need it.',
-    greetingYouAreWelcome: 'My pleasure to help! Is there anything else I can assist you with?',
-    helpMessage: 'I can help you with: PCAP and PPT document analysis, evaluation criteria, economic scoring, strategic recommendations, and more. What do you need?',
-    aiSystemPrompt: 'You are Geenio, an assistant specialized in analyzing electromedicine tenders in Spain. You help users understand tender documents, evaluation criteria, economic scoring, and presentation strategies. Respond professionally, accurately, and helpfully.',
-    processingErrorMessage: 'Error processing your request. Please try again.',
-    openGeenioChatbot: 'Open Geenio Chatbot',
-    thinking: 'Thinking',
-    typeYourMessage: 'Type your message...',
-    send: 'Send'
+    exitInterviewsLoaded: 'Exit interviews loaded',
+    errorLoadingExitInterviews: 'Error loading exit interviews',
+    linkCopiedTitle: 'Link Copied',
+    linkCopiedDescription: 'The exit interview link has been copied to the clipboard.',
+    errorCopyingLinkTitle: 'Error Copying Link',
+    errorCopyingLinkDescription: 'The link could not be copied. Please copy it manually: ',
+    interviewDuplicatedTitle: 'Interview Duplicated',
+    interviewDuplicatedDescription: 'The exit interview has been successfully duplicated.',
+    errorDuplicatingTitle: 'Error Duplicating',
+    errorDuplicatingDescription: 'Could not duplicate the exit interview.',
+    confirmDeleteInterview: 'Are you sure you want to delete this exit interview?',
+    interviewDeletedTitle: 'Interview Deleted',
+    interviewDeletedDescription: 'The exit interview has been successfully deleted.',
+    errorDeletingTitle: 'Error Deleting',
+    errorDeletingDescription: 'Could not delete the exit interview.',
+    functionNotImplementedTitle: 'Function Not Implemented',
+    downloadPdfNotAvailable: 'PDF download for this interview is not yet available.',
+    noDataTitle: 'No Data',
+    noDataToExportDescription: 'There are no exit interviews to export.',
+    exportCompletedTitle: 'Export Completed',
+    exportCompletedDescription: 'Exit interviews have been successfully exported.',
+    importNotAvailable: 'Data import is not yet available.',
+    errorLoadingData: 'Error loading data',
+    tryAgain: 'Try again',
+    loadingExitInterviews: 'Loading exit interviews...',
+    noExitInterviewsFound: 'No exit interviews found',
+    generateLinkToStart: 'Generate a link to start receiving exit interviews.',
+    importData: 'Import Data',
+    positionShort: 'Position',
+    workCenterShort: 'Center',
+    exitType: 'Exit Type',
+    exitDate: 'Exit Date',
+    viewDetails: 'View details',
+    duplicate: 'Duplicate',
+    voluntary: 'Voluntary',
+    leaveOfAbsence: 'Leave of Absence',
+    invalidDate: 'Invalid date',
+    showingRecords: 'Showing {{start}} to {{end}} of {{total}} records',
+    previous: 'Previous',
+    next: 'Next',
+    typeOfLeave: 'Type of Leave'
   }
 };
