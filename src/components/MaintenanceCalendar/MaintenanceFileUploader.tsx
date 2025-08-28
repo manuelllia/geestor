@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Language } from '../../utils/translations';
+import { usePreferences } from '../../hooks/usePreferences';
 
 interface MaintenanceFileUploaderProps {
   title: string;
@@ -23,7 +24,8 @@ const MaintenanceFileUploader: React.FC<MaintenanceFileUploaderProps> = ({
   isLoading,
   icon
 }) => {
-  const { t } = useTranslation(language);
+  const { preferences } = usePreferences();
+  const { t } = useTranslation(preferences.language);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);

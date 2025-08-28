@@ -24,8 +24,6 @@ interface Translations {
   realEstateManagement: string;
   practiceEvaluation: string;
   exitInterviews: string;
-  homeMenu: string;
-  users: string;
   changeSheetsManagement: string;
   createNew: string;
   export: string;
@@ -142,8 +140,6 @@ export const translations: { [key in Language]: Translations } = {
     realEstateManagement: 'Gestión de Inmuebles',
     practiceEvaluation: 'Evaluación de Prácticas',
     exitInterviews: 'Entrevistas de Salida',
-    homeMenu: 'Menú Principal',
-    users: 'Usuarios',
     changeSheetsManagement: 'Gestión de Hojas de Cambio',
     createNew: 'Crear Nuevo',
     export: 'Exportar',
@@ -258,8 +254,6 @@ export const translations: { [key in Language]: Translations } = {
     realEstateManagement: 'Real Estate Management',
     practiceEvaluation: 'Practice Evaluation',
     exitInterviews: 'Exit Interviews',
-    homeMenu: 'Home Menu',
-    users: 'Users',
     changeSheetsManagement: 'Change Sheets Management',
     createNew: 'Create New',
     export: 'Export',
