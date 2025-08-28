@@ -113,6 +113,10 @@ interface Translations {
   english: string;
   logout: string;
   upload: string;
+  mensajeCsvInventario: string;
+  mensajeCsvMantenimmiento: string;
+  formatosCsv: string;
+  arrastraArchivo: string;
 }
 
 export const translations: { [key in Language]: Translations } = {
@@ -226,7 +230,11 @@ export const translations: { [key in Language]: Translations } = {
     spanish: 'Español',
     english: 'Inglés',
     logout: 'Cerrar Sesión',
-    upload: 'Subir'
+    upload: 'Subir',
+    arrastraArchivo: 'Arrastra tu archivo aquí',
+    mensajeCsvInventario: 'Sube un archivo Excel o CSV con el inventario de equipos médicos',
+    mensajeCsvMantenimmiento: 'Sube un archivo Excel o CSV con la programación de mantenimiento',
+    formatosCsv: 'Formatos soportados: Excel(.xlsx, .xls) y CSV (.csv)'
   },
   en: {
     theme: 'Theme',
@@ -240,6 +248,8 @@ export const translations: { [key in Language]: Translations } = {
     calendarManagement: 'Calendar Management',
     calendarManagementShort: 'Calendars',
     checkers: 'Checkers',
+    homeMenu: 'Home',
+    users: 'Users',
     talentManagement: 'Talent Management',
     talentManagementShort: 'Talent',
     contractRequests: 'Contract Requests',
@@ -248,7 +258,7 @@ export const translations: { [key in Language]: Translations } = {
     realEstateManagement: 'Real Estate Management',
     practiceEvaluation: 'Practice Evaluation',
     exitInterviews: 'Exit Interviews',
-    homeMenu: 'Home',
+    homeMenu: 'Home Menu',
     users: 'Users',
     changeSheetsManagement: 'Change Sheets Management',
     createNew: 'Create New',
@@ -336,6 +346,10 @@ export const translations: { [key in Language]: Translations } = {
     spanish: 'Spanish',
     english: 'English',
     logout: 'Logout',
-    upload: 'Upload'
+    upload: 'Upload',
+    arrastraArchivo: 'Drag your file here',
+    mensajeCsvInventario: 'Upload an Excel or CSV file with your medical equipment inventory',
+    mensajeCsvMantenimmiento: 'Upload an Excel or CSV file with the maintenance schedule',
+    formatosCsv: 'Supported formats: Excel (.xlsx, .xls) and CSV (.csv)'
   }
 };
