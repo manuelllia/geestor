@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Avatar } from "@/components/ui/avatar"
 import { AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -150,7 +151,7 @@ const GeenioChatbot: React.FC<GeenioChatbotProps> = ({ isOpen, onToggle, context
           size="icon"
         >
           <MessageCircle className="h-5 w-5 sm:h-6 sm:w-6" />
-          <span className="sr-only">{t('openGeenioChatbot')}</span> {/* Traducido */}
+          <span className="sr-only">{t('openGeenioChatbot')}</span>
         </Button>
       </div>
     );
@@ -167,7 +168,7 @@ const GeenioChatbot: React.FC<GeenioChatbotProps> = ({ isOpen, onToggle, context
             </div>
             <div>
               <h5 className="text-sm font-semibold">Geenio</h5>
-              <p className="text-xs text-blue-100">{t('asistChat')}</p> {/* Traducido */}
+              <p className="text-xs text-blue-100">{t('asistChat')}</p>
             </div>
           </div>
           <Button 
@@ -190,7 +191,7 @@ const GeenioChatbot: React.FC<GeenioChatbotProps> = ({ isOpen, onToggle, context
               <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-2">
                 <span className="text-blue-600 dark:text-blue-400 font-bold">G</span>
               </div>
-              <p>{t('bienvenidaChat')}</p> {/* Traducido */}
+              <p>{t('bienvenidaChat')}</p>
             </div>
           )}
           
@@ -217,9 +218,9 @@ const GeenioChatbot: React.FC<GeenioChatbotProps> = ({ isOpen, onToggle, context
               <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center mr-2 mt-1 flex-shrink-0">
                 <span className="text-white text-xs font-bold">G</span>
               </div>
-              <div className={`rounded-2xl px-3 py-2 text-sm max-w-[85%] bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 shadow-sm border border-gray-200 dark:border-gray-700`}>
+              <div className="rounded-2xl px-3 py-2 text-sm max-w-[85%] bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 shadow-sm border border-gray-200 dark:border-gray-700">
                 <div className="whitespace-pre-wrap break-words">
-                  {t('thinking')}<span className="typing-dots"></span> {/* Traducido */}
+                  {t('thinking')}<span className="typing-dots"></span>
                 </div>
               </div>
             </div>
@@ -231,7 +232,7 @@ const GeenioChatbot: React.FC<GeenioChatbotProps> = ({ isOpen, onToggle, context
           <div className="flex items-center gap-2">
             <Input
               type="text"
-              placeholder={t('typeYourMessage')} {/* Traducido */}
+              placeholder={t('typeYourMessage')}
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               onKeyDown={(e) => {
@@ -250,7 +251,7 @@ const GeenioChatbot: React.FC<GeenioChatbotProps> = ({ isOpen, onToggle, context
               className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2"
             >
               <Send className="h-4 w-4" />
-              <span className="sr-only">{t('send')}</span> {/* Traducido */}
+              <span className="sr-only">{t('send')}</span>
             </Button>
           </div>
         </div>
