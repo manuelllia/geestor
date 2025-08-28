@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
@@ -41,15 +40,15 @@ const CostAnalysisView: React.FC<CostAnalysisViewProps> = ({ language }) => {
     if (!pcapFile || !pptFile) return;
     
     try {
-      const result = await analyzeCosts(pcapFile, pptFile);
+      await analyzeCosts(pcapFile, pptFile);
       
       // Actualizar contexto del chatbot cuando se complete el análisis
-      if (result) {
+      if (analysisResult) {
         updateAnalysisContext({
           pcapData: { fileName: pcapFile.name, size: pcapFile.size },
           pptData: { fileName: pptFile.name, size: pptFile.size },
-          analysisResults: result,
-          reportData: result
+          analysisResults: analysisResult,
+          reportData: analysisResult
         });
         console.log('🤖 Contexto del chatbot actualizado con nuevo análisis de costes');
         setActiveTab('report');
@@ -195,7 +194,7 @@ const CostAnalysisView: React.FC<CostAnalysisViewProps> = ({ language }) => {
           </TabsContent>
 
           <TabsContent value="report" className="mt-6">
-            {analysisResult && <CostAnalysisReport data={analysisResult} />}
+            {analysisResult && <CostAnalysisReport data={analysisResult as any} />}
           </TabsContent>
 
           <TabsContent value="costs" className="mt-6">
