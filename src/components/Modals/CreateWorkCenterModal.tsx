@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -8,17 +7,23 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useToast } from '@/hooks/use-toast';
 import { checkWorkCenterExists, createWorkCenter, updateWorkCenter, WorkCenterData } from '../../services/workCentersManagementService';
 
+import { useTranslation } from '../../hooks/useTranslation'; // Importa useTranslation
+import { Language, Translations } from '../../utils/translations'; // Importa Language y Translations
+
 interface CreateWorkCenterModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
+  language: Language; // Agregamos la prop de idioma
 }
 
 const CreateWorkCenterModal: React.FC<CreateWorkCenterModalProps> = ({
   isOpen,
   onClose,
-  onSuccess
+  onSuccess,
+  language // Destructuramos la prop de idioma
 }) => {
+  const { t } = useTranslation(language); // Inicializa el hook de traducción
   const [formData, setFormData] = useState<WorkCenterData>({
     Nombre: '',
     Id: ''
@@ -35,8 +40,8 @@ const CreateWorkCenterModal: React.FC<CreateWorkCenterModalProps> = ({
   const handleSubmit = async () => {
     if (!formData.Nombre.trim() || !formData.Id.trim()) {
       toast({
-        title: "Error",
-        description: "Por favor, completa todos los campos",
+        title: t('error'), // Reutilizando una clave genérica si no hay una específica de "Error" en toasts
+        description: t('requiredFieldsError'), // Traducido
         variant: "destructive"
       });
       return;
@@ -57,16 +62,16 @@ const CreateWorkCenterModal: React.FC<CreateWorkCenterModalProps> = ({
       } else {
         await createWorkCenter(formData);
         toast({
-          title: "Éxito",
-          description: "Centro de trabajo creado correctamente"
+          title: t('success'), // Reutilizando una clave genérica
+          description: t('workCenterCreatedSuccess') // Traducido
         });
         handleClose();
         onSuccess?.();
       }
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Error al crear el centro de trabajo",
+        title: t('error'),
+        description: t('errorCreatingWorkCenter'), // Traducido
         variant: "destructive"
       });
     } finally {
@@ -81,15 +86,15 @@ const CreateWorkCenterModal: React.FC<CreateWorkCenterModalProps> = ({
     try {
       await updateWorkCenter(formData);
       toast({
-        title: "Éxito",
-        description: "Centro de trabajo actualizado correctamente"
+        title: t('success'),
+        description: t('workCenterUpdatedSuccess') // Traducido
       });
       handleClose();
       onSuccess?.();
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Error al actualizar el centro de trabajo",
+        title: t('error'),
+        description: t('errorUpdatingWorkCenter'), // Traducido
         variant: "destructive"
       });
     } finally {
@@ -110,33 +115,33 @@ const CreateWorkCenterModal: React.FC<CreateWorkCenterModalProps> = ({
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="text-blue-900 dark:text-blue-100">
-              Crear Centro de Trabajo
+              {t('createWorkCenterTitle')} {/* Traducido */}
             </DialogTitle>
           </DialogHeader>
           
           <div className="space-y-4">
             <div>
               <Label htmlFor="nombre" className="text-gray-700 dark:text-gray-300">
-                Nombre del Centro
+                {t('workCenterNameLabel')}
               </Label>
               <Input
                 id="nombre"
                 value={formData.Nombre}
                 onChange={(e) => setFormData(prev => ({ ...prev, Nombre: e.target.value }))}
-                placeholder="Ingrese el nombre del centro"
+                placeholder={t('workCenterNamePlaceholder')} {/* Traducido */}
                 className="mt-1"
               />
             </div>
             
             <div>
               <Label htmlFor="id" className="text-gray-700 dark:text-gray-300">
-                ID del Centro
+                {t('workCenterIdLabel')}
               </Label>
               <Input
                 id="id"
                 value={formData.Id}
                 onChange={(e) => setFormData(prev => ({ ...prev, Id: e.target.value }))}
-                placeholder="Ingrese el ID del centro"
+                placeholder={t('workCenterIdPlaceholder')} {/* Traducido */}
                 className="mt-1"
               />
             </div>
@@ -148,14 +153,14 @@ const CreateWorkCenterModal: React.FC<CreateWorkCenterModalProps> = ({
               onClick={handleClear}
               disabled={isLoading}
             >
-              Limpiar
+              {t('clearButton')} {/* Traducido */}
             </Button>
             <Button
               onClick={handleSubmit}
               disabled={isLoading}
               className="bg-blue-600 hover:bg-blue-700"
             >
-              {isLoading ? 'Procesando...' : 'Subir Centro'}
+              {isLoading ? t('processing') : t('uploadCenterButton')} {/* Traducido */}
             </Button>
           </div>
         </DialogContent>
@@ -164,15 +169,15 @@ const CreateWorkCenterModal: React.FC<CreateWorkCenterModalProps> = ({
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar Creación</AlertDialogTitle>
+            <AlertDialogTitle>{t('confirmCreationTitle')}</AlertDialogTitle> {/* Traducido */}
             <AlertDialogDescription>
-              ¿Está seguro de que desea crear el centro de trabajo "{formData.Nombre}" con ID "{formData.Id}"?
+              {t('confirmCreationDescription', { name: formData.Nombre, id: formData.Id })} {/* Traducido con interpolación */}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel>{t('cancel')}</AlertDialogCancel> {/* Traducido */}
             <AlertDialogAction onClick={handleConfirmSubmit}>
-              Confirmar
+              {t('confirmButton')} {/* Traducido */}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -181,17 +186,17 @@ const CreateWorkCenterModal: React.FC<CreateWorkCenterModalProps> = ({
       <AlertDialog open={showExistsDialog} onOpenChange={setShowExistsDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Centro de Trabajo Existente</AlertDialogTitle>
+            <AlertDialogTitle>{t('workCenterExistsTitle')}</AlertDialogTitle> {/* Traducido */}
             <AlertDialogDescription>
-              Ya existe un centro de trabajo con el ID "{formData.Id}". ¿Qué desea hacer?
+              {t('workCenterExistsDescription', { id: formData.Id })} {/* Traducido con interpolación */}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setShowExistsDialog(false)}>
-              Dejarlo como está
+              {t('leaveAsIsButton')} {/* Traducido */}
             </AlertDialogCancel>
             <AlertDialogAction onClick={handleUpdateExisting}>
-              Actualizar registro
+              {t('updateRecordButton')} {/* Traducido */}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

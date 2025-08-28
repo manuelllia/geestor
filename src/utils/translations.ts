@@ -1,4 +1,3 @@
-
 export type Language = 'es' | 'en';
 export type Theme = 'light' | 'dark';
 
@@ -57,7 +56,7 @@ export interface Translations {
   comingSoonTitle: string;
   comingSoonDescription: string;
   comingSoonDescriptionComprobadores: string;
-  workCenter: string;
+  workCenter: string; // "Centro de Trabajo"
   profile: string;
   welcome: string;
   loginSubtitle: string;
@@ -184,8 +183,8 @@ export interface Translations {
   exitDate: string;
   viewDetails: string;
   duplicate: string;
-  voluntary: string;
-  leaveOfAbsence: string;
+  Voluntaria: string;
+  Excedencia: string;
   invalidDate: string;
   showingRecords: string;
   previous: string;
@@ -218,10 +217,6 @@ export interface Translations {
   valoPracTit: string;
   valoPracSub: string;
   generarEnlaceVal: string;
-
-  valoPracTit: string; // Ya existe: "Valoración de Prácticas"
-  valoPracSub: string; // Ya existe: "Gestiona las valoraciones de prácticas realizadas por los tutores de GEE"
-  generarEnlaceVal: string; // Ya existe: "Generar Enlace de Valoración"
   student: string;
   tutor: string;
   formation: string;
@@ -229,11 +224,11 @@ export interface Translations {
   evaluationDate: string;
   performanceRating: string;
   institution: string;
-  apto: string; // Valor del badge 'Apto'
-  noApto: string; // Valor del badge 'No Apto'
-  performanceRatingScore: string; // Para "X/10"
+  apto: string;
+  noApto: string;
+  performanceRatingScore: string;
   deleteEvaluationConfirmationTitle: string;
-  deleteEvaluationConfirmationDescription: string; // Con interpolación {{studentName}} {{studentLastName}}
+  deleteEvaluationConfirmationDescription: string;
   noEvaluationsRegistered: string;
   generateLinkToStartReceivingEvaluations: string;
   evaluationDeletedToastTitle: string;
@@ -247,7 +242,33 @@ export interface Translations {
   importFunctionComingSoonTitle: string;
   importFunctionComingSoonDescription: string;
 
-  // N U E V A S   C L A V E S   P A R A   ActivePropertyForm y CreateWorkCenterModal
+  // Claves para PropertyTypeSelectionModal y RealEstateDashboard
+  selectPropertyType: string;
+  propertyTypeLabel: string;
+  selectTypePlaceholder: string;
+  activeProperty: string;
+  inactiveProperty: string;
+  accept: string;
+  realEstateManagementDescription: string;
+  addProperty: string;
+  importDataButton: string;
+  propertiesOperational: string;
+  propertiesPaused: string;
+  totalRooms: string;
+  availableRooms: string;
+  totalAnnualCost: string;
+  operatingExpenses: string;
+  averageCost: string;
+  perProperty: string;
+  annualCostByProvince: string;
+  propertyStatus: string;
+  properties: string;
+  errorLoadingDashboardData: string;
+  totalRoomsKPI: string;
+  annualTotalCostKPI: string;
+  averageCostKPI: string;
+
+  // Claves para ActivePropertyForm
   addActivePropertyTitle: string;
   activePropertyInfoTitle: string;
   requiredFieldsError: string;
@@ -264,7 +285,7 @@ export interface Translations {
   removeWorkerButton: string;
   geeCompanyLabel: string;
   selectCompanyPlaceholder: string;
-  otherCompanyOption: string;
+  otherCompanyOption: string; // El valor del SelectItem puede ser la clave de traducción
   specifyCompanyPlaceholder: string;
   propertyStatusLabel: string;
   occupiedStatus: string;
@@ -288,19 +309,28 @@ export interface Translations {
   addWorkCenterButtonTitle: string;
   saving: string;
   saveProperty: string;
-  // Para CreateWorkCenterModal
+  onAddPropertyNotDefined: string;
+
+  // N U E V A S   C L A V E S   P A R A   CreateWorkCenterModal (este componente)
   createWorkCenterTitle: string;
   workCenterNameLabel: string;
   workCenterNamePlaceholder: string;
-  workCenterCodeInputLabel: string; // No es el mismo que `workCenterCodeLabel`
-  workCenterCodeInputPlaceholder: string;
-  descriptionLabel: string;
-  descriptionPlaceholder: string;
-  errorLoadingWorkCenters: string;
-  workCenterCreatedSuccess: string;
-  errorCreatingWorkCenter: string;
-  // Mensaje para onAddProperty no definido
-  onAddPropertyNotDefined: string;
+  workCenterIdLabel: string; // Cambiado de `workCenterCodeInputLabel` para diferenciar
+  workCenterIdPlaceholder: string; // Cambiado de `workCenterCodeInputPlaceholder`
+  clearButton: string;
+  uploadCenterButton: string;
+  processing: string; // Para el estado de carga del botón
+  confirmCreationTitle: string;
+  confirmCreationDescription: string; // Con interpolación {{name}} y {{id}}
+  confirmButton: string;
+  workCenterExistsTitle: string;
+  workCenterExistsDescription: string; // Con interpolación {{id}}
+  leaveAsIsButton: string;
+  updateRecordButton: string;
+  workCenterCreatedSuccess: string; // Ya existe, pero se usa aquí
+  errorCreatingWorkCenter: string; // Ya existe, pero se usa aquí
+  workCenterUpdatedSuccess: string;
+  errorUpdatingWorkCenter: string;
 }
 
 export const translations: { [key in Language]: Translations } = {
@@ -434,6 +464,7 @@ export const translations: { [key in Language]: Translations } = {
     generarEnla1: 'Generar Enlace',
     exportarEntre: 'Exportar',
     importarEntre: 'Importar',
+    typeOfLeave: 'Tipo de Baja',
 
     // Cost Analysis specific translations
     errorAnalyzingCosts: 'Error al analizar costos',
@@ -485,13 +516,12 @@ export const translations: { [key in Language]: Translations } = {
     exitDate: 'Fecha de Baja',
     viewDetails: 'Ver detalles',
     duplicate: 'Duplicar',
-    voluntary: 'Voluntaria',
-    leaveOfAbsence: 'Excedencia',
+    Voluntaria: 'Voluntaria', // Clave para traducir el valor 'Voluntaria'
+    Excedencia: 'Excedencia', // Clave para traducir el valor 'Excedencia'
     invalidDate: 'Fecha no válida',
     showingRecords: 'Mostrando {{start}} a {{end}} de {{total}} registros',
     previous: 'Anterior',
     next: 'Siguiente',
-    typeOfLeave: 'Tipo de Baja',
     errorLoadingUsers: 'Error al cargar usuarios',
     userPermissionsUpdatedSuccessfully: 'Permisos de usuario actualizados correctamente',
     errorUpdatingUserPermissions: 'Error al actualizar permisos de usuario',
@@ -517,7 +547,6 @@ export const translations: { [key in Language]: Translations } = {
     typeYourMessage: 'Escribe tu mensaje...',
     send: 'Enviar',
 
-    // N U E V A S   T R A D U C C I O N E S   P A R A   PracticeEvaluationsListView
     valoPracTit: 'Valoración de Prácticas',
     valoPracSub: 'Gestiona las valoraciones de prácticas realizadas por los tutores de GEE',
     generarEnlaceVal: 'Generar Enlace de Valoración',
@@ -545,8 +574,32 @@ export const translations: { [key in Language]: Translations } = {
     exportFunctionComingSoonDescription: 'Esta función se implementará próximamente',
     importFunctionComingSoonTitle: 'Función de importación',
     importFunctionComingSoonDescription: 'Esta función se implementará próximamente',
+    
+    selectPropertyType: 'Seleccionar Tipo de Inmueble',
+    propertyTypeLabel: 'Tipo de Inmueble',
+    selectTypePlaceholder: 'Seleccionar tipo...',
+    activeProperty: 'Inmueble Activo',
+    inactiveProperty: 'Inmueble dado de baja',
+    accept: 'Aceptar',
+    realEstateManagementDescription: 'Gestión completa de propiedades inmobiliarias',
+    addProperty: 'Agregar Inmueble',
+    importDataButton: 'Importar Datos',
+    propertiesOperational: 'Propiedades operativas',
+    propertiesPaused: 'Propiedades pausadas',
+    totalRooms: 'Total Habitaciones',
+    availableRooms: 'Habitaciones disponibles',
+    totalAnnualCost: 'Coste Anual Total',
+    operatingExpenses: 'Gastos operativos',
+    averageCost: 'Coste Promedio',
+    perProperty: 'Por propiedad',
+    annualCostByProvince: 'Coste Anual por Provincia',
+    propertyStatus: 'Estado de Propiedades',
+    properties: 'Propiedades',
+    errorLoadingDashboardData: 'Error cargando datos del dashboard',
+    totalRoomsKPI: 'Total Habitaciones',
+    annualTotalCostKPI: 'Coste Anual Total',
+    averageCostKPI: 'Coste Promedio',
 
-    // N U E V A S   T R A D U C C I O N E S   P A R A   ActivePropertyForm y CreateWorkCenterModal
     addActivePropertyTitle: 'Agregar Inmueble Activo',
     activePropertyInfoTitle: 'Información del Inmueble Activo',
     requiredFieldsError: 'Por favor, completa todos los campos obligatorios',
@@ -563,7 +616,7 @@ export const translations: { [key in Language]: Translations } = {
     removeWorkerButton: 'Eliminar',
     geeCompanyLabel: 'Empresa GEE',
     selectCompanyPlaceholder: 'Seleccionar empresa',
-    otherCompanyOption: 'OTRA', // El valor del SelectItem puede ser la clave de traducción
+    otherCompanyOption: 'OTRA',
     specifyCompanyPlaceholder: 'Especificar empresa',
     propertyStatusLabel: 'Estado del Piso',
     occupiedStatus: 'Ocupado',
@@ -587,18 +640,28 @@ export const translations: { [key in Language]: Translations } = {
     addWorkCenterButtonTitle: 'Añadir nuevo centro de trabajo',
     saving: 'Guardando...',
     saveProperty: 'Guardar Inmueble',
-    // Para CreateWorkCenterModal
+    onAddPropertyNotDefined: 'onAddProperty no está definido',
+
+    // N U E V A S   T R A D U C C I O N E S   P A R A   CreateWorkCenterModal
     createWorkCenterTitle: 'Crear Nuevo Centro de Trabajo',
     workCenterNameLabel: 'Nombre del Centro',
-    workCenterNamePlaceholder: 'Ej: Hospital General',
-    workCenterCodeInputLabel: 'Código del Centro',
-    workCenterCodeInputPlaceholder: 'Ej: HOGE001',
-    descriptionLabel: 'Descripción',
-    descriptionPlaceholder: 'Descripción opcional del centro de trabajo',
-    errorLoadingWorkCenters: 'Error al cargar los centros de trabajo.',
-    workCenterCreatedSuccess: 'Centro de trabajo creado correctamente.',
-    errorCreatingWorkCenter: 'Error al crear el centro de trabajo.',
-    onAddPropertyNotDefined: 'onAddProperty no está definido'
+    workCenterNamePlaceholder: 'Ingrese el nombre del centro',
+    workCenterIdLabel: 'ID del Centro',
+    workCenterIdPlaceholder: 'Ingrese el ID del centro',
+    clearButton: 'Limpiar',
+    uploadCenterButton: 'Subir Centro',
+    processing: 'Procesando...',
+    confirmCreationTitle: 'Confirmar Creación',
+    confirmCreationDescription: '¿Está seguro de que desea crear el centro de trabajo "{{name}}" con ID "{{id}}"?',
+    confirmButton: 'Confirmar',
+    workCenterExistsTitle: 'Centro de Trabajo Existente',
+    workCenterExistsDescription: 'Ya existe un centro de trabajo con el ID "{{id}}". ¿Qué desea hacer?',
+    leaveAsIsButton: 'Dejarlo como está',
+    updateRecordButton: 'Actualizar registro',
+    workCenterCreatedSuccess: 'Centro de trabajo creado correctamente',
+    errorCreatingWorkCenter: 'Error al crear el centro de trabajo',
+    workCenterUpdatedSuccess: 'Centro de trabajo actualizado correctamente',
+    errorUpdatingWorkCenter: 'Error al actualizar el centro de trabajo',
   },
   en: {
     theme: 'Theme',
@@ -678,7 +741,7 @@ export const translations: { [key in Language]: Translations } = {
     totalProperties: 'Total Properties',
     annualCost: 'Annual Cost',
     exportPDF: 'Export PDF',
-    realEstateDetails: 'Real Estate Details',
+    realEstateDetails: 'Real estate detail view',
     detailViewPlaceholder: 'Real estate detail view',
     userProfile: 'User Profile',
     personalInformation: 'Personal Information',
@@ -715,7 +778,7 @@ export const translations: { [key in Language]: Translations } = {
     formatosCsv: 'Supported formats: Excel (.xlsx, .xls) and CSV (.csv)',
     usersGestion: 'User Management',
     userGestSub: 'Manage users and their permissions in the system',
-    recargar: 'Update',
+    recargar: 'Refresh',
     buscadorUsers: 'Search for users by name or email...',
     listaUsers: 'User List',
     tituloAnalisis: 'Professional Cost Analysis',
@@ -730,6 +793,7 @@ export const translations: { [key in Language]: Translations } = {
     generarEnla1: 'Generate Link',
     exportarEntre: 'Export',
     importarEntre: 'Import',
+    typeOfLeave: 'Type of Leave',
 
     // Cost Analysis specific translations
     errorAnalyzingCosts: 'Error analyzing costs',
@@ -781,13 +845,12 @@ export const translations: { [key in Language]: Translations } = {
     exitDate: 'Exit Date',
     viewDetails: 'View details',
     duplicate: 'Duplicate',
-    voluntary: 'Voluntary',
-    leaveOfAbsence: 'Leave of Absence',
+    Voluntaria: 'Voluntary', // Clave para traducir el valor 'Voluntaria'
+    Excedencia: 'Leave of Absence', // Clave para traducir el valor 'Excedencia'
     invalidDate: 'Invalid date',
     showingRecords: 'Showing {{start}} to {{end}} of {{total}} records',
     previous: 'Previous',
     next: 'Next',
-    typeOfLeave: 'Type of Leave',
     errorLoadingUsers: 'Error loading users',
     userPermissionsUpdatedSuccessfully: 'User permissions updated successfully',
     errorUpdatingUserPermissions: 'Error updating user permissions',
@@ -841,7 +904,31 @@ export const translations: { [key in Language]: Translations } = {
     importFunctionComingSoonTitle: 'Import function',
     importFunctionComingSoonDescription: 'This function will be implemented soon',
 
-    // N E W   T R A N S L A T I O N S   P A R A   ActivePropertyForm y CreateWorkCenterModal
+    selectPropertyType: 'Select Property Type',
+    propertyTypeLabel: 'Property Type',
+    selectTypePlaceholder: 'Select type...',
+    activeProperty: 'Active Property',
+    inactiveProperty: 'Inactive Property',
+    accept: 'Accept',
+    realEstateManagementDescription: 'Complete property management',
+    addProperty: 'Add Property',
+    importDataButton: 'Import Data',
+    propertiesOperational: 'Operational properties',
+    propertiesPaused: 'Paused properties',
+    totalRooms: 'Total Rooms',
+    availableRooms: 'Available rooms',
+    totalAnnualCost: 'Total Annual Cost',
+    operatingExpenses: 'Operating expenses',
+    averageCost: 'Average Cost',
+    perProperty: 'Per property',
+    annualCostByProvince: 'Annual Cost by Province',
+    propertyStatus: 'Property Status',
+    properties: 'Properties',
+    errorLoadingDashboardData: 'Error loading dashboard data',
+    totalRoomsKPI: 'Total Rooms',
+    annualTotalCostKPI: 'Total Annual Cost',
+    averageCostKPI: 'Average Cost',
+
     addActivePropertyTitle: 'Add Active Property',
     activePropertyInfoTitle: 'Active Property Information',
     requiredFieldsError: 'Please complete all required fields',
@@ -882,17 +969,27 @@ export const translations: { [key in Language]: Translations } = {
     addWorkCenterButtonTitle: 'Add new work center',
     saving: 'Saving...',
     saveProperty: 'Save Property',
-    // Para CreateWorkCenterModal
+    onAddPropertyNotDefined: 'onAddProperty is not defined',
+
+    // N E W   T R A N S L A T I O N S   P A R A   CreateWorkCenterModal
     createWorkCenterTitle: 'Create New Work Center',
     workCenterNameLabel: 'Center Name',
-    workCenterNamePlaceholder: 'E.g.: General Hospital',
-    workCenterCodeInputLabel: 'Center Code',
-    workCenterCodeInputPlaceholder: 'E.g.: HOGE001',
-    descriptionLabel: 'Description',
-    descriptionPlaceholder: 'Optional description of the work center',
-    errorLoadingWorkCenters: 'Error loading work centers.',
-    workCenterCreatedSuccess: 'Work center created successfully.',
-    errorCreatingWorkCenter: 'Error creating work center.',
-    onAddPropertyNotDefined: 'onAddProperty is not defined'
+    workCenterNamePlaceholder: 'Enter center name',
+    workCenterIdLabel: 'Center ID',
+    workCenterIdPlaceholder: 'Enter center ID',
+    clearButton: 'Clear',
+    uploadCenterButton: 'Upload Center',
+    processing: 'Processing...',
+    confirmCreationTitle: 'Confirm Creation',
+    confirmCreationDescription: 'Are you sure you want to create the work center "{{name}}" with ID "{{id}}"?',
+    confirmButton: 'Confirm',
+    workCenterExistsTitle: 'Existing Work Center',
+    workCenterExistsDescription: 'A work center with ID "{{id}}" already exists. What do you want to do?',
+    leaveAsIsButton: 'Leave as is',
+    updateRecordButton: 'Update record',
+    workCenterCreatedSuccess: 'Work center created successfully',
+    errorCreatingWorkCenter: 'Error creating work center',
+    workCenterUpdatedSuccess: 'Work center updated successfully',
+    errorUpdatingWorkCenter: 'Error updating work center',
   }
 };
