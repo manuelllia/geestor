@@ -68,7 +68,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
 
   if (loading) {
     return (
-      <div className="flex flex-col h-screen">
+      <div className="flex flex-col min-h-screen">
         <div className="flex-1 overflow-hidden p-3 sm:p-4 lg:p-6">
           <div className="space-y-4">
             <div>
@@ -110,20 +110,17 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
           setShowDetailView(false);
           setSelectedRequest(null);
         }}
-        onEdit={() => {
-          // Navigate to edit view
-        }}
       />
     );
   }
 
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col min-h-screen">
       <div className="flex-1 overflow-hidden">
-        <div className="h-full overflow-y-auto p-3 sm:p-4 lg:p-6 space-y-4">
-          <div className="flex flex-col space-y-3">
+        <div className="h-full overflow-y-auto p-2 sm:p-3 md:p-4 lg:p-6 space-y-3 sm:space-y-4">
+          <div className="flex flex-col space-y-2 sm:space-y-3">
             <div>
-              <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-blue-900 dark:text-blue-100">
+              <h1 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-blue-900 dark:text-blue-100">
                 Solicitudes de Contratación
               </h1>
               <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">
@@ -131,13 +128,13 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
               </p>
             </div>
             
-            <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
               <Button
                 onClick={() => setShowCreateForm(true)}
                 className="bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm"
                 size="sm"
               >
-                <Plus className="w-3.5 h-3.5 mr-1.5 flex-shrink-0" />
+                <Plus className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1.5 flex-shrink-0" />
                 <span className="whitespace-nowrap">Crear Nuevo</span>
               </Button>
               
@@ -147,7 +144,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
                 className="border-blue-300 text-blue-700 hover:bg-blue-50 text-xs sm:text-sm"
                 size="sm"
               >
-                <RefreshCw className="w-3.5 h-3.5 mr-1.5 flex-shrink-0" />
+                <RefreshCw className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1.5 flex-shrink-0" />
                 <span className="whitespace-nowrap">Actualizar</span>
               </Button>
               
@@ -157,7 +154,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
                 className="border-green-300 text-green-700 hover:bg-green-50 text-xs sm:text-sm"
                 size="sm"
               >
-                <FileDown className="w-3.5 h-3.5 mr-1.5 flex-shrink-0" />
+                <FileDown className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1.5 flex-shrink-0" />
                 <span className="whitespace-nowrap">Exportar</span>
               </Button>
               
@@ -167,30 +164,30 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
                 className="border-purple-300 text-purple-700 hover:bg-purple-50 text-xs sm:text-sm"
                 size="sm"
               >
-                <FileUp className="w-3.5 h-3.5 mr-1.5 flex-shrink-0" />
+                <FileUp className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1.5 flex-shrink-0" />
                 <span className="whitespace-nowrap">Importar</span>
               </Button>
             </div>
           </div>
 
           <Card className="border-blue-200 dark:border-blue-800">
-            <CardContent className="p-3 sm:p-4">
+            <CardContent className="p-2 sm:p-3 md:p-4">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 flex-shrink-0" />
+                <Search className="absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
                 <Input
                   type="text"
                   placeholder="Buscar por solicitante..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 text-xs sm:text-sm border-blue-200 focus:border-blue-500 focus:ring-blue-500"
+                  className="pl-8 sm:pl-10 text-xs sm:text-sm border-blue-200 focus:border-blue-500 focus:ring-blue-500"
                 />
               </div>
             </CardContent>
           </Card>
 
           <Card className="border-blue-200 dark:border-blue-800 flex-1 min-h-0">
-            <CardHeader className="p-3 sm:p-4 flex-shrink-0">
-              <CardTitle className="text-sm sm:text-base text-blue-800 dark:text-blue-200 flex items-center gap-2 flex-wrap">
+            <CardHeader className="p-2 sm:p-3 md:p-4 flex-shrink-0">
+              <CardTitle className="text-xs sm:text-sm md:text-base text-blue-800 dark:text-blue-200 flex items-center gap-2 flex-wrap">
                 <span>Lista de Solicitudes</span>
                 <Badge variant="secondary" className="text-xs whitespace-nowrap">
                   Mostrando {filteredRequests.length} de {contractRequests.length} solicitudes
@@ -199,39 +196,39 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
             </CardHeader>
             <CardContent className="p-0 flex-1 min-h-0">
               <div className="h-full overflow-auto">
-                <div className="min-w-[700px]">
+                <div className="min-w-[600px] sm:min-w-[700px]">
                   <Table>
-                    <TableHeader className="sticky top-0 bg-white dark:bg-gray-900 z-10">
+                    <TableHeader className="sticky top-0 bg-white dark:bg-gray-900 z-10 border-b">
                       <TableRow>
-                        <TableHead className="text-xs min-w-[150px] px-2 sm:px-3">Solicitante</TableHead>
-                        <TableHead className="text-xs min-w-[120px] px-2 sm:px-3">Centro de Trabajo</TableHead>
-                        <TableHead className="text-xs min-w-[100px] px-2 sm:px-3">Puesto</TableHead>
-                        <TableHead className="text-xs min-w-[80px] px-2 sm:px-3">Ciudad</TableHead>
-                        <TableHead className="text-xs min-w-[100px] px-2 sm:px-3 text-center">Fecha</TableHead>
-                        <TableHead className="text-xs min-w-[80px] px-2 sm:px-3 text-center">Estado</TableHead>
-                        <TableHead className="w-[60px] text-xs text-center sticky right-0 bg-white dark:bg-gray-900">Acciones</TableHead>
+                        <TableHead className="text-xs min-w-[120px] sm:min-w-[150px] px-2 sm:px-3">Solicitante</TableHead>
+                        <TableHead className="text-xs min-w-[100px] sm:min-w-[120px] px-2 sm:px-3">Centro de Trabajo</TableHead>
+                        <TableHead className="text-xs min-w-[80px] sm:min-w-[100px] px-2 sm:px-3">Puesto</TableHead>
+                        <TableHead className="text-xs min-w-[70px] sm:min-w-[80px] px-2 sm:px-3">Ciudad</TableHead>
+                        <TableHead className="text-xs min-w-[80px] sm:min-w-[100px] px-2 sm:px-3 text-center">Fecha</TableHead>
+                        <TableHead className="text-xs min-w-[70px] sm:min-w-[80px] px-2 sm:px-3 text-center">Estado</TableHead>
+                        <TableHead className="w-[50px] sm:w-[60px] text-xs text-center sticky right-0 bg-white dark:bg-gray-900 border-l">Acciones</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {filteredRequests.map((request) => (
                         <TableRow key={request.id}>
                           <TableCell className="text-xs px-2 sm:px-3 font-medium">
-                            <div className="max-w-[150px] truncate">
+                            <div className="max-w-[120px] sm:max-w-[150px] truncate">
                               {request.requesterName} {request.requesterLastName}
                             </div>
                           </TableCell>
                           <TableCell className="text-xs px-2 sm:px-3">
-                            <div className="max-w-[120px] truncate">
+                            <div className="max-w-[100px] sm:max-w-[120px] truncate">
                               {request.workCenter}
                             </div>
                           </TableCell>
                           <TableCell className="text-xs px-2 sm:px-3">
-                            <div className="max-w-[100px] truncate">
+                            <div className="max-w-[80px] sm:max-w-[100px] truncate">
                               {request.jobPosition}
                             </div>
                           </TableCell>
                           <TableCell className="text-xs px-2 sm:px-3">
-                            <div className="max-w-[80px] truncate">
+                            <div className="max-w-[70px] sm:max-w-[80px] truncate">
                               {request.city}
                             </div>
                           </TableCell>
@@ -247,17 +244,17 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
                               {request.status}
                             </Badge>
                           </TableCell>
-                          <TableCell className="px-2 sm:px-3 sticky right-0 bg-white dark:bg-gray-900">
+                          <TableCell className="px-2 sm:px-3 sticky right-0 bg-white dark:bg-gray-900 border-l">
                             <div className="flex justify-center">
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" className="h-7 w-7 p-0">
-                                    <MoreHorizontal className="h-3.5 w-3.5 flex-shrink-0" />
+                                  <Button variant="ghost" className="h-6 w-6 sm:h-7 sm:w-7 p-0">
+                                    <MoreHorizontal className="h-3 w-3 sm:h-3.5 sm:w-3.5 flex-shrink-0" />
                                   </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end" className="bg-white dark:bg-gray-800 border border-blue-200 dark:border-blue-700 z-50">
                                   <DropdownMenuItem onClick={() => handleViewDetails(request)} className="cursor-pointer text-xs">
-                                    <Eye className="mr-2 h-3.5 w-3.5 flex-shrink-0" />
+                                    <Eye className="mr-2 h-3 w-3 sm:h-3.5 sm:w-3.5 flex-shrink-0" />
                                     <span>Ver detalles</span>
                                   </DropdownMenuItem>
                                 </DropdownMenuContent>
@@ -271,7 +268,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
                 </div>
               </div>
               
-              <div className="sm:hidden p-3 text-center border-t flex-shrink-0">
+              <div className="sm:hidden p-2 sm:p-3 text-center border-t flex-shrink-0">
                 <p className="text-xs text-gray-500">
                   ← Desliza horizontalmente para ver más columnas →
                 </p>
