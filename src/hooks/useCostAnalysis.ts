@@ -3,45 +3,169 @@ import { useState } from 'react';
 import { fileToBase64, getMimeType } from '../utils/file-helpers';
 
 interface CostAnalysisData {
-  esPorLotes: boolean;
-  lotes: Array<{
-    nombre: string;
-    centroAsociado: string;
-    descripcion: string;
-    presupuesto: string;
-    requisitosClave: string[];
-  }>;
-  variablesDinamicas: Array<{
-    nombre: string;
-    descripcion: string;
-    mapeo: 'price' | 'tenderBudget' | 'maxScore' | 'lowestPrice' | 'averagePrice';
-  }>;
-  formulaEconomica: string;
-  formulasDetectadas: Array<{
-    formulaOriginal: string;
-    representacionLatex: string;
-    descripcionVariables: string;
-    condicionesLogicas: string;
-  }>;
-  umbralBajaTemeraria: string;
-  criteriosAutomaticos: Array<{
-    nombre: string;
-    descripcion: string;
-    puntuacionMaxima: number;
-  }>;
-  criteriosSubjetivos: Array<{
-    nombre: string;
-    descripcion: string;
-    puntuacionMaxima: number;
-  }>;
-  otrosCriterios: Array<{
-    nombre: string;
-    descripcion: string;
-    puntuacionMaxima: number;
-  }>;
-  presupuestoGeneral: string;
-  costesDetalladosRecomendados: {
-    [key: string]: any;
+  // Información General de la Licitación
+  licitacionInfo: {
+    tipoLicitacion: string;
+    objetoContrato: string;
+    entidadContratante: string;
+    codigoCPV: string;
+    fechaInscripcion: string;
+    plazoLimite: string;
+    fechaAperturaSobres: string;
+    plazoAdjudicacion: string;
+    fechaInicioEjecucion: string;
+    numeroLotes: number;
+    valorEstimado: string;
+    criteriosSeleccion: string[];
+  };
+  
+  // Alcance y Condiciones
+  alcanceCondiciones: {
+    ambitoGeografico: string;
+    serviciosIncluidos: string[];
+    productosIncluidos: string[];
+    requisitosTecnicos: string[];
+    exclusiones: string[];
+    duracionBase: string;
+    fechaInicio: string;
+    fechaFin: string;
+    numeroMaximoProrrogas: number;
+    duracionCadaProrroga: string;
+    condicionesProrroga: string[];
+    porcentajeMaximoModificacion: string;
+    casosModificacion: string[];
+  };
+
+  // Personal Requerido (análisis detallado)
+  personalRequerido: {
+    totalPersonas: number;
+    personalPorLote: { lote: string; personas: number; centro: string }[];
+    desglosePorPuesto: Array<{
+      puesto: string;
+      numero: number;
+      perfil: string;
+      dedicacion: string;
+      costeSalarialEstimado: number;
+    }>;
+    estudiosRequeridos: string[];
+    experienciaMinima: string;
+    estimacionCostePorPersona: number;
+    costoTotalEstimado: number;
+  };
+
+  // Análisis Económico Detallado
+  analisisEconomico: {
+    presupuestoBaseLicitacion: string;
+    desgloseCostes: {
+      personal: {
+        totalCostePersonal: number;
+        desglosePorPuesto: Array<{
+          puesto: string;
+          numero: number;
+          costeMensual: number;
+          costeAnual: number;
+        }>;
+      };
+      compras: {
+        equipamiento: number;
+        consumibles: number;
+        repuestos: number;
+        totalCompras: number;
+      };
+      subcontrataciones: {
+        serviciosExternalizables: string[];
+        limiteSubcontratacion: string;
+        costeEstimadoSubcontratacion: number;
+      };
+      otrosGastos: {
+        seguros: number;
+        gastosGenerales: number;
+        costesIndirectos: number;
+        totalOtrosGastos: number;
+      };
+    };
+    costoTotalProyecto: number;
+    rentabilidadEstimada: number;
+  };
+
+  // Criterios de Adjudicación (sección más detallada)
+  criteriosAdjudicacion: {
+    puntuacionMaximaEconomica: number;
+    puntuacionMaximaTecnica: number;
+    puntuacionTotal: number;
+    
+    // Fórmulas matemáticas detalladas
+    formulasDetectadas: Array<{
+      nombre: string;
+      tipo: 'economica' | 'tecnica' | 'mejora' | 'penalizacion' | 'umbral';
+      formulaOriginal: string;
+      representacionLatex: string;
+      descripcionVariables: string;
+      condicionesLogicas: string;
+      ejemploAplicacion: string;
+    }>;
+    
+    // Variables de las fórmulas
+    variablesDinamicas: Array<{
+      nombre: string;
+      descripcion: string;
+      mapeo: 'price' | 'tenderBudget' | 'maxScore' | 'lowestPrice' | 'averagePrice';
+      valorEjemplo: string;
+    }>;
+    
+    // Fórmula principal económica en formato AST
+    formulaEconomicaAST: string;
+    
+    // Análisis de baja temeraria
+    bajaTemeraria: {
+      descripcion: string;
+      umbralPorcentaje: string;
+      formulaCalculo: string;
+      procedimientoVerificacion: string[];
+    };
+    
+    // Desglose detallado de criterios
+    criteriosAutomaticos: Array<{
+      nombre: string;
+      descripcion: string;
+      puntuacionMaxima: number;
+      verificacion: string;
+      documentacionRequerida: string[];
+    }>;
+    
+    criteriosSubjetivos: Array<{
+      nombre: string;
+      descripcion: string;
+      puntuacionMaxima: number;
+      aspectosEvaluar: string[];
+      criteriosCalificacion: string[];
+    }>;
+    
+    mejoras: Array<{
+      nombre: string;
+      descripcion: string;
+      puntuacionMaxima: number;
+      valoracionEconomica: string;
+      requisitos: string[];
+    }>;
+  };
+
+  // Información adicional relevante
+  detallesAdicionales: {
+    ubicacion: string;
+    duracionContrato: string;
+    condicionesEspeciales: string[];
+    garantias: Array<{
+      tipo: string;
+      porcentaje: string;
+      duracion: string;
+    }>;
+    penalizaciones: Array<{
+      concepto: string;
+      importe: string;
+      condiciones: string;
+    }>;
+    documentacionRequerida: string[];
   };
 }
 
@@ -51,65 +175,145 @@ export const useCostAnalysis = () => {
   const [error, setError] = useState<string | null>(null);
 
   const generateMasterPrompt = (): string => `
-Actúa como un prestigioso matemático y un experto consultor especializado en licitaciones públicas de electromedicina en España. Tu tarea es analizar los documentos PDF proporcionados: un Pliego de Cláusulas Administrativas Particulares (PCAP) y un Pliego de Prescripciones Técnicas (PPT).
+Actúa como un prestigioso analista especializado en licitaciones públicas de electromedicina en España, con más de 15 años de experiencia en análisis de contratos públicos y gestión de costes. Tu misión es realizar un análisis exhaustivo y profesional de los documentos de licitación proporcionados.
 
-**Instrucción de Idioma (CRÍTICA):** Los documentos de entrada (PCAP y PPT) pueden estar escritos en español, catalán, gallego, euskera (vasco), valenciano o inglés. Independientemente del idioma de origen, TU RESPUESTA Y TODOS LOS DATOS EXTRAÍDOS en el JSON final DEBEN ESTAR OBLIGATORIAMENTE EN ESPAÑOL. Realiza la traducción necesaria para todos los campos.
+**INSTRUCCIÓN DE IDIOMA CRÍTICA:** Los documentos pueden estar en cualquier idioma oficial de España (español, catalán, gallego, euskera, valenciano) o inglés. TODA tu respuesta y TODOS los datos extraídos en el JSON final DEBEN ESTAR OBLIGATORIAMENTE EN ESPAÑOL PROFESIONAL. Realiza todas las traducciones necesarias.
 
-Extrae únicamente la información verificable presente en los documentos proporcionados para rellenar la estructura JSON solicitada. No incluyas explicaciones, introducciones o conclusiones fuera del objeto JSON.
+**CONTEXTO PROFESIONAL:**
+Eres un consultor senior que debe proporcionar un análisis completo para que una empresa de electromedicina pueda tomar decisiones estratégicas sobre su participación en esta licitación. Tu análisis debe ser preciso, detallado y orientado a la rentabilidad empresarial.
 
-**Análisis de Lotes:**
-1.  **Detecta si es por lotes:** Primero, determina si la licitación está explícitamente dividida en lotes. Establece el campo 'esPorLotes' en 'true' si es así, y en 'false' en caso contrario.
-2.  **Si es por lotes:** Rellena el array 'lotes'. Para cada lote identificado, extrae: 'nombre', 'centroAsociado', 'descripcion', 'presupuesto' (string numérico sin IVA), y 'requisitosClave'.
-3.  **Si NO es por lotes:** El array 'lotes' debe quedar vacío ([]).
+**ESTRUCTURA DEL ANÁLISIS REQUERIDO:**
 
----
-**TAREA CRÍTICA 1: ANÁLISIS DE VARIABLES DINÁMICAS (NUEVO)**
-Antes de analizar la fórmula económica principal, tu primera tarea es identificar las variables que se usan en ella.
-1.  **Detecta Variables:** Identifica todas las variables utilizadas en la fórmula de puntuación económica (ej. "Plic", "Pmax", "Oferta_i", "B").
-2.  **Define y Mapea:** Por cada variable detectada, crea un objeto en el array \`variablesDinamicas\`. Este objeto DEBE tener:
-    *   \`nombre\`: El nombre exacto de la variable tal y como aparece en el pliego (ej: "Plic").
-    *   \`descripcion\`: Una descripción clara de lo que representa la variable (ej: "Presupuesto base de licitación sin IVA").
-    *   \`mapeo\`: Un mapeo ESTRICTO a uno de los siguientes conceptos del sistema: "price", "tenderBudget", "maxScore", "lowestPrice", "averagePrice".
+## 1. INFORMACIÓN GENERAL DE LA LICITACIÓN
+Extrae y analiza:
+- **Tipo de Licitación**: Determina si es licitación única o por lotes
+- **Objeto del Contrato**: Descripción completa de lo que se licita
+- **Entidad Contratante**: Organismo público que convoca la licitación
+- **Código CPV**: Código de clasificación del contrato
+- **Cronograma Completo**: Todas las fechas relevantes (inscripción, presentación ofertas, apertura sobres, adjudicación, inicio ejecución)
+- **Valor Estimado**: Presupuesto base de licitación sin IVA
 
-**TAREA CRÍTICA 2: ANÁLISIS Y DESCOMPOSICIÓN DE FÓRMULAS (AST como String JSON)**
-Una vez identificadas las variables, analiza la fórmula económica principal y descomponla en un Árbol de Sintaxis Abstracta (AST) serializado como una cadena JSON.
-*   **Usa las Variables Detectadas:** En los nodos de tipo "variable" del AST, DEBES usar el \`nombre\` de la variable que has definido en \`variablesDinamicas\`. Por ejemplo, si detectaste "Plic", el nodo variable será \`{ "type": "variable", "name": "Plic" }\`.
-*   **Serialización:** El objeto JSON completo del AST debe ser serializado como una única cadena de texto para el campo \`formulaEconomica\`.
+## 2. ALCANCE Y CONDICIONES DEL CONTRATO
+Analiza detalladamente:
+- **Ámbito Geográfico**: Ubicaciones donde se prestará el servicio
+- **Servicios y Productos**: Lista específica de lo incluido y excluido
+- **Requisitos Técnicos**: Especificaciones técnicas principales
+- **Duración y Prórrogas**: Plazo base, número máximo de prórrogas, condiciones
+- **Modificaciones**: Porcentaje máximo permitido, casos y procedimientos
 
-**EJEMPLO COMPLETO:**
-Si la fórmula es \`70 * (1 - (P - Pmin) / (Plic - Pmin))\`, y has detectado que 'P' es el precio de la oferta, 'Pmin' el precio más bajo y 'Plic' el presupuesto:
-1.  \`variablesDinamicas\` contendrá las definiciones de 'P', 'Pmin', y 'Plic'.
-2.  El AST usará estos nombres: \`{"type":"binary_operation","operator":"*","left":{...},"right":{"type":"binary_operation", "operator": "-", "left":{...}, "right":{"type":"binary_operation", "operator":"/", "left": {"type":"variable", "name":"P"},...}}}\`
-3.  El campo \`formulaEconomica\` recibirá este AST como una cadena de texto JSON.
+## 3. ANÁLISIS ECONÓMICO PROFESIONAL
+Realiza un análisis de costes empresarial detallado:
 
-Si no hay fórmula económica principal, \`formulaEconomica\` será un string vacío ('') y \`variablesDinamicas\` un array vacío ([]).
+### A) COSTES DE PERSONAL:
+- Identifica el número total de trabajadores necesarios
+- Desglose por puesto de trabajo (técnicos, ingenieros, administrativos, etc.)
+- Perfil profesional requerido para cada puesto
+- Dedicación (jornada completa, parcial, específica)
+- **Estimación realista de costes salariales** considerando:
+  - Salario bruto anual por puesto
+  - Seguridad Social (30% aproximadamente)
+  - Pagas extraordinarias
+  - Otros beneficios sociales
+  - Coste total por empleado/año
 
----
-**TAREA CRÍTICA 3: ANÁLISIS MATEMÁTICO DE TODAS LAS FÓRMULAS**
-Como matemático, tu misión es identificar, interpretar y catalogar **todas** las fórmulas presentes en los documentos, no solo la fórmula de puntuación económica principal. Esto incluye fórmulas para criterios de mejora, fórmulas de penalización, umbrales calculados, etc.
+### B) COSTES DE COMPRAS Y SUMINISTROS:
+- Equipamiento necesario (inversión inicial)
+- Consumibles y fungibles (coste anual)
+- Repuestos y mantenimiento
+- Estimación económica de cada partida
 
-Para cada fórmula matemática que encuentres, sin excepción:
-1.  **Ajusta e Interpreta:** Analiza la fórmula para entender su propósito y componentes. Si la fórmula está escrita de manera ambigua o con texto descriptivo, "ajústala" para representarla en una notación matemática estándar y clara.
-2.  **Cataloga en \`formulasDetectadas\`:** Crea un objeto en el array \`formulasDetectadas\` con los siguientes campos:
-    *   \`formulaOriginal\`: La fórmula EXACTA como está en el texto. Si la has ajustado desde una descripción, pon aquí la versión ajustada y estándar.
-    *   \`representacionLatex\`: Su traducción precisa a formato LaTeX. Presta especial atención a raíces, potencias, fracciones y símbolos. **Ej: \`P = 5 * (Ht – 100)/ 100)\` debe ser \`P = 5 \\times \\frac{(Ht - 100)}{100}\`**.
-    *   \`descripcionVariables\`: Una descripción clara y concisa de CADA variable en la fórmula.
-    *   \`condicionesLogicas\`: Explica cualquier condición lógica, tramo o regla asociada. Por ejemplo: "Esta fórmula solo se aplica si la oferta supera las 100 horas de formación."
+### C) SUBCONTRATACIONES:
+- Servicios que se pueden externalizar
+- Límites legales de subcontratación
+- Coste estimado de servicios subcontratados
 
-Tu objetivo es que un usuario pueda entender perfectamente cómo funciona cada cálculo en la licitación. No omitas ninguna fórmula, por trivial que parezca.
----
+### D) OTROS GASTOS:
+- Seguros obligatorios
+- Gastos generales de la empresa
+- Costes indirectos (administración, comercial, etc.)
 
-**Análisis del Resto de Criterios:**
-*   **'umbralBajaTemeraria':** Describe las condiciones para que una oferta sea considerada anormalmente baja o temeraria.
-*   **'criteriosAutomaticos', 'criteriosSubjetivos', 'otrosCriterios':** Listas detalladas de todos los demás criterios con su descripción y puntuación máxima. La suma de todas las puntuaciones debe ser coherente con el total del pliego.
+### E) ANÁLISIS DE RENTABILIDAD:
+- Coste total del proyecto
+- Margen de beneficio recomendado
+- Análisis de riesgos económicos
 
-**Análisis Económico y de Costes:**
-*   **Presupuesto General:** Busca el "Presupuesto Base de Licitación" (PBL) o "Valor Estimado del Contrato" (VEC) **TOTAL**. Extrae su valor numérico **sin IVA** como una cadena de texto.
-*   **Recomendaciones de Costes ('costesDetalladosRecomendados'):** Actúa como un director de operaciones. Tu objetivo es generar un desglose de costes **realista, completo y rentable**.
+## 4. CRITERIOS DE ADJUDICACIÓN (ANÁLISIS CRÍTICO)
 
-Regla general: Si un dato no se encuentra, usa "No especificado en los documentos" para strings y arrays vacíos para listas. Para los costes recomendados, omite los campos que no puedas estimar.
+### A) SISTEMA DE PUNTUACIÓN:
+- Puntuación máxima económica
+- Puntuación máxima técnica
+- Distribución porcentual
 
-RESPUESTA REQUERIDA: Proporciona ÚNICAMENTE un objeto JSON válido con la estructura CostAnalysisData solicitada. No agregues explicaciones, texto adicional o bloques de código markdown.
+### B) ANÁLISIS MATEMÁTICO COMPLETO:
+Para CADA fórmula matemática encontrada en los documentos:
+1. **Identifica y clasifica** todas las fórmulas (no solo la económica):
+   - Fórmulas de puntuación económica
+   - Fórmulas de criterios técnicos
+   - Fórmulas de mejoras
+   - Fórmulas de penalizaciones
+   - Umbrales calculados
+
+2. **Para cada fórmula proporciona**:
+   - Nombre descriptivo de la fórmula
+   - Tipo (económica/técnica/mejora/penalización/umbral)
+   - Fórmula original exacta del documento
+   - Representación en LaTeX profesional
+   - Descripción detallada de cada variable
+   - Condiciones lógicas de aplicación
+   - Ejemplo práctico de aplicación
+
+3. **Variables de la Fórmula Económica Principal**:
+   - Identifica cada variable (ej: "Plic", "Oferta_i", "Pmin")
+   - Descripción de qué representa cada variable
+   - Mapeo a conceptos estándar del sistema
+   - Valores de ejemplo realistas
+
+4. **Fórmula AST**: Convierte la fórmula económica principal a formato AST JSON
+
+### C) BAJA TEMERARIA:
+- Descripción del umbral
+- Porcentaje específico
+- Fórmula de cálculo
+- Procedimiento de verificación
+
+### D) DESGLOSE DETALLADO DE CRITERIOS:
+
+**Criterios Automáticos** (verificables objetivamente):
+- Lista completa con puntuación
+- Método de verificación
+- Documentación requerida
+
+**Criterios Subjetivos** (requieren valoración):
+- Lista completa con puntuación
+- Aspectos a evaluar
+- Criterios de calificación
+
+**Mejoras** (si las hay):
+- Descripción de cada mejora
+- Puntuación asignada
+- Valoración económica
+- Requisitos específicos
+
+## 5. INFORMACIÓN ADICIONAL EMPRESARIAL
+- Garantías requeridas (tipos, porcentajes, duración)
+- Penalizaciones previstas
+- Documentación administrativa necesaria
+- Condiciones especiales de ejecución
+
+**FORMATO DE RESPUESTA:**
+Proporciona ÚNICAMENTE un objeto JSON válido con la estructura CostAnalysisData completa. No agregues explicaciones adicionales fuera del JSON.
+
+**CALIDAD PROFESIONAL:**
+- Usa terminología técnica apropiada
+- Proporciona estimaciones realistas y fundamentadas
+- Considera la normativa española de contratación pública
+- Enfoque orientado a la toma de decisiones empresariales
+
+**INSTRUCCIONES FINALES:**
+- Si un dato no se encuentra, usa "No especificado en los documentos"
+- Para arrays vacíos, usa []
+- Para números, usa valores realistas del mercado español
+- Mantén coherencia en todas las estimaciones económicas
 `;
 
   const callGeminiAPI = async (pcapFile: File, pptFile: File): Promise<CostAnalysisData> => {
@@ -117,15 +321,14 @@ RESPUESTA REQUERIDA: Proporciona ÚNICAMENTE un objeto JSON válido con la estru
     const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent';
     
     try {
-      console.log('🤖 Enviando análisis de costes a Gemini API con archivos PDF...');
+      console.log('🤖 Enviando análisis profesional de costes a Gemini API...');
       
-      // Convertir archivos a base64
       const pcapBase64 = await fileToBase64(pcapFile);
       const pptBase64 = await fileToBase64(pptFile);
       
-      console.log('📄 Archivos convertidos a base64');
-      console.log(`PCAP: ${pcapFile.name} (${pcapFile.size} bytes)`);
-      console.log(`PPT: ${pptFile.name} (${pptFile.size} bytes)`);
+      console.log('📄 Archivos procesados para análisis profesional');
+      console.log(`PCAP: ${pcapFile.name} (${(pcapFile.size / 1024 / 1024).toFixed(2)} MB)`);
+      console.log(`PPT: ${pptFile.name} (${(pptFile.size / 1024 / 1024).toFixed(2)} MB)`);
 
       const requestBody = {
         contents: [{
@@ -174,7 +377,7 @@ RESPUESTA REQUERIDA: Proporciona ÚNICAMENTE un objeto JSON válido con la estru
         ]
       };
 
-      console.log('📤 Enviando request a Gemini con archivos PDF...');
+      console.log('📤 Enviando análisis profesional a Gemini...');
 
       const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
         method: 'POST',
@@ -184,8 +387,6 @@ RESPUESTA REQUERIDA: Proporciona ÚNICAMENTE un objeto JSON válido con la estru
         body: JSON.stringify(requestBody),
       });
 
-      console.log('📥 Response status:', response.status);
-
       if (!response.ok) {
         const errorData = await response.text();
         console.error('❌ Error de Gemini API:', errorData);
@@ -193,98 +394,40 @@ RESPUESTA REQUERIDA: Proporciona ÚNICAMENTE un objeto JSON válido con la estru
       }
 
       const data = await response.json();
-      console.log('✅ Respuesta completa de Gemini recibida');
+      console.log('✅ Análisis profesional completado por Gemini');
 
       if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
         console.error('❌ Estructura de respuesta inválida:', data);
-        throw new Error('Respuesta inválida de Gemini API - estructura incorrecta');
+        throw new Error('Respuesta inválida de Gemini API');
       }
 
       const responseText = data.candidates[0].content.parts[0].text;
-      console.log('📝 Texto de respuesta recibido');
-
-      // Función para parsear JSON de forma segura
-      const safeJsonParse = (jsonString: string): CostAnalysisData => {
-        try {
-          // Limpiar la respuesta si tiene bloques de código markdown
-          let cleanedResponse = jsonString
-            .replace(/```json\n?/g, '')
-            .replace(/```\n?/g, '')
-            .trim();
-          
-          // Buscar el inicio y fin del JSON
-          const jsonStart = cleanedResponse.indexOf('{');
-          const jsonEnd = cleanedResponse.lastIndexOf('}');
-          
-          if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
-            cleanedResponse = cleanedResponse.substring(jsonStart, jsonEnd + 1);
-          }
-          
-          const parsedResult: CostAnalysisData = JSON.parse(cleanedResponse);
-          console.log('✅ JSON parseado exitosamente');
-          
-          // Validar y limpiar la estructura para evitar objetos complejos en React
-          const cleanedResult: CostAnalysisData = {
-            esPorLotes: Boolean(parsedResult.esPorLotes),
-            lotes: Array.isArray(parsedResult.lotes) ? parsedResult.lotes.map(lote => ({
-              nombre: String(lote.nombre || ''),
-              centroAsociado: String(lote.centroAsociado || ''),
-              descripcion: String(lote.descripcion || ''),
-              presupuesto: String(lote.presupuesto || ''),
-              requisitosClave: Array.isArray(lote.requisitosClave) ? lote.requisitosClave.map(req => String(req)) : []
-            })) : [],
-            variablesDinamicas: Array.isArray(parsedResult.variablesDinamicas) ? parsedResult.variablesDinamicas.map(variable => ({
-              nombre: String(variable.nombre || ''),
-              descripcion: String(variable.descripcion || ''),
-              mapeo: ['price', 'tenderBudget', 'maxScore', 'lowestPrice', 'averagePrice'].includes(variable.mapeo) 
-                ? variable.mapeo as 'price' | 'tenderBudget' | 'maxScore' | 'lowestPrice' | 'averagePrice'
-                : 'price'
-            })) : [],
-            formulaEconomica: String(parsedResult.formulaEconomica || ''),
-            formulasDetectadas: Array.isArray(parsedResult.formulasDetectadas) ? parsedResult.formulasDetectadas.map(formula => ({
-              formulaOriginal: String(formula.formulaOriginal || ''),
-              representacionLatex: String(formula.representacionLatex || ''),
-              descripcionVariables: String(formula.descripcionVariables || ''),
-              condicionesLogicas: String(formula.condicionesLogicas || '')
-            })) : [],
-            umbralBajaTemeraria: String(parsedResult.umbralBajaTemeraria || 'No especificado'),
-            criteriosAutomaticos: Array.isArray(parsedResult.criteriosAutomaticos) ? parsedResult.criteriosAutomaticos.map(criterio => ({
-              nombre: String(criterio.nombre || ''),
-              descripcion: String(criterio.descripcion || ''),
-              puntuacionMaxima: Number(criterio.puntuacionMaxima) || 0
-            })) : [],
-            criteriosSubjetivos: Array.isArray(parsedResult.criteriosSubjetivos) ? parsedResult.criteriosSubjetivos.map(criterio => ({
-              nombre: String(criterio.nombre || ''),
-              descripcion: String(criterio.descripcion || ''),
-              puntuacionMaxima: Number(criterio.puntuacionMaxima) || 0
-            })) : [],
-            otrosCriterios: Array.isArray(parsedResult.otrosCriterios) ? parsedResult.otrosCriterios.map(criterio => ({
-              nombre: String(criterio.nombre || ''),
-              descripcion: String(criterio.descripcion || ''),
-              puntuacionMaxima: Number(criterio.puntuacionMaxima) || 0
-            })) : [],
-            presupuestoGeneral: String(parsedResult.presupuestoGeneral || '0'),
-            costesDetalladosRecomendados: typeof parsedResult.costesDetalladosRecomendados === 'object' 
-              ? parsedResult.costesDetalladosRecomendados || {} 
-              : {}
-          };
-          
-          return cleanedResult;
-        } catch (parseError) {
-          console.error('❌ Error parseando JSON:', parseError);
-          console.error('📝 Respuesta recibida:', jsonString.substring(0, 500) + '...');
-          throw new Error(`La respuesta de Gemini no es un JSON válido: ${parseError instanceof Error ? parseError.message : 'Error desconocido'}`);
+      
+      try {
+        let cleanedResponse = responseText
+          .replace(/```json\n?/g, '')
+          .replace(/```\n?/g, '')
+          .trim();
+        
+        const jsonStart = cleanedResponse.indexOf('{');
+        const jsonEnd = cleanedResponse.lastIndexOf('}');
+        
+        if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
+          cleanedResponse = cleanedResponse.substring(jsonStart, jsonEnd + 1);
         }
-      };
-
-      return safeJsonParse(responseText);
+        
+        const parsedResult: CostAnalysisData = JSON.parse(cleanedResponse);
+        console.log('✅ Análisis profesional parseado exitosamente');
+        
+        return parsedResult;
+      } catch (parseError) {
+        console.error('❌ Error parseando análisis profesional:', parseError);
+        throw new Error(`Error en análisis: ${parseError instanceof Error ? parseError.message : 'Error desconocido'}`);
+      }
 
     } catch (error) {
-      console.error('❌ Error en llamada a Gemini API:', error);
-      if (error instanceof Error) {
-        throw new Error(`Error en análisis de costes con Gemini: ${error.message}`);
-      }
-      throw new Error('Error desconocido en análisis de costes con Gemini');
+      console.error('❌ Error en análisis profesional:', error);
+      throw error;
     }
   };
 
@@ -294,9 +437,8 @@ RESPUESTA REQUERIDA: Proporciona ÚNICAMENTE un objeto JSON válido con la estru
     setAnalysisResult(null);
     
     try {
-      console.log('🚀 Iniciando análisis de costes con Gemini y archivos PDF...');
+      console.log('🚀 Iniciando análisis profesional de costes...');
       
-      // Verificar archivos
       if (!pcapFile || !pptFile) {
         throw new Error('Ambos archivos (PCAP y PPT) son requeridos para el análisis');
       }
@@ -305,21 +447,14 @@ RESPUESTA REQUERIDA: Proporciona ÚNICAMENTE un objeto JSON válido con la estru
         throw new Error('Los archivos deben ser PDFs válidos');
       }
       
-      console.log(`📊 Procesando archivos:`);
-      console.log(`  - PCAP: ${pcapFile.name} (${(pcapFile.size / 1024 / 1024).toFixed(2)} MB)`);
-      console.log(`  - PPT: ${pptFile.name} (${(pptFile.size / 1024 / 1024).toFixed(2)} MB)`);
-      
-      // Llamar a la API de Gemini con los archivos PDF
-      console.log('🤖 Enviando análisis completo a Gemini API...');
       const analysis = await callGeminiAPI(pcapFile, pptFile);
-      
       setAnalysisResult(analysis);
-      console.log('✅ Análisis de costes completado exitosamente con Gemini');
+      console.log('✅ Análisis profesional completado exitosamente');
       
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Error desconocido durante el análisis';
       setError(errorMessage);
-      console.error('❌ Error en análisis de costes:', err);
+      console.error('❌ Error en análisis profesional:', err);
     } finally {
       setIsLoading(false);
     }

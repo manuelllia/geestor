@@ -1,8 +1,8 @@
 
 {
-  "name": "GEEstor Connect",
-  "short_name": "GEEstor",
-  "description": "Sistema de gestión empresarial del Grupo Empresarial Electromédico",
+  "name": "GEESTOR V.2.0",
+  "short_name": "GEESTOR V.2.0",
+  "description": "Sistema de gestión empresarial del Grupo Empresarial Electromédico - Versión 2.0",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -25,5 +25,13 @@
   "categories": ["business", "productivity"],
   "lang": "es",
   "scope": "/",
-  "prefer_related_applications": false
+  "prefer_related_applications": false,
+  "screenshots": [
+    {
+      "src": "/lovable-uploads/b26f4432-6e2b-410f-ba58-c296d249d3da.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide"
+    }
+  ]
 }
