@@ -1,4 +1,3 @@
-
 export type Language = 'es' | 'en';
 export type Theme = 'light' | 'dark';
 
@@ -143,6 +142,32 @@ interface Translations {
   analysisErrorTitle: string;
   errorAnalyzingCosts: string;
   chatbotContextUpdated: string;
+  errorLoadingUsers: string;
+  userPermissionsUpdatedSuccessfully: string;
+  errorUpdatingUserPermissions: string;
+  yes: string;
+  no: string;
+  usersCount: string;
+  editPermissions: string;
+  swipeToViewMore: string;
+
+  // Chatbot translations
+  botErrorResponse: string;
+  greetingHello: string;
+  greetingGoodMorning: string;
+  greetingGoodAfternoon: string;
+  greetingGoodEvening: string;
+  greetingHowAreYou: string;
+  greetingIAmFine: string;
+  greetingThanks: string;
+  greetingYouAreWelcome: string;
+  helpMessage: string;
+  aiSystemPrompt: string;
+  processingErrorMessage: string;
+  openGeenioChatbot: string;
+  thinking: string;
+  typeYourMessage: string;
+  send: string;
 }
 
 export const translations: { [key in Language]: Translations } = {
@@ -286,7 +311,33 @@ export const translations: { [key in Language]: Translations } = {
     startProfessionalCostAnalysis: 'Iniciar Análisis Profesional de Costes',
     analysisErrorTitle: 'Error en el Análisis',
     errorAnalyzingCosts: 'Error al analizar los costes',
-    chatbotContextUpdated: 'Contexto del chatbot actualizado con nuevo análisis de costes'
+    chatbotContextUpdated: 'Contexto del chatbot actualizado con nuevo análisis de costes',
+    errorLoadingUsers: 'Error al cargar usuarios',
+    userPermissionsUpdatedSuccessfully: 'Permisos de usuario actualizados correctamente',
+    errorUpdatingUserPermissions: 'Error al actualizar permisos de usuario',
+    yes: 'Sí',
+    no: 'No',
+    usersCount: 'de',
+    editPermissions: 'Editar Permisos',
+    swipeToViewMore: 'Desliza para ver más',
+
+    // Chatbot translations
+    botErrorResponse: 'Lo siento, ha ocurrido un error. ¿Puedes intentar reformular tu pregunta?',
+    greetingHello: '¡Hola! Soy Geenio, tu asistente para análisis de licitaciones. ¿En qué puedo ayudarte hoy?',
+    greetingGoodMorning: '¡Buenos días! Soy Geenio, listo para ayudarte con tus análisis de licitaciones.',
+    greetingGoodAfternoon: '¡Buenas tardes! ¿En qué puedo asistirte con tu análisis de licitación?',
+    greetingGoodEvening: '¡Buenas noches! Estoy aquí para ayudarte con cualquier consulta sobre licitaciones.',
+    greetingHowAreYou: '¡Muy bien, gracias por preguntar! Estoy listo para ayudarte con tus análisis de licitaciones.',
+    greetingIAmFine: '¡Perfecto! ¿En qué puedo ayudarte con tu análisis de licitación?',
+    greetingThanks: '¡De nada! Estoy aquí para ayudarte siempre que lo necesites.',
+    greetingYouAreWelcome: '¡Un placer ayudarte! ¿Hay algo más en lo que pueda asistirte?',
+    helpMessage: 'Puedo ayudarte con: análisis de documentos PCAP y PPT, criterios de evaluación, puntuación económica, recomendaciones estratégicas y más. ¿Qué necesitas?',
+    aiSystemPrompt: 'Eres Geenio, un asistente especializado en análisis de licitaciones de electromedicina en España. Ayudas a los usuarios a comprender documentos de licitación, criterios de evaluación, puntuación económica y estrategias de presentación. Responde de manera profesional, precisa y útil.',
+    processingErrorMessage: 'Error al procesar tu solicitud. Por favor, intenta de nuevo.',
+    openGeenioChatbot: 'Abrir Geenio Chatbot',
+    thinking: 'Pensando',
+    typeYourMessage: 'Escribe tu mensaje...',
+    send: 'Enviar'
   },
   en: {
     theme: 'Theme',
@@ -428,6 +479,32 @@ export const translations: { [key in Language]: Translations } = {
     startProfessionalCostAnalysis: 'Start Professional Cost Analysis',
     analysisErrorTitle: 'Analysis Error',
     errorAnalyzingCosts: 'Error analyzing costs',
-    chatbotContextUpdated: 'Chatbot context updated with new cost analysis'
+    chatbotContextUpdated: 'Chatbot context updated with new cost analysis',
+    errorLoadingUsers: 'Error loading users',
+    userPermissionsUpdatedSuccessfully: 'User permissions updated successfully',
+    errorUpdatingUserPermissions: 'Error updating user permissions',
+    yes: 'Yes',
+    no: 'No',
+    usersCount: 'of',
+    editPermissions: 'Edit Permissions',
+    swipeToViewMore: 'Swipe to view more',
+
+    // Chatbot translations
+    botErrorResponse: 'Sorry, an error occurred. Can you try rephrasing your question?',
+    greetingHello: 'Hello! I\'m Geenio, your tender analysis assistant. How can I help you today?',
+    greetingGoodMorning: 'Good morning! I\'m Geenio, ready to help you with your tender analysis.',
+    greetingGoodAfternoon: 'Good afternoon! How can I assist you with your tender analysis?',
+    greetingGoodEvening: 'Good evening! I\'m here to help with any tender-related questions.',
+    greetingHowAreYou: 'I\'m doing great, thanks for asking! Ready to help you with your tender analysis.',
+    greetingIAmFine: 'Perfect! How can I help you with your tender analysis?',
+    greetingThanks: 'You\'re welcome! I\'m here to help whenever you need it.',
+    greetingYouAreWelcome: 'My pleasure to help! Is there anything else I can assist you with?',
+    helpMessage: 'I can help you with: PCAP and PPT document analysis, evaluation criteria, economic scoring, strategic recommendations, and more. What do you need?',
+    aiSystemPrompt: 'You are Geenio, an assistant specialized in analyzing electromedicine tenders in Spain. You help users understand tender documents, evaluation criteria, economic scoring, and presentation strategies. Respond professionally, accurately, and helpfully.',
+    processingErrorMessage: 'Error processing your request. Please try again.',
+    openGeenioChatbot: 'Open Geenio Chatbot',
+    thinking: 'Thinking',
+    typeYourMessage: 'Type your message...',
+    send: 'Send'
   }
 };

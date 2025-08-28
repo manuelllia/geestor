@@ -1,24 +1,25 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
-import { useTranslation } from '../../hooks/useTranslation'; // Ajusta la ruta
-import { Language } from '../../utils/translations'; // Ajusta la ruta
-import FileUploadBox from '../BidAnalyzer/FileUploadBox'; // Asegúrate que este componente también usa `language` y `t`
+import { useTranslation } from '../../hooks/useTranslation';
+import { Language } from '../../utils/translations';
+import FileUploadBox from '../BidAnalyzer/FileUploadBox';
 import { useCostAnalysis } from '../../hooks/useCostAnalysis';
-import CostAnalysisReport from './CostAnalysisReport'; // Estos componentes también deberían recibir `language` si tienen texto interno
-import CostBreakdownView from './CostBreakdownView'; // Estos componentes también deberían recibir `language` si tienen texto interno
-import ScoreAnalysisView from './ScoreAnalysisView'; // Estos componentes también deberían recibir `language` si tienen texto interno
-import GeenioChatbot from '../BidAnalyzer/GeenioChatbot'; // Ya lo actualizamos en la respuesta anterior
+import CostAnalysisReport from './CostAnalysisReport';
+import CostBreakdownView from './CostBreakdownView';
+import ScoreAnalysisView from './ScoreAnalysisView';
+import GeenioChatbot from '../BidAnalyzer/GeenioChatbot';
 import { useChatbotContext } from '../../hooks/useChatbotContext';
-import { toast } from 'sonner'; // Asegúrate de que toast esté importado
+import { toast } from 'sonner';
 
 interface CostAnalysisViewProps {
   language: Language;
 }
 
 const CostAnalysisView: React.FC<CostAnalysisViewProps> = ({ language }) => {
-  const { t } = useTranslation(language); // Inicializa el hook de traducción
+  const { t } = useTranslation(language);
   const [pcapFile, setPcapFile] = useState<File | null>(null);
   const [pptFile, setPptFile] = useState<File | null>(null);
   const [activeTab, setActiveTab] = useState('upload');
@@ -44,7 +45,7 @@ const CostAnalysisView: React.FC<CostAnalysisViewProps> = ({ language }) => {
       await analyzeCosts(pcapFile, pptFile);
     } catch (err) {
       console.error('Error analyzing costs:', err);
-      toast.error(t('errorAnalyzingCosts')); // Mensaje traducido
+      toast.error(t('errorAnalyzingCosts'));
     }
   };
 
@@ -57,10 +58,10 @@ const CostAnalysisView: React.FC<CostAnalysisViewProps> = ({ language }) => {
         analysisResults: analysisResult,
         reportData: analysisResult
       });
-      console.log(t('chatbotContextUpdated')); // Traducido
+      console.log(t('chatbotContextUpdated'));
       setActiveTab('report');
     }
-  }, [analysisResult, pcapFile, pptFile, updateAnalysisContext, t]); // Agrega `t` a las dependencias
+  }, [analysisResult, pcapFile, pptFile, updateAnalysisContext, t]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 relative overflow-x-hidden">
@@ -68,10 +69,10 @@ const CostAnalysisView: React.FC<CostAnalysisViewProps> = ({ language }) => {
         {/* Header responsivo */}
         <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg md:rounded-xl p-4 md:p-6 lg:p-8 shadow-lg">
           <h1 className="text-xl md:text-2xl lg:text-4xl font-bold mb-2 md:mb-4">
-            {t('tituloAnalisis')} {/* Traducido */}
+            {t('tituloAnalisis')}
           </h1>
           <p className="text-indigo-100 text-sm md:text-base lg:text-lg">
-            {t('subtiAnalisis')} {/* Traducido */}
+            {t('subtiAnalisis')}
           </p>
         </div>
 
@@ -83,7 +84,7 @@ const CostAnalysisView: React.FC<CostAnalysisViewProps> = ({ language }) => {
               className="text-xs md:text-sm px-2 md:px-4 py-2 md:py-3 data-[state=active]:bg-blue-600 data-[state=active]:text-white"
             >
               <span className="hidden sm:inline">📁 </span>
-              {t('subirPdf')} {/* Traducido */}
+              {t('subirPdf')}
             </TabsTrigger>
             <TabsTrigger 
               value="report" 
@@ -91,7 +92,7 @@ const CostAnalysisView: React.FC<CostAnalysisViewProps> = ({ language }) => {
               className="text-xs md:text-sm px-2 md:px-4 py-2 md:py-3 data-[state=active]:bg-blue-600 data-[state=active]:text-white disabled:opacity-50"
             >
               <span className="hidden sm:inline">📊 </span>
-              {t('informepdf')} {/* Traducido */}
+              {t('informepdf')}
             </TabsTrigger>
             <TabsTrigger 
               value="costs" 
@@ -99,7 +100,7 @@ const CostAnalysisView: React.FC<CostAnalysisViewProps> = ({ language }) => {
               className="text-xs md:text-sm px-2 md:px-4 py-2 md:py-3 data-[state=active]:bg-blue-600 data-[state=active]:text-white disabled:opacity-50"
             >
               <span className="hidden sm:inline">💰 </span>
-              {t('costespdf')} {/* Traducido */}
+              {t('costespdf')}
             </TabsTrigger>
             <TabsTrigger 
               value="scores" 
@@ -107,7 +108,7 @@ const CostAnalysisView: React.FC<CostAnalysisViewProps> = ({ language }) => {
               className="text-xs md:text-sm px-2 md:px-4 py-2 md:py-3 data-[state=active]:bg-blue-600 data-[state=active]:text-white disabled:opacity-50"
             >
               <span className="hidden sm:inline">🎯 </span>
-              {t('puntuacionPdf')} {/* Traducido */}
+              {t('puntuacionPdf')}
             </TabsTrigger>
           </TabsList>
 
@@ -118,19 +119,18 @@ const CostAnalysisView: React.FC<CostAnalysisViewProps> = ({ language }) => {
                 <CardHeader className="pb-3 md:pb-4">
                   <CardTitle className="text-base md:text-lg lg:text-xl font-semibold text-blue-900 dark:text-blue-100 flex items-center gap-2">
                     <span className="text-lg md:text-xl">📄</span>
-                    <span className="hidden sm:inline">{t('pcapFileLabel')}</span> {/* Traducido */}
+                    <span className="hidden sm:inline">{t('pcapFileLabel')}</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <FileUploadBox
-                    title={t('pcapFileTitle')} // Traducido
-                    description={t('pcapFileDescription')} // Traducido
+                    title={t('pcapFileTitle')}
+                    description={t('pcapFileDescription')}
                     file={pcapFile}
                     onFileUpload={handlePcapUpload}
                     onFileRemove={() => setPcapFile(null)}
                     accept=".pdf"
                     isLoading={isLoading}
-                    language={language} // Pasa el idioma al FileUploadBox
                   />
                 </CardContent>
               </Card>
@@ -139,19 +139,18 @@ const CostAnalysisView: React.FC<CostAnalysisViewProps> = ({ language }) => {
                 <CardHeader className="pb-3 md:pb-4">
                   <CardTitle className="text-base md:text-lg lg:text-xl font-semibold text-blue-900 dark:text-blue-100 flex items-center gap-2">
                     <span className="text-lg md:text-xl">📊</span>
-                    <span className="hidden sm:inline">{t('pptFileLabel')}</span> {/* Traducido */}
+                    <span className="hidden sm:inline">{t('pptFileLabel')}</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <FileUploadBox
-                    title={t('pptFileTitle')} // Traducido
-                    description={t('pptFileDescription')} // Traducido
+                    title={t('pptFileTitle')}
+                    description={t('pptFileDescription')}
                     file={pptFile}
                     onFileUpload={handlePptUpload}
                     onFileRemove={() => setPptFile(null)}
                     accept=".pdf"
                     isLoading={isLoading}
-                    language={language} // Pasa el idioma al FileUploadBox
                   />
                 </CardContent>
               </Card>
@@ -163,7 +162,7 @@ const CostAnalysisView: React.FC<CostAnalysisViewProps> = ({ language }) => {
                 <CardHeader className="pb-3 md:pb-4">
                   <CardTitle className="text-base md:text-lg lg:text-xl font-semibold text-blue-900 dark:text-blue-100 flex items-center gap-2">
                     <span className="text-lg md:text-xl">📈</span>
-                    {t('professionalCostAnalysisTitle')} {/* Traducido */}
+                    {t('professionalCostAnalysisTitle')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -172,10 +171,10 @@ const CostAnalysisView: React.FC<CostAnalysisViewProps> = ({ language }) => {
                       <div className="text-green-600 dark:text-green-400 text-xl md:text-2xl">✅</div>
                       <div className="flex-1">
                         <p className="text-green-800 dark:text-green-200 font-medium text-sm md:text-base mb-2">
-                          {t('filesReadyForAnalysis')} {/* Traducido */}
+                          {t('filesReadyForAnalysis')}
                         </p>
                         <p className="text-green-600 dark:text-green-300 text-xs md:text-sm mb-4">
-                          {t('analysisDescription')} {/* Traducido */}
+                          {t('analysisDescription')}
                         </p>
                       </div>
                     </div>
@@ -187,12 +186,12 @@ const CostAnalysisView: React.FC<CostAnalysisViewProps> = ({ language }) => {
                       {isLoading ? (
                         <div className="flex items-center justify-center gap-3">
                           <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                          <span>{t('analyzingWithAI')}</span> {/* Traducido */}
+                          <span>{t('analyzingWithAI')}</span>
                         </div>
                       ) : (
                         <div className="flex items-center justify-center gap-2">
                           <span className="text-lg">🚀</span>
-                          <span>{t('startProfessionalCostAnalysis')}</span> {/* Traducido */}
+                          <span>{t('startProfessionalCostAnalysis')}</span>
                         </div>
                       )}
                     </Button>
@@ -209,10 +208,10 @@ const CostAnalysisView: React.FC<CostAnalysisViewProps> = ({ language }) => {
                     <div className="text-red-500 text-xl flex-shrink-0">❌</div>
                     <div className="flex-1 min-w-0">
                       <h3 className="font-semibold text-red-800 dark:text-red-200 text-sm md:text-base mb-1">
-                        {t('analysisErrorTitle')} {/* Traducido */}
+                        {t('analysisErrorTitle')}
                       </h3>
                       <p className="text-red-600 dark:text-red-300 text-xs md:text-sm break-words">
-                        {error} {/* El mensaje de error real puede ser dinámico */}
+                        {error}
                       </p>
                     </div>
                   </div>
@@ -222,15 +221,15 @@ const CostAnalysisView: React.FC<CostAnalysisViewProps> = ({ language }) => {
           </TabsContent>
 
           <TabsContent value="report" className="mt-4 md:mt-6">
-            {analysisResult && <CostAnalysisReport data={analysisResult} language={language} />} {/* Pasa el idioma */}
+            {analysisResult && <CostAnalysisReport data={analysisResult} />}
           </TabsContent>
 
           <TabsContent value="costs" className="mt-4 md:mt-6">
-            {analysisResult && <CostBreakdownView data={analysisResult} language={language} />} {/* Pasa el idioma */}
+            {analysisResult && <CostBreakdownView data={analysisResult} />}
           </TabsContent>
 
           <TabsContent value="scores" className="mt-4 md:mt-6">
-            {analysisResult && <ScoreAnalysisView data={analysisResult} language={language} />} {/* Pasa el idioma */}
+            {analysisResult && <ScoreAnalysisView data={analysisResult} />}
           </TabsContent>
         </Tabs>
       </div>
@@ -240,7 +239,7 @@ const CostAnalysisView: React.FC<CostAnalysisViewProps> = ({ language }) => {
         isOpen={isChatbotOpen} 
         onToggle={() => setIsChatbotOpen(!isChatbotOpen)}
         context={analysisResult}
-        language={language} // Pasa la prop de idioma al chatbot
+        language={language}
       />
     </div>
   );
