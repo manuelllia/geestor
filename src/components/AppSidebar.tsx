@@ -229,7 +229,7 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
                       className="w-full justify-start hover:bg-blue-50 dark:hover:bg-blue-900/20 data-[active=true]:bg-blue-100 dark:data-[active=true]:bg-blue-800 mb-1 sm:mb-2 text-sm sm:text-base p-2 sm:p-3"
                     >
                       <Home className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                      <span className="ml-2 truncate">Inicio</span>
+                      <span className="ml-2 truncate">{t('homeMenu')}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 </SidebarMenu>
@@ -248,7 +248,7 @@ export function AppSidebar({ language, activeSection, onSectionChange }: AppSide
                         className="w-full justify-start hover:bg-blue-50 dark:hover:bg-blue-900/20 data-[active=true]:bg-blue-100 dark:data-[active=true]:bg-blue-800 mb-1 sm:mb-2 text-sm sm:text-base p-2 sm:p-3"
                       >
                         <Users className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                        <span className="ml-2 truncate">Usuarios</span>
+                        <span className="ml-2 truncate">{t('users')}</span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   </SidebarMenu>
