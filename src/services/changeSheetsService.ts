@@ -1,3 +1,4 @@
+
 import { v4 as uuidv4 } from 'uuid';
 
 let changeSheets: ChangeSheetRecord[] = [
@@ -11,6 +12,25 @@ let changeSheets: ChangeSheetRecord[] = [
     requestDate: new Date('2024-01-20'),
     status: 'Pendiente',
     description: 'Desarrollo de un nuevo módulo para mejorar la experiencia del usuario.',
+    // New properties for change sheets
+    employeeName: 'Juan',
+    employeeLastName: 'Pérez',
+    originCenter: 'Centro Madrid',
+    contractsManaged: 'Contrato A',
+    currentPosition: 'Técnico/a',
+    currentSupervisorName: 'Ana',
+    currentSupervisorLastName: 'García',
+    destinationCenter: 'Centro Barcelona',
+    contractsToManage: 'Contrato B',
+    newPosition: 'Responsable de Centro',
+    newSupervisorName: 'Carlos',
+    newSupervisorLastName: 'Martín',
+    startDate: new Date('2024-02-01'),
+    changeType: 'Permanente',
+    needs: ['Actuación PRL', 'Desplazamiento'],
+    currentCompany: 'ASIME SA',
+    companyChange: 'No',
+    observations: 'Cambio necesario por reestructuración del departamento.',
     createdAt: new Date(),
     updatedAt: new Date(),
   },
@@ -24,6 +44,24 @@ let changeSheets: ChangeSheetRecord[] = [
     requestDate: new Date('2024-02-10'),
     status: 'En curso',
     description: 'Se detectó un error que impide procesar correctamente los pagos. Se requiere solución urgente.',
+    employeeName: 'María',
+    employeeLastName: 'Gómez',
+    originCenter: 'Centro Valencia',
+    contractsManaged: 'Contrato C',
+    currentPosition: 'Administrativo/a',
+    currentSupervisorName: 'Pedro',
+    currentSupervisorLastName: 'López',
+    destinationCenter: 'Centro Sevilla',
+    contractsToManage: 'Contrato D',
+    newPosition: 'Especialista (EDE)',
+    newSupervisorName: 'Laura',
+    newSupervisorLastName: 'Rodríguez',
+    startDate: new Date('2024-03-01'),
+    changeType: 'Temporal',
+    needs: ['Alojamiento', 'Vehíclo'],
+    currentCompany: 'IBERMAN SA',
+    companyChange: 'Si',
+    observations: 'Cambio temporal por proyecto especial.',
     createdAt: new Date(),
     updatedAt: new Date(),
   },
@@ -37,6 +75,24 @@ let changeSheets: ChangeSheetRecord[] = [
     requestDate: new Date('2024-03-01'),
     status: 'Completado',
     description: 'Se propone optimizar las consultas a la base de datos para reducir los tiempos de respuesta.',
+    employeeName: 'Carlos',
+    employeeLastName: 'Rodríguez',
+    originCenter: 'Centro Bilbao',
+    contractsManaged: 'Contrato E',
+    currentPosition: 'Responsable de Centro',
+    currentSupervisorName: 'Isabel',
+    currentSupervisorLastName: 'Fernández',
+    destinationCenter: 'Centro Zaragoza',
+    contractsToManage: 'Contrato F',
+    newPosition: 'Técnico/a',
+    newSupervisorName: 'Miguel',
+    newSupervisorLastName: 'Santos',
+    startDate: new Date('2024-04-01'),
+    changeType: 'Permanente',
+    needs: ['Actuación PRL'],
+    currentCompany: 'MANTELEC SA',
+    companyChange: 'No',
+    observations: 'Cambio por reorganización interna.',
     createdAt: new Date(),
     updatedAt: new Date(),
   },
@@ -52,6 +108,25 @@ export interface ChangeSheetRecord {
   requestDate: Date;
   status: string;
   description?: string;
+  // Change sheet specific properties
+  employeeName: string;
+  employeeLastName: string;
+  originCenter: string;
+  contractsManaged?: string;
+  currentPosition: string;
+  currentSupervisorName: string;
+  currentSupervisorLastName: string;
+  destinationCenter: string;
+  contractsToManage?: string;
+  newPosition: string;
+  newSupervisorName: string;
+  newSupervisorLastName: string;
+  startDate: Date;
+  changeType: 'Permanente' | 'Temporal';
+  needs: string[];
+  currentCompany: string;
+  companyChange: 'Si' | 'No';
+  observations: string;
   createdAt?: Date;
   updatedAt?: Date;
 }

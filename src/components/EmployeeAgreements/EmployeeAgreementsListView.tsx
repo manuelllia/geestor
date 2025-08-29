@@ -1,115 +1,142 @@
+
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { MoreHorizontal, Eye, Copy, Edit, Trash, FileText, Plus, Upload, RefreshCw } from 'lucide-react';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Language } from '../../utils/translations';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Button } from '../ui/button';
+import { Badge } from '../ui/badge';
+import { Input } from '../ui/input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
+import { Search, Plus, Eye, Edit, Trash2, Download, Upload, MoreVertical, Filter } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import { useTranslation } from '../../hooks/useTranslation';
+import { Language } from '../../utils/translations';
 import { getEmployeeAgreements, deleteEmployeeAgreement, duplicateEmployeeAgreement, EmployeeAgreementRecord } from '../../services/employeeAgreementsService';
-import EmployeeAgreementCreateForm from './EmployeeAgreementCreateForm';
-import EmployeeAgreementDetailView from './EmployeeAgreementDetailView';
-import EmployeeAgreementEditForm from './EmployeeAgreementEditForm';
+import { useToast } from '../../hooks/use-toast';
 import ImportEmployeeAgreementsModal from './ImportEmployeeAgreementsModal';
-import { toast } from 'sonner';
+import EmployeeAgreementDetailView from './EmployeeAgreementDetailView';
+import EmployeeAgreementCreateForm from './EmployeeAgreementCreateForm';
+import EmployeeAgreementEditForm from './EmployeeAgreementEditForm';
 
 interface EmployeeAgreementsListViewProps {
   language: Language;
+  onViewDetails?: (id: string) => void;
+  onCreateNew?: () => void;
 }
 
-const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({ language }) => {
+const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({ 
+  language,
+  onViewDetails,
+  onCreateNew 
+}) => {
   const { t } = useTranslation(language);
+  const { toast } = useToast();
+  
   const [agreements, setAgreements] = useState<EmployeeAgreementRecord[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedAgreement, setSelectedAgreement] = useState<EmployeeAgreementRecord | null>(null);
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [showDetailView, setShowDetailView] = useState(false);
-  const [showEditForm, setShowEditForm] = useState(false);
+  const [filteredAgreements, setFilteredAgreements] = useState<EmployeeAgreementRecord[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
   const [showImportModal, setShowImportModal] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [agreementToDelete, setAgreementToDelete] = useState<EmployeeAgreementRecord | null>(null);
-  const [refreshing, setRefreshing] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedAgreementId, setSelectedAgreementId] = useState<string | null>(null);
+  const [showDetailView, setShowDetailView] = useState(false);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [editingAgreement, setEditingAgreement] = useState<EmployeeAgreementRecord | null>(null);
 
-  // Estados para paginación
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(30);
+  const loadAgreements = async () => {
+    try {
+      setIsLoading(true);
+      const data = await getEmployeeAgreements();
+      setAgreements(data);
+      setFilteredAgreements(data);
+    } catch (error) {
+      console.error('Error loading employee agreements:', error);
+      toast({
+        title: "Error",
+        description: "No se pudieron cargar los acuerdos con empleados",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     loadAgreements();
   }, []);
 
-  const loadAgreements = async () => {
-    try {
-      setLoading(true);
-      const agreementsData = await getEmployeeAgreements();
-      setAgreements(agreementsData);
-    } catch (error) {
-      console.error('Error loading employee agreements:', error);
-      toast.error('Error al cargar los acuerdos con empleados');
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    if (searchTerm.trim() === '') {
+      setFilteredAgreements(agreements);
+    } else {
+      const filtered = agreements.filter(agreement =>
+        agreement.employeeName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        agreement.employeeLastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        agreement.agreementType.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        agreement.status.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setFilteredAgreements(filtered);
+    }
+  }, [searchTerm, agreements]);
+
+  const handleViewDetails = (agreementId: string) => {
+    setSelectedAgreementId(agreementId);
+    setShowDetailView(true);
+    if (onViewDetails) {
+      onViewDetails(agreementId);
     }
   };
 
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    await loadAgreements();
-    setRefreshing(false);
+  const handleCreateNew = () => {
+    setShowCreateForm(true);
+    if (onCreateNew) {
+      onCreateNew();
+    }
   };
 
-  const handleViewAgreement = (agreement: EmployeeAgreementRecord) => {
-    setSelectedAgreement(agreement);
-    setShowDetailView(true);
-  };
-
-  const handleEditAgreement = (agreement: EmployeeAgreementRecord) => {
-    setSelectedAgreement(agreement);
+  const handleEdit = (agreement: EmployeeAgreementRecord) => {
+    setEditingAgreement(agreement);
     setShowEditForm(true);
   };
 
-  const handleDuplicateAgreement = async (agreement: EmployeeAgreementRecord) => {
+  const handleDelete = async () => {
+    if (!selectedAgreementId) return;
+    
     try {
-      await duplicateEmployeeAgreement(agreement.id);
-      await loadAgreements();
-      toast.success('Acuerdo duplicado correctamente');
-    } catch (error) {
-      console.error('Error duplicating agreement:', error);
-      toast.error('Error al duplicar el acuerdo');
-    }
-  };
-
-  const handleDeleteAgreement = (agreement: EmployeeAgreementRecord) => {
-    setAgreementToDelete(agreement);
-    setDeleteDialogOpen(true);
-  };
-
-  const confirmDelete = async () => {
-    if (!agreementToDelete) return;
-
-    try {
-      await deleteEmployeeAgreement(agreementToDelete.id);
-      await loadAgreements();
-      toast.success('Acuerdo eliminado correctamente');
+      await deleteEmployeeAgreement(selectedAgreementId);
+      toast({
+        title: "Éxito",
+        description: "Acuerdo eliminado correctamente",
+      });
+      setShowDeleteModal(false);
+      setSelectedAgreementId(null);
+      loadAgreements();
     } catch (error) {
       console.error('Error deleting agreement:', error);
-      toast.error('Error al eliminar el acuerdo');
-    } finally {
-      setDeleteDialogOpen(false);
-      setAgreementToDelete(null);
+      toast({
+        title: "Error",
+        description: "No se pudo eliminar el acuerdo",
+        variant: "destructive",
+      });
     }
   };
 
-  const handleAgreementCreated = () => {
-    setShowCreateForm(false);
-    loadAgreements();
-  };
-
-  const handleAgreementUpdated = () => {
-    setShowEditForm(false);
-    setSelectedAgreement(null);
-    loadAgreements();
+  const handleDuplicate = async (agreementId: string) => {
+    try {
+      await duplicateEmployeeAgreement(agreementId);
+      toast({
+        title: "Éxito",
+        description: "Acuerdo duplicado correctamente",
+      });
+      loadAgreements();
+    } catch (error) {
+      console.error('Error duplicating agreement:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo duplicar el acuerdo",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleImportSuccess = () => {
@@ -117,318 +144,337 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
     loadAgreements();
   };
 
-  // Cálculos de paginación
-  const totalItems = agreements.length;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentItems = agreements.slice(startIndex, endIndex);
-
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
+  const handleFormSuccess = () => {
+    setShowCreateForm(false);
+    setShowEditForm(false);
+    setEditingAgreement(null);
+    loadAgreements();
   };
 
-  const getPageNumbers = () => {
-    const pages = [];
-    const maxVisiblePages = 5;
-    
-    if (totalPages <= maxVisiblePages) {
-      for (let i = 1; i <= totalPages; i++) {
-        pages.push(i);
-      }
-    } else {
-      if (currentPage <= 3) {
-        for (let i = 1; i <= 4; i++) {
-          pages.push(i);
-        }
-        pages.push('...');
-        pages.push(totalPages);
-      } else if (currentPage >= totalPages - 2) {
-        pages.push(1);
-        pages.push('...');
-        for (let i = totalPages - 3; i <= totalPages; i++) {
-          pages.push(i);
-        }
-      } else {
-        pages.push(1);
-        pages.push('...');
-        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
-          pages.push(i);
-        }
-        pages.push('...');
-        pages.push(totalPages);
-      }
+  const handleBack = () => {
+    setShowDetailView(false);
+    setShowCreateForm(false);
+    setShowEditForm(false);
+    setEditingAgreement(null);
+    setSelectedAgreementId(null);
+  };
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'Alta':
+        return 'bg-red-100 text-red-800 border-red-300';
+      case 'Media':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-300';
+      case 'Baja':
+        return 'bg-green-100 text-green-800 border-green-300';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-300';
     }
-    
-    return pages;
   };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'Pendiente':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-300';
+      case 'Aprobado':
+        return 'bg-green-100 text-green-800 border-green-300';
+      case 'Rechazado':
+        return 'bg-red-100 text-red-800 border-red-300';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-300';
+    }
+  };
+
+  if (showDetailView && selectedAgreementId) {
+    return (
+      <EmployeeAgreementDetailView
+        agreementId={selectedAgreementId}
+        language={language}
+        onBack={handleBack}
+      />
+    );
+  }
 
   if (showCreateForm) {
     return (
       <EmployeeAgreementCreateForm
         language={language}
-        onBack={() => setShowCreateForm(false)}
-        onSave={handleAgreementCreated}
+        onBack={handleBack}
+        onSave={handleFormSuccess}
       />
     );
   }
 
-  if (showDetailView && selectedAgreement) {
-    return (
-      <EmployeeAgreementDetailView
-        agreementId={selectedAgreement.id}
-        language={language}
-        onBack={() => {
-          setShowDetailView(false);
-          setSelectedAgreement(null);
-        }}
-      />
-    );
-  }
-
-  if (showEditForm && selectedAgreement) {
+  if (showEditForm && editingAgreement) {
     return (
       <EmployeeAgreementEditForm
-        agreementId={selectedAgreement.id}
+        agreement={editingAgreement}
         language={language}
-        onBack={() => {
-          setShowEditForm(false);
-          setSelectedAgreement(null);
-        }}
-        onSave={handleAgreementUpdated}
+        onBack={handleBack}
+        onSave={handleFormSuccess}
       />
     );
   }
 
   return (
-    <div className="w-full max-w-full overflow-hidden">
-      <div className="space-y-4 sm:space-y-6 p-2 sm:p-4 lg:p-6">
-        <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
-          <div>
-            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-blue-900 dark:text-blue-100">
-              {t('employeeAgreements')}
-            </h1>
-            <p className="text-xs sm:text-sm lg:text-base text-gray-600 dark:text-gray-400 mt-1">
-              Gestiona los acuerdos con empleados
-            </p>
-          </div>
-          
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-            <Button
-              onClick={handleRefresh}
-              variant="outline"
-              className="border-blue-300 text-blue-700 hover:bg-blue-50 text-xs sm:text-sm"
-              disabled={refreshing}
-              size="sm"
-            >
-              <RefreshCw className={`w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-              Actualizar
-            </Button>
-            
-            <Button
-              onClick={() => setShowImportModal(true)}
-              variant="outline"
-              className="border-green-300 text-green-700 hover:bg-green-50 text-xs sm:text-sm"
-              size="sm"
-            >
-              <Upload className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-              Importar
-            </Button>
-            
-            <Button
-              onClick={() => setShowCreateForm(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm"
-              size="sm"
-            >
-              <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-              Nuevo Acuerdo
-            </Button>
-          </div>
+    <div className="space-y-4 sm:space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-bold text-blue-900 dark:text-blue-100">
+            Acuerdos con Empleados
+          </h1>
+          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1">
+            Gestiona los acuerdos y convenios con empleados
+          </p>
         </div>
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+          <Button
+            onClick={() => setShowImportModal(true)}
+            variant="outline"
+            className="border-blue-300 text-blue-700 hover:bg-blue-50 text-sm sm:text-base"
+          >
+            <Upload className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
+            Importar
+          </Button>
+          <Button
+            onClick={handleCreateNew}
+            className="bg-blue-600 hover:bg-blue-700 text-white text-sm sm:text-base"
+          >
+            <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
+            Crear Nuevo
+          </Button>
+        </div>
+      </div>
 
-        <Card className="border-blue-200 dark:border-blue-800 w-full">
-          <CardHeader className="p-3 sm:p-4 lg:p-6">
-            <CardTitle className="text-sm sm:text-base lg:text-lg text-blue-800 dark:text-blue-200 flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
-              <span className="flex items-center gap-2">
-                <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
-                Lista de Acuerdos
-              </span>
-              <Badge variant="secondary" className="text-xs sm:text-sm w-fit">
-                {agreements.length} acuerdos
-              </Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0 sm:p-3 lg:p-6">
-            {/* Información de paginación */}
-            <div className="px-3 sm:px-0 pb-3 sm:pb-4">
-              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                Mostrando del {startIndex + 1} al {Math.min(endIndex, totalItems)} de {totalItems} acuerdos
-              </p>
+      {/* Search and Filters */}
+      <Card className="border-blue-200 dark:border-blue-800">
+        <CardHeader className="pb-3 sm:pb-4">
+          <CardTitle className="text-blue-800 dark:text-blue-200 text-base sm:text-lg">
+            Lista de Acuerdos con Empleados
+          </CardTitle>
+          <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+            {filteredAgreements.length} acuerdos encontrados
+          </p>
+        </CardHeader>
+        <CardContent>
+          <div className="mb-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Input
+                placeholder="Buscar por empleado, tipo de acuerdo o estado..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 text-sm sm:text-base"
+              />
             </div>
+          </div>
 
-            {/* Contenedor con scroll horizontal solo para la tabla */}
-            <div className="w-full overflow-x-auto">
-              <div className="min-w-[800px]">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="text-xs sm:text-sm min-w-[120px]">Empleado</TableHead>
-                      <TableHead className="text-xs sm:text-sm min-w-[100px]">Centro de Trabajo</TableHead>
-                      <TableHead className="text-xs sm:text-sm min-w-[80px] hidden sm:table-cell">Ciudad</TableHead>
-                      <TableHead className="text-xs sm:text-sm min-w-[100px] hidden lg:table-cell">Puesto</TableHead>
-                      <TableHead className="text-xs sm:text-sm min-w-[100px] hidden lg:table-cell">Departamento</TableHead>
-                      <TableHead className="text-xs sm:text-sm min-w-[90px] hidden sm:table-cell">Fecha Inicio</TableHead>
-                      <TableHead className="text-xs sm:text-sm min-w-[80px]">Estado</TableHead>
-                      <TableHead className="w-[50px] text-xs sm:text-sm">Acciones</TableHead>
+          {/* Desktop Table */}
+          <div className="hidden md:block overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-xs lg:text-sm">Empleado</TableHead>
+                  <TableHead className="text-xs lg:text-sm">Tipo de Acuerdo</TableHead>
+                  <TableHead className="text-xs lg:text-sm">Prioridad</TableHead>
+                  <TableHead className="text-xs lg:text-sm">Estado</TableHead>
+                  <TableHead className="text-xs lg:text-sm">Fecha</TableHead>
+                  <TableHead className="text-xs lg:text-sm">Acciones</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-8">
+                      <div className="text-sm text-gray-500">Cargando acuerdos...</div>
+                    </TableCell>
+                  </TableRow>
+                ) : filteredAgreements.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-8">
+                      <div className="text-sm text-gray-500">
+                        {searchTerm ? 'No se encontraron acuerdos que coincidan con la búsqueda' : 'No hay acuerdos disponibles'}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredAgreements.map((agreement) => (
+                    <TableRow key={agreement.id} className="hover:bg-blue-50 dark:hover:bg-blue-900/20">
+                      <TableCell className="text-xs lg:text-sm">
+                        {agreement.employeeName} {agreement.employeeLastName}
+                      </TableCell>
+                      <TableCell className="text-xs lg:text-sm">
+                        {agreement.agreementType}
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={`${getPriorityColor(agreement.priority)} text-xs`}>
+                          {agreement.priority}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={`${getStatusColor(agreement.status)} text-xs`}>
+                          {agreement.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-xs lg:text-sm">
+                        {agreement.agreementDate ? agreement.agreementDate.toLocaleDateString() : 'No especificada'}
+                      </TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm" className="h-6 w-6 lg:h-8 lg:w-8 p-0">
+                              <MoreVertical className="h-3 w-3 lg:h-4 lg:w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-48">
+                            <DropdownMenuItem onClick={() => handleViewDetails(agreement.id)}>
+                              <Eye className="mr-2 h-4 w-4" />
+                              Ver Detalles
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleEdit(agreement)}>
+                              <Edit className="mr-2 h-4 w-4" />
+                              Editar
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleDuplicate(agreement.id)}>
+                              <Download className="mr-2 h-4 w-4" />
+                              Duplicar
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem 
+                              onClick={() => {
+                                setSelectedAgreementId(agreement.id);
+                                setShowDeleteModal(true);
+                              }}
+                              className="text-red-600"
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Eliminar
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
                     </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {agreements.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((agreement) => (
-                      <TableRow key={agreement.id}>
-                        <TableCell className="font-medium text-xs sm:text-sm">
-                          <div className="truncate max-w-[120px]">
-                            {agreement.employeeName} {agreement.employeeLastName}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-xs sm:text-sm">
-                          <div className="truncate max-w-[100px]">
-                            {agreement.workCenter}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-xs sm:text-sm hidden sm:table-cell">
-                          <div className="truncate max-w-[80px]">
-                            {agreement.city}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-xs sm:text-sm hidden lg:table-cell">
-                          <div className="truncate max-w-[100px]">
-                            {agreement.jobPosition}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-xs sm:text-sm hidden lg:table-cell">
-                          <div className="truncate max-w-[100px]">
-                            {agreement.department}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-xs sm:text-sm hidden sm:table-cell">
-                          <div className="truncate max-w-[90px]">
-                            {new Date(agreement.startDate).toLocaleDateString()}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="secondary" className="text-xs">
-                            Activo
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" className="h-6 w-6 sm:h-8 sm:w-8 p-0">
-                                <MoreHorizontal className="h-3 w-3 sm:h-4 sm:w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="bg-white dark:bg-gray-800 border border-blue-200 dark:border-blue-700">
-                              <DropdownMenuItem onClick={() => handleViewAgreement(agreement)} className="cursor-pointer text-xs sm:text-sm">
-                                <Eye className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                                Ver detalles
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleEditAgreement(agreement)} className="cursor-pointer text-xs sm:text-sm">
-                                <Edit className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                                Editar
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleDuplicateAgreement(agreement)} className="cursor-pointer text-xs sm:text-sm">
-                                <Copy className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                                Duplicar
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleDeleteAgreement(agreement)} className="cursor-pointer text-red-600 text-xs sm:text-sm">
-                                <Trash className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                                Eliminar
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </div>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
 
-            {/* Paginación */}
-            {totalPages > 1 && (
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-2 p-3 sm:p-4 border-t">
-                <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                  <span>Página {currentPage} de {totalPages}</span>
+          {/* Mobile Cards */}
+          <div className="md:hidden space-y-3">
+            {isLoading ? (
+              <div className="text-center py-8">
+                <div className="text-sm text-gray-500">Cargando acuerdos...</div>
+              </div>
+            ) : filteredAgreements.length === 0 ? (
+              <div className="text-center py-8">
+                <div className="text-sm text-gray-500">
+                  {searchTerm ? 'No se encontraron acuerdos que coincidan con la búsqueda' : 'No hay acuerdos disponibles'}
                 </div>
-                
-                <div className="flex items-center gap-1">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handlePageChange(currentPage - 1)}
-                    disabled={currentPage === 1}
-                    className="text-xs sm:text-sm"
-                  >
-                    Anterior
-                  </Button>
-                  
-                  <div className="flex items-center gap-1">
-                    {getPageNumbers().map((page, index) => (
-                      <Button
-                        key={index}
-                        variant={page === currentPage ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => typeof page === 'number' ? handlePageChange(page) : undefined}
-                        disabled={page === '...'}
-                        className="text-xs sm:text-sm min-w-[32px] sm:min-w-[36px]"
-                      >
-                        {page}
-                      </Button>
-                    ))}
-                  </div>
-                  
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handlePageChange(currentPage + 1)}
-                    disabled={currentPage === totalPages}
-                    className="text-xs sm:text-sm"
-                  >
-                    Siguiente
-                  </Button>
-                </div>
+              </div>
+            ) : (
+              filteredAgreements.map((agreement) => (
+                <Card key={agreement.id} className="border border-gray-200 hover:shadow-md transition-shadow">
+                  <CardContent className="p-4">
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-medium text-sm text-gray-900 dark:text-gray-100 truncate">
+                          {agreement.employeeName} {agreement.employeeLastName}
+                        </h3>
+                        <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                          {agreement.agreementType}
+                        </p>
+                      </div>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48">
+                          <DropdownMenuItem onClick={() => handleViewDetails(agreement.id)}>
+                            <Eye className="mr-2 h-4 w-4" />
+                            Ver Detalles
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleEdit(agreement)}>
+                            <Edit className="mr-2 h-4 w-4" />
+                            Editar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleDuplicate(agreement.id)}>
+                            <Download className="mr-2 h-4 w-4" />
+                            Duplicar
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem 
+                            onClick={() => {
+                              setSelectedAgreementId(agreement.id);
+                              setShowDeleteModal(true);
+                            }}
+                            className="text-red-600"
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Eliminar
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                    
+                    <div className="flex flex-wrap gap-2 mb-3">
+                      <Badge className={`${getPriorityColor(agreement.priority)} text-xs`}>
+                        {agreement.priority}
+                      </Badge>
+                      <Badge className={`${getStatusColor(agreement.status)} text-xs`}>
+                        {agreement.status}
+                      </Badge>
+                    </div>
+                    
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                      Fecha: {agreement.agreementDate ? agreement.agreementDate.toLocaleDateString() : 'No especificada'}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+            
+            {filteredAgreements.length > 0 && (
+              <div className="text-center py-4">
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Desliza para ver más opciones
+                </p>
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </CardContent>
+      </Card>
 
-        {/* Modal de confirmación para eliminar */}
-        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-              <AlertDialogDescription>
-                Esta acción no se puede deshacer. Se eliminará permanentemente el acuerdo con el empleado.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-              <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">
-                Eliminar
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+      {/* Delete Confirmation Modal */}
+      <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-base sm:text-lg">Confirmar Eliminación</DialogTitle>
+            <DialogDescription className="text-sm">
+              ¿Estás seguro de que deseas eliminar este acuerdo? Esta acción no se puede deshacer.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={() => setShowDeleteModal(false)} className="text-sm">
+              Cancelar
+            </Button>
+            <Button variant="destructive" onClick={handleDelete} className="text-sm">
+              Eliminar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-        {/* Modal de importación */}
-        {showImportModal && (
-          <ImportEmployeeAgreementsModal
-            open={showImportModal}
-            onClose={() => setShowImportModal(false)}
-            onImportSuccess={handleImportSuccess}
-          />
-        )}
-      </div>
+      {/* Import Modal */}
+      <ImportEmployeeAgreementsModal
+        open={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        onImportSuccess={handleImportSuccess}
+        language={language}
+      />
     </div>
   );
 };
