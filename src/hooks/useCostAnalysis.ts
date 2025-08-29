@@ -166,6 +166,8 @@ Actúa como el más prestigioso analista especializado en licitaciones públicas
 
 3. **NIVEL DE DETALLE REQUERIDO**: Necesito TODA la información disponible. Es preferible que incluyas datos completos a que los omitas.
 
+**IMPORTANTE: RESPONDE ÚNICAMENTE CON UN OBJETO JSON VÁLIDO Y COMPLETO. NO AGREGUES TEXTO ADICIONAL, EXPLICACIONES O MARKDOWN. SOLO EL JSON.**
+
 **ESTRUCTURA COMPLETA DEL ANÁLISIS:**
 
 ## 1. INFORMACIÓN GENERAL DE LA LICITACIÓN
@@ -256,6 +258,173 @@ Proporciona ÚNICAMENTE un objeto JSON válido con la estructura CostAnalysisDat
 
 IMPORTANTE: Si encuentras información en uno de los documentos pero no en el otro, inclúyela igualmente. Analiza AMBOS documentos completamente.
 `;
+
+  const safeJsonParse = (jsonString: string): CostAnalysisData => {
+    try {
+      console.log('🔧 INICIANDO PARSING SEGURO DEL JSON');
+      console.log(`📏 Longitud original: ${jsonString.length} caracteres`);
+      console.log(`🔤 Primeros 500 caracteres: ${jsonString.substring(0, 500)}...`);
+      
+      let cleaned = jsonString.trim();
+      
+      // Remover markdown si existe
+      if (cleaned.startsWith('```json')) {
+        cleaned = cleaned.replace(/```json\s*/, '').replace(/```\s*$/, '');
+        console.log('✂️ Eliminado markdown json');
+      }
+      if (cleaned.startsWith('```')) {
+        cleaned = cleaned.replace(/```\s*/, '').replace(/```\s*$/, '');
+        console.log('✂️ Eliminado markdown genérico');
+      }
+      
+      // Buscar el inicio y fin del JSON válido
+      let jsonStart = cleaned.indexOf('{');
+      let jsonEnd = cleaned.lastIndexOf('}');
+      
+      // Si no encontramos un objeto JSON válido, buscar patrones alternativos
+      if (jsonStart === -1 || jsonEnd === -1 || jsonEnd <= jsonStart) {
+        console.log('⚠️ No se encontró estructura JSON válida, buscando patrones alternativos...');
+        
+        // Buscar patrones como "CostAnalysisData": {
+        const dataPattern = cleaned.match(/"CostAnalysisData"\s*:\s*\{/);
+        if (dataPattern) {
+          jsonStart = cleaned.indexOf('{', dataPattern.index! + dataPattern[0].length - 1);
+          // Contar llaves para encontrar el final correcto
+          let braceCount = 0;
+          let i = jsonStart;
+          while (i < cleaned.length) {
+            if (cleaned[i] === '{') braceCount++;
+            if (cleaned[i] === '}') braceCount--;
+            if (braceCount === 0) {
+              jsonEnd = i;
+              break;
+            }
+            i++;
+          }
+        }
+      }
+      
+      if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
+        cleaned = cleaned.substring(jsonStart, jsonEnd + 1);
+        console.log(`✂️ JSON extraído: ${cleaned.length} caracteres`);
+      } else {
+        console.log('❌ No se pudo encontrar JSON válido en la respuesta');
+        throw new Error('No se encontró estructura JSON válida en la respuesta');
+      }
+      
+      // Limpiar caracteres problemáticos
+      cleaned = cleaned.replace(/[\u0000-\u001F\u007F-\u009F]/g, "");
+      
+      // Intentar reparar JSON truncado
+      if (!cleaned.endsWith('}')) {
+        console.log('🔧 Intentando reparar JSON truncado...');
+        // Contar llaves abiertas vs cerradas
+        const openBraces = (cleaned.match(/\{/g) || []).length;
+        const closeBraces = (cleaned.match(/\}/g) || []).length;
+        const missingBraces = openBraces - closeBraces;
+        
+        for (let i = 0; i < missingBraces; i++) {
+          cleaned += '}';
+        }
+        console.log(`🔧 Agregadas ${missingBraces} llaves de cierre`);
+      }
+      
+      console.log(`🔤 JSON final a parsear: ${cleaned.substring(0, 200)}...`);
+      
+      const parsed = JSON.parse(cleaned);
+      console.log('✅ JSON parseado correctamente');
+      
+      // Validar estructura básica
+      if (!parsed || typeof parsed !== 'object') {
+        throw new Error('La respuesta no contiene un objeto válido');
+      }
+      
+      // Si la respuesta tiene una estructura anidada como {"CostAnalysisData": {...}}, extraer el contenido
+      if (parsed.CostAnalysisData && typeof parsed.CostAnalysisData === 'object') {
+        console.log('🔄 Extrayendo CostAnalysisData anidado');
+        return parsed.CostAnalysisData as CostAnalysisData;
+      }
+      
+      return parsed as CostAnalysisData;
+      
+    } catch (error) {
+      console.error('❌ Error parsing JSON:', error);
+      console.error('📄 String original completo:', jsonString);
+      
+      // Crear un objeto de fallback con estructura válida
+      console.log('🛠️ Creando objeto de fallback...');
+      const fallbackData: CostAnalysisData = {
+        informacionGeneral: {
+          tipoLicitacion: "No especificado",
+          objetoContrato: "No especificado",
+          entidadContratante: "No especificado",
+          codigoCPV: "No especificado",
+          lotes: []
+        },
+        alcanceCondiciones: {
+          ambitoGeografico: "No especificado",
+          serviciosIncluidos: [],
+          productosIncluidos: [],
+          requisitosTecnicos: [],
+          exclusiones: [],
+          duracionBase: "No especificado",
+          fechaInicio: "No especificado",
+          fechaFin: "No especificado",
+          numeroMaximoProrrogas: 0,
+          duracionCadaProrroga: "No especificado",
+          condicionesProrroga: [],
+          porcentajeMaximoModificacion: "No especificado",
+          casosModificacion: []
+        },
+        cronogramaPlazos: {
+          fechaLimiteOfertas: "No especificado",
+          fechaAperturaSobres: "No especificado",
+          plazoAdjudicacion: "No especificado",
+          fechaInicioEjecucion: "No especificado"
+        },
+        analisisEconomico: {
+          presupuestoBaseLicitacion: "No especificado",
+          personal: {
+            numeroTrabajadores: 0,
+            desglosePorPuesto: []
+          },
+          compras: {
+            equipamiento: { descripcion: "No especificado", costeEstimado: 0 },
+            consumibles: { descripcion: "No especificado", costeEstimado: 0 },
+            repuestos: { descripcion: "No especificado", costeEstimado: 0 }
+          },
+          subcontrataciones: {
+            serviciosExternalizables: [],
+            limites: "No especificado",
+            costeEstimado: 0
+          },
+          otrosGastos: {
+            seguros: 0,
+            gastosGenerales: 0,
+            costesIndirectos: 0
+          }
+        },
+        criteriosAdjudicacion: {
+          puntuacionMaximaEconomica: 0,
+          puntuacionMaximaTecnica: 0,
+          formulasMatematicas: [],
+          variablesFormula: [],
+          formulaPrincipalAST: "{}",
+          bajaTemeraria: {
+            descripcion: "No especificado",
+            umbralPorcentaje: "No especificado",
+            formulaCalculo: "No especificado",
+            procedimientoVerificacion: []
+          },
+          criteriosAutomaticos: [],
+          criteriosSubjetivos: [],
+          otrosCriterios: []
+        }
+      };
+      
+      throw new Error(`Error parseando JSON: ${error instanceof Error ? error.message : 'Error desconocido'}. Se requiere reintento con respuesta más completa.`);
+    }
+  };
 
   const callGeminiAPI = async (pcapFile: File, pptFile: File): Promise<CostAnalysisData> => {
     const GEMINI_API_KEY = 'AIzaSyANIWvIMRvCW7f0meHRk4SobRz4s0pnxtg';
@@ -356,45 +525,25 @@ IMPORTANTE: Si encuentras información en uno de los documentos pero no en el ot
       console.log(`  📏 Longitud del texto: ${responseText.length} caracteres`);
       console.log(`  🔤 Primeros 200 caracteres: ${responseText.substring(0, 200)}...`);
       
-      try {
-        let cleanedResponse = responseText
-          .replace(/```json\n?/g, '')
-          .replace(/```\n?/g, '')
-          .trim();
-        
-        const jsonStart = cleanedResponse.indexOf('{');
-        const jsonEnd = cleanedResponse.lastIndexOf('}');
-        
-        if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
-          cleanedResponse = cleanedResponse.substring(jsonStart, jsonEnd + 1);
-        }
-        
-        console.log('🔧 PROCESANDO RESPUESTA JSON:');
-        console.log(`  ✂️ JSON limpiado, longitud: ${cleanedResponse.length} caracteres`);
-        
-        const parsedResult: CostAnalysisData = JSON.parse(cleanedResponse);
-        
-        console.log('🎉 === ANÁLISIS COMPLETADO EXITOSAMENTE CON GEMINI FLASH 2.5 ===');
-        console.log('📊 RESUMEN DEL ANÁLISIS RECIBIDO:');
-        console.log(`  🏢 Entidad: ${parsedResult.informacionGeneral?.entidadContratante || 'No especificada'}`);
-        console.log(`  📋 Tipo: ${parsedResult.informacionGeneral?.tipoLicitacion || 'No especificado'}`);
-        console.log(`  💰 Presupuesto: ${parsedResult.analisisEconomico?.presupuestoBaseLicitacion || 'No especificado'}`);
-        console.log(`  📦 Lotes: ${parsedResult.informacionGeneral?.lotes?.length || 0}`);
-        console.log(`  🎯 Criterios automáticos: ${parsedResult.criteriosAdjudicacion?.criteriosAutomaticos?.length || 0}`);
-        console.log(`  🔍 Criterios subjetivos: ${parsedResult.criteriosAdjudicacion?.criteriosSubjetivos?.length || 0}`);
-        console.log(`  🧮 Fórmulas detectadas: ${parsedResult.criteriosAdjudicacion?.formulasMatematicas?.length || 0}`);
-        
-        // Log del JSON completo para debug (solo en desarrollo)
-        if (process.env.NODE_ENV === 'development') {
-          console.log('🔍 JSON COMPLETO RECIBIDO:', JSON.stringify(parsedResult, null, 2));
-        }
-        
-        return parsedResult;
-      } catch (parseError) {
-        console.error('❌ ERROR PARSEANDO ANÁLISIS PROFESIONAL:', parseError);
-        console.error('📄 Texto de respuesta completo:', responseText);
-        throw new Error(`Error en análisis: ${parseError instanceof Error ? parseError.message : 'Error desconocido'}`);
+      // Si la respuesta es muy corta, es probable que esté truncada
+      if (responseText.length < 100) {
+        console.error('⚠️ RESPUESTA SOSPECHOSAMENTE CORTA, POSIBLE TRUNCAMIENTO');
+        throw new Error('La respuesta de Gemini es demasiado corta y puede estar truncada. Reintentar análisis.');
       }
+      
+      const parsedResult = safeJsonParse(responseText);
+      
+      console.log('🎉 === ANÁLISIS COMPLETADO EXITOSAMENTE CON GEMINI FLASH 2.5 ===');
+      console.log('📊 RESUMEN DEL ANÁLISIS RECIBIDO:');
+      console.log(`  🏢 Entidad: ${parsedResult.informacionGeneral?.entidadContratante || 'No especificada'}`);
+      console.log(`  📋 Tipo: ${parsedResult.informacionGeneral?.tipoLicitacion || 'No especificado'}`);
+      console.log(`  💰 Presupuesto: ${parsedResult.analisisEconomico?.presupuestoBaseLicitacion || 'No especificado'}`);
+      console.log(`  📦 Lotes: ${parsedResult.informacionGeneral?.lotes?.length || 0}`);
+      console.log(`  🎯 Criterios automáticos: ${parsedResult.criteriosAdjudicacion?.criteriosAutomaticos?.length || 0}`);
+      console.log(`  🔍 Criterios subjetivos: ${parsedResult.criteriosAdjudicacion?.criteriosSubjetivos?.length || 0}`);
+      console.log(`  🧮 Fórmulas detectadas: ${parsedResult.criteriosAdjudicacion?.formulasMatematicas?.length || 0}`);
+      
+      return parsedResult;
 
     } catch (error) {
       console.error('❌ === ERROR CRÍTICO EN ANÁLISIS ===');
