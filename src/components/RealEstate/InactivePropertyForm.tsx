@@ -1,490 +1,224 @@
-import React, { useState, useEffect } from 'react'; // Agregamos useEffect
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ArrowLeft, Building2, Save, CalendarIcon, PlusCircle } from 'lucide-react'; // Agregamos PlusCircle
-import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
-import { toast } from 'sonner';
-import { createPropertyRecord } from '../../services/realEstateService';
-import { getWorkCenters } from '../../services/workCentersService'; // Importamos el servicio para Centros de Trabajo
-import CreateWorkCenterModal from '../Modals/CreateWorkCenterModal'; // Importamos el modal
-import { useWorkCenterModals } from '../../hooks/useWorkCenterModals'; // Importamos el hook para gestionar modales
+import { ArrowLeft, Save } from 'lucide-react';
+import { useTranslation } from '../../hooks/useTranslation';
+import { Language } from '../../utils/translations';
 
 interface InactivePropertyFormProps {
   onBack: () => void;
   onSave: () => void;
+  language?: Language; // Make language prop optional
 }
 
-interface InactivePropertyFormData {
-  id: string;
-  motivoInactividad: string;
-  habitaciones: string;
-  empresaGee: string;
-  empresaGeeCustom: string;
-  centroTrabajo: string; // Este campo ahora almacenará el ID del centro de trabajo seleccionado
-  direccion: string;
-  poblacion: string;
-  provincia: string;
-  ccaa: string;
-  provinciaOrigen: string;
-  codMeta4: string;
-  contratoProyecto: string;
-  fechaInicioContrato: Date | undefined;
-  fechaOcupacion: Date | undefined;
-}
+const InactivePropertyForm: React.FC<InactivePropertyFormProps> = ({ 
+  onBack, 
+  onSave, 
+  language = 'es' // Default to Spanish if not provided
+}) => {
+  const { t } = useTranslation(language);
 
-const empresasGeeOptions = [
-  'ASIME SA',
-  'IBERMAN SA',
-  'MANTELEC SA',
-  'INDEL FACILITIES',
-  'INSANEX SL',
-  'SSM',
-  'AINATEC',
-  'RD HEALING',
-  'OTRA'
-];
-
-// Eliminamos centrosTrabajoOptions, ya que los cargaremos desde Firebase
-// const centrosTrabajoOptions = [
-//   'DPTO INFORMATICA',
-//   'CENTRO PRINCIPAL',
-//   'SUCURSAL MADRID',
-//   'OFICINA BARCELONA',
-//   'DELEGACIÓN VALENCIA',
-//   'CENTRO LOGÍSTICO',
-//   'ALMACÉN CENTRAL',
-//   'OFICINA TÉCNICA'
-// ];
-
-const InactivePropertyForm: React.FC<InactivePropertyFormProps> = ({ onBack, onSave }) => {
-  const [formData, setFormData] = useState<InactivePropertyFormData>({
+  const [formData, setFormData] = useState({
     id: '',
-    motivoInactividad: '',
-    habitaciones: '',
-    empresaGee: '',
-    empresaGeeCustom: '',
-    centroTrabajo: '', // Inicializamos vacío para el ID
-    direccion: '',
-    poblacion: '',
-    provincia: '',
+    address: '',
+    city: '',
+    province: '',
     ccaa: '',
-    provinciaOrigen: '',
-    codMeta4: '',
-    contratoProyecto: '',
-    fechaInicioContrato: undefined,
-    fechaOcupacion: undefined
+    numRooms: '',
+    annualCost: '',
+    reason: '',
+    inactiveDate: '',
+    observations: ''
   });
-  
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [workCenters, setWorkCenters] = useState<Array<{id: string, name: string}>>([]); // Estado para los centros de trabajo
 
-  // Hook para gestionar los modales de centros de trabajo
-  const {
-    isWorkCenterModalOpen,
-    openWorkCenterModal,
-    closeWorkCenterModal,
-  } = useWorkCenterModals();
-
-  // Función para cargar los centros de trabajo desde Firebase
-  const loadWorkCenters = async () => {
-    try {
-      const data = await getWorkCenters();
-      setWorkCenters(data);
-    } catch (error) {
-      console.error('Error loading work centers:', error);
-      toast.error('Error al cargar los centros de trabajo.');
-    }
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
-  // Cargar centros de trabajo al montar el componente
-  useEffect(() => {
-    loadWorkCenters();
-  }, []);
-
-  // Callback para cuando se crea un nuevo centro de trabajo desde el modal
-  const handleWorkCenterSuccess = () => {
-    closeWorkCenterModal();
-    loadWorkCenters(); // Recargar la lista para incluir el nuevo centro
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Validaciones obligatorias
-    if (!formData.id || !formData.habitaciones || !formData.empresaGee || 
-        !formData.provinciaOrigen || !formData.centroTrabajo) { // Agregada validación para centroTrabajo
-      toast.error('Por favor, completa todos los campos obligatorios');
-      return;
-    }
-
-    if (formData.empresaGee === 'OTRA' && !formData.empresaGeeCustom.trim()) {
-      toast.error('Por favor, especifica la empresa personalizada');
-      return;
-    }
-
-    try {
-      setIsSubmitting(true);
-      
-      // Formatear datos según la estructura requerida para BAJA PISOS
-      const propertyData = {
-        'Id': parseInt(formData.id),
-        'Motivo': formData.motivoInactividad,
-        'Habitaciones': parseInt(formData.habitaciones),
-        'Empresa': formData.empresaGee === 'OTRA' ? formData.empresaGeeCustom : formData.empresaGee,
-        'Centro de Trabajo': formData.centroTrabajo, // Ahora es el ID del centro de trabajo
-        'Dirección': formData.direccion,
-        'Provincia Destino': formData.poblacion,
-        'CCAA': formData.ccaa,
-        'Provincia de Origen': formData.provinciaOrigen,
-        'Cod. Meta 4': formData.codMeta4,
-        'Contrato Proyecto': formData.contratoProyecto,
-        'Código Centro de Trabajo': formData.centroTrabajo, // Coincide con Centro de Trabajo, si es el mismo valor que se espera
-        'Fecha Inicio Contrato': formData.fechaInicioContrato ? Math.floor(formData.fechaInicioContrato.getTime() / (1000 * 60 * 60 * 24)) + 25569 : 0, // Excel serial date
-        'Fecha Ocupación': formData.fechaOcupacion ? Math.floor(formData.fechaOcupacion.getTime() / (1000 * 60 * 60 * 24)) + 25569 : 0, // Excel serial date
-        'DNI': '', // Se puede agregar si es necesario
-      };
-
-      await createPropertyRecord(propertyData, 'BAJA PISOS');
-      toast.success('Inmueble inactivo agregado correctamente');
-      onSave();
-    } catch (error) {
-      console.error('Error al agregar inmueble inactivo:', error);
-      toast.error('Error al agregar el inmueble inactivo');
-    } finally {
-      setIsSubmitting(false);
-    }
+  const handleSave = () => {
+    console.log('Guardando propiedad inactiva:', formData);
+    onSave();
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
-      <div className="flex items-center gap-4 mb-6">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onBack}
-          className="flex items-center gap-2"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Volver
-        </Button>
-        <div className="flex items-center gap-2">
-          <Building2 className="h-6 w-6 text-red-600" />
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Agregar Inmueble Inactivo
-          </h1>
+    <div className="w-full overflow-hidden">
+      <div className="space-y-4 sm:space-y-6 p-2 sm:p-4 lg:p-6">
+        {/* Header responsive */}
+        <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+          <Button
+            variant="outline"
+            onClick={onBack}
+            className="border-blue-300 text-blue-700 hover:bg-blue-50 text-sm w-fit"
+            size="sm"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2 flex-shrink-0" />
+            <span>{t('back')}</span>
+          </Button>
+          
+          <Button
+            onClick={handleSave}
+            className="bg-blue-600 hover:bg-blue-700 text-white text-sm w-fit sm:w-auto"
+            size="sm"
+          >
+            <Save className="w-4 h-4 mr-2 flex-shrink-0" />
+            <span>{t('saveProperty')}</span>
+          </Button>
         </div>
-      </div>
 
-      <Card className="border-red-200 dark:border-red-800">
-        <CardHeader>
-          <CardTitle className="text-lg text-red-800 dark:text-red-200">
-            Información del Inmueble Inactivo
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Form content */}
+        <Card className="border-blue-200 dark:border-blue-800 overflow-hidden">
+          <CardHeader className="p-3 sm:p-4 lg:p-6">
+            <CardTitle className="text-base sm:text-lg lg:text-xl text-blue-800 dark:text-blue-200">
+              {t('inactiveProperty')}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-3 sm:p-4 lg:p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
               {/* ID */}
               <div className="space-y-2">
-                <Label htmlFor="id" className="text-sm font-medium">
-                  ID *
+                <Label htmlFor="id" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {t('idLabel')}
                 </Label>
                 <Input
                   id="id"
-                  type="number"
                   value={formData.id}
-                  onChange={(e) => setFormData(prev => ({ ...prev, id: e.target.value }))}
-                  placeholder="Ej: 89"
-                  required
+                  onChange={(e) => handleInputChange('id', e.target.value)}
+                  className="w-full"
                 />
               </div>
 
-              {/* Habitaciones */}
+              {/* Número de Habitaciones */}
               <div className="space-y-2">
-                <Label htmlFor="habitaciones" className="text-sm font-medium">
-                  Nº Habitaciones *
+                <Label htmlFor="numRooms" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {t('numRoomsLabel')}
                 </Label>
                 <Input
-                  id="habitaciones"
+                  id="numRooms"
                   type="number"
-                  min="1"
-                  value={formData.habitaciones}
-                  onChange={(e) => setFormData(prev => ({ ...prev, habitaciones: e.target.value }))}
-                  required
-                />
-              </div>
-
-              {/* Motivo Inactividad */}
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="motivoInactividad" className="text-sm font-medium">
-                  Motivo Inactividad
-                </Label>
-                <Textarea
-                  id="motivoInactividad"
-                  value={formData.motivoInactividad}
-                  onChange={(e) => setFormData(prev => ({ ...prev, motivoInactividad: e.target.value }))}
-                  placeholder="Ej: JAVIER MARTINEZ HERNANDEZ"
-                  rows={3}
-                />
-              </div>
-
-              {/* Empresa GEE */}
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="empresaGee" className="text-sm font-medium">
-                  Empresa GEE *
-                </Label>
-                <Select
-                  value={formData.empresaGee}
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, empresaGee: value }))}
-                  required
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar empresa" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {empresasGeeOptions.map((empresa) => (
-                      <SelectItem key={empresa} value={empresa}>
-                        {empresa}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {formData.empresaGee === 'OTRA' && (
-                  <Input
-                    placeholder="Especificar empresa"
-                    value={formData.empresaGeeCustom}
-                    onChange={(e) => setFormData(prev => ({ ...prev, empresaGeeCustom: e.target.value }))}
-                    className="mt-2"
-                    required
-                  />
-                )}
-              </div>
-
-              {/* Centro de Trabajo (¡AHORA ES UN DESPLEGABLE!) */}
-              <div className="space-y-2">
-                <Label htmlFor="centroTrabajo" className="text-sm font-medium">
-                  Centro de Trabajo *
-                </Label>
-                <div className="flex items-center space-x-2">
-                  <Select
-                    value={formData.centroTrabajo}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, centroTrabajo: value }))}
-                    required
-                  >
-                    <SelectTrigger className="flex-1">
-                      <SelectValue placeholder="Seleccionar centro" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {workCenters.map((center) => (
-                        <SelectItem key={center.id} value={center.id}>
-                          {center.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      onClick={openWorkCenterModal}
-                      title="Añadir nuevo centro de trabajo"
-                  >
-                      <PlusCircle className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-
-              {/* Provincia de Origen */}
-              <div className="space-y-2">
-                <Label htmlFor="provinciaOrigen" className="text-sm font-medium">
-                  Provincia de Origen *
-                </Label>
-                <Input
-                  id="provinciaOrigen"
-                  value={formData.provinciaOrigen}
-                  onChange={(e) => setFormData(prev => ({ ...prev, provinciaOrigen: e.target.value }))}
-                  placeholder="Ej: VALENCIA"
-                  required
+                  value={formData.numRooms}
+                  onChange={(e) => handleInputChange('numRooms', e.target.value)}
+                  className="w-full"
                 />
               </div>
 
               {/* Dirección */}
               <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="direccion" className="text-sm font-medium">
-                  Dirección
+                <Label htmlFor="address" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {t('addressLabel')}
                 </Label>
                 <Input
-                  id="direccion"
-                  value={formData.direccion}
-                  onChange={(e) => setFormData(prev => ({ ...prev, direccion: e.target.value }))}
-                  placeholder="Ej: PLAZA DE CIUDAD REAL Nº 4"
+                  id="address"
+                  value={formData.address}
+                  onChange={(e) => handleInputChange('address', e.target.value)}
+                  placeholder={t('addressPlaceholder')}
+                  className="w-full"
                 />
               </div>
 
-              {/* Población */}
+              {/* Ciudad */}
               <div className="space-y-2">
-                <Label htmlFor="poblacion" className="text-sm font-medium">
-                  Población
+                <Label htmlFor="city" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {t('cityLabel')}
                 </Label>
                 <Input
-                  id="poblacion"
-                  value={formData.poblacion}
-                  onChange={(e) => setFormData(prev => ({ ...prev, poblacion: e.target.value }))}
-                  placeholder="Ej: SAN SEBASTIAN DE LOS REYES"
+                  id="city"
+                  value={formData.city}
+                  onChange={(e) => handleInputChange('city', e.target.value)}
+                  className="w-full"
                 />
               </div>
 
               {/* Provincia */}
               <div className="space-y-2">
-                <Label htmlFor="provincia" className="text-sm font-medium">
-                  Provincia
+                <Label htmlFor="province" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {t('provinceLabel')}
                 </Label>
                 <Input
-                  id="provincia"
-                  value={formData.provincia}
-                  onChange={(e) => setFormData(prev => ({ ...prev, provincia: e.target.value }))}
+                  id="province"
+                  value={formData.province}
+                  onChange={(e) => handleInputChange('province', e.target.value)}
+                  className="w-full"
                 />
               </div>
 
               {/* CCAA */}
               <div className="space-y-2">
-                <Label htmlFor="ccaa" className="text-sm font-medium">
-                  CCAA
+                <Label htmlFor="ccaa" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {t('ccaaLabel')}
                 </Label>
                 <Input
                   id="ccaa"
                   value={formData.ccaa}
-                  onChange={(e) => setFormData(prev => ({ ...prev, ccaa: e.target.value }))}
-                  placeholder="Ej: MADRID*"
+                  onChange={(e) => handleInputChange('ccaa', e.target.value)}
+                  className="w-full"
                 />
               </div>
 
-              {/* Cod. Meta 4 */}
+              {/* Coste Anual */}
               <div className="space-y-2">
-                <Label htmlFor="codMeta4" className="text-sm font-medium">
-                  Cod. Meta 4
+                <Label htmlFor="annualCost" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {t('annualCostLabel')}
                 </Label>
                 <Input
-                  id="codMeta4"
-                  value={formData.codMeta4}
-                  onChange={(e) => setFormData(prev => ({ ...prev, codMeta4: e.target.value }))}
-                  placeholder="Ej: 28-58"
+                  id="annualCost"
+                  type="number"
+                  value={formData.annualCost}
+                  onChange={(e) => handleInputChange('annualCost', e.target.value)}
+                  className="w-full"
                 />
               </div>
 
-              {/* Contrato Proyecto */}
+              {/* Motivo de Inactividad */}
               <div className="space-y-2">
-                <Label htmlFor="contratoProyecto" className="text-sm font-medium">
-                  Contrato Proyecto
+                <Label htmlFor="reason" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {t('reason')}
                 </Label>
                 <Input
-                  id="contratoProyecto"
-                  value={formData.contratoProyecto}
-                  onChange={(e) => setFormData(prev => ({ ...prev, contratoProyecto: e.target.value }))}
-                  placeholder="Ej: 01-ALCOB-02"
+                  id="reason"
+                  value={formData.reason}
+                  onChange={(e) => handleInputChange('reason', e.target.value)}
+                  className="w-full"
                 />
               </div>
 
-              {/* Fecha Inicio Contrato */}
+              {/* Fecha de Inactividad */}
               <div className="space-y-2">
-                <Label className="text-sm font-medium">Fecha Inicio Contrato</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !formData.fechaInicioContrato && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {formData.fechaInicioContrato ? (
-                        format(formData.fechaInicioContrato, "PPP")
-                      ) : (
-                        <span>Seleccionar fecha</span>
-                      )}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={formData.fechaInicioContrato}
-                      onSelect={(date) => setFormData(prev => ({ ...prev, fechaInicioContrato: date }))}
-                      initialFocus
-                      className={cn("p-3 pointer-events-auto")}
-                    />
-                  </PopoverContent>
-                </Popover>
+                <Label htmlFor="inactiveDate" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {t('date')}
+                </Label>
+                <Input
+                  id="inactiveDate"
+                  type="date"
+                  value={formData.inactiveDate}
+                  onChange={(e) => handleInputChange('inactiveDate', e.target.value)}
+                  className="w-full"
+                />
               </div>
 
-              {/* Fecha Ocupación */}
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">Fecha Ocupación</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !formData.fechaOcupacion && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {formData.fechaOcupacion ? (
-                        format(formData.fechaOcupacion, "PPP")
-                      ) : (
-                        <span>Seleccionar fecha</span>
-                      )}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={formData.fechaOcupacion}
-                      onSelect={(date) => setFormData(prev => ({ ...prev, fechaOcupacion: date }))}
-                      initialFocus
-                      className={cn("p-3 pointer-events-auto")}
-                    />
-                  </PopoverContent>
-                </Popover>
+              {/* Observaciones */}
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="observations" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {t('observations')}
+                </Label>
+                <Textarea
+                  id="observations"
+                  value={formData.observations}
+                  onChange={(e) => handleInputChange('observations', e.target.value)}
+                  className="w-full min-h-[100px]"
+                  rows={4}
+                />
               </div>
             </div>
-
-            <div className="flex justify-end gap-4 pt-6 border-t">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={onBack}
-                disabled={isSubmitting}
-              >
-                Cancelar
-              </Button>
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="bg-green-600 hover:bg-green-700"
-              >
-                <Save className="h-4 w-4 mr-2" />
-                {isSubmitting ? 'Guardando...' : 'Guardar Inmueble'}
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
-
-      {/* Modal para crear nuevo Centro de Trabajo */}
-      <CreateWorkCenterModal
-        isOpen={isWorkCenterModalOpen}
-        onClose={closeWorkCenterModal}
-        onSuccess={handleWorkCenterSuccess}
-      />
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };

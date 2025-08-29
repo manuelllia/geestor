@@ -1,4 +1,3 @@
-
 export type Language = 'es' | 'en';
 export type Theme = 'light' | 'dark';
 
@@ -438,6 +437,50 @@ export interface Translations {
   propertiesPaused: string;
   totalProperties: string;
 
+  // Additional Real Estate KPI keys
+  totalRoomsKPI: string;
+  availableRooms: string;
+  annualTotalCostKPI: string;
+  operatingExpenses: string;
+  averageCostKPI: string;
+  perProperty: string;
+  annualCostByProvince: string;
+  annualCost: string;
+  propertyStatus: string;
+  properties: string;
+  exportPDF: string;
+  realEstateDetails: string;
+  detailViewPlaceholder: string;
+
+  // Settings and Profile keys
+  theme: string;
+  light: string;
+  dark: string;
+  userProfile: string;
+  changePhoto: string;
+  email: string;
+  permissions: string;
+  permissionsDescription: string;
+  departmentPermissions: string;
+  actionPermissions: string;
+  create: string;
+  modify: string;
+  logout: string;
+  saveChanges: string;
+
+  // Users Management keys
+  errorLoadingUsers: string;
+  userPermissionsUpdatedSuccessfully: string;
+  errorUpdatingUserPermissions: string;
+  usersGestion: string;
+  userGestSub: string;
+  buscadorUsers: string;
+  listaUsers: string;
+  usersCount: string;
+  editPermissions: string;
+  swipeToViewMore: string;
+  verifyingAccount: string;
+
   // Translation values for evaluation statuses
   Apto: string;
   'No Apto': string;
@@ -855,6 +898,50 @@ export const translations: Record<Language, Translations> = {
     propertiesPaused: 'Propiedades Pausadas',
     totalProperties: 'Total de Propiedades',
 
+    // Additional Real Estate KPI keys
+    totalRoomsKPI: 'Total Habitaciones',
+    availableRooms: 'Habitaciones Disponibles',
+    annualTotalCostKPI: 'Coste Total Anual',
+    operatingExpenses: 'Gastos Operativos',
+    averageCostKPI: 'Coste Promedio',
+    perProperty: 'Por Propiedad',
+    annualCostByProvince: 'Coste Anual por Provincia',
+    annualCost: 'Coste Anual',
+    propertyStatus: 'Estado de Propiedades',
+    properties: 'Propiedades',
+    exportPDF: 'Exportar PDF',
+    realEstateDetails: 'Detalles del Inmueble',
+    detailViewPlaceholder: 'Vista detallada del inmueble',
+
+    // Settings and Profile keys
+    theme: 'Tema',
+    light: 'Claro',
+    dark: 'Oscuro',
+    userProfile: 'Perfil de Usuario',
+    changePhoto: 'Cambiar Foto',
+    email: 'Email',
+    permissions: 'Permisos',
+    permissionsDescription: 'Permisos de usuario asignados',
+    departmentPermissions: 'Permisos por Departamento',
+    actionPermissions: 'Permisos de Acción',
+    create: 'Crear',
+    modify: 'Modificar',
+    logout: 'Cerrar Sesión',
+    saveChanges: 'Guardar Cambios',
+
+    // Users Management keys
+    errorLoadingUsers: 'Error al cargar usuarios',
+    userPermissionsUpdatedSuccessfully: 'Permisos de usuario actualizados correctamente',
+    errorUpdatingUserPermissions: 'Error al actualizar permisos de usuario',
+    usersGestion: 'Gestión de Usuarios',
+    userGestSub: 'Administre usuarios y sus permisos',
+    buscadorUsers: 'Buscar usuarios...',
+    listaUsers: 'Lista de Usuarios',
+    usersCount: '{{count}} usuarios registrados',
+    editPermissions: 'Editar Permisos',
+    swipeToViewMore: 'Desliza para ver más',
+    verifyingAccount: 'Verificando cuenta...',
+
     // Translation values for evaluation statuses
     Apto: 'Apto',
     'No Apto': 'No Apto',
@@ -1270,6 +1357,50 @@ export const translations: Record<Language, Translations> = {
     propertiesOperational: 'Operational Properties',
     propertiesPaused: 'Paused Properties',
     totalProperties: 'Total Properties',
+
+    // Additional Real Estate KPI keys
+    totalRoomsKPI: 'Total Rooms',
+    availableRooms: 'Available Rooms',
+    annualTotalCostKPI: 'Annual Total Cost',
+    operatingExpenses: 'Operating Expenses',
+    averageCostKPI: 'Average Cost',
+    perProperty: 'Per Property',
+    annualCostByProvince: 'Annual Cost by Province',
+    annualCost: 'Annual Cost',
+    propertyStatus: 'Property Status',
+    properties: 'Properties',
+    exportPDF: 'Export PDF',
+    realEstateDetails: 'Real Estate Details',
+    detailViewPlaceholder: 'Detailed property view',
+
+    // Settings and Profile keys
+    theme: 'Theme',
+    light: 'Light',
+    dark: 'Dark',
+    userProfile: 'User Profile',
+    changePhoto: 'Change Photo',
+    email: 'Email',
+    permissions: 'Permissions',
+    permissionsDescription: 'Assigned user permissions',
+    departmentPermissions: 'Department Permissions',
+    actionPermissions: 'Action Permissions',
+    create: 'Create',
+    modify: 'Modify',
+    logout: 'Logout',
+    saveChanges: 'Save Changes',
+
+    // Users Management keys
+    errorLoadingUsers: 'Error loading users',
+    userPermissionsUpdatedSuccessfully: 'User permissions updated successfully',
+    errorUpdatingUserPermissions: 'Error updating user permissions',
+    usersGestion: 'User Management',
+    userGestSub: 'Manage users and their permissions',
+    buscadorUsers: 'Search users...',
+    listaUsers: 'User List',
+    usersCount: '{{count}} registered users',
+    editPermissions: 'Edit Permissions',
+    swipeToViewMore: 'Swipe to view more',
+    verifyingAccount: 'Verifying account...',
 
     // Translation values for evaluation statuses
     Apto: 'Apt',
