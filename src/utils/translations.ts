@@ -1,5 +1,4 @@
 
-
 export type Language = 'es' | 'en';
 export type Theme = 'light' | 'dark';
 
@@ -373,7 +372,47 @@ export const translations = {
     addWorker: 'Añadir trabajador',
     workersInProperty: 'Trabajadores en la propiedad',
     removeWorker: 'Eliminar trabajador',
-    noWorkersAssigned: 'No hay trabajadores asignados'
+    noWorkersAssigned: 'No hay trabajadores asignados',
+
+    // Active Property Form translations
+    specifyCustomCompanyError: 'Por favor, especifique el nombre de la empresa personalizada',
+    propertyAddedSuccess: 'Propiedad agregada correctamente',
+    errorAddingProperty: 'Error al agregar la propiedad',
+    addActivePropertyTitle: 'Agregar Propiedad Activa',
+    activePropertyInfoTitle: 'Información de la Propiedad Activa',
+    idLabel: 'ID',
+    numRoomsLabel: 'Número de Habitaciones',
+    workersLabel: 'Trabajadores',
+    addWorkerButton: 'Añadir Trabajador',
+    workerNamePlaceholder: 'Nombre del trabajador',
+    dniPlaceholder: 'DNI',
+    removeWorkerButton: 'Eliminar',
+    geeCompanyLabel: 'Empresa GEE',
+    selectCompanyPlaceholder: 'Seleccionar empresa',
+    otherCompanyOption: 'Otra',
+    specifyCompanyPlaceholder: 'Especificar empresa',
+    propertyStatusLabel: 'Estado de la Propiedad',
+    occupiedStatus: 'Ocupado',
+    emptyStatus: 'Vacío',
+    addressLabel: 'Dirección',
+    addressPlaceholder: 'Ej: Calle Mayor 123',
+    cityLabel: 'Ciudad',
+    provinceLabel: 'Provincia',
+    ccaaLabel: 'CCAA Destino',
+    originProvinceLabel: 'Provincia de Origen',
+    annualCostLabel: 'Coste Anual (€)',
+    occupancyDateLabel: 'Fecha de Ocupación',
+    contractStartDateLabel: 'Fecha Inicio Contrato',
+    selectDate: 'Seleccionar fecha',
+    meta4CodeLabel: 'Código Meta4',
+    meta4CodePlaceholder: 'Código Meta4',
+    projectContractLabel: 'Contrato Proyecto',
+    projectContractPlaceholder: 'Contrato Proyecto',
+    workCenterCodeLabel: 'Código Centro Trabajo',
+    selectWorkCenterPlaceholder: 'Seleccionar centro de trabajo',
+    addWorkCenterButtonTitle: 'Añadir nuevo centro de trabajo',
+    saving: 'Guardando...',
+    saveProperty: 'Guardar Propiedad'
   },
   en: {
     welcome: 'Welcome to GEESTOR',
@@ -742,7 +781,47 @@ export const translations = {
     addWorker: 'Add worker',
     workersInProperty: 'Workers in property',
     removeWorker: 'Remove worker',
-    noWorkersAssigned: 'No workers assigned'
+    noWorkersAssigned: 'No workers assigned',
+
+    // Active Property Form translations
+    specifyCustomCompanyError: 'Please specify the custom company name',
+    propertyAddedSuccess: 'Property added successfully',
+    errorAddingProperty: 'Error adding property',
+    addActivePropertyTitle: 'Add Active Property',
+    activePropertyInfoTitle: 'Active Property Information',
+    idLabel: 'ID',
+    numRoomsLabel: 'Number of Rooms',
+    workersLabel: 'Workers',
+    addWorkerButton: 'Add Worker',
+    workerNamePlaceholder: 'Worker name',
+    dniPlaceholder: 'DNI',
+    removeWorkerButton: 'Remove',
+    geeCompanyLabel: 'GEE Company',
+    selectCompanyPlaceholder: 'Select company',
+    otherCompanyOption: 'Other',
+    specifyCompanyPlaceholder: 'Specify company',
+    propertyStatusLabel: 'Property Status',
+    occupiedStatus: 'Occupied',
+    emptyStatus: 'Empty',
+    addressLabel: 'Address',
+    addressPlaceholder: 'E.g: Main Street 123',
+    cityLabel: 'City',
+    provinceLabel: 'Province',
+    ccaaLabel: 'CCAA Destination',
+    originProvinceLabel: 'Origin Province',
+    annualCostLabel: 'Annual Cost (€)',
+    occupancyDateLabel: 'Occupancy Date',
+    contractStartDateLabel: 'Contract Start Date',
+    selectDate: 'Select date',
+    meta4CodeLabel: 'Meta4 Code',
+    meta4CodePlaceholder: 'Meta4 Code',
+    projectContractLabel: 'Project Contract',
+    projectContractPlaceholder: 'Project Contract',
+    workCenterCodeLabel: 'Work Center Code',
+    selectWorkCenterPlaceholder: 'Select work center',
+    addWorkCenterButtonTitle: 'Add new work center',
+    saving: 'Saving...',
+    saveProperty: 'Save Property'
   }
 };
 
