@@ -1,4 +1,5 @@
 
+
 export type Language = 'es' | 'en';
 export type Theme = 'light' | 'dark';
 
@@ -288,7 +289,6 @@ export const translations = {
     technician: 'Técnico',
     priority: 'Prioridad',
     notes: 'Notas',
-    equipment: 'Equipo',
     location: 'Ubicación',
     nextMaintenance: 'Próximo Mantenimiento',
     lastMaintenance: 'Último Mantenimiento',
@@ -306,7 +306,42 @@ export const translations = {
     verification: 'Verificación',
     cleaning: 'Limpieza',
     inspection: 'Inspección',
-    technicalReview: 'Revisión Técnica'
+    technicalReview: 'Revisión Técnica',
+
+    // Work Center Modal translations
+    requiredFieldsError: 'Por favor, complete todos los campos requeridos.',
+    workCenterCreatedSuccess: 'Centro de trabajo creado exitosamente',
+    errorCreatingWorkCenter: 'Error al crear el centro de trabajo',
+    workCenterUpdatedSuccess: 'Centro de trabajo actualizado exitosamente',
+    errorUpdatingWorkCenter: 'Error al actualizar el centro de trabajo',
+    createWorkCenterTitle: 'Crear Centro de Trabajo',
+    workCenterNameLabel: 'Nombre del Centro de Trabajo',
+    workCenterNamePlaceholder: 'Ingrese el nombre del centro',
+    workCenterIdLabel: 'ID del Centro de Trabajo',
+    workCenterIdPlaceholder: 'Ingrese el ID del centro',
+    clearButton: 'Limpiar',
+    processing: 'Procesando...',
+    uploadCenterButton: 'Crear Centro',
+    confirmCreationTitle: 'Confirmar Creación',
+    confirmCreationDescription: '¿Está seguro de que desea crear el centro de trabajo "{{name}}" con ID "{{id}}"?',
+    confirmButton: 'Confirmar',
+    workCenterExistsTitle: 'Centro de Trabajo Existente',
+    workCenterExistsDescription: 'Ya existe un centro de trabajo con el ID "{{id}}". ¿Desea actualizar el registro existente?',
+    leaveAsIsButton: 'Dejar Como Está',
+    updateRecordButton: 'Actualizar Registro',
+
+    // Practice Evaluation Detail translations
+    valoPracTit: 'Valoración de Práctica',
+    tutor: 'Tutor',
+    institution: 'Institución',
+    formation: 'Formación',
+    evaluationDate: 'Fecha de Evaluación',
+    finalEvaluation: 'Evaluación Final',
+    performanceRating: 'Calificación de Rendimiento',
+    Apto: 'Apto',
+    NoApto: 'No Apto',
+    Apt: 'Apt',
+    NotApt: 'Not Apt'
   },
   en: {
     welcome: 'Welcome to GEESTOR',
@@ -591,7 +626,6 @@ export const translations = {
     technician: 'Technician',
     priority: 'Priority',
     notes: 'Notes',
-    equipment: 'Equipment',
     location: 'Location',
     nextMaintenance: 'Next Maintenance',
     lastMaintenance: 'Last Maintenance',
@@ -609,7 +643,42 @@ export const translations = {
     verification: 'Verification',
     cleaning: 'Cleaning',
     inspection: 'Inspection',
-    technicalReview: 'Technical Review'
+    technicalReview: 'Technical Review',
+
+    // Work Center Modal translations
+    requiredFieldsError: 'Please complete all required fields.',
+    workCenterCreatedSuccess: 'Work center created successfully',
+    errorCreatingWorkCenter: 'Error creating work center',
+    workCenterUpdatedSuccess: 'Work center updated successfully',
+    errorUpdatingWorkCenter: 'Error updating work center',
+    createWorkCenterTitle: 'Create Work Center',
+    workCenterNameLabel: 'Work Center Name',
+    workCenterNamePlaceholder: 'Enter center name',
+    workCenterIdLabel: 'Work Center ID',
+    workCenterIdPlaceholder: 'Enter center ID',
+    clearButton: 'Clear',
+    processing: 'Processing...',
+    uploadCenterButton: 'Create Center',
+    confirmCreationTitle: 'Confirm Creation',
+    confirmCreationDescription: 'Are you sure you want to create the work center "{{name}}" with ID "{{id}}"?',
+    confirmButton: 'Confirm',
+    workCenterExistsTitle: 'Existing Work Center',
+    workCenterExistsDescription: 'A work center with ID "{{id}}" already exists. Do you want to update the existing record?',
+    leaveAsIsButton: 'Leave As Is',
+    updateRecordButton: 'Update Record',
+
+    // Practice Evaluation Detail translations
+    valoPracTit: 'Practice Evaluation',
+    tutor: 'Tutor',
+    institution: 'Institution',
+    formation: 'Formation',
+    evaluationDate: 'Evaluation Date',
+    finalEvaluation: 'Final Evaluation',
+    performanceRating: 'Performance Rating',
+    Apto: 'Apt',
+    NoApto: 'Not Apt',
+    Apt: 'Apt',
+    NotApt: 'Not Apt'
   }
 };
 
