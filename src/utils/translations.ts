@@ -332,16 +332,48 @@ export const translations = {
 
     // Practice Evaluation Detail translations
     valoPracTit: 'Valoración de Práctica',
+    valoPracSub: 'Gestiona y revisa las valoraciones de prácticas de estudiantes',
     tutor: 'Tutor',
     institution: 'Institución',
     formation: 'Formación',
     evaluationDate: 'Fecha de Evaluación',
     finalEvaluation: 'Evaluación Final',
     performanceRating: 'Calificación de Rendimiento',
+    student: 'Estudiante',
     Apto: 'Apto',
     NoApto: 'No Apto',
     Apt: 'Apt',
-    NotApt: 'Not Apt'
+    NotApt: 'Not Apt',
+
+    // Additional Practice Evaluation translations
+    linkCopiedToClipboardToastTitle: 'Enlace copiado',
+    linkCopiedToClipboardToastDescription: 'El enlace de valoración ha sido copiado al portapapeles',
+    evaluationDeletedToastTitle: 'Evaluación eliminada',
+    evaluationDeletedToastDescription: 'La evaluación ha sido eliminada correctamente',
+    errorDeletingEvaluationToastTitle: 'Error al eliminar',
+    errorDeletingEvaluationToastDescription: 'No se pudo eliminar la evaluación',
+    exportFunctionComingSoonTitle: 'Función en desarrollo',
+    exportFunctionComingSoonDescription: 'La función de exportación estará disponible próximamente',
+    importFunctionComingSoonTitle: 'Función en desarrollo',
+    importFunctionComingSoonDescription: 'La función de importación estará disponible próximamente',
+    generarEnlaceVal: 'Generar Enlace de Valoración',
+    noEvaluationsRegistered: 'No hay evaluaciones registradas',
+    generateLinkToStartReceivingEvaluations: 'Genera un enlace para comenzar a recibir evaluaciones',
+    performanceRatingScore: '{{rating}}/10',
+    deleteEvaluationConfirmationTitle: 'Confirmar eliminación',
+    deleteEvaluationConfirmationDescription: '¿Está seguro de que desea eliminar la evaluación de {{studentName}} {{studentLastName}}?',
+
+    // Real Estate translations
+    errorLoadingWorkCenters: 'Error al cargar centros de trabajo',
+    addWorkerError: 'Error al añadir trabajador',
+    removeWorkerError: 'Error al eliminar trabajador',
+    workerAddedSuccess: 'Trabajador añadido correctamente',
+    workerRemovedSuccess: 'Trabajador eliminado correctamente',
+    selectWorkCenter: 'Seleccionar centro de trabajo',
+    addWorker: 'Añadir trabajador',
+    workersInProperty: 'Trabajadores en la propiedad',
+    removeWorker: 'Eliminar trabajador',
+    noWorkersAssigned: 'No hay trabajadores asignados'
   },
   en: {
     welcome: 'Welcome to GEESTOR',
@@ -669,16 +701,48 @@ export const translations = {
 
     // Practice Evaluation Detail translations
     valoPracTit: 'Practice Evaluation',
+    valoPracSub: 'Manage and review student practice evaluations',
     tutor: 'Tutor',
     institution: 'Institution',
     formation: 'Formation',
     evaluationDate: 'Evaluation Date',
     finalEvaluation: 'Final Evaluation',
     performanceRating: 'Performance Rating',
+    student: 'Student',
     Apto: 'Apt',
     NoApto: 'Not Apt',
     Apt: 'Apt',
-    NotApt: 'Not Apt'
+    NotApt: 'Not Apt',
+
+    // Additional Practice Evaluation translations
+    linkCopiedToClipboardToastTitle: 'Link copied',
+    linkCopiedToClipboardToastDescription: 'The evaluation link has been copied to clipboard',
+    evaluationDeletedToastTitle: 'Evaluation deleted',
+    evaluationDeletedToastDescription: 'The evaluation has been deleted successfully',
+    errorDeletingEvaluationToastTitle: 'Error deleting',
+    errorDeletingEvaluationToastDescription: 'Could not delete the evaluation',
+    exportFunctionComingSoonTitle: 'Feature in development',
+    exportFunctionComingSoonDescription: 'Export functionality will be available soon',
+    importFunctionComingSoonTitle: 'Feature in development',
+    importFunctionComingSoonDescription: 'Import functionality will be available soon',
+    generarEnlaceVal: 'Generate Evaluation Link',
+    noEvaluationsRegistered: 'No evaluations registered',
+    generateLinkToStartReceivingEvaluations: 'Generate a link to start receiving evaluations',
+    performanceRatingScore: '{{rating}}/10',
+    deleteEvaluationConfirmationTitle: 'Confirm deletion',
+    deleteEvaluationConfirmationDescription: 'Are you sure you want to delete the evaluation of {{studentName}} {{studentLastName}}?',
+
+    // Real Estate translations
+    errorLoadingWorkCenters: 'Error loading work centers',
+    addWorkerError: 'Error adding worker',
+    removeWorkerError: 'Error removing worker',
+    workerAddedSuccess: 'Worker added successfully',
+    workerRemovedSuccess: 'Worker removed successfully',
+    selectWorkCenter: 'Select work center',
+    addWorker: 'Add worker',
+    workersInProperty: 'Workers in property',
+    removeWorker: 'Remove worker',
+    noWorkersAssigned: 'No workers assigned'
   }
 };
 
