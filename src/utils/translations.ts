@@ -1,4 +1,3 @@
-
 export type Language = 'es' | 'en';
 export type Theme = 'light' | 'dark';
 
@@ -360,7 +359,7 @@ export const translations = {
     generateLinkToStartReceivingEvaluations: 'Genera un enlace para comenzar a recibir evaluaciones',
     performanceRatingScore: '{{rating}}/10',
     deleteEvaluationConfirmationTitle: 'Confirmar eliminación',
-    deleteEvaluationConfirmationDescription: '¿Está seguro de que desea eliminar la evaluación de {{studentName}} {{studentLastName}}?',
+    deleteEvaluationConfirmationDescription: '¿Estás seguro de que quieres eliminar la evaluación de {{studentName}} {{studentLastName}}?',
 
     // Real Estate translations
     errorLoadingWorkCenters: 'Error al cargar centros de trabajo',
@@ -412,7 +411,44 @@ export const translations = {
     selectWorkCenterPlaceholder: 'Seleccionar centro de trabajo',
     addWorkCenterButtonTitle: 'Añadir nuevo centro de trabajo',
     saving: 'Guardando...',
-    saveProperty: 'Guardar Propiedad'
+    saveProperty: 'Guardar Propiedad',
+
+    // Additional Real Estate Dashboard translations
+    errorLoadingDashboardData: 'Error al cargar datos del dashboard',
+    realEstateDashboard: 'Dashboard Inmobiliario',
+    realEstateManagementDescription: 'Gestión integral de propiedades inmobiliarias',
+    addProperty: 'Agregar Inmueble',
+    notImplemented: 'no implementado',
+    importDataButton: 'Importar Datos',
+    viewTables: 'Ver Tablas',
+    activeProperties: 'Propiedades Activas',
+    inactiveProperties: 'Propiedades Inactivas',
+    totalProperties: 'Total Propiedades',
+    propertiesOperational: 'propiedades operacionales',
+    propertiesPaused: 'propiedades pausadas',
+    totalPortfolio: 'portafolio total',
+    totalRoomsKPI: 'Total Habitaciones',
+    availableRooms: 'habitaciones disponibles',
+    annualTotalCostKPI: 'Coste Total Anual',
+    operatingExpenses: 'gastos operativos',
+    averageCostKPI: 'Coste Promedio',
+    perProperty: 'por propiedad',
+    annualCostByProvince: 'Coste Anual por Provincia',
+    annualCost: 'Coste Anual',
+    propertyStatus: 'Estado de Propiedades',
+    properties: 'propiedades',
+
+    // Property Type Selection Modal translations
+    selectPropertyType: 'Seleccionar Tipo de Propiedad',
+    propertyTypeLabel: 'Tipo de Propiedad',
+    selectTypePlaceholder: 'Seleccione el tipo',
+    activeProperty: 'Propiedad Activa',
+    inactiveProperty: 'Propiedad Inactiva',
+    accept: 'Aceptar',
+
+    // Inactive Property Form translations
+    reason: 'Razón',
+    date: 'Fecha'
   },
   en: {
     welcome: 'Welcome to GEESTOR',
@@ -821,7 +857,44 @@ export const translations = {
     selectWorkCenterPlaceholder: 'Select work center',
     addWorkCenterButtonTitle: 'Add new work center',
     saving: 'Saving...',
-    saveProperty: 'Save Property'
+    saveProperty: 'Save Property',
+
+    // Additional Real Estate Dashboard translations
+    errorLoadingDashboardData: 'Error loading dashboard data',
+    realEstateDashboard: 'Real Estate Dashboard',
+    realEstateManagementDescription: 'Comprehensive real estate property management',
+    addProperty: 'Add Property',
+    notImplemented: 'not implemented',
+    importDataButton: 'Import Data',
+    viewTables: 'View Tables',
+    activeProperties: 'Active Properties',
+    inactiveProperties: 'Inactive Properties',
+    totalProperties: 'Total Properties',
+    propertiesOperational: 'operational properties',
+    propertiesPaused: 'paused properties',
+    totalPortfolio: 'total portfolio',
+    totalRoomsKPI: 'Total Rooms',
+    availableRooms: 'available rooms',
+    annualTotalCostKPI: 'Total Annual Cost',
+    operatingExpenses: 'operating expenses',
+    averageCostKPI: 'Average Cost',
+    perProperty: 'per property',
+    annualCostByProvince: 'Annual Cost by Province',
+    annualCost: 'Annual Cost',
+    propertyStatus: 'Property Status',
+    properties: 'properties',
+
+    // Property Type Selection Modal translations
+    selectPropertyType: 'Select Property Type',
+    propertyTypeLabel: 'Property Type',
+    selectTypePlaceholder: 'Select type',
+    activeProperty: 'Active Property',
+    inactiveProperty: 'Inactive Property',
+    accept: 'Accept',
+
+    // Inactive Property Form translations
+    reason: 'Reason',
+    date: 'Date'
   }
 };
 
