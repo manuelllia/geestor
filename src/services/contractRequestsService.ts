@@ -9,7 +9,7 @@ export interface ContractRequestRecord {
   requesterName: string;
   requesterLastName: string;
   requestDate: Date;
-  status: string;
+  status: 'Pendiente' | 'Aprobado' | 'Rechazado';
   contractType?: string;
   salary?: string;
   observations?: string;
@@ -81,6 +81,50 @@ export const createContractRequest = async (values: Omit<ContractRequestRecord, 
     return newRequest;
   } catch (error) {
     console.error('Error creating contract request:', error);
+    return null;
+  }
+};
+
+// Add the missing saveContractRequest function
+export const saveContractRequest = async (values: any): Promise<ContractRequestRecord | null> => {
+  try {
+    const newRequest: ContractRequestRecord = {
+      id: uuidv4(),
+      position: values.jobPosition || '',
+      department: values.professionalCategory || '',
+      urgency: 'Media',
+      requesterName: values.requesterName,
+      requesterLastName: values.requesterLastName,
+      requestDate: values.incorporationDate ? new Date(values.incorporationDate) : new Date(),
+      status: 'Pendiente',
+      contractType: values.contractType,
+      salary: values.salary,
+      observations: values.observations,
+      incorporationDate: values.incorporationDate ? new Date(values.incorporationDate) : undefined,
+      company: values.company,
+      jobPosition: values.jobPosition,
+      professionalCategory: values.professionalCategory,
+      city: values.city,
+      province: values.province,
+      autonomousCommunity: values.autonomousCommunity,
+      workCenter: values.workCenter,
+      companyFlat: values.companyFlat,
+      language1: values.language1,
+      level1: values.level1,
+      language2: values.language2,
+      level2: values.level2,
+      experienceElectromedicine: values.experienceElectromedicine,
+      experienceInstallations: values.experienceInstallations,
+      hiringReason: values.hiringReason,
+      notesAndCommitments: values.notesAndCommitments,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    
+    mockContractRequests.push(newRequest);
+    return newRequest;
+  } catch (error) {
+    console.error('Error saving contract request:', error);
     return null;
   }
 };

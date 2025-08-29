@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -81,7 +80,7 @@ const ContractRequestEditForm: React.FC<ContractRequestEditFormProps> = ({
             province: requestData.province || '',
             autonomousCommunity: requestData.autonomousCommunity || '',
             workCenter: requestData.workCenter || '',
-            companyFlat: (requestData.companyFlat as 'Si' | 'No') || 'No',
+            companyFlat: (requestData.companyFlat as string) || 'No',
             language1: requestData.language1 || '',
             level1: requestData.level1 || '',
             language2: requestData.language2 || '',
@@ -121,7 +120,12 @@ const ContractRequestEditForm: React.FC<ContractRequestEditFormProps> = ({
 
     setIsSaving(true);
     try {
-      await updateContractRequest(requestId, formData);
+      const updateData = {
+        ...formData,
+        status: formData.status as 'Pendiente' | 'Aprobado' | 'Rechazado'
+      };
+      
+      await updateContractRequest(requestId, updateData);
       
       toast({
         title: 'Solicitud actualizada',
@@ -288,8 +292,8 @@ const ContractRequestEditForm: React.FC<ContractRequestEditFormProps> = ({
                 <Input
                   id="incorporationDate"
                   type="date"
-                  value={formData.incorporationDate}
-                  onChange={(e) => handleChange('incorporationDate', e.target.value)}
+                  value={formData.incorporationDate ? new Date(formData.incorporationDate).toISOString().split('T')[0] : ''}
+                  onChange={(e) => handleChange('incorporationDate', e.target.value ? new Date(e.target.value) : undefined)}
                 />
               </div>
               <div>
