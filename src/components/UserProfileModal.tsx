@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -11,6 +10,7 @@ import { User, Camera, Shield, Building, Edit, CheckCircle, UserPlus, LogOut, Lo
 import { useTranslation } from '../hooks/useTranslation';
 import { Language } from '../utils/translations';
 import { User as AppUser } from '../types/auth';
+import { compressImageToBase64, saveImageToLocalStorage, getImageFromLocalStorage } from '../utils/imageUtils';
 
 // Firebase imports
 import { getAuth, onAuthStateChanged, signOut, User as FirebaseAuthUser } from 'firebase/auth';
@@ -71,15 +71,21 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
     email: user.email,
     profilePicture: user.profilePicture
   });
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   // Estados para los permisos obtenidos de Firestore
   const [userPermissions, setUserPermissions] = useState<UserFirestorePermissions | null>(null);
   const [loadingPermissions, setLoadingPermissions] = useState(false);
   const [permissionsError, setPermissionsError] = useState<string | null>(null);
 
-  // Efecto para cargar los permisos cuando el modal se abre y el user.uid está disponible
+  // Cargar imagen del localStorage al abrir el modal
   useEffect(() => {
     if (isOpen && user?.uid) {
+      const savedImage = getImageFromLocalStorage(`user-profile-${user.uid}`);
+      if (savedImage) {
+        setFormData(prev => ({ ...prev, profilePicture: savedImage }));
+      }
+      
       const fetchPermissions = async () => {
         setLoadingPermissions(true);
         setPermissionsError(null);
@@ -102,15 +108,26 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
     }
   }, [isOpen, user?.uid]);
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result as string;
-        setFormData(prev => ({ ...prev, profilePicture: result }));
-      };
-      reader.readAsDataURL(file);
+      setIsUploadingImage(true);
+      try {
+        // Comprimir imagen a base64
+        const compressedBase64 = await compressImageToBase64(file, 300, 0.8);
+        
+        // Actualizar estado
+        setFormData(prev => ({ ...prev, profilePicture: compressedBase64 }));
+        
+        // Guardar en localStorage
+        if (user?.uid) {
+          saveImageToLocalStorage(`user-profile-${user.uid}`, compressedBase64);
+        }
+      } catch (error) {
+        console.error('Error al comprimir imagen:', error);
+      } finally {
+        setIsUploadingImage(false);
+      }
     }
   };
 
@@ -166,9 +183,14 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({
                     size="sm"
                     onClick={() => fileInputRef.current?.click()}
                     className="border-blue-300 text-blue-700 hover:bg-blue-50 dark:border-blue-600 dark:text-blue-300"
+                    disabled={isUploadingImage}
                   >
-                    <Camera className="w-4 h-4 mr-2" />
-                    {t('changePhoto')}
+                    {isUploadingImage ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <Camera className="w-4 h-4 mr-2" />
+                    )}
+                    {isUploadingImage ? 'Procesando...' : t('changePhoto')}
                   </Button>
                   <input
                     ref={fileInputRef}

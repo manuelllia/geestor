@@ -1,32 +1,42 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Avatar } from "@/components/ui/avatar"
 import { AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Send, MessageCircle, X } from 'lucide-react';
-
-// --- IMPORTA TUS TRADUCCIONES Y EL HOOK ---
-import { Language } from '../../utils/translations'; // Ajusta la ruta a tu archivo de translations.ts
-import { useTranslation } from '../../hooks/useTranslation'; // Ajusta la ruta a tu hook useTranslation
+import { Send, MessageCircle, X, Paperclip } from 'lucide-react';
+import { Language } from '../../utils/translations';
+import { useTranslation } from '../../hooks/useTranslation';
+import ChatbotFileUpload from './ChatbotFileUpload';
 
 interface GeenioChatbotProps {
   isOpen: boolean;
   onToggle: () => void;
   context?: any;
-  language: Language; // Agrega la prop language
+  language: Language;
 }
 
 interface Message {
   sender: 'user' | 'bot';
   text: string;
+  files?: UploadedFile[];
+}
+
+interface UploadedFile {
+  id: string;
+  name: string;
+  type: string;
+  size: number;
+  base64: string;
+  content?: string;
 }
 
 const GeenioChatbot: React.FC<GeenioChatbotProps> = ({ isOpen, onToggle, context, language }) => {
-  const { t } = useTranslation(language); // Inicializa el hook de traducción
+  const { t } = useTranslation(language);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [showThinkingIndicator, setShowThinkingIndicator] = useState(false);
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
+  const [showFileUpload, setShowFileUpload] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -41,27 +51,58 @@ const GeenioChatbot: React.FC<GeenioChatbotProps> = ({ isOpen, onToggle, context
     }
   };
 
+  const handleFilesUploaded = (newFiles: UploadedFile[]) => {
+    setUploadedFiles(prev => [...prev, ...newFiles]);
+    setShowFileUpload(false);
+  };
+
+  const handleRemoveFile = (fileId: string) => {
+    setUploadedFiles(prev => prev.filter(file => file.id !== fileId));
+  };
+
   const handleSendMessage = async () => {
-    if (newMessage.trim() === '') return;
+    if (newMessage.trim() === '' && uploadedFiles.length === 0) return;
 
     const userMessage = newMessage.trim();
-    setMessages(prevMessages => [...prevMessages, { sender: 'user', text: userMessage }]);
+    const messagesToAdd: Message[] = [];
+
+    // Agregar mensaje de texto si existe
+    if (userMessage) {
+      messagesToAdd.push({ 
+        sender: 'user', 
+        text: userMessage,
+        files: uploadedFiles.length > 0 ? [...uploadedFiles] : undefined
+      });
+    }
+
+    // Si solo hay archivos sin mensaje de texto
+    if (!userMessage && uploadedFiles.length > 0) {
+      messagesToAdd.push({
+        sender: 'user',
+        text: `${t('fileUploaded')}: ${uploadedFiles.map(f => f.name).join(', ')}`,
+        files: [...uploadedFiles]
+      });
+    }
+
+    setMessages(prevMessages => [...prevMessages, ...messagesToAdd]);
     setNewMessage('');
+    const currentFiles = [...uploadedFiles];
+    setUploadedFiles([]);
 
     setShowThinkingIndicator(true);
 
     try {
-      const botResponse = await generateResponse(userMessage);
+      const botResponse = await generateResponse(userMessage || `Analiza estos archivos: ${currentFiles.map(f => f.name).join(', ')}`, currentFiles);
       setMessages(prevMessages => [...prevMessages, { sender: 'bot', text: botResponse }]);
     } catch (error) {
       console.error('Error generating response:', error);
-      setMessages(prevMessages => [...prevMessages, { sender: 'bot', text: t('botErrorResponse') }]); // Traducido
+      setMessages(prevMessages => [...prevMessages, { sender: 'bot', text: t('botErrorResponse') }]);
     } finally {
       setShowThinkingIndicator(false);
     }
   };
 
-  const generateResponse = async (userMessage: string): Promise<string> => {
+  const generateResponse = async (userMessage: string, files: UploadedFile[] = []): Promise<string> => {
     try {
       console.log('🤖 Generando respuesta para:', userMessage);
       
@@ -97,7 +138,6 @@ const GeenioChatbot: React.FC<GeenioChatbotProps> = ({ isOpen, onToggle, context
         }
       }
 
-      // El prompt del sistema ahora se traduce
       let systemPrompt = t('aiSystemPrompt');
 
       if (context) {
@@ -110,16 +150,43 @@ const GeenioChatbot: React.FC<GeenioChatbotProps> = ({ isOpen, onToggle, context
         - ${language === 'es' ? 'Lotes' : 'Lots'}: ${context.lotes?.length || 0}`;
       }
 
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=AIzaSyANIWvIMRvCW7f0meHRk4SobRz4s0pnxtg`, {
+      if (files.length > 0) {
+        systemPrompt += `\n\n${language === 'es' ? 'El usuario ha subido los siguientes archivos:' : 'The user has uploaded the following files:'}`;
+        files.forEach(file => {
+          systemPrompt += `\n- ${file.name} (${file.type})`;
+        });
+        systemPrompt += `\n\n${language === 'es' ? 'Analiza el contenido de estos archivos y proporciona información relevante.' : 'Analyze the content of these files and provide relevant information.'}`;
+      }
+
+      const contentParts: any[] = [
+        { text: `${systemPrompt}\n\nUser: ${userMessage}` }
+      ];
+
+      files.forEach(file => {
+        if (file.type.includes('image')) {
+          contentParts.push({
+            inlineData: {
+              mimeType: file.type,
+              data: file.base64
+            }
+          });
+        } else {
+          contentParts.push({
+            text: `Archivo: ${file.name} - Tipo: ${file.type} - Tamaño: ${file.size} bytes`
+          });
+        }
+      });
+
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=AIzaSyANIWvIMRvCW7f0meHRk4SobRz4s0pnxtg`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: [{
-            parts: [{ text: `${systemPrompt}\n\nUser: ${userMessage}` }]
+            parts: contentParts
           }],
           generationConfig: {
             temperature: 0.7,
-            maxOutputTokens: 1000,
+            maxOutputTokens: 2000,
             topK: 20,
             topP: 0.8
           }
@@ -138,7 +205,7 @@ const GeenioChatbot: React.FC<GeenioChatbotProps> = ({ isOpen, onToggle, context
 
     } catch (error) {
       console.error('❌ Error generando respuesta:', error);
-      return t('processingErrorMessage'); // Traducido
+      return t('processingErrorMessage');
     }
   };
 
@@ -208,6 +275,16 @@ const GeenioChatbot: React.FC<GeenioChatbotProps> = ({ isOpen, onToggle, context
                   : 'bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 shadow-sm border border-gray-200 dark:border-gray-700'
               }`}>
                 <div className="whitespace-pre-wrap break-words">{message.text}</div>
+                {message.files && message.files.length > 0 && (
+                  <div className="mt-2 space-y-1">
+                    {message.files.map((file) => (
+                      <div key={file.id} className="text-xs opacity-75 flex items-center gap-1">
+                        <Paperclip className="w-3 h-3" />
+                        <span>{file.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           ))}
@@ -227,9 +304,30 @@ const GeenioChatbot: React.FC<GeenioChatbotProps> = ({ isOpen, onToggle, context
           )}
         </div>
 
+        {/* File Upload Area */}
+        {showFileUpload && (
+          <div className="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-3">
+            <ChatbotFileUpload
+              language={language}
+              onFilesUploaded={handleFilesUploaded}
+              uploadedFiles={uploadedFiles}
+              onRemoveFile={handleRemoveFile}
+            />
+          </div>
+        )}
+
         {/* Input Area */}
         <div className="p-3 sm:p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
           <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowFileUpload(!showFileUpload)}
+              className="h-8 w-8 p-0"
+              disabled={showThinkingIndicator}
+            >
+              <Paperclip className="h-4 w-4" />
+            </Button>
             <Input
               type="text"
               placeholder={t('typeYourMessage')}
@@ -247,7 +345,7 @@ const GeenioChatbot: React.FC<GeenioChatbotProps> = ({ isOpen, onToggle, context
             <Button 
               size="sm" 
               onClick={handleSendMessage}
-              disabled={!newMessage.trim() || showThinkingIndicator}
+              disabled={(!newMessage.trim() && uploadedFiles.length === 0) || showThinkingIndicator}
               className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2"
             >
               <Send className="h-4 w-4" />
