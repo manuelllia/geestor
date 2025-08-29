@@ -1,3 +1,4 @@
+
 export type Language = 'es' | 'en';
 export type Theme = 'light' | 'dark';
 
@@ -16,7 +17,9 @@ export const translations = {
     actionPermissions: 'Permisos de Acción',
     operations: 'Operaciones',
     technicalManagement: 'Gestión Técnica',
+    technicalManagementShort: 'G. Técnica',
     talentManagement: 'Gestión de Talento',
+    talentManagementShort: 'G. Talento',
     create: 'Crear',
     modify: 'Modificar',
     delete: 'Eliminar',
@@ -26,6 +29,21 @@ export const translations = {
     changePhoto: 'Cambiar foto',
     saveChanges: 'Guardar cambios',
     logout: 'Cerrar sesión',
+    
+    // Navigation and menu items
+    homeMenu: 'Inicio',
+    users: 'Usuarios',
+    costAnalysis: 'Análisis de Coste',
+    costAnalysisShort: 'A. Coste',
+    calendarManagement: 'Gestión de Calendario',
+    calendarManagementShort: 'G. Calendario',
+    checkers: 'Comprobadores',
+    contractRequests: 'Solicitudes de Contratación',
+    changeSheets: 'Hojas de Cambio',
+    employeeAgreements: 'Acuerdos de Empleado',
+    realEstateManagement: 'Gestión de Inmuebles',
+    practiceEvaluation: 'Valoración de Prácticas',
+    exitInterviews: 'Entrevistas de Salida',
     
     // Chatbot translations
     openGeenioChatbot: 'Abrir Chatbot Geenio',
@@ -153,7 +171,9 @@ export const translations = {
     actionPermissions: 'Action Permissions',
     operations: 'Operations',
     technicalManagement: 'Technical Management',
+    technicalManagementShort: 'Tech. Mgmt',
     talentManagement: 'Talent Management',
+    talentManagementShort: 'Talent Mgmt',
     create: 'Create',
     modify: 'Modify',
     delete: 'Delete',
@@ -163,6 +183,21 @@ export const translations = {
     changePhoto: 'Change photo',
     saveChanges: 'Save changes',
     logout: 'Logout',
+    
+    // Navigation and menu items
+    homeMenu: 'Home',
+    users: 'Users',
+    costAnalysis: 'Cost Analysis',
+    costAnalysisShort: 'Cost Analysis',
+    calendarManagement: 'Calendar Management',
+    calendarManagementShort: 'Calendar',
+    checkers: 'Checkers',
+    contractRequests: 'Contract Requests',
+    changeSheets: 'Change Sheets',
+    employeeAgreements: 'Employee Agreements',
+    realEstateManagement: 'Real Estate Management',
+    practiceEvaluation: 'Practice Evaluation',
+    exitInterviews: 'Exit Interviews',
     
     // Chatbot translations
     openGeenioChatbot: 'Open Geenio Chatbot',
