@@ -1,3 +1,4 @@
+
 export type Language = 'es' | 'en';
 export type Theme = 'light' | 'dark';
 
@@ -264,7 +265,48 @@ export const translations = {
     missingMaintenanceTitle: 'Mantenimientos Faltantes',
     missingMaintenanceMessage: 'Hay denominaciones sin mantenimientos programados.',
     generateAnyway: 'Generar de Todas Formas',
-    completeFirst: 'Completar Primero'
+    completeFirst: 'Completar Primero',
+    maintenanceCalendar: 'Calendario de Mantenimiento',
+    generateCalendar: 'Generar Calendario',
+    hospitalInventory: 'Inventario Hospitalario',
+    maintenanceSchedule: 'Programa de Mantenimiento',
+    processFiles: 'Procesar Archivos',
+    calendar: 'Calendario',
+    analysis: 'Análisis',
+    inventory: 'Inventario',
+
+    // Main Content
+    featureTitleComprobadores: 'Comprobadores',
+    comingSoonDescriptionComprobadores: 'Funcionalidad para gestionar comprobadores en desarrollo.',
+    comingSoon: 'Próximamente',
+
+    // Additional maintenance calendar terms
+    maintenanceType: 'Tipo de Mantenimiento',
+    frequency: 'Frecuencia',
+    scheduledDate: 'Fecha Programada',
+    duration: 'Duración',
+    technician: 'Técnico',
+    priority: 'Prioridad',
+    notes: 'Notas',
+    equipment: 'Equipo',
+    location: 'Ubicación',
+    nextMaintenance: 'Próximo Mantenimiento',
+    lastMaintenance: 'Último Mantenimiento',
+    scheduled: 'Programado',
+    inProgress: 'En Progreso',
+    completed: 'Completado',
+    pending: 'Pendiente',
+    critical: 'Crítico',
+    high: 'Alto',
+    medium: 'Medio',
+    low: 'Bajo',
+    preventive: 'Preventivo',
+    corrective: 'Correctivo',
+    calibration: 'Calibración',
+    verification: 'Verificación',
+    cleaning: 'Limpieza',
+    inspection: 'Inspección',
+    technicalReview: 'Revisión Técnica'
   },
   en: {
     welcome: 'Welcome to GEESTOR',
@@ -526,7 +568,48 @@ export const translations = {
     missingMaintenanceTitle: 'Missing Maintenance',
     missingMaintenanceMessage: 'There are denominations without scheduled maintenance.',
     generateAnyway: 'Generate Anyway',
-    completeFirst: 'Complete First'
+    completeFirst: 'Complete First',
+    maintenanceCalendar: 'Maintenance Calendar',
+    generateCalendar: 'Generate Calendar',
+    hospitalInventory: 'Hospital Inventory',
+    maintenanceSchedule: 'Maintenance Schedule',
+    processFiles: 'Process Files',
+    calendar: 'Calendar',
+    analysis: 'Analysis',
+    inventory: 'Inventory',
+
+    // Main Content
+    featureTitleComprobadores: 'Checkers',
+    comingSoonDescriptionComprobadores: 'Checker management functionality in development.',
+    comingSoon: 'Coming Soon',
+
+    // Additional maintenance calendar terms
+    maintenanceType: 'Maintenance Type',
+    frequency: 'Frequency',
+    scheduledDate: 'Scheduled Date',
+    duration: 'Duration',
+    technician: 'Technician',
+    priority: 'Priority',
+    notes: 'Notes',
+    equipment: 'Equipment',
+    location: 'Location',
+    nextMaintenance: 'Next Maintenance',
+    lastMaintenance: 'Last Maintenance',
+    scheduled: 'Scheduled',
+    inProgress: 'In Progress',
+    completed: 'Completed',
+    pending: 'Pending',
+    critical: 'Critical',
+    high: 'High',
+    medium: 'Medium',
+    low: 'Low',
+    preventive: 'Preventive',
+    corrective: 'Corrective',
+    calibration: 'Calibration',
+    verification: 'Verification',
+    cleaning: 'Cleaning',
+    inspection: 'Inspection',
+    technicalReview: 'Technical Review'
   }
 };
 
