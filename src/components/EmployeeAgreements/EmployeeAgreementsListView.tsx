@@ -41,7 +41,7 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
   const [showDetailView, setShowDetailView] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
-  const [editingAgreement, setEditingAgreement] = useState<EmployeeAgreementRecord | null>(null);
+  const [editingAgreementId, setEditingAgreementId] = useState<string | null>(null);
 
   const loadAgreements = async () => {
     try {
@@ -94,8 +94,8 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
     }
   };
 
-  const handleEdit = (agreement: EmployeeAgreementRecord) => {
-    setEditingAgreement(agreement);
+  const handleEdit = (agreementId: string) => {
+    setEditingAgreementId(agreementId);
     setShowEditForm(true);
   };
 
@@ -147,7 +147,7 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
   const handleFormSuccess = () => {
     setShowCreateForm(false);
     setShowEditForm(false);
-    setEditingAgreement(null);
+    setEditingAgreementId(null);
     loadAgreements();
   };
 
@@ -155,7 +155,7 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
     setShowDetailView(false);
     setShowCreateForm(false);
     setShowEditForm(false);
-    setEditingAgreement(null);
+    setEditingAgreementId(null);
     setSelectedAgreementId(null);
   };
 
@@ -205,10 +205,10 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
     );
   }
 
-  if (showEditForm && editingAgreement) {
+  if (showEditForm && editingAgreementId) {
     return (
       <EmployeeAgreementEditForm
-        agreement={editingAgreement}
+        agreementId={editingAgreementId}
         language={language}
         onBack={handleBack}
         onSave={handleFormSuccess}
@@ -332,7 +332,7 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
                               <Eye className="mr-2 h-4 w-4" />
                               Ver Detalles
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleEdit(agreement)}>
+                            <DropdownMenuItem onClick={() => handleEdit(agreement.id)}>
                               <Edit className="mr-2 h-4 w-4" />
                               Editar
                             </DropdownMenuItem>
@@ -397,7 +397,7 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
                             <Eye className="mr-2 h-4 w-4" />
                             Ver Detalles
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleEdit(agreement)}>
+                          <DropdownMenuItem onClick={() => handleEdit(agreement.id)}>
                             <Edit className="mr-2 h-4 w-4" />
                             Editar
                           </DropdownMenuItem>
@@ -473,7 +473,6 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
         open={showImportModal}
         onClose={() => setShowImportModal(false)}
         onImportSuccess={handleImportSuccess}
-        language={language}
       />
     </div>
   );

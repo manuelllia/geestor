@@ -1,322 +1,214 @@
+
 import React, { useState, useRef } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Button } from '../ui/button';
-import { Upload, FileText, AlertCircle, CheckCircle, X } from 'lucide-react';
-import { useTranslation } from '../../hooks/useTranslation';
+import { Progress } from '../ui/progress';
+import { Upload, FileText, CheckCircle, AlertCircle } from 'lucide-react';
+import { useToast } from '../../hooks/use-toast';
 import { Language } from '../../utils/translations';
 import { importContractRequests, ContractRequestRecord } from '../../services/contractRequestsService';
 import * as XLSX from 'xlsx';
-import Papa from 'papaparse';
 
 interface ImportContractRequestsModalProps {
   open: boolean;
   onClose: () => void;
+  onImportSuccess?: () => void;
   language: Language;
 }
 
 const ImportContractRequestsModal: React.FC<ImportContractRequestsModalProps> = ({
   open,
   onClose,
+  onImportSuccess,
   language
 }) => {
-  const { t } = useTranslation(language);
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadResult, setUploadResult] = useState<{ success: number; errors: string[] } | null>(null);
-  const [isDragOver, setIsDragOver] = useState(false);
+  const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [importResults, setImportResults] = useState<{
+    success: number;
+    errors: string[];
+  } | null>(null);
 
-  const handleFileSelect = (files: FileList) => {
-    if (files.length > 0) {
-      const file = files[0];
-      processFile(file);
-    }
-  };
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
 
-  const processFile = async (file: File) => {
     setIsUploading(true);
-    setUploadResult(null);
+    setUploadProgress(0);
 
     try {
-      const fileExtension = file.name.split('.').pop()?.toLowerCase();
-      let data: any[] = [];
+      const data = await file.arrayBuffer();
+      const workbook = XLSX.read(data);
+      const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+      const jsonData = XLSX.utils.sheet_to_json(worksheet);
 
-      if (fileExtension === 'csv') {
-        const text = await file.text();
-        const result = Papa.parse(text, { header: true, skipEmptyLines: true });
-        data = result.data;
-      } else if (fileExtension === 'xlsx' || fileExtension === 'xls') {
-        const buffer = await file.arrayBuffer();
-        const workbook = XLSX.read(buffer, { type: 'array' });
-        const sheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[sheetName];
-        data = XLSX.utils.sheet_to_json(worksheet);
-      } else {
-        throw new Error('Formato de archivo no soportado. Use CSV o Excel (.xlsx, .xls)');
-      }
+      setUploadProgress(50);
 
-      // Mapear los datos del Excel/CSV a la estructura de ContractRequestRecord
-      const requests: Partial<ContractRequestRecord>[] = data.map((row: any) => ({
-        requesterName: row['Candidato Seleccionado'] || '',
-        requesterLastName: '', // No está en el Excel, se deja vacío
-        contractType: row['Tipo de Contrato'] || '',
-        salary: row['Salario']?.toString() || '',
-        observations: row['Observaciones'] || '',
-        incorporationDate: parseDate(row['Fecha de Incorporación']),
-        company: resolveCompany(row['Empresa'], row['NUEVA EMPRESA']),
-        jobPosition: resolveJobPosition(row['Puesto de Trabajo'], row['Especificar Puesto de Trabajo']),
-        professionalCategory: resolveProfessionalCategory(row['Categoría Profesional'], row['Especificar Categoría Profesional']),
-        city: row['Población'] || '',
-        province: row['Provincia'] || '',
-        autonomousCommunity: row['Comunidad Autónoma'] || '',
-        workCenter: resolveWorkCenter(row['Centro de Trabajo'], row['Especificar Centro']),
-        companyFlat: row['Piso de Empresa'] === 'Si' ? 'Si' : 'No',
-        language1: row['Idioma'] || '',
-        level1: row['Nivel'] || '',
-        language2: row['Idioma 2'] || '',
-        level2: row['Nivel 2'] || '',
-        experienceElectromedicine: row['Experiencia Previa en Electromedicina'] || '',
-        experienceInstallations: row['Experiencia Previa en Instalaciones'] || '',
-        hiringReason: row['Motivo de la Contratación'] || '',
-        notesAndCommitments: row['Observaciones y/o Compromisos'] || '',
-        status: 'Pendiente' as const,
+      const contractRequests: Partial<ContractRequestRecord>[] = jsonData.map((row: any) => ({
+        position: row['Puesto'] || row['Position'] || '',
+        department: row['Departamento'] || row['Department'] || '',
+        urgency: row['Urgencia'] || row['Urgency'] || 'Media',
+        requesterName: row['Nombre Solicitante'] || row['Requester Name'] || '',
+        requesterLastName: row['Apellidos Solicitante'] || row['Requester Last Name'] || '',
+        requestDate: row['Fecha Solicitud'] ? new Date(row['Fecha Solicitud']) : new Date(),
+        status: row['Estado'] || row['Status'] || 'Pendiente',
+        contractType: row['Tipo Contrato'] || row['Contract Type'] || '',
+        salary: row['Salario'] || row['Salary'] || '',
+        observations: row['Observaciones'] || row['Observations'] || '',
+        incorporationDate: row['Fecha Incorporacion'] ? new Date(row['Fecha Incorporacion']) : undefined,
+        company: row['Empresa'] || row['Company'] || '',
+        jobPosition: row['Posicion Trabajo'] || row['Job Position'] || '',
+        professionalCategory: row['Categoria Profesional'] || row['Professional Category'] || '',
+        city: row['Ciudad'] || row['City'] || '',
+        province: row['Provincia'] || row['Province'] || '',
+        autonomousCommunity: row['Comunidad Autonoma'] || row['Autonomous Community'] || '',
+        workCenter: row['Centro Trabajo'] || row['Work Center'] || '',
+        companyFlat: row['Piso Empresa'] || row['Company Flat'] || 'No',
+        language1: row['Idioma 1'] || row['Language 1'] || '',
+        level1: row['Nivel 1'] || row['Level 1'] || '',
+        language2: row['Idioma 2'] || row['Language 2'] || '',
+        level2: row['Nivel 2'] || row['Level 2'] || '',
+        experienceElectromedicine: row['Experiencia Electromedicina'] || row['Electromedicine Experience'] || '',
+        experienceInstallations: row['Experiencia Instalaciones'] || row['Installations Experience'] || '',
+        hiringReason: row['Motivo Contratacion'] || row['Hiring Reason'] || '',
+        notesAndCommitments: row['Notas y Compromisos'] || row['Notes and Commitments'] || '',
       }));
 
-      console.log('Datos procesados para importar:', requests);
+      setUploadProgress(75);
 
-      const result = await importContractRequests(requests);
-      setUploadResult(result);
+      const results = await importContractRequests(contractRequests);
+      setImportResults(results);
+      setUploadProgress(100);
+
+      if (results.success > 0) {
+        toast({
+          title: "Importación completada",
+          description: `Se importaron ${results.success} solicitudes correctamente.`,
+        });
+        
+        if (onImportSuccess) {
+          onImportSuccess();
+        }
+      }
+
+      if (results.errors.length > 0) {
+        toast({
+          title: "Errores en la importación",
+          description: `${results.errors.length} errores encontrados. Revisa los detalles.`,
+          variant: "destructive",
+        });
+      }
 
     } catch (error) {
-      console.error('Error procesando archivo:', error);
-      setUploadResult({
-        success: 0,
-        errors: [`Error procesando archivo: ${error}`]
+      console.error('Error importing file:', error);
+      toast({
+        title: "Error de importación",
+        description: "No se pudo procesar el archivo. Verifica el formato.",
+        variant: "destructive",
       });
     } finally {
       setIsUploading(false);
-    }
-  };
-
-  const parseDate = (dateString: string): Date | undefined => {
-    if (!dateString) return undefined;
-    
-    const formats = [
-      () => new Date(dateString),
-      () => {
-        const parts = dateString.split('/');
-        if (parts.length === 3) {
-          return new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
-        }
-        return null;
-      },
-      () => {
-        const parts = dateString.split('-');
-        if (parts.length === 3) {
-          return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
-        }
-        return null;
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
       }
-    ];
-
-    for (const format of formats) {
-      try {
-        const date = format();
-        if (date && !isNaN(date.getTime())) {
-          return date;
-        }
-      } catch (e) {
-        continue;
-      }
-    }
-
-    return undefined;
-  };
-
-  const resolveCompany = (empresa: string, nuevaEmpresa: string): string => {
-    const companyOptions = ['IBERMAN SA', 'ASIME SA', 'MANTELEC SA', 'INSANEX SL', 'SSM', 'RD HEALING', 'AINATEC INDEL FACILITIES'];
-    
-    if (empresa && companyOptions.includes(empresa)) {
-      return empresa;
-    }
-    
-    return nuevaEmpresa || empresa || '';
-  };
-
-  const resolveJobPosition = (puesto: string, especificar: string): string => {
-    const jobPositionOptions = [
-      'TÉCNICO/A DE ELECTROMEDICINA', 'RC', 'INGENIERO/A ELECTRONICO', 'INGENIERO/A MECANICO',
-      'INGENIERO/A DESARROLLO HW Y SW', 'ELECTRICISTA', 'FRIGORISTA', 'TÉCNICO/A DE INSTALACIONES',
-      'ALBAÑIL'
-    ];
-    
-    if (puesto && jobPositionOptions.includes(puesto)) {
-      return puesto;
-    }
-    
-    return especificar || puesto || '';
-  };
-
-  const resolveProfessionalCategory = (categoria: string, especificar: string): string => {
-    const professionalCategoryOptions = ['TÉCNICO/A', 'INGENIERO/A', 'OFICIAL 1º', 'OFICIAL 2º', 'OFICIAL 3º'];
-    
-    if (categoria && professionalCategoryOptions.includes(categoria)) {
-      return categoria;
-    }
-    
-    return especificar || categoria || '';
-  };
-
-  const resolveWorkCenter = (centro: string, especificar: string): string => {
-    return especificar || centro || '';
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(true);
-  };
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(false);
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(false);
-    const files = e.dataTransfer.files;
-    handleFileSelect(files);
-  };
-
-  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      handleFileSelect(e.target.files);
     }
   };
 
   const handleClose = () => {
-    setUploadResult(null);
-    setIsUploading(false);
+    setImportResults(null);
+    setUploadProgress(0);
     onClose();
-  };
-
-  const handleImportSuccess = () => {
-    setShowImportModal(false);
-    loadContractRequests();
   };
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle className="flex items-center space-x-2">
-            <Upload className="h-5 w-5" />
-            <span>Importar Solicitudes de Contratación</span>
+          <DialogTitle className="flex items-center gap-2">
+            <Upload className="w-5 h-5" />
+            Importar Solicitudes de Contratación
           </DialogTitle>
+          <DialogDescription>
+            Sube un archivo Excel (.xlsx) o CSV con las solicitudes de contratación.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
-          {!uploadResult && (
-            <>
-              <div className="text-sm text-gray-600 dark:text-gray-400">
-                Sube un archivo CSV o Excel con las solicitudes de contratación.
-              </div>
-              
-              <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
-                <div className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-2">
-                  Columnas esperadas del Excel:
-                </div>
-                <ul className="text-xs text-blue-800 dark:text-blue-200 space-y-1">
-                  <li>• Candidato Seleccionado</li>
-                  <li>• Tipo de Contrato</li>
-                  <li>• Salario, Observaciones</li>
-                  <li>• Fecha de Incorporación</li>
-                  <li>• Empresa, Puesto, Categoría</li>
-                  <li>• Ubicación y Centro de Trabajo</li>
-                </ul>
-              </div>
-
-              <div
-                className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-                  isDragOver
-                    ? 'border-blue-400 bg-blue-50 dark:bg-blue-900/20'
-                    : 'border-gray-300 dark:border-gray-600 hover:border-gray-400'
-                }`}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-              >
-                <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                  Arrastra tu archivo aquí o haz clic para seleccionar
+          {!isUploading && !importResults && (
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+              <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <div className="space-y-2">
+                <p className="text-sm text-gray-600">
+                  Arrastra y suelta tu archivo aquí, o haz clic para seleccionarlo
                 </p>
                 <Button
                   variant="outline"
                   onClick={() => fileInputRef.current?.click()}
-                  disabled={isUploading}
+                  className="mt-2"
                 >
-                  {isUploading ? 'Procesando...' : 'Seleccionar Archivo'}
+                  <Upload className="w-4 h-4 mr-2" />
+                  Seleccionar Archivo
                 </Button>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".csv,.xlsx,.xls"
-                  onChange={handleFileInputChange}
-                  className="hidden"
-                />
               </div>
-            </>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".xlsx,.xls,.csv"
+                onChange={handleFileUpload}
+                className="hidden"
+              />
+            </div>
           )}
 
-          {uploadResult && (
+          {isUploading && (
             <div className="space-y-4">
-              <div className="flex items-center space-x-2">
-                {uploadResult.success > 0 ? (
-                  <CheckCircle className="h-5 w-5 text-green-500" />
-                ) : (
-                  <AlertCircle className="h-5 w-5 text-red-500" />
-                )}
-                <span className="font-medium">
-                  Resultado de la Importación
-                </span>
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                <p className="text-sm text-gray-600">Procesando archivo...</p>
+              </div>
+              <Progress value={uploadProgress} className="w-full" />
+            </div>
+          )}
+
+          {importResults && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 text-green-600">
+                <CheckCircle className="w-5 h-5" />
+                <span className="font-medium">Importación completada</span>
               </div>
               
-              <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-                <div className="text-sm">
-                  <div className="text-green-600 dark:text-green-400">
-                    ✓ {uploadResult.success} solicitudes importadas exitosamente
-                  </div>
-                  {uploadResult.errors.length > 0 && (
-                    <div className="mt-2">
-                      <div className="text-red-600 dark:text-red-400 mb-1">
-                        ✗ {uploadResult.errors.length} errores:
-                      </div>
-                      <div className="max-h-32 overflow-y-auto text-xs text-red-500 dark:text-red-400 space-y-1">
-                        {uploadResult.errors.map((error, index) => (
-                          <div key={index}>• {error}</div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <p className="text-sm text-green-800">
+                  <strong>{importResults.success}</strong> solicitudes importadas correctamente
+                </p>
               </div>
+
+              {importResults.errors.length > 0 && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <div className="flex items-center gap-2 text-red-600 mb-2">
+                    <AlertCircle className="w-4 h-4" />
+                    <span className="font-medium">Errores encontrados:</span>
+                  </div>
+                  <div className="max-h-32 overflow-y-auto">
+                    {importResults.errors.map((error, index) => (
+                      <p key={index} className="text-xs text-red-700 mb-1">
+                        • {error}
+                      </p>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
 
-        <div className="flex justify-end space-x-2 mt-6">
-          <Button
-            variant="outline"
-            onClick={handleClose}
-            disabled={isUploading}
-          >
-            {uploadResult ? 'Cerrar' : 'Cancelar'}
+        <DialogFooter>
+          <Button variant="outline" onClick={handleClose}>
+            {importResults ? 'Cerrar' : 'Cancelar'}
           </Button>
-          {uploadResult && uploadResult.success > 0 && (
-            <Button onClick={handleClose}>
-              Continuar
-            </Button>
-          )}
-        </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

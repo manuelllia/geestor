@@ -1,5 +1,5 @@
-import { db } from '../../lib/db';
-import { ContractRequest } from '@prisma/client';
+
+import { v4 as uuidv4 } from 'uuid';
 
 export interface ContractRequestRecord {
   id: string;
@@ -34,19 +34,16 @@ export interface ContractRequestRecord {
   updatedAt?: Date;
 }
 
+// Mock data storage
+let mockContractRequests: ContractRequestRecord[] = [];
+
 export const getContractRequests = async (): Promise<ContractRequestRecord[]> => {
   try {
-    const contractRequests = await db.contractRequest.findMany({
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
-
-    return contractRequests.map(request => ({
+    return mockContractRequests.map(request => ({
       ...request,
-      requestDate: request.requestDate ? new Date(request.requestDate) : null,
-      incorporationDate: request.incorporationDate ? new Date(request.incorporationDate) : null,
-    })) as ContractRequestRecord[];
+      requestDate: request.requestDate ? new Date(request.requestDate) : new Date(),
+      incorporationDate: request.incorporationDate ? new Date(request.incorporationDate) : undefined,
+    }));
   } catch (error) {
     console.error('Error fetching contract requests:', error);
     return [];
@@ -55,21 +52,14 @@ export const getContractRequests = async (): Promise<ContractRequestRecord[]> =>
 
 export const getContractRequestById = async (id: string): Promise<ContractRequestRecord | null> => {
   try {
-    const contractRequest = await db.contractRequest.findUnique({
-      where: {
-        id: id,
-      },
-    });
-
-    if (!contractRequest) {
-      return null;
-    }
-
+    const request = mockContractRequests.find(r => r.id === id);
+    if (!request) return null;
+    
     return {
-      ...contractRequest,
-      requestDate: contractRequest.requestDate ? new Date(contractRequest.requestDate) : null,
-      incorporationDate: contractRequest.incorporationDate ? new Date(contractRequest.incorporationDate) : null,
-    } as ContractRequestRecord;
+      ...request,
+      requestDate: request.requestDate ? new Date(request.requestDate) : new Date(),
+      incorporationDate: request.incorporationDate ? new Date(request.incorporationDate) : undefined,
+    };
   } catch (error) {
     console.error('Error fetching contract request by ID:', error);
     return null;
@@ -78,19 +68,17 @@ export const getContractRequestById = async (id: string): Promise<ContractReques
 
 export const createContractRequest = async (values: Omit<ContractRequestRecord, 'id' | 'createdAt' | 'updatedAt'>): Promise<ContractRequestRecord | null> => {
   try {
-    const contractRequest = await db.contractRequest.create({
-      data: {
-        ...values,
-        requestDate: values.requestDate ? new Date(values.requestDate) : null,
-        incorporationDate: values.incorporationDate ? new Date(values.incorporationDate) : null,
-      },
-    });
-
-    return {
-      ...contractRequest,
-      requestDate: contractRequest.requestDate ? new Date(contractRequest.requestDate) : null,
-      incorporationDate: contractRequest.incorporationDate ? new Date(contractRequest.incorporationDate) : null,
-    } as ContractRequestRecord;
+    const newRequest: ContractRequestRecord = {
+      ...values,
+      id: uuidv4(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      requestDate: values.requestDate ? new Date(values.requestDate) : new Date(),
+      incorporationDate: values.incorporationDate ? new Date(values.incorporationDate) : undefined,
+    };
+    
+    mockContractRequests.push(newRequest);
+    return newRequest;
   } catch (error) {
     console.error('Error creating contract request:', error);
     return null;
@@ -99,22 +87,18 @@ export const createContractRequest = async (values: Omit<ContractRequestRecord, 
 
 export const updateContractRequest = async (id: string, values: Omit<ContractRequestRecord, 'id' | 'createdAt' | 'updatedAt'>): Promise<ContractRequestRecord | null> => {
   try {
-    const contractRequest = await db.contractRequest.update({
-      where: {
-        id: id,
-      },
-      data: {
-        ...values,
-        requestDate: values.requestDate ? new Date(values.requestDate) : null,
-        incorporationDate: values.incorporationDate ? new Date(values.incorporationDate) : null,
-      },
-    });
-
-    return {
-      ...contractRequest,
-      requestDate: contractRequest.requestDate ? new Date(contractRequest.requestDate) : null,
-      incorporationDate: contractRequest.incorporationDate ? new Date(contractRequest.incorporationDate) : null,
-    } as ContractRequestRecord;
+    const index = mockContractRequests.findIndex(r => r.id === id);
+    if (index === -1) return null;
+    
+    mockContractRequests[index] = {
+      ...mockContractRequests[index],
+      ...values,
+      updatedAt: new Date(),
+      requestDate: values.requestDate ? new Date(values.requestDate) : new Date(),
+      incorporationDate: values.incorporationDate ? new Date(values.incorporationDate) : undefined,
+    };
+    
+    return mockContractRequests[index];
   } catch (error) {
     console.error('Error updating contract request:', error);
     return null;
@@ -123,17 +107,12 @@ export const updateContractRequest = async (id: string, values: Omit<ContractReq
 
 export const deleteContractRequest = async (id: string): Promise<ContractRequestRecord | null> => {
   try {
-    const contractRequest = await db.contractRequest.delete({
-      where: {
-        id: id,
-      },
-    });
-
-    return {
-      ...contractRequest,
-      requestDate: contractRequest.requestDate ? new Date(contractRequest.requestDate) : null,
-      incorporationDate: contractRequest.incorporationDate ? new Date(contractRequest.incorporationDate) : null,
-    } as ContractRequestRecord;
+    const index = mockContractRequests.findIndex(r => r.id === id);
+    if (index === -1) return null;
+    
+    const deletedRequest = mockContractRequests[index];
+    mockContractRequests.splice(index, 1);
+    return deletedRequest;
   } catch (error) {
     console.error('Error deleting contract request:', error);
     return null;
@@ -142,32 +121,19 @@ export const deleteContractRequest = async (id: string): Promise<ContractRequest
 
 export const duplicateContractRequest = async (id: string): Promise<ContractRequestRecord | null> => {
   try {
-    const originalRequest = await db.contractRequest.findUnique({
-      where: {
-        id: id,
-      },
-    });
-
-    if (!originalRequest) {
-      console.log(`Contract request with id ${id} not found`);
-      return null;
-    }
-
+    const originalRequest = mockContractRequests.find(r => r.id === id);
+    if (!originalRequest) return null;
+    
     const { id: originalId, ...dataToCopy } = originalRequest;
-
-    const duplicatedRequest = await db.contractRequest.create({
-      data: {
-        ...dataToCopy,
-        requestDate: dataToCopy.requestDate ? new Date(dataToCopy.requestDate) : null,
-        incorporationDate: dataToCopy.incorporationDate ? new Date(dataToCopy.incorporationDate) : null,
-      },
-    });
-
-    return {
-      ...duplicatedRequest,
-      requestDate: duplicatedRequest.requestDate ? new Date(duplicatedRequest.requestDate) : null,
-      incorporationDate: duplicatedRequest.incorporationDate ? new Date(duplicatedRequest.incorporationDate) : null,
-    } as ContractRequestRecord;
+    const duplicatedRequest: ContractRequestRecord = {
+      ...dataToCopy,
+      id: uuidv4(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    
+    mockContractRequests.push(duplicatedRequest);
+    return duplicatedRequest;
   } catch (error) {
     console.error('Error duplicating contract request:', error);
     return null;
@@ -180,43 +146,45 @@ export const importContractRequests = async (requests: Partial<ContractRequestRe
 
   for (const request of requests) {
     try {
-      // Validate required fields
-      if (!request.position || !request.department || !request.urgency || !request.requesterName || !request.requesterLastName || !request.requestDate || !request.status) {
+      if (!request.position || !request.department || !request.urgency || !request.requesterName || !request.requesterLastName || !request.status) {
         errors.push(`Faltan campos obligatorios en la solicitud: ${request.position}`);
         continue;
       }
 
-      await db.contractRequest.create({
-        data: {
-          position: request.position,
-          department: request.department,
-          urgency: request.urgency,
-          requesterName: request.requesterName,
-          requesterLastName: request.requesterLastName,
-          requestDate: request.requestDate ? new Date(request.requestDate) : new Date(),
-          status: request.status,
-          contractType: request.contractType,
-          salary: request.salary,
-          observations: request.observations,
-          incorporationDate: request.incorporationDate ? new Date(request.incorporationDate) : null,
-          company: request.company,
-          jobPosition: request.jobPosition,
-          professionalCategory: request.professionalCategory,
-          city: request.city,
-          province: request.province,
-          autonomousCommunity: request.autonomousCommunity,
-          workCenter: request.workCenter,
-          companyFlat: request.companyFlat,
-          language1: request.language1,
-          level1: request.level1,
-          language2: request.language2,
-          level2: request.level2,
-          experienceElectromedicine: request.experienceElectromedicine,
-          experienceInstallations: request.experienceInstallations,
-          hiringReason: request.hiringReason,
-          notesAndCommitments: request.notesAndCommitments,
-        },
-      });
+      const newRequest: ContractRequestRecord = {
+        id: uuidv4(),
+        position: request.position,
+        department: request.department,
+        urgency: request.urgency,
+        requesterName: request.requesterName,
+        requesterLastName: request.requesterLastName,
+        requestDate: request.requestDate ? new Date(request.requestDate) : new Date(),
+        status: request.status,
+        contractType: request.contractType,
+        salary: request.salary,
+        observations: request.observations,
+        incorporationDate: request.incorporationDate ? new Date(request.incorporationDate) : undefined,
+        company: request.company,
+        jobPosition: request.jobPosition,
+        professionalCategory: request.professionalCategory,
+        city: request.city,
+        province: request.province,
+        autonomousCommunity: request.autonomousCommunity,
+        workCenter: request.workCenter,
+        companyFlat: request.companyFlat,
+        language1: request.language1,
+        level1: request.level1,
+        language2: request.language2,
+        level2: request.level2,
+        experienceElectromedicine: request.experienceElectromedicine,
+        experienceInstallations: request.experienceInstallations,
+        hiringReason: request.hiringReason,
+        notesAndCommitments: request.notesAndCommitments,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      
+      mockContractRequests.push(newRequest);
       successCount++;
     } catch (error: any) {
       errors.push(`Error al importar solicitud para ${request.position}: ${error.message}`);

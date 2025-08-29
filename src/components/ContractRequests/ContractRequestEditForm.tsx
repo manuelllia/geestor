@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ArrowLeft, Save } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Language } from '../../utils/translations';
-import { getContractRequestById, updateContractRequest } from '../../services/contractRequestsService';
+import { getContractRequestById, updateContractRequest, ContractRequestRecord } from '../../services/contractRequestsService';
 
 interface ContractRequestEditFormProps {
   language: Language;
@@ -27,13 +27,18 @@ const ContractRequestEditForm: React.FC<ContractRequestEditFormProps> = ({
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<Omit<ContractRequestRecord, 'id' | 'createdAt' | 'updatedAt'>>({
+    position: '',
+    department: '',
+    urgency: 'Media',
     requesterName: '',
     requesterLastName: '',
+    requestDate: new Date(),
+    status: 'Pendiente',
     contractType: '',
     salary: '',
     observations: '',
-    incorporationDate: '',
+    incorporationDate: undefined,
     company: '',
     jobPosition: '',
     professionalCategory: '',
@@ -41,7 +46,7 @@ const ContractRequestEditForm: React.FC<ContractRequestEditFormProps> = ({
     province: '',
     autonomousCommunity: '',
     workCenter: '',
-    companyFlat: 'No' as 'Si' | 'No',
+    companyFlat: 'No',
     language1: '',
     level1: '',
     language2: '',
@@ -50,7 +55,6 @@ const ContractRequestEditForm: React.FC<ContractRequestEditFormProps> = ({
     experienceInstallations: '',
     hiringReason: '',
     notesAndCommitments: '',
-    status: 'Pendiente' as 'Pendiente' | 'Aprobado' | 'Rechazado'
   });
 
   useEffect(() => {
@@ -59,31 +63,33 @@ const ContractRequestEditForm: React.FC<ContractRequestEditFormProps> = ({
         const requestData = await getContractRequestById(requestId);
         if (requestData) {
           setFormData({
+            position: requestData.position,
+            department: requestData.department,
+            urgency: requestData.urgency,
             requesterName: requestData.requesterName,
             requesterLastName: requestData.requesterLastName,
-            contractType: requestData.contractType,
-            salary: requestData.salary,
-            observations: requestData.observations,
-            incorporationDate: requestData.incorporationDate 
-              ? requestData.incorporationDate.toISOString().split('T')[0]
-              : '',
-            company: requestData.company,
-            jobPosition: requestData.jobPosition,
-            professionalCategory: requestData.professionalCategory,
-            city: requestData.city,
-            province: requestData.province,
-            autonomousCommunity: requestData.autonomousCommunity,
-            workCenter: requestData.workCenter,
-            companyFlat: requestData.companyFlat,
+            requestDate: requestData.requestDate,
+            status: requestData.status,
+            contractType: requestData.contractType || '',
+            salary: requestData.salary || '',
+            observations: requestData.observations || '',
+            incorporationDate: requestData.incorporationDate,
+            company: requestData.company || '',
+            jobPosition: requestData.jobPosition || '',
+            professionalCategory: requestData.professionalCategory || '',
+            city: requestData.city || '',
+            province: requestData.province || '',
+            autonomousCommunity: requestData.autonomousCommunity || '',
+            workCenter: requestData.workCenter || '',
+            companyFlat: (requestData.companyFlat as 'Si' | 'No') || 'No',
             language1: requestData.language1 || '',
             level1: requestData.level1 || '',
             language2: requestData.language2 || '',
             level2: requestData.level2 || '',
             experienceElectromedicine: requestData.experienceElectromedicine || '',
             experienceInstallations: requestData.experienceInstallations || '',
-            hiringReason: requestData.hiringReason,
-            notesAndCommitments: requestData.notesAndCommitments,
-            status: requestData.status
+            hiringReason: requestData.hiringReason || '',
+            notesAndCommitments: requestData.notesAndCommitments || '',
           });
         }
       } catch (error) {
@@ -104,7 +110,7 @@ const ContractRequestEditForm: React.FC<ContractRequestEditFormProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.requesterName || !formData.company) {
+    if (!formData.requesterName || !formData.company || !formData.position || !formData.department) {
       toast({
         title: 'Error de validación',
         description: 'Por favor, completa todos los campos obligatorios.',
@@ -135,7 +141,7 @@ const ContractRequestEditForm: React.FC<ContractRequestEditFormProps> = ({
     }
   };
 
-  const handleChange = (field: string, value: string) => {
+  const handleChange = (field: keyof typeof formData, value: any) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
