@@ -104,7 +104,7 @@ const GeenioChatbot: React.FC<GeenioChatbotProps> = ({ isOpen, onToggle, context
 
   const generateResponse = async (userMessage: string, files: UploadedFile[] = []): Promise<string> => {
     try {
-      console.log('🤖 Generando respuesta para:', userMessage);
+      console.log('🤖 Generando respuesta con Gemini Flash 2.5 para:', userMessage);
       
       // Respuestas a saludos y mensajes básicos, ahora usando las traducciones
       // Las claves de coincidencia siguen siendo universales (hola, hello, etc.)
@@ -177,9 +177,12 @@ const GeenioChatbot: React.FC<GeenioChatbotProps> = ({ isOpen, onToggle, context
         }
       });
 
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=AIzaSyANIWvIMRvCW7f0meHRk4SobRz4s0pnxtg`, {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-goog-api-key': 'AIzaSyANIWvIMRvCW7f0meHRk4SobRz4s0pnxtg'
+        },
         body: JSON.stringify({
           contents: [{
             parts: contentParts
@@ -187,8 +190,8 @@ const GeenioChatbot: React.FC<GeenioChatbotProps> = ({ isOpen, onToggle, context
           generationConfig: {
             temperature: 0.7,
             maxOutputTokens: 2000,
-            topK: 20,
-            topP: 0.8
+            topK: 40,
+            topP: 0.95
           }
         })
       });
@@ -200,7 +203,7 @@ const GeenioChatbot: React.FC<GeenioChatbotProps> = ({ isOpen, onToggle, context
       const data = await response.json();
       const botResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || t('botErrorResponse');
       
-      console.log('✅ Respuesta generada exitosamente');
+      console.log('✅ Respuesta generada exitosamente con Gemini Flash 2.5');
       return botResponse;
 
     } catch (error) {

@@ -23,13 +23,13 @@ interface GeminiAI {
   };
 }
 
-// Cliente optimizado para la API de Gemini
+// Cliente optimizado para la API de Gemini Flash 2.5
 const createGeminiClient = (): GeminiAI => {
   return {
     models: {
       generateContent: async (config) => {
         const GEMINI_API_KEY = 'AIzaSyANIWvIMRvCW7f0meHRk4SobRz4s0pnxtg';
-        const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${config.model}:generateContent`;
+        const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`;
         
         const requestBody = {
           contents: [{
@@ -38,9 +38,9 @@ const createGeminiClient = (): GeminiAI => {
           generationConfig: {
             temperature: config.config.temperature,
             responseMimeType: config.config.responseMimeType,
-            maxOutputTokens: 4096, // Reducido para mejor rendimiento
-            topK: 20, // Optimizado para precisión
-            topP: 0.8, // Ajustado para mayor consistencia
+            maxOutputTokens: 8192, // Aumentado para mejor capacidad
+            topK: 40, // Optimizado para Gemini 2.5
+            topP: 0.95, // Ajustado para mejor creatividad
             candidateCount: 1
           },
           safetySettings: [
@@ -63,25 +63,26 @@ const createGeminiClient = (): GeminiAI => {
           ]
         };
 
-        console.log('🚀 Llamando a Gemini API optimizada:', {
-          model: config.model,
+        console.log('🚀 Llamando a Gemini Flash 2.5 API:', {
+          model: 'gemini-2.5-flash',
           url: GEMINI_API_URL,
           promptLength: config.contents.length,
           temperature: config.config.temperature,
-          maxTokens: 4096
+          maxTokens: 8192
         });
 
-        const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+        const response = await fetch(GEMINI_API_URL, {
           method: 'POST',
           headers: { 
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'x-goog-api-key': GEMINI_API_KEY
           },
           body: JSON.stringify(requestBody),
         });
 
         if (!response.ok) {
           const errorText = await response.text();
-          console.error('❌ Error en Gemini API:', {
+          console.error('❌ Error en Gemini Flash 2.5 API:', {
             status: response.status,
             statusText: response.statusText,
             error: errorText
@@ -98,7 +99,7 @@ const createGeminiClient = (): GeminiAI => {
         }
 
         const data: GeminiResponse = await response.json();
-        console.log('✅ Respuesta recibida de Gemini API optimizada');
+        console.log('✅ Respuesta recibida de Gemini Flash 2.5 API');
         
         if (!data.candidates?.[0]?.content?.parts?.[0]?.text) {
           console.error('❌ Respuesta inválida de Gemini:', data);

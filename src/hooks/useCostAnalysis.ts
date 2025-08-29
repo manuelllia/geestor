@@ -259,10 +259,10 @@ IMPORTANTE: Si encuentras información en uno de los documentos pero no en el ot
 
   const callGeminiAPI = async (pcapFile: File, pptFile: File): Promise<CostAnalysisData> => {
     const GEMINI_API_KEY = 'AIzaSyANIWvIMRvCW7f0meHRk4SobRz4s0pnxtg';
-    const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent';
+    const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
     
     try {
-      console.log('🤖 === INICIANDO ANÁLISIS PROFESIONAL DE COSTES ===');
+      console.log('🤖 === INICIANDO ANÁLISIS PROFESIONAL DE COSTES CON GEMINI FLASH 2.5 ===');
       console.log('📄 Preparando archivos para análisis...');
       
       const pcapBase64 = await fileToBase64(pcapFile);
@@ -295,8 +295,8 @@ IMPORTANTE: Si encuentras información en uno de los documentos pero no en el ot
         }],
         generationConfig: {
           temperature: 0.1,
-          topK: 20,
-          topP: 0.8,
+          topK: 40,
+          topP: 0.95,
           maxOutputTokens: 8192,
           responseMimeType: "application/json"
         },
@@ -320,26 +320,27 @@ IMPORTANTE: Si encuentras información en uno de los documentos pero no en el ot
         ]
       };
 
-      console.log('🚀 ENVIANDO SOLICITUD A GEMINI API...');
+      console.log('🚀 ENVIANDO SOLICITUD A GEMINI FLASH 2.5 API...');
       console.log('  📡 URL:', GEMINI_API_URL);
       console.log('  ⚙️ Configuración: temperature=0.1, maxTokens=8192');
 
-      const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+      const response = await fetch(GEMINI_API_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'x-goog-api-key': GEMINI_API_KEY
         },
         body: JSON.stringify(requestBody),
       });
 
-      console.log('📥 RESPUESTA RECIBIDA DE GEMINI:');
+      console.log('📥 RESPUESTA RECIBIDA DE GEMINI FLASH 2.5:');
       console.log(`  📊 Status: ${response.status} ${response.statusText}`);
       console.log(`  📏 Tamaño de respuesta: ${response.headers.get('content-length') || 'desconocido'} bytes`);
 
       if (!response.ok) {
         const errorData = await response.text();
-        console.error('❌ ERROR DE GEMINI API:', errorData);
-        throw new Error(`Error de Gemini API: ${response.status} - ${errorData}`);
+        console.error('❌ ERROR DE GEMINI FLASH 2.5 API:', errorData);
+        throw new Error(`Error de Gemini Flash 2.5 API: ${response.status} - ${errorData}`);
       }
 
       const data = await response.json();
@@ -347,7 +348,7 @@ IMPORTANTE: Si encuentras información en uno de los documentos pero no en el ot
 
       if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
         console.error('❌ ESTRUCTURA DE RESPUESTA INVÁLIDA:', JSON.stringify(data, null, 2));
-        throw new Error('Respuesta inválida de Gemini API');
+        throw new Error('Respuesta inválida de Gemini Flash 2.5 API');
       }
 
       const responseText = data.candidates[0].content.parts[0].text;
@@ -373,7 +374,7 @@ IMPORTANTE: Si encuentras información en uno de los documentos pero no en el ot
         
         const parsedResult: CostAnalysisData = JSON.parse(cleanedResponse);
         
-        console.log('🎉 === ANÁLISIS COMPLETADO EXITOSAMENTE ===');
+        console.log('🎉 === ANÁLISIS COMPLETADO EXITOSAMENTE CON GEMINI FLASH 2.5 ===');
         console.log('📊 RESUMEN DEL ANÁLISIS RECIBIDO:');
         console.log(`  🏢 Entidad: ${parsedResult.informacionGeneral?.entidadContratante || 'No especificada'}`);
         console.log(`  📋 Tipo: ${parsedResult.informacionGeneral?.tipoLicitacion || 'No especificado'}`);

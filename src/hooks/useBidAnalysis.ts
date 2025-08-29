@@ -174,7 +174,7 @@ RESPUESTA REQUERIDA: Proporciona ÚNICAMENTE un objeto JSON válido con la estru
     const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
     
     try {
-      console.log('🤖 Enviando análisis completo a Gemini 2.0 Flash...');
+      console.log('🤖 Enviando análisis completo a Gemini Flash 2.5...');
       console.log(`📄 Tamaño del prompt: ${prompt.length} caracteres`);
       
       const requestBody = {
@@ -210,12 +210,13 @@ RESPUESTA REQUERIDA: Proporciona ÚNICAMENTE un objeto JSON válido con la estru
         ]
       };
 
-      console.log('📤 Enviando request a Gemini:', JSON.stringify(requestBody, null, 2).substring(0, 500) + '...');
+      console.log('📤 Enviando request a Gemini Flash 2.5:', JSON.stringify(requestBody, null, 2).substring(0, 500) + '...');
 
-      const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+      const response = await fetch(GEMINI_API_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'x-goog-api-key': GEMINI_API_KEY
         },
         body: JSON.stringify(requestBody),
       });
@@ -225,16 +226,16 @@ RESPUESTA REQUERIDA: Proporciona ÚNICAMENTE un objeto JSON válido con la estru
 
       if (!response.ok) {
         const errorData = await response.text();
-        console.error('❌ Error de Gemini API:', errorData);
-        throw new Error(`Error de Gemini API: ${response.status} - ${errorData}`);
+        console.error('❌ Error de Gemini Flash 2.5 API:', errorData);
+        throw new Error(`Error de Gemini Flash 2.5 API: ${response.status} - ${errorData}`);
       }
 
       const data = await response.json();
-      console.log('✅ Respuesta completa de Gemini recibida:', JSON.stringify(data, null, 2).substring(0, 1000) + '...');
+      console.log('✅ Respuesta completa de Gemini Flash 2.5 recibida:', JSON.stringify(data, null, 2).substring(0, 1000) + '...');
 
       if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
         console.error('❌ Estructura de respuesta inválida:', data);
-        throw new Error('Respuesta inválida de Gemini API - estructura incorrecta');
+        throw new Error('Respuesta inválida de Gemini Flash 2.5 API - estructura incorrecta');
       }
 
       const responseText = data.candidates[0].content.parts[0].text;
@@ -256,7 +257,7 @@ RESPUESTA REQUERIDA: Proporciona ÚNICAMENTE un objeto JSON válido con la estru
         }
         
         const analysisResult: BidAnalysisData = JSON.parse(cleanedResponse);
-        console.log('✅ Análisis parseado exitosamente:', analysisResult);
+        console.log('✅ Análisis parseado exitosamente con Gemini Flash 2.5:', analysisResult);
         
         // Validar que el resultado tenga la estructura esperada
         if (typeof analysisResult !== 'object' || analysisResult === null) {
@@ -265,17 +266,17 @@ RESPUESTA REQUERIDA: Proporciona ÚNICAMENTE un objeto JSON válido con la estru
         
         return analysisResult;
       } catch (parseError) {
-        console.error('❌ Error parseando JSON de Gemini:', parseError);
+        console.error('❌ Error parseando JSON de Gemini Flash 2.5:', parseError);
         console.error('📝 Respuesta recibida:', responseText);
-        throw new Error(`La respuesta de Gemini no es un JSON válido: ${parseError instanceof Error ? parseError.message : 'Error desconocido'}`);
+        throw new Error(`La respuesta de Gemini Flash 2.5 no es un JSON válido: ${parseError instanceof Error ? parseError.message : 'Error desconocido'}`);
       }
 
     } catch (error) {
-      console.error('❌ Error en llamada a Gemini API:', error);
+      console.error('❌ Error en llamada a Gemini Flash 2.5 API:', error);
       if (error instanceof Error) {
-        throw new Error(`Error en análisis con Gemini: ${error.message}`);
+        throw new Error(`Error en análisis con Gemini Flash 2.5: ${error.message}`);
       }
-      throw new Error('Error desconocido en análisis con Gemini');
+      throw new Error('Error desconocido en análisis con Gemini Flash 2.5');
     }
   };
 
@@ -285,7 +286,7 @@ RESPUESTA REQUERIDA: Proporciona ÚNICAMENTE un objeto JSON válido con la estru
     setAnalysisResult(null);
     
     try {
-      console.log('🚀 Iniciando análisis completo de licitación con Gemini 2.0 Flash...');
+      console.log('🚀 Iniciando análisis completo de licitación con Gemini Flash 2.5...');
       
       // Extraer texto real de los PDFs
       console.log('📄 Extrayendo texto de archivos PDF...');
@@ -313,12 +314,12 @@ RESPUESTA REQUERIDA: Proporciona ÚNICAMENTE un objeto JSON válido con la estru
       const prompt = generatePrompt(pcapText, pptText);
       console.log(`🔤 Prompt generado: ${prompt.length} caracteres`);
       
-      // Llamar a la API de Gemini con el modelo optimizado
-      console.log('🤖 Enviando análisis completo a Gemini API...');
+      // Llamar a la API de Gemini Flash 2.5
+      console.log('🤖 Enviando análisis completo a Gemini Flash 2.5 API...');
       const analysis = await callGeminiAPI(prompt);
       
       setAnalysisResult(analysis);
-      console.log('✅ Análisis completado exitosamente con Gemini 2.0 Flash');
+      console.log('✅ Análisis completado exitosamente con Gemini Flash 2.5');
       
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Error desconocido durante el análisis';
