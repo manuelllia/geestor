@@ -1,201 +1,277 @@
 
 import React, { useState, useRef } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Button } from '../ui/button';
-import { Progress } from '../ui/progress';
-import { Upload, FileText, CheckCircle, AlertCircle } from 'lucide-react';
-import { useToast } from '../../hooks/use-toast';
-import { Language } from '../../utils/translations';
+import { Upload, FileText, AlertCircle, CheckCircle, X } from 'lucide-react';
 import { importEmployeeAgreements, EmployeeAgreementRecord } from '../../services/employeeAgreementsService';
 import * as XLSX from 'xlsx';
+import Papa from 'papaparse';
 
 interface ImportEmployeeAgreementsModalProps {
   open: boolean;
   onClose: () => void;
-  onImportSuccess?: () => void;
-  language?: Language;
+  onImportSuccess: () => void;
 }
 
 const ImportEmployeeAgreementsModal: React.FC<ImportEmployeeAgreementsModalProps> = ({
   open,
   onClose,
-  onImportSuccess,
-  language
+  onImportSuccess
 }) => {
-  const { toast } = useToast();
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [importResults, setImportResults] = useState<{
-    success: number;
-    errors: string[];
-  } | null>(null);
+  const [uploadResult, setUploadResult] = useState<{ success: number; errors: string[] } | null>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  const handleFileSelect = (files: FileList) => {
+    if (files.length > 0) {
+      const file = files[0];
+      processFile(file);
+    }
+  };
 
+  const processFile = async (file: File) => {
     setIsUploading(true);
-    setUploadProgress(0);
+    setUploadResult(null);
 
     try {
-      const data = await file.arrayBuffer();
-      const workbook = XLSX.read(data);
-      const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-      const jsonData = XLSX.utils.sheet_to_json(worksheet);
+      const fileExtension = file.name.split('.').pop()?.toLowerCase();
+      let data: any[] = [];
 
-      setUploadProgress(50);
-
-      const employeeAgreements: Partial<EmployeeAgreementRecord>[] = jsonData.map((row: any) => ({
-        employeeName: row['Nombre Empleado'] || row['Employee Name'] || '',
-        employeeLastName: row['Apellidos Empleado'] || row['Employee Last Name'] || '',
-        agreementType: row['Tipo Acuerdo'] || row['Agreement Type'] || '',
-        priority: row['Prioridad'] || row['Priority'] || 'Media',
-        status: row['Estado'] || row['Status'] || 'Pendiente',
-        agreementDate: row['Fecha Acuerdo'] ? new Date(row['Fecha Acuerdo']) : null,
-        description: row['Descripcion'] || row['Description'] || '',
-        terms: row['Terminos'] || row['Terms'] || '',
-        department: row['Departamento'] || row['Department'] || '',
-        position: row['Puesto'] || row['Position'] || '',
-        supervisor: row['Supervisor'] || row['Supervisor'] || '',
-        effectiveDate: row['Fecha Efectiva'] ? new Date(row['Fecha Efectiva']) : undefined,
-        expirationDate: row['Fecha Expiracion'] ? new Date(row['Fecha Expiracion']) : undefined,
-        observations: row['Observaciones'] || row['Observations'] || '',
-      }));
-
-      setUploadProgress(75);
-
-      const results = await importEmployeeAgreements(employeeAgreements);
-      setImportResults(results);
-      setUploadProgress(100);
-
-      if (results.success > 0) {
-        toast({
-          title: "Importación completada",
-          description: `Se importaron ${results.success} acuerdos correctamente.`,
-        });
-        
-        if (onImportSuccess) {
-          onImportSuccess();
-        }
+      if (fileExtension === 'csv') {
+        const text = await file.text();
+        const result = Papa.parse(text, { header: true, skipEmptyLines: true });
+        data = result.data;
+      } else if (fileExtension === 'xlsx' || fileExtension === 'xls') {
+        const buffer = await file.arrayBuffer();
+        const workbook = XLSX.read(buffer, { type: 'array' });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        data = XLSX.utils.sheet_to_json(worksheet);
+      } else {
+        throw new Error('Formato de archivo no soportado. Use CSV o Excel (.xlsx, .xls)');
       }
 
-      if (results.errors.length > 0) {
-        toast({
-          title: "Errores en la importación",
-          description: `${results.errors.length} errores encontrados. Revisa los detalles.`,
-          variant: "destructive",
-        });
+      // Mapear los datos del Excel/CSV a la estructura de EmployeeAgreementRecord
+      const agreements: Partial<EmployeeAgreementRecord>[] = data.map((row: any) => ({
+        employeeName: row['Nombre Empleado'] || '',
+        employeeLastName: row['Apellido Empleado'] || '',
+        company: row['Empresa'] || '',
+        department: row['Departamento'] || '',
+        jobPosition: row['Puesto'] || '',
+        workCenter: row['Centro de Trabajo'] || '',
+        city: row['Ciudad'] || '',
+        startDate: parseDate(row['Fecha Inicio']) || new Date(),
+        endDate: parseDate(row['Fecha Fin']),
+        salary: row['Salario']?.toString() || '',
+        contractType: row['Tipo de Contrato'] || '',
+        status: 'Activo' as const,
+        notes: row['Notas'] || '',
+      }));
+
+      console.log('Datos procesados para importar:', agreements);
+
+      const result = await importEmployeeAgreements(agreements);
+      setUploadResult(result);
+
+      if (result.success > 0) {
+        onImportSuccess();
       }
 
     } catch (error) {
-      console.error('Error importing file:', error);
-      toast({
-        title: "Error de importación",
-        description: "No se pudo procesar el archivo. Verifica el formato.",
-        variant: "destructive",
+      console.error('Error procesando archivo:', error);
+      setUploadResult({
+        success: 0,
+        errors: [`Error procesando archivo: ${error}`]
       });
     } finally {
       setIsUploading(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+    }
+  };
+
+  const parseDate = (dateString: string): Date | undefined => {
+    if (!dateString) return undefined;
+    
+    const formats = [
+      () => new Date(dateString),
+      () => {
+        const parts = dateString.split('/');
+        if (parts.length === 3) {
+          return new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+        }
+        return null;
+      },
+      () => {
+        const parts = dateString.split('-');
+        if (parts.length === 3) {
+          return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+        }
+        return null;
       }
+    ];
+
+    for (const format of formats) {
+      try {
+        const date = format();
+        if (date && !isNaN(date.getTime())) {
+          return date;
+        }
+      } catch (e) {
+        continue;
+      }
+    }
+
+    return undefined;
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    const files = e.dataTransfer.files;
+    handleFileSelect(files);
+  };
+
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      handleFileSelect(e.target.files);
     }
   };
 
   const handleClose = () => {
-    setImportResults(null);
-    setUploadProgress(0);
+    setUploadResult(null);
+    setIsUploading(false);
     onClose();
   };
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Upload className="w-5 h-5" />
-            Importar Acuerdos con Empleados
+          <DialogTitle className="flex items-center space-x-2">
+            <Upload className="h-5 w-5" />
+            <span>Importar Acuerdos con Empleados</span>
           </DialogTitle>
-          <DialogDescription>
-            Sube un archivo Excel (.xlsx) o CSV con los acuerdos con empleados.
-          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
-          {!isUploading && !importResults && (
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-              <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <div className="space-y-2">
-                <p className="text-sm text-gray-600">
-                  Arrastra y suelta tu archivo aquí, o haz clic para seleccionarlo
+          {!uploadResult && (
+            <>
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+                Sube un archivo CSV o Excel con los acuerdos con empleados. El archivo debe contener las siguientes columnas:
+              </div>
+              
+              <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
+                <div className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-2">
+                  Columnas esperadas:
+                </div>
+                <ul className="text-xs text-blue-800 dark:text-blue-200 space-y-1">
+                  <li>• Nombre Empleado</li>
+                  <li>• Apellido Empleado</li>
+                  <li>• Empresa</li>
+                  <li>• Departamento</li>
+                  <li>• Puesto</li>
+                  <li>• Centro de Trabajo</li>
+                  <li>• Ciudad</li>
+                  <li>• Fecha Inicio</li>
+                  <li>• Fecha Fin (opcional)</li>
+                  <li>• Salario</li>
+                  <li>• Tipo de Contrato</li>
+                  <li>• Notas (opcional)</li>
+                </ul>
+              </div>
+
+              <div
+                className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+                  isDragOver
+                    ? 'border-blue-400 bg-blue-50 dark:bg-blue-900/20'
+                    : 'border-gray-300 dark:border-gray-600 hover:border-gray-400'
+                }`}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+              >
+                <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                  Arrastra tu archivo aquí o haz clic para seleccionar
                 </p>
                 <Button
                   variant="outline"
                   onClick={() => fileInputRef.current?.click()}
-                  className="mt-2"
+                  disabled={isUploading}
                 >
-                  <Upload className="w-4 h-4 mr-2" />
-                  Seleccionar Archivo
+                  {isUploading ? 'Procesando...' : 'Seleccionar Archivo'}
                 </Button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".csv,.xlsx,.xls"
+                  onChange={handleFileInputChange}
+                  className="hidden"
+                />
               </div>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".xlsx,.xls,.csv"
-                onChange={handleFileUpload}
-                className="hidden"
-              />
-            </div>
+            </>
           )}
 
-          {isUploading && (
+          {uploadResult && (
             <div className="space-y-4">
-              <div className="text-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                <p className="text-sm text-gray-600">Procesando archivo...</p>
-              </div>
-              <Progress value={uploadProgress} className="w-full" />
-            </div>
-          )}
-
-          {importResults && (
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 text-green-600">
-                <CheckCircle className="w-5 h-5" />
-                <span className="font-medium">Importación completada</span>
+              <div className="flex items-center space-x-2">
+                {uploadResult.success > 0 ? (
+                  <CheckCircle className="h-5 w-5 text-green-500" />
+                ) : (
+                  <AlertCircle className="h-5 w-5 text-red-500" />
+                )}
+                <span className="font-medium">
+                  Resultado de la Importación
+                </span>
               </div>
               
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <p className="text-sm text-green-800">
-                  <strong>{importResults.success}</strong> acuerdos importados correctamente
-                </p>
-              </div>
-
-              {importResults.errors.length > 0 && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                  <div className="flex items-center gap-2 text-red-600 mb-2">
-                    <AlertCircle className="w-4 h-4" />
-                    <span className="font-medium">Errores encontrados:</span>
+              <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                <div className="text-sm">
+                  <div className="text-green-600 dark:text-green-400">
+                    ✓ {uploadResult.success} acuerdos importados exitosamente
                   </div>
-                  <div className="max-h-32 overflow-y-auto">
-                    {importResults.errors.map((error, index) => (
-                      <p key={index} className="text-xs text-red-700 mb-1">
-                        • {error}
-                      </p>
-                    ))}
-                  </div>
+                  {uploadResult.errors.length > 0 && (
+                    <div className="mt-2">
+                      <div className="text-red-600 dark:text-red-400 mb-1">
+                        ✗ {uploadResult.errors.length} errores:
+                      </div>
+                      <div className="max-h-32 overflow-y-auto text-xs text-red-500 dark:text-red-400 space-y-1">
+                        {uploadResult.errors.map((error, index) => (
+                          <div key={index}>• {error}</div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
             </div>
           )}
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={handleClose}>
-            {importResults ? 'Cerrar' : 'Cancelar'}
+        <div className="flex justify-end space-x-2 mt-6">
+          <Button
+            variant="outline"
+            onClick={handleClose}
+            disabled={isUploading}
+          >
+            {uploadResult ? 'Cerrar' : 'Cancelar'}
           </Button>
-        </DialogFooter>
+          {uploadResult && uploadResult.success > 0 && (
+            <Button onClick={handleClose}>
+              Continuar
+            </Button>
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );

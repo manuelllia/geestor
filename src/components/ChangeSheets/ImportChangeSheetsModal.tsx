@@ -12,15 +12,13 @@ import * as XLSX from 'xlsx';
 interface ImportChangeSheetsModalProps {
   open: boolean;
   onClose: () => void;
-  onImportSuccess: () => void;
-  language?: Language;
+  language: Language;
 }
 
-const ImportChangeSheetsModal: React.FC<ImportChangeSheetsModalProps> = ({
-  open,
-  onClose,
-  onImportSuccess,
-  language = 'es'
+const ImportChangeSheetsModal: React.FC<ImportChangeSheetsModalProps> = ({ 
+  open, 
+  onClose, 
+  language 
 }) => {
   const { t } = useTranslation(language);
   const [file, setFile] = useState<File | null>(null);

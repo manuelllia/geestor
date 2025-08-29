@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ArrowLeft, Save } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Language } from '../../utils/translations';
-import { getContractRequestById, updateContractRequest, ContractRequestRecord } from '../../services/contractRequestsService';
+import { getContractRequestById, updateContractRequest } from '../../services/contractRequestsService';
 
 interface ContractRequestEditFormProps {
   language: Language;
@@ -26,18 +27,13 @@ const ContractRequestEditForm: React.FC<ContractRequestEditFormProps> = ({
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [formData, setFormData] = useState<Omit<ContractRequestRecord, 'id' | 'createdAt' | 'updatedAt'>>({
-    position: '',
-    department: '',
-    urgency: 'Media',
+  const [formData, setFormData] = useState({
     requesterName: '',
     requesterLastName: '',
-    requestDate: new Date(),
-    status: 'Pendiente',
     contractType: '',
     salary: '',
     observations: '',
-    incorporationDate: undefined,
+    incorporationDate: '',
     company: '',
     jobPosition: '',
     professionalCategory: '',
@@ -45,7 +41,7 @@ const ContractRequestEditForm: React.FC<ContractRequestEditFormProps> = ({
     province: '',
     autonomousCommunity: '',
     workCenter: '',
-    companyFlat: 'No',
+    companyFlat: 'No' as 'Si' | 'No',
     language1: '',
     level1: '',
     language2: '',
@@ -54,6 +50,7 @@ const ContractRequestEditForm: React.FC<ContractRequestEditFormProps> = ({
     experienceInstallations: '',
     hiringReason: '',
     notesAndCommitments: '',
+    status: 'Pendiente' as 'Pendiente' | 'Aprobado' | 'Rechazado'
   });
 
   useEffect(() => {
@@ -62,33 +59,31 @@ const ContractRequestEditForm: React.FC<ContractRequestEditFormProps> = ({
         const requestData = await getContractRequestById(requestId);
         if (requestData) {
           setFormData({
-            position: requestData.position,
-            department: requestData.department,
-            urgency: requestData.urgency,
             requesterName: requestData.requesterName,
             requesterLastName: requestData.requesterLastName,
-            requestDate: requestData.requestDate,
-            status: requestData.status,
-            contractType: requestData.contractType || '',
-            salary: requestData.salary || '',
-            observations: requestData.observations || '',
-            incorporationDate: requestData.incorporationDate,
-            company: requestData.company || '',
-            jobPosition: requestData.jobPosition || '',
-            professionalCategory: requestData.professionalCategory || '',
-            city: requestData.city || '',
-            province: requestData.province || '',
-            autonomousCommunity: requestData.autonomousCommunity || '',
-            workCenter: requestData.workCenter || '',
-            companyFlat: (requestData.companyFlat as string) || 'No',
+            contractType: requestData.contractType,
+            salary: requestData.salary,
+            observations: requestData.observations,
+            incorporationDate: requestData.incorporationDate 
+              ? requestData.incorporationDate.toISOString().split('T')[0]
+              : '',
+            company: requestData.company,
+            jobPosition: requestData.jobPosition,
+            professionalCategory: requestData.professionalCategory,
+            city: requestData.city,
+            province: requestData.province,
+            autonomousCommunity: requestData.autonomousCommunity,
+            workCenter: requestData.workCenter,
+            companyFlat: requestData.companyFlat,
             language1: requestData.language1 || '',
             level1: requestData.level1 || '',
             language2: requestData.language2 || '',
             level2: requestData.level2 || '',
             experienceElectromedicine: requestData.experienceElectromedicine || '',
             experienceInstallations: requestData.experienceInstallations || '',
-            hiringReason: requestData.hiringReason || '',
-            notesAndCommitments: requestData.notesAndCommitments || '',
+            hiringReason: requestData.hiringReason,
+            notesAndCommitments: requestData.notesAndCommitments,
+            status: requestData.status
           });
         }
       } catch (error) {
@@ -109,7 +104,7 @@ const ContractRequestEditForm: React.FC<ContractRequestEditFormProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.requesterName || !formData.company || !formData.position || !formData.department) {
+    if (!formData.requesterName || !formData.company) {
       toast({
         title: 'Error de validación',
         description: 'Por favor, completa todos los campos obligatorios.',
@@ -120,12 +115,7 @@ const ContractRequestEditForm: React.FC<ContractRequestEditFormProps> = ({
 
     setIsSaving(true);
     try {
-      const updateData = {
-        ...formData,
-        status: formData.status as 'Pendiente' | 'Aprobado' | 'Rechazado'
-      };
-      
-      await updateContractRequest(requestId, updateData);
+      await updateContractRequest(requestId, formData);
       
       toast({
         title: 'Solicitud actualizada',
@@ -145,7 +135,7 @@ const ContractRequestEditForm: React.FC<ContractRequestEditFormProps> = ({
     }
   };
 
-  const handleChange = (field: keyof typeof formData, value: any) => {
+  const handleChange = (field: string, value: string) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -292,8 +282,8 @@ const ContractRequestEditForm: React.FC<ContractRequestEditFormProps> = ({
                 <Input
                   id="incorporationDate"
                   type="date"
-                  value={formData.incorporationDate ? new Date(formData.incorporationDate).toISOString().split('T')[0] : ''}
-                  onChange={(e) => handleChange('incorporationDate', e.target.value ? new Date(e.target.value) : undefined)}
+                  value={formData.incorporationDate}
+                  onChange={(e) => handleChange('incorporationDate', e.target.value)}
                 />
               </div>
               <div>
