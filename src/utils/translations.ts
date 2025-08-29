@@ -1,4 +1,5 @@
 
+
 export type Language = 'es' | 'en';
 
 export interface Translations {
@@ -41,6 +42,52 @@ export interface Translations {
   deselectAll: string;
   required: string;
   optional: string;
+  send: string;
+  
+  // Navigation and Menu
+  homeMenu: string;
+  users: string;
+  operations: string;
+  technicalManagement: string;
+  technicalManagementShort: string;
+  talentManagement: string;
+  talentManagementShort: string;
+  
+  // Operations
+  costAnalysis: string;
+  costAnalysisShort: string;
+  
+  // Technical Management
+  calendarManagement: string;
+  calendarManagementShort: string;
+  checkers: string;
+  
+  // Talent Management
+  contractRequests: string;
+  changeSheets: string;
+  employeeAgreements: string;
+  realEstateManagement: string;
+  practiceEvaluation: string;
+  exitInterviews: string;
+  
+  // Chatbot
+  botErrorResponse: string;
+  greetingHello: string;
+  greetingGoodMorning: string;
+  greetingGoodAfternoon: string;
+  greetingGoodEvening: string;
+  greetingHowAreYou: string;
+  greetingIAmFine: string;
+  greetingThanks: string;
+  greetingYouAreWelcome: string;
+  helpMessage: string;
+  aiSystemPrompt: string;
+  processingErrorMessage: string;
+  openGeenioChatbot: string;
+  asistChat: string;
+  bienvenidaChat: string;
+  thinking: string;
+  typeYourMessage: string;
   
   // Error messages
   requiredFieldsError: string;
@@ -160,6 +207,52 @@ export const translations: Record<Language, Translations> = {
     deselectAll: 'Deseleccionar todo',
     required: 'Requerido',
     optional: 'Opcional',
+    send: 'Enviar',
+    
+    // Navigation and Menu
+    homeMenu: 'Inicio',
+    users: 'Usuarios',
+    operations: 'Operaciones',
+    technicalManagement: 'Gestión Técnica',
+    technicalManagementShort: 'G. Técnica',
+    talentManagement: 'Gestión de Talento',
+    talentManagementShort: 'G. Talento',
+    
+    // Operations
+    costAnalysis: 'Análisis de Costes',
+    costAnalysisShort: 'A. Costes',
+    
+    // Technical Management
+    calendarManagement: 'Gestión de Calendario',
+    calendarManagementShort: 'G. Calendario',
+    checkers: 'Comprobadores',
+    
+    // Talent Management
+    contractRequests: 'Solicitudes de Contratación',
+    changeSheets: 'Hojas de Cambio',
+    employeeAgreements: 'Acuerdos de Empleado',
+    realEstateManagement: 'Gestión de Inmuebles',
+    practiceEvaluation: 'Valoración de Prácticas',
+    exitInterviews: 'Entrevistas de Salida',
+    
+    // Chatbot
+    botErrorResponse: 'Lo siento, hubo un error procesando tu solicitud.',
+    greetingHello: '¡Hola! Soy Geenio, tu asistente de IA. ¿En qué puedo ayudarte hoy?',
+    greetingGoodMorning: '¡Buenos días! ¿Cómo puedo asistirte hoy?',
+    greetingGoodAfternoon: '¡Buenas tardes! ¿En qué puedo ayudarte?',
+    greetingGoodEvening: '¡Buenas noches! ¿Necesitas ayuda con algo?',
+    greetingHowAreYou: '¡Muy bien, gracias! ¿Cómo puedo ayudarte hoy?',
+    greetingIAmFine: 'Me alegra saber que estás bien. ¿En qué puedo asistirte?',
+    greetingThanks: '¡De nada! Estoy aquí para ayudarte siempre que lo necesites.',
+    greetingYouAreWelcome: '¡Es un placer ayudarte! ¿Hay algo más en lo que pueda asistirte?',
+    helpMessage: 'Puedo ayudarte con análisis de licitaciones, preguntas sobre la aplicación y más. ¿Qué necesitas?',
+    aiSystemPrompt: 'Eres Geenio, un asistente de IA especializado en análisis de licitaciones y gestión empresarial del Grupo Empresarial Electromédico (GEE). Eres profesional, útil y tienes conocimientos profundos sobre análisis de costes, gestión de proyectos y procesos de licitación. Responde de manera clara y concisa.',
+    processingErrorMessage: 'Lo siento, hubo un error procesando tu mensaje. Por favor, inténtalo de nuevo.',
+    openGeenioChatbot: 'Abrir chatbot Geenio',
+    asistChat: 'Asistente de Chat',
+    bienvenidaChat: '¡Hola! Soy Geenio, tu asistente de IA. Pregúntame sobre análisis de licitaciones o cualquier otra cosa.',
+    thinking: 'Pensando',
+    typeYourMessage: 'Escribe tu mensaje...',
     
     // Error messages
     requiredFieldsError: 'Por favor complete todos los campos requeridos',
@@ -278,6 +371,52 @@ export const translations: Record<Language, Translations> = {
     deselectAll: 'Deselect all',
     required: 'Required',
     optional: 'Optional',
+    send: 'Send',
+    
+    // Navigation and Menu
+    homeMenu: 'Home',
+    users: 'Users',
+    operations: 'Operations',
+    technicalManagement: 'Technical Management',
+    technicalManagementShort: 'Tech Mgmt',
+    talentManagement: 'Talent Management',
+    talentManagementShort: 'Talent Mgmt',
+    
+    // Operations
+    costAnalysis: 'Cost Analysis',
+    costAnalysisShort: 'Cost Analysis',
+    
+    // Technical Management
+    calendarManagement: 'Calendar Management',
+    calendarManagementShort: 'Calendar',
+    checkers: 'Checkers',
+    
+    // Talent Management
+    contractRequests: 'Contract Requests',
+    changeSheets: 'Change Sheets',
+    employeeAgreements: 'Employee Agreements',
+    realEstateManagement: 'Real Estate Management',
+    practiceEvaluation: 'Practice Evaluation',
+    exitInterviews: 'Exit Interviews',
+    
+    // Chatbot
+    botErrorResponse: 'Sorry, there was an error processing your request.',
+    greetingHello: 'Hello! I\'m Geenio, your AI assistant. How can I help you today?',
+    greetingGoodMorning: 'Good morning! How can I assist you today?',
+    greetingGoodAfternoon: 'Good afternoon! How can I help you?',
+    greetingGoodEvening: 'Good evening! Do you need help with something?',
+    greetingHowAreYou: 'I\'m doing great, thank you! How can I help you today?',
+    greetingIAmFine: 'I\'m glad to hear you\'re doing well. How can I assist you?',
+    greetingThanks: 'You\'re welcome! I\'m here to help you whenever you need it.',
+    greetingYouAreWelcome: 'It\'s my pleasure to help you! Is there anything else I can assist you with?',
+    helpMessage: 'I can help you with bid analysis, application questions, and more. What do you need?',
+    aiSystemPrompt: 'You are Geenio, an AI assistant specialized in bid analysis and business management for Grupo Empresarial Electromédico (GEE). You are professional, helpful, and have deep knowledge about cost analysis, project management, and bidding processes. Respond clearly and concisely.',
+    processingErrorMessage: 'Sorry, there was an error processing your message. Please try again.',
+    openGeenioChatbot: 'Open Geenio chatbot',
+    asistChat: 'Chat Assistant',
+    bienvenidaChat: 'Hello! I\'m Geenio, your AI assistant. Ask me about bid analysis or anything else.',
+    thinking: 'Thinking',
+    typeYourMessage: 'Type your message...',
     
     // Error messages
     requiredFieldsError: 'Please fill in all required fields',
@@ -356,3 +495,4 @@ export const translations: Record<Language, Translations> = {
     leaveOfAbsence: 'Leave of Absence',
   }
 };
+
