@@ -1,9 +1,10 @@
-
 import React, { useState, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Button } from '../ui/button';
 import { Upload, FileText, AlertCircle, CheckCircle, X } from 'lucide-react';
 import { importEmployeeAgreements, EmployeeAgreementRecord } from '../../services/employeeAgreementsService';
+import { Language } from '../../utils/translations';
+import { useTranslation } from '../../hooks/useTranslation';
 import * as XLSX from 'xlsx';
 import Papa from 'papaparse';
 
@@ -11,13 +12,16 @@ interface ImportEmployeeAgreementsModalProps {
   open: boolean;
   onClose: () => void;
   onImportSuccess: () => void;
+  language: Language;
 }
 
 const ImportEmployeeAgreementsModal: React.FC<ImportEmployeeAgreementsModalProps> = ({
   open,
   onClose,
-  onImportSuccess
+  onImportSuccess,
+  language
 }) => {
+  const { t } = useTranslation(language);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadResult, setUploadResult] = useState<{ success: number; errors: string[] } | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);

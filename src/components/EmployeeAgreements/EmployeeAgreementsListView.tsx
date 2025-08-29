@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -72,7 +71,7 @@ export const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProp
 
   const handleDuplicateAgreement = async (agreement: EmployeeAgreementRecord) => {
     try {
-      await duplicateEmployeeAgreement(agreement);
+      await duplicateEmployeeAgreement(agreement.id);
       await loadAgreements();
       toast.success('Acuerdo duplicado correctamente');
     } catch (error) {
@@ -424,7 +423,6 @@ export const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProp
           <ImportEmployeeAgreementsModal
             open={showImportModal}
             onClose={() => setShowImportModal(false)}
-            language={language}
             onImportSuccess={handleImportSuccess}
           />
         )}

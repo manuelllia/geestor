@@ -65,7 +65,7 @@ export const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({ lang
 
   const handleDuplicateSheet = async (sheet: ChangeSheetRecord) => {
     try {
-      await duplicateChangeSheet(sheet);
+      await duplicateChangeSheet(sheet.id);
       await loadSheets();
       toast.success('Hoja de cambio duplicada correctamente');
     } catch (error) {
@@ -170,6 +170,13 @@ export const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({ lang
           setShowDetailView(false);
           setSelectedSheet(null);
         }}
+        onDelete={() => {
+          if (selectedSheet) {
+            handleDeleteSheet(selectedSheet);
+            setShowDetailView(false);
+            setSelectedSheet(null);
+          }
+        }}
       />
     );
   }
@@ -267,7 +274,7 @@ export const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({ lang
                           </div>
                         </TableCell>
                         <TableCell className="px-2 sm:px-4 text-xs sm:text-sm">
-                          <div className="truncate">{sheet.workCenter}</div>
+                          <div className="truncate">{sheet.company || '-'}</div>
                         </TableCell>
                         <TableCell className="px-2 sm:px-4 text-xs sm:text-sm">
                           <div className="truncate">{sheet.changeType}</div>
@@ -278,7 +285,7 @@ export const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({ lang
                           </Badge>
                         </TableCell>
                         <TableCell className="px-2 sm:px-4 text-xs sm:text-sm">
-                          {sheet.effectiveDate ? new Date(sheet.effectiveDate).toLocaleDateString() : '-'}
+                          {sheet.startDate ? new Date(sheet.startDate).toLocaleDateString() : '-'}
                         </TableCell>
                         <TableCell className="px-2 sm:px-4 text-xs sm:text-sm">
                           {sheet.endDate ? new Date(sheet.endDate).toLocaleDateString() : '-'}
@@ -393,7 +400,6 @@ export const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({ lang
           <ImportChangeSheetsModal
             open={showImportModal}
             onClose={() => setShowImportModal(false)}
-            language={language}
             onImportSuccess={handleImportSuccess}
           />
         )}
