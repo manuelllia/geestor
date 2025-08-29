@@ -1,5 +1,4 @@
 
-
 export type Language = 'es' | 'en';
 
 export interface Translations {
@@ -156,6 +155,8 @@ export interface Translations {
   projectContractLabel: string;
   projectContractPlaceholder: string;
   saveProperty: string;
+  activeProperties: string;
+  inactiveProperties: string;
   
   // Dashboard
   totalPortfolio: string;
@@ -164,6 +165,119 @@ export interface Translations {
   // Exit Interviews
   voluntary: string;
   leaveOfAbsence: string;
+  
+  // Additional missing keys
+  changeSheetsManagement: string;
+  createNew: string;
+  hojasCambio: string;
+  employeeName: string;
+  employeeLastName: string;
+  originCenter: string;
+  startDate: string;
+  endDate: string;
+  duplicateRecord: string;
+  downloadPDF: string;
+  generatedOn: string;
+  documentGenerated: string;
+  recordNotFound: string;
+  errorAnalyzingCosts: string;
+  chatbotContextUpdated: string;
+  tituloAnalisis: string;
+  subtiAnalisis: string;
+  subirPdf: string;
+  informepdf: string;
+  costespdf: string;
+  puntuacionPdf: string;
+  pcapFileLabel: string;
+  pcapFileTitle: string;
+  pcapFileDescription: string;
+  pptFileLabel: string;
+  pptFileTitle: string;
+  pptFileDescription: string;
+  professionalCostAnalysisTitle: string;
+  filesReadyForAnalysis: string;
+  analysisDescription: string;
+  analyzingWithAI: string;
+  startProfessionalCostAnalysis: string;
+  analysisErrorTitle: string;
+  employeeInformation: string;
+  position: string;
+  department: string;
+  agreementDetails: string;
+  agreementType: string;
+  salary: string;
+  benefitsAndConditions: string;
+  benefits: string;
+  conditions: string;
+  observations: string;
+  employeeAgreementDetails: string;
+  workCenter: string;
+  exitInterviewDetails: string;
+  personalInformation: string;
+  lastName: string;
+  company: string;
+  leaveDetails: string;
+  leaveType: string;
+  leaveDate: string;
+  reason: string;
+  feedback: string;
+  satisfaction: string;
+  workEnvironment: string;
+  professionalDevelopment: string;
+  compensation: string;
+  managementSupport: string;
+  wouldRecommend: string;
+  wouldReturn: string;
+  recommendations: string;
+  additionalComments: string;
+  practiceEvaluationDetails: string;
+  studentInformation: string;
+  studentName: string;
+  studentId: string;
+  practiceDetails: string;
+  practiceType: string;
+  practiceCenter: string;
+  supervisor: string;
+  evaluationCriteria: string;
+  technicalSkills: string;
+  communicationSkills: string;
+  teamwork: string;
+  initiative: string;
+  punctuality: string;
+  overallPerformance: string;
+  evaluationComments: string;
+  finalGrade: string;
+  contractRequestDetails: string;
+  requestInformation: string;
+  requestId: string;
+  requestDate: string;
+  requestedPosition: string;
+  contractType: string;
+  requestStatus: string;
+  candidateInformation: string;
+  candidateName: string;
+  candidateEmail: string;
+  candidatePhone: string;
+  candidateExperience: string;
+  positionDetails: string;
+  proposedSalary: string;
+  expectedStartDate: string;
+  justification: string;
+  approvalInformation: string;
+  approvedBy: string;
+  approvalDate: string;
+  approvalComments: string;
+  changeSheetsDetails: string;
+  currentPosition: string;
+  newPosition: string;
+  currentSupervisorName: string;
+  currentSupervisorLastName: string;
+  newSupervisorName: string;
+  newSupervisorLastName: string;
+  changeType: string;
+  currentCompany: string;
+  companyChange: string;
+  needs: string;
 }
 
 export const translations: Record<Language, Translations> = {
@@ -321,6 +435,8 @@ export const translations: Record<Language, Translations> = {
     projectContractLabel: 'Contrato Proyecto',
     projectContractPlaceholder: 'Contrato Proyecto',
     saveProperty: 'Guardar Propiedad',
+    activeProperties: 'Propiedades Activas',
+    inactiveProperties: 'Propiedades Inactivas',
     
     // Dashboard
     totalPortfolio: 'Cartera Total',
@@ -329,6 +445,119 @@ export const translations: Record<Language, Translations> = {
     // Exit Interviews
     voluntary: 'Voluntaria',
     leaveOfAbsence: 'Excedencia',
+    
+    // Additional missing keys
+    changeSheetsManagement: 'Gestión de Hojas de Cambio',
+    createNew: 'Crear Nuevo',
+    hojasCambio: 'Hojas de Cambio',
+    employeeName: 'Nombre del Empleado',
+    employeeLastName: 'Apellidos del Empleado',
+    originCenter: 'Centro de Origen',
+    startDate: 'Fecha de Inicio',
+    endDate: 'Fecha de Fin',
+    duplicateRecord: 'Duplicar Registro',
+    downloadPDF: 'Descargar PDF',
+    generatedOn: 'Generado el',
+    documentGenerated: 'Documento generado',
+    recordNotFound: 'Registro no encontrado',
+    errorAnalyzingCosts: 'Error analizando costes',
+    chatbotContextUpdated: 'Contexto del chatbot actualizado',
+    tituloAnalisis: 'Análisis Profesional de Costes',
+    subtiAnalisis: 'Sube los documentos de licitación para obtener un análisis detallado',
+    subirPdf: 'Subir PDF',
+    informepdf: 'Informe PDF',
+    costespdf: 'Costes PDF',
+    puntuacionPdf: 'Puntuación PDF',
+    pcapFileLabel: 'Archivo PCAP',
+    pcapFileTitle: 'Pliego de Condiciones',
+    pcapFileDescription: 'Documento con las condiciones de la licitación',
+    pptFileLabel: 'Archivo PPT',
+    pptFileTitle: 'Pliego de Prescripciones Técnicas',
+    pptFileDescription: 'Especificaciones técnicas del proyecto',
+    professionalCostAnalysisTitle: 'Análisis Profesional de Costes',
+    filesReadyForAnalysis: 'Archivos listos para análisis',
+    analysisDescription: 'Los documentos han sido cargados y están listos para el análisis profesional.',
+    analyzingWithAI: 'Analizando con IA...',
+    startProfessionalCostAnalysis: 'Iniciar Análisis Profesional de Costes',
+    analysisErrorTitle: 'Error en el Análisis',
+    employeeInformation: 'Información del Empleado',
+    position: 'Posición',
+    department: 'Departamento',
+    agreementDetails: 'Detalles del Acuerdo',
+    agreementType: 'Tipo de Acuerdo',
+    salary: 'Salario',
+    benefitsAndConditions: 'Beneficios y Condiciones',
+    benefits: 'Beneficios',
+    conditions: 'Condiciones',
+    observations: 'Observaciones',
+    employeeAgreementDetails: 'Detalles del Acuerdo de Empleado',
+    workCenter: 'Centro de Trabajo',
+    exitInterviewDetails: 'Detalles de la Entrevista de Salida',
+    personalInformation: 'Información Personal',
+    lastName: 'Apellidos',
+    company: 'Empresa',
+    leaveDetails: 'Detalles de la Salida',
+    leaveType: 'Tipo de Salida',
+    leaveDate: 'Fecha de Salida',
+    reason: 'Motivo',
+    feedback: 'Retroalimentación',
+    satisfaction: 'Satisfacción',
+    workEnvironment: 'Ambiente de Trabajo',
+    professionalDevelopment: 'Desarrollo Profesional',
+    compensation: 'Compensación',
+    managementSupport: 'Apoyo de la Gerencia',
+    wouldRecommend: 'Recomendaría',
+    wouldReturn: 'Volvería',
+    recommendations: 'Recomendaciones',
+    additionalComments: 'Comentarios Adicionales',
+    practiceEvaluationDetails: 'Detalles de la Evaluación de Prácticas',
+    studentInformation: 'Información del Estudiante',
+    studentName: 'Nombre del Estudiante',
+    studentId: 'ID del Estudiante',
+    practiceDetails: 'Detalles de las Prácticas',
+    practiceType: 'Tipo de Prácticas',
+    practiceCenter: 'Centro de Prácticas',
+    supervisor: 'Supervisor',
+    evaluationCriteria: 'Criterios de Evaluación',
+    technicalSkills: 'Habilidades Técnicas',
+    communicationSkills: 'Habilidades de Comunicación',
+    teamwork: 'Trabajo en Equipo',
+    initiative: 'Iniciativa',
+    punctuality: 'Puntualidad',
+    overallPerformance: 'Rendimiento General',
+    evaluationComments: 'Comentarios de Evaluación',
+    finalGrade: 'Calificación Final',
+    contractRequestDetails: 'Detalles de la Solicitud de Contrato',
+    requestInformation: 'Información de la Solicitud',
+    requestId: 'ID de la Solicitud',
+    requestDate: 'Fecha de Solicitud',
+    requestedPosition: 'Posición Solicitada',
+    contractType: 'Tipo de Contrato',
+    requestStatus: 'Estado de la Solicitud',
+    candidateInformation: 'Información del Candidato',
+    candidateName: 'Nombre del Candidato',
+    candidateEmail: 'Email del Candidato',
+    candidatePhone: 'Teléfono del Candidato',
+    candidateExperience: 'Experiencia del Candidato',
+    positionDetails: 'Detalles de la Posición',
+    proposedSalary: 'Salario Propuesto',
+    expectedStartDate: 'Fecha de Inicio Esperada',
+    justification: 'Justificación',
+    approvalInformation: 'Información de Aprobación',
+    approvedBy: 'Aprobado por',
+    approvalDate: 'Fecha de Aprobación',
+    approvalComments: 'Comentarios de Aprobación',
+    changeSheetsDetails: 'Detalles de las Hojas de Cambio',
+    currentPosition: 'Posición Actual',
+    newPosition: 'Nueva Posición',
+    currentSupervisorName: 'Nombre del Supervisor Actual',
+    currentSupervisorLastName: 'Apellidos del Supervisor Actual',
+    newSupervisorName: 'Nombre del Nuevo Supervisor',
+    newSupervisorLastName: 'Apellidos del Nuevo Supervisor',
+    changeType: 'Tipo de Cambio',
+    currentCompany: 'Empresa Actual',
+    companyChange: 'Cambio de Empresa',
+    needs: 'Necesidades',
   },
   
   en: {
@@ -485,6 +714,8 @@ export const translations: Record<Language, Translations> = {
     projectContractLabel: 'Project Contract',
     projectContractPlaceholder: 'Project Contract',
     saveProperty: 'Save Property',
+    activeProperties: 'Active Properties',
+    inactiveProperties: 'Inactive Properties',
     
     // Dashboard
     totalPortfolio: 'Total Portfolio',
@@ -493,6 +724,118 @@ export const translations: Record<Language, Translations> = {
     // Exit Interviews
     voluntary: 'Voluntary',
     leaveOfAbsence: 'Leave of Absence',
+    
+    // Additional missing keys
+    changeSheetsManagement: 'Change Sheets Management',
+    createNew: 'Create New',
+    hojasCambio: 'Change Sheets',
+    employeeName: 'Employee Name',
+    employeeLastName: 'Employee Last Name',
+    originCenter: 'Origin Center',
+    startDate: 'Start Date',
+    endDate: 'End Date',
+    duplicateRecord: 'Duplicate Record',
+    downloadPDF: 'Download PDF',
+    generatedOn: 'Generated on',
+    documentGenerated: 'Document generated',
+    recordNotFound: 'Record not found',
+    errorAnalyzingCosts: 'Error analyzing costs',
+    chatbotContextUpdated: 'Chatbot context updated',
+    tituloAnalisis: 'Professional Cost Analysis',
+    subtiAnalisis: 'Upload tender documents for detailed analysis',
+    subirPdf: 'Upload PDF',
+    informepdf: 'Report PDF',
+    costespdf: 'Costs PDF',
+    puntuacionPdf: 'Score PDF',
+    pcapFileLabel: 'PCAP File',
+    pcapFileTitle: 'Terms and Conditions',
+    pcapFileDescription: 'Document with tender conditions',
+    pptFileLabel: 'PPT File',
+    pptFileTitle: 'Technical Specifications',
+    pptFileDescription: 'Technical specifications of the project',
+    professionalCostAnalysisTitle: 'Professional Cost Analysis',
+    filesReadyForAnalysis: 'Files ready for analysis',
+    analysisDescription: 'Documents have been uploaded and are ready for professional analysis.',
+    analyzingWithAI: 'Analyzing with AI...',
+    startProfessionalCostAnalysis: 'Start Professional Cost Analysis',
+    analysisErrorTitle: 'Analysis Error',
+    employeeInformation: 'Employee Information',
+    position: 'Position',
+    department: 'Department',
+    agreementDetails: 'Agreement Details',
+    agreementType: 'Agreement Type',
+    salary: 'Salary',
+    benefitsAndConditions: 'Benefits and Conditions',
+    benefits: 'Benefits',
+    conditions: 'Conditions',
+    observations: 'Observations',
+    employeeAgreementDetails: 'Employee Agreement Details',
+    workCenter: 'Work Center',
+    exitInterviewDetails: 'Exit Interview Details',
+    personalInformation: 'Personal Information',
+    lastName: 'Last Name',
+    company: 'Company',
+    leaveDetails: 'Leave Details',
+    leaveType: 'Leave Type',
+    leaveDate: 'Leave Date',
+    reason: 'Reason',
+    feedback: 'Feedback',
+    satisfaction: 'Satisfaction',
+    workEnvironment: 'Work Environment',
+    professionalDevelopment: 'Professional Development',
+    compensation: 'Compensation',
+    managementSupport: 'Management Support',
+    wouldRecommend: 'Would Recommend',
+    wouldReturn: 'Would Return',
+    recommendations: 'Recommendations',
+    additionalComments: 'Additional Comments',
+    practiceEvaluationDetails: 'Practice Evaluation Details',
+    studentInformation: 'Student Information',
+    studentName: 'Student Name',
+    studentId: 'Student ID',
+    practiceDetails: 'Practice Details',
+    practiceType: 'Practice Type',
+    practiceCenter: 'Practice Center',
+    supervisor: 'Supervisor',
+    evaluationCriteria: 'Evaluation Criteria',
+    technicalSkills: 'Technical Skills',
+    communicationSkills: 'Communication Skills',
+    teamwork: 'Teamwork',
+    initiative: 'Initiative',
+    punctuality: 'Punctuality',
+    overallPerformance: 'Overall Performance',
+    evaluationComments: 'Evaluation Comments',
+    finalGrade: 'Final Grade',
+    contractRequestDetails: 'Contract Request Details',
+    requestInformation: 'Request Information',
+    requestId: 'Request ID',
+    requestDate: 'Request Date',
+    requestedPosition: 'Requested Position',
+    contractType: 'Contract Type',
+    requestStatus: 'Request Status',
+    candidateInformation: 'Candidate Information',
+    candidateName: 'Candidate Name',
+    candidateEmail: 'Candidate Email',
+    candidatePhone: 'Candidate Phone',
+    candidateExperience: 'Candidate Experience',
+    positionDetails: 'Position Details',
+    proposedSalary: 'Proposed Salary',
+    expectedStartDate: 'Expected Start Date',
+    justification: 'Justification',
+    approvalInformation: 'Approval Information',
+    approvedBy: 'Approved By',
+    approvalDate: 'Approval Date',
+    approvalComments: 'Approval Comments',
+    changeSheetsDetails: 'Change Sheets Details',
+    currentPosition: 'Current Position',
+    newPosition: 'New Position',
+    currentSupervisorName: 'Current Supervisor Name',
+    currentSupervisorLastName: 'Current Supervisor Last Name',
+    newSupervisorName: 'New Supervisor Name',
+    newSupervisorLastName: 'New Supervisor Last Name',
+    changeType: 'Change Type',
+    currentCompany: 'Current Company',
+    companyChange: 'Company Change',
+    needs: 'Needs',
   }
 };
-
