@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -19,7 +20,7 @@ interface EmployeeAgreementsListViewProps {
   language: Language;
 }
 
-const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({ language }) => {
+export const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({ language }) => {
   const { t } = useTranslation(language);
   const [agreements, setAgreements] = useState<EmployeeAgreementRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -71,7 +72,7 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
 
   const handleDuplicateAgreement = async (agreement: EmployeeAgreementRecord) => {
     try {
-      await duplicateEmployeeAgreement(agreement.id);
+      await duplicateEmployeeAgreement(agreement);
       await loadAgreements();
       toast.success('Acuerdo duplicado correctamente');
     } catch (error) {
@@ -201,151 +202,142 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
   }
 
   return (
-    <div className="w-full max-w-full overflow-hidden">
-      <div className="space-y-4 sm:space-y-6 p-2 sm:p-4 lg:p-6">
-        <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+    <div className="w-full overflow-hidden bg-gray-50 dark:bg-gray-900 min-h-screen">
+      <div className="w-full p-2 sm:p-4 md:p-6 space-y-4 sm:space-y-6">
+        {/* Header responsive */}
+        <div className="flex flex-col space-y-4">
           <div>
-            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-blue-900 dark:text-blue-100">
-              {t('employeeAgreements')}
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-blue-900 dark:text-blue-100">
+              Acuerdos con Empleados
             </h1>
-            <p className="text-xs sm:text-sm lg:text-base text-gray-600 dark:text-gray-400 mt-1">
-              Gestiona los acuerdos con empleados
+            <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 mt-1">
+              Gestiona los acuerdos establecidos con empleados
             </p>
           </div>
           
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+          {/* Botones responsivos */}
+          <div className="flex flex-col sm:flex-row gap-3">
             <Button
               onClick={handleRefresh}
               variant="outline"
-              className="border-blue-300 text-blue-700 hover:bg-blue-50 text-xs sm:text-sm"
+              className="border-blue-300 text-blue-700 hover:bg-blue-50 text-sm"
               disabled={refreshing}
               size="sm"
             >
-              <RefreshCw className={`w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-              Actualizar
+              <RefreshCw className={`w-4 h-4 mr-2 flex-shrink-0 ${refreshing ? 'animate-spin' : ''}`} />
+              <span>Actualizar</span>
             </Button>
             
             <Button
               onClick={() => setShowImportModal(true)}
               variant="outline"
-              className="border-green-300 text-green-700 hover:bg-green-50 text-xs sm:text-sm"
+              className="border-green-300 text-green-700 hover:bg-green-50 text-sm"
               size="sm"
             >
-              <Upload className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-              Importar
+              <Upload className="w-4 h-4 mr-2 flex-shrink-0" />
+              <span>Importar</span>
             </Button>
             
             <Button
               onClick={() => setShowCreateForm(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm"
+              className="bg-blue-600 hover:bg-blue-700 text-white text-sm"
               size="sm"
             >
-              <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-              Nuevo Acuerdo
+              <Plus className="w-4 h-4 mr-2 flex-shrink-0" />
+              <span>Nuevo Acuerdo</span>
             </Button>
           </div>
         </div>
 
-        <Card className="border-blue-200 dark:border-blue-800 w-full">
+        {/* Card con tabla responsive */}
+        <Card className="border-blue-200 dark:border-blue-800 overflow-hidden">
           <CardHeader className="p-3 sm:p-4 lg:p-6">
-            <CardTitle className="text-sm sm:text-base lg:text-lg text-blue-800 dark:text-blue-200 flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
+            <CardTitle className="text-base sm:text-lg text-blue-800 dark:text-blue-200 flex items-center justify-between flex-wrap gap-2">
               <span className="flex items-center gap-2">
-                <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
-                Lista de Acuerdos
+                <FileText className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+                <span>Lista de Acuerdos</span>
               </span>
-              <Badge variant="secondary" className="text-xs sm:text-sm w-fit">
+              <Badge variant="secondary" className="text-xs sm:text-sm">
                 {agreements.length} acuerdos
               </Badge>
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-0 sm:p-3 lg:p-6">
+          <CardContent className="p-0">
             {/* Información de paginación */}
-            <div className="px-3 sm:px-0 pb-3 sm:pb-4">
+            <div className="px-3 sm:px-6 pb-3">
               <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                 Mostrando del {startIndex + 1} al {Math.min(endIndex, totalItems)} de {totalItems} acuerdos
               </p>
             </div>
 
-            {/* Contenedor con scroll horizontal solo para la tabla */}
+            {/* Contenedor con scroll horizontal para tabla */}
             <div className="w-full overflow-x-auto">
-              <div className="min-w-[800px]">
+              <div className="min-w-[900px] w-full">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="text-xs sm:text-sm min-w-[120px]">Empleado</TableHead>
-                      <TableHead className="text-xs sm:text-sm min-w-[100px]">Centro de Trabajo</TableHead>
-                      <TableHead className="text-xs sm:text-sm min-w-[80px] hidden sm:table-cell">Ciudad</TableHead>
-                      <TableHead className="text-xs sm:text-sm min-w-[100px] hidden lg:table-cell">Puesto</TableHead>
-                      <TableHead className="text-xs sm:text-sm min-w-[100px] hidden lg:table-cell">Departamento</TableHead>
-                      <TableHead className="text-xs sm:text-sm min-w-[90px] hidden sm:table-cell">Fecha Inicio</TableHead>
-                      <TableHead className="text-xs sm:text-sm min-w-[80px]">Estado</TableHead>
-                      <TableHead className="w-[50px] text-xs sm:text-sm">Acciones</TableHead>
+                      <TableHead className="min-w-[150px] px-2 sm:px-4 text-xs sm:text-sm">Empleado</TableHead>
+                      <TableHead className="min-w-[120px] px-2 sm:px-4 text-xs sm:text-sm">Centro de Trabajo</TableHead>
+                      <TableHead className="min-w-[100px] px-2 sm:px-4 text-xs sm:text-sm">Tipo</TableHead>
+                      <TableHead className="min-w-[120px] px-2 sm:px-4 text-xs sm:text-sm">Estado</TableHead>
+                      <TableHead className="min-w-[120px] px-2 sm:px-4 text-xs sm:text-sm">Fecha Inicio</TableHead>
+                      <TableHead className="min-w-[120px] px-2 sm:px-4 text-xs sm:text-sm">Fecha Fin</TableHead>
+                      <TableHead className="w-[80px] px-2 sm:px-4 text-xs sm:text-sm text-center">Acciones</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {agreements.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((agreement) => (
+                    {currentItems.map((agreement) => (
                       <TableRow key={agreement.id}>
-                        <TableCell className="font-medium text-xs sm:text-sm">
-                          <div className="truncate max-w-[120px]">
+                        <TableCell className="font-medium px-2 sm:px-4 text-xs sm:text-sm">
+                          <div className="truncate">
                             {agreement.employeeName} {agreement.employeeLastName}
                           </div>
                         </TableCell>
-                        <TableCell className="text-xs sm:text-sm">
-                          <div className="truncate max-w-[100px]">
-                            {agreement.workCenter}
-                          </div>
+                        <TableCell className="px-2 sm:px-4 text-xs sm:text-sm">
+                          <div className="truncate">{agreement.workCenter}</div>
                         </TableCell>
-                        <TableCell className="text-xs sm:text-sm hidden sm:table-cell">
-                          <div className="truncate max-w-[80px]">
-                            {agreement.city}
-                          </div>
+                        <TableCell className="px-2 sm:px-4 text-xs sm:text-sm">
+                          <div className="truncate">{agreement.agreementType}</div>
                         </TableCell>
-                        <TableCell className="text-xs sm:text-sm hidden lg:table-cell">
-                          <div className="truncate max-w-[100px]">
-                            {agreement.jobPosition}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-xs sm:text-sm hidden lg:table-cell">
-                          <div className="truncate max-w-[100px]">
-                            {agreement.department}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-xs sm:text-sm hidden sm:table-cell">
-                          <div className="truncate max-w-[90px]">
-                            {new Date(agreement.startDate).toLocaleDateString()}
-                          </div>
-                        </TableCell>
-                        <TableCell>
+                        <TableCell className="px-2 sm:px-4 text-xs sm:text-sm">
                           <Badge variant="secondary" className="text-xs">
-                            Activo
+                            {agreement.status || 'Activo'}
                           </Badge>
                         </TableCell>
-                        <TableCell>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" className="h-6 w-6 sm:h-8 sm:w-8 p-0">
-                                <MoreHorizontal className="h-3 w-3 sm:h-4 sm:w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="bg-white dark:bg-gray-800 border border-blue-200 dark:border-blue-700">
-                              <DropdownMenuItem onClick={() => handleViewAgreement(agreement)} className="cursor-pointer text-xs sm:text-sm">
-                                <Eye className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                                Ver detalles
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleEditAgreement(agreement)} className="cursor-pointer text-xs sm:text-sm">
-                                <Edit className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                                Editar
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleDuplicateAgreement(agreement)} className="cursor-pointer text-xs sm:text-sm">
-                                <Copy className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                                Duplicar
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleDeleteAgreement(agreement)} className="cursor-pointer text-red-600 text-xs sm:text-sm">
-                                <Trash className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                                Eliminar
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                        <TableCell className="px-2 sm:px-4 text-xs sm:text-sm">
+                          {agreement.startDate ? new Date(agreement.startDate).toLocaleDateString() : '-'}
+                        </TableCell>
+                        <TableCell className="px-2 sm:px-4 text-xs sm:text-sm">
+                          {agreement.endDate ? new Date(agreement.endDate).toLocaleDateString() : '-'}
+                        </TableCell>
+                        <TableCell className="px-2 sm:px-4">
+                          <div className="flex justify-center">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" className="h-8 w-8 p-0">
+                                  <MoreHorizontal className="h-4 w-4 flex-shrink-0" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="bg-white dark:bg-gray-800 border border-blue-200 dark:border-blue-700">
+                                <DropdownMenuItem onClick={() => handleViewAgreement(agreement)} className="cursor-pointer text-xs sm:text-sm">
+                                  <Eye className="mr-2 h-4 w-4 flex-shrink-0" />
+                                  <span>Ver detalles</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleEditAgreement(agreement)} className="cursor-pointer text-xs sm:text-sm">
+                                  <Edit className="mr-2 h-4 w-4 flex-shrink-0" />
+                                  <span>Editar</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleDuplicateAgreement(agreement)} className="cursor-pointer text-xs sm:text-sm">
+                                  <Copy className="mr-2 h-4 w-4 flex-shrink-0" />
+                                  <span>Duplicar</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleDeleteAgreement(agreement)} className="cursor-pointer text-red-600 text-xs sm:text-sm">
+                                  <Trash className="mr-2 h-4 w-4 flex-shrink-0" />
+                                  <span>Eliminar</span>
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -354,20 +346,27 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
               </div>
             </div>
 
-            {/* Paginación */}
+            {/* Indicador de scroll en móvil */}
+            <div className="sm:hidden p-4 text-center">
+              <p className="text-xs text-gray-500">
+                ← Desliza horizontalmente para ver más columnas →
+              </p>
+            </div>
+
+            {/* Paginación responsive */}
             {totalPages > 1 && (
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-2 p-3 sm:p-4 border-t">
-                <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-3 sm:p-4 border-t">
+                <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                   <span>Página {currentPage} de {totalPages}</span>
                 </div>
                 
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-2">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 1}
-                    className="text-xs sm:text-sm"
+                    className="text-xs sm:text-sm px-2 sm:px-3"
                   >
                     Anterior
                   </Button>
@@ -380,7 +379,7 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
                         size="sm"
                         onClick={() => typeof page === 'number' ? handlePageChange(page) : undefined}
                         disabled={page === '...'}
-                        className="text-xs sm:text-sm min-w-[32px] sm:min-w-[36px]"
+                        className="min-w-[32px] text-xs sm:text-sm px-2"
                       >
                         {page}
                       </Button>
@@ -392,7 +391,7 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
                     size="sm"
                     onClick={() => handlePageChange(currentPage + 1)}
                     disabled={currentPage === totalPages}
-                    className="text-xs sm:text-sm"
+                    className="text-xs sm:text-sm px-2 sm:px-3"
                   >
                     Siguiente
                   </Button>
@@ -425,6 +424,7 @@ const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProps> = ({
           <ImportEmployeeAgreementsModal
             open={showImportModal}
             onClose={() => setShowImportModal(false)}
+            language={language}
             onImportSuccess={handleImportSuccess}
           />
         )}
