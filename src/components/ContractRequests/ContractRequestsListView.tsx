@@ -22,7 +22,7 @@ interface ContractRequestsListViewProps {
 
 const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ language }) => {
   const { t } = useTranslation(language);
-  const [requests, setRequests] = useState<ContractRequestRecord[]>([]);
+  const [contractRequests, setContractRequests] = useState<ContractRequestRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedRequest, setSelectedRequest] = useState<ContractRequestRecord | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -38,14 +38,14 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
   const [itemsPerPage] = useState(30);
 
   useEffect(() => {
-    loadRequests();
+    loadContractRequests();
   }, []);
 
-  const loadRequests = async () => {
+  const loadContractRequests = async () => {
     try {
       setLoading(true);
       const requestsData = await getContractRequests();
-      setRequests(requestsData);
+      setContractRequests(requestsData);
     } catch (error) {
       console.error('Error loading contract requests:', error);
       toast.error('Error al cargar las solicitudes de contratación');
@@ -56,7 +56,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await loadRequests();
+    await loadContractRequests();
     setRefreshing(false);
   };
 
@@ -72,8 +72,8 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
 
   const handleDuplicateRequest = async (request: ContractRequestRecord) => {
     try {
-      await duplicateContractRequest(request);
-      await loadRequests();
+      await duplicateContractRequest(request.id);
+      await loadContractRequests();
       toast.success('Solicitud duplicada correctamente');
     } catch (error) {
       console.error('Error duplicating request:', error);
@@ -91,7 +91,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
 
     try {
       await deleteContractRequest(requestToDelete.id);
-      await loadRequests();
+      await loadContractRequests();
       toast.success('Solicitud eliminada correctamente');
     } catch (error) {
       console.error('Error deleting request:', error);
@@ -104,26 +104,26 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
 
   const handleRequestCreated = () => {
     setShowCreateForm(false);
-    loadRequests();
+    loadContractRequests();
   };
 
   const handleRequestUpdated = () => {
     setShowEditForm(false);
     setSelectedRequest(null);
-    loadRequests();
+    loadContractRequests();
   };
 
   const handleImportSuccess = () => {
     setShowImportModal(false);
-    loadRequests();
+    loadContractRequests();
   };
 
   // Cálculos de paginación
-  const totalItems = requests.length;
+  const totalItems = contractRequests.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentItems = requests.slice(startIndex, endIndex);
+  const currentItems = contractRequests.slice(startIndex, endIndex);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -202,146 +202,148 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
   }
 
   return (
-    <div className="w-full overflow-hidden bg-gray-50 dark:bg-gray-900">
-      <div className="w-full p-2 sm:p-4 md:p-6 space-y-4 sm:space-y-6">
-        {/* Header responsive mejorado */}
-        <div className="flex flex-col space-y-4">
+    <div className="w-full max-w-full overflow-hidden">
+      <div className="space-y-4 sm:space-y-6 p-2 sm:p-4 lg:p-6">
+        <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
           <div>
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-blue-900 dark:text-blue-100">
-              {t('contractRequests')}
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-blue-900 dark:text-blue-100">
+              Solicitudes de Contratación
             </h1>
-            <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 mt-1">
+            <p className="text-xs sm:text-sm lg:text-base text-gray-600 dark:text-gray-400 mt-1">
               Gestiona las solicitudes de contratación
             </p>
           </div>
           
-          {/* Botones con iconos siempre visibles */}
-          <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
             <Button
               onClick={handleRefresh}
               variant="outline"
-              className="border-blue-300 text-blue-700 hover:bg-blue-50 text-sm"
+              className="border-blue-300 text-blue-700 hover:bg-blue-50 text-xs sm:text-sm"
               disabled={refreshing}
               size="sm"
             >
-              <RefreshCw className={`w-4 h-4 mr-2 flex-shrink-0 ${refreshing ? 'animate-spin' : ''}`} />
-              <span>Actualizar</span>
+              <RefreshCw className={`w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+              Actualizar
             </Button>
             
             <Button
               onClick={() => setShowImportModal(true)}
               variant="outline"
-              className="border-green-300 text-green-700 hover:bg-green-50 text-sm"
+              className="border-green-300 text-green-700 hover:bg-green-50 text-xs sm:text-sm"
               size="sm"
             >
-              <Upload className="w-4 h-4 mr-2 flex-shrink-0" />
-              <span>Importar</span>
+              <Upload className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+              Importar
             </Button>
             
             <Button
               onClick={() => setShowCreateForm(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white text-sm"
+              className="bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm"
               size="sm"
             >
-              <Plus className="w-4 h-4 mr-2 flex-shrink-0" />
-              <span>Nueva Solicitud</span>
+              <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+              Nueva Solicitud
             </Button>
           </div>
         </div>
 
-        {/* Card con tabla responsive */}
-        <Card className="border-blue-200 dark:border-blue-800 overflow-hidden">
+        <Card className="border-blue-200 dark:border-blue-800 w-full">
           <CardHeader className="p-3 sm:p-4 lg:p-6">
-            <CardTitle className="text-base sm:text-lg text-blue-800 dark:text-blue-200 flex items-center justify-between flex-wrap gap-2">
+            <CardTitle className="text-sm sm:text-base lg:text-lg text-blue-800 dark:text-blue-200 flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
               <span className="flex items-center gap-2">
-                <FileText className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
-                <span>Lista de Solicitudes</span>
+                <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
+                Lista de Solicitudes
               </span>
-              <Badge variant="secondary" className="text-xs sm:text-sm">
-                {requests.length} solicitudes
+              <Badge variant="secondary" className="text-xs sm:text-sm w-fit">
+                {contractRequests.length} solicitudes
               </Badge>
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-0">
+          <CardContent className="p-0 sm:p-3 lg:p-6">
             {/* Información de paginación */}
-            <div className="px-3 sm:px-6 pb-3">
+            <div className="px-3 sm:px-0 pb-3 sm:pb-4">
               <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                 Mostrando del {startIndex + 1} al {Math.min(endIndex, totalItems)} de {totalItems} solicitudes
               </p>
             </div>
 
-            {/* Contenedor con scroll horizontal mejorado */}
+            {/* Contenedor con scroll horizontal solo para la tabla */}
             <div className="w-full overflow-x-auto">
-              <div className="min-w-[900px] w-full">
+              <div className="min-w-[800px]">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="min-w-[150px] px-2 sm:px-4 text-xs sm:text-sm">Empleado</TableHead>
-                      <TableHead className="min-w-[120px] px-2 sm:px-4 text-xs sm:text-sm">Centro de Trabajo</TableHead>
-                      <TableHead className="min-w-[100px] px-2 sm:px-4 text-xs sm:text-sm">Ciudad</TableHead>
-                      <TableHead className="min-w-[120px] px-2 sm:px-4 text-xs sm:text-sm">Puesto</TableHead>
-                      <TableHead className="min-w-[120px] px-2 sm:px-4 text-xs sm:text-sm">Departamento</TableHead>
-                      <TableHead className="min-w-[120px] px-2 sm:px-4 text-xs sm:text-sm">Fecha Inicio</TableHead>
-                      <TableHead className="min-w-[100px] px-2 sm:px-4 text-xs sm:text-sm">Estado</TableHead>
-                      <TableHead className="w-[80px] px-2 sm:px-4 text-xs sm:text-sm text-center">Acciones</TableHead>
+                      <TableHead className="text-xs sm:text-sm min-w-[120px]">Puesto</TableHead>
+                      <TableHead className="text-xs sm:text-sm min-w-[100px]">Departamento</TableHead>
+                      <TableHead className="text-xs sm:text-sm min-w-[80px] hidden sm:table-cell">Urgencia</TableHead>
+                      <TableHead className="text-xs sm:text-sm min-w-[100px] hidden lg:table-cell">Solicitante</TableHead>
+                      <TableHead className="text-xs sm:text-sm min-w-[90px] hidden sm:table-cell">Fecha Solicitud</TableHead>
+                      <TableHead className="text-xs sm:text-sm min-w-[80px]">Estado</TableHead>
+                      <TableHead className="w-[50px] text-xs sm:text-sm">Acciones</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {requests.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((request) => (
+                    {contractRequests.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((request) => (
                       <TableRow key={request.id}>
-                        <TableCell className="font-medium px-2 sm:px-4 text-xs sm:text-sm">
-                          <div className="truncate">
+                        <TableCell className="font-medium text-xs sm:text-sm">
+                          <div className="truncate max-w-[120px]">
+                            {request.position}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-xs sm:text-sm">
+                          <div className="truncate max-w-[100px]">
+                            {request.department}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-xs sm:text-sm hidden sm:table-cell">
+                          <Badge 
+                            variant={request.urgency === 'Alta' ? 'destructive' : 'secondary'}
+                            className="text-xs"
+                          >
+                            {request.urgency}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-xs sm:text-sm hidden lg:table-cell">
+                          <div className="truncate max-w-[100px]">
                             {request.requesterName} {request.requesterLastName}
                           </div>
                         </TableCell>
-                        <TableCell className="px-2 sm:px-4 text-xs sm:text-sm">
-                          <div className="truncate">{request.workCenter}</div>
+                        <TableCell className="text-xs sm:text-sm hidden sm:table-cell">
+                          <div className="truncate max-w-[90px]">
+                            {new Date(request.requestDate).toLocaleDateString()}
+                          </div>
                         </TableCell>
-                        <TableCell className="px-2 sm:px-4 text-xs sm:text-sm">
-                          <div className="truncate">{request.city}</div>
-                        </TableCell>
-                        <TableCell className="px-2 sm:px-4 text-xs sm:text-sm">
-                          <div className="truncate">{request.jobPosition}</div>
-                        </TableCell>
-                        <TableCell className="px-2 sm:px-4 text-xs sm:text-sm">
-                          <div className="truncate">{request.professionalCategory}</div>
-                        </TableCell>
-                        <TableCell className="px-2 sm:px-4 text-xs sm:text-sm">
-                          {new Date(request.incorporationDate).toLocaleDateString()}
-                        </TableCell>
-                        <TableCell className="px-2 sm:px-4 text-xs sm:text-sm">
+                        <TableCell>
                           <Badge variant="secondary" className="text-xs">
-                            Activa
+                            {request.status}
                           </Badge>
                         </TableCell>
-                        <TableCell className="px-2 sm:px-4">
-                          <div className="flex justify-center">
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="h-8 w-8 p-0">
-                                  <MoreHorizontal className="h-4 w-4 flex-shrink-0" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="bg-white dark:bg-gray-800 border border-blue-200 dark:border-blue-700">
-                                <DropdownMenuItem onClick={() => handleViewRequest(request)} className="cursor-pointer text-xs sm:text-sm">
-                                  <Eye className="mr-2 h-4 w-4 flex-shrink-0" />
-                                  <span>Ver detalles</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleEditRequest(request)} className="cursor-pointer text-xs sm:text-sm">
-                                  <Edit className="mr-2 h-4 w-4 flex-shrink-0" />
-                                  <span>Editar</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleDuplicateRequest(request)} className="cursor-pointer text-xs sm:text-sm">
-                                  <Copy className="mr-2 h-4 w-4 flex-shrink-0" />
-                                  <span>Duplicar</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleDeleteRequest(request)} className="cursor-pointer text-red-600 text-xs sm:text-sm">
-                                  <Trash className="mr-2 h-4 w-4 flex-shrink-0" />
-                                  <span>Eliminar</span>
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </div>
+                        <TableCell>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-6 w-6 sm:h-8 sm:w-8 p-0">
+                                <MoreHorizontal className="h-3 w-3 sm:h-4 sm:w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="bg-white dark:bg-gray-800 border border-blue-200 dark:border-blue-700">
+                              <DropdownMenuItem onClick={() => handleViewRequest(request)} className="cursor-pointer text-xs sm:text-sm">
+                                <Eye className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                                Ver detalles
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleEditRequest(request)} className="cursor-pointer text-xs sm:text-sm">
+                                <Edit className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                                Editar
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleDuplicateRequest(request)} className="cursor-pointer text-xs sm:text-sm">
+                                <Copy className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                                Duplicar
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleDeleteRequest(request)} className="cursor-pointer text-red-600 text-xs sm:text-sm">
+                                <Trash className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                                Eliminar
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -350,27 +352,20 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
               </div>
             </div>
 
-            {/* Indicador de scroll en móvil */}
-            <div className="sm:hidden p-4 text-center">
-              <p className="text-xs text-gray-500">
-                ← Desliza horizontalmente para ver más columnas →
-              </p>
-            </div>
-
-            {/* Paginación responsive */}
+            {/* Paginación */}
             {totalPages > 1 && (
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-3 sm:p-4 border-t">
-                <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-2 p-3 sm:p-4 border-t">
+                <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                   <span>Página {currentPage} de {totalPages}</span>
                 </div>
                 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 1}
-                    className="text-xs sm:text-sm px-2 sm:px-3"
+                    className="text-xs sm:text-sm"
                   >
                     Anterior
                   </Button>
@@ -383,7 +378,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
                         size="sm"
                         onClick={() => typeof page === 'number' ? handlePageChange(page) : undefined}
                         disabled={page === '...'}
-                        className="min-w-[32px] text-xs sm:text-sm px-2"
+                        className="text-xs sm:text-sm min-w-[32px] sm:min-w-[36px]"
                       >
                         {page}
                       </Button>
@@ -395,7 +390,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
                     size="sm"
                     onClick={() => handlePageChange(currentPage + 1)}
                     disabled={currentPage === totalPages}
-                    className="text-xs sm:text-sm px-2 sm:px-3"
+                    className="text-xs sm:text-sm"
                   >
                     Siguiente
                   </Button>
@@ -428,7 +423,6 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
           <ImportContractRequestsModal
             open={showImportModal}
             onClose={() => setShowImportModal(false)}
-            language={language}
             onImportSuccess={handleImportSuccess}
           />
         )}
