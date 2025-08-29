@@ -81,6 +81,8 @@ export const createEmployeeAgreement = async (values: Omit<EmployeeAgreementReco
     const newAgreement: EmployeeAgreementRecord = {
       ...values,
       id: uuidv4(),
+      department: values.department || '', // Ensure department is included
+      observations: values.observations || '', // Ensure observations is included
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -150,6 +152,8 @@ export const updateEmployeeAgreement = async (id: string, values: Omit<EmployeeA
     mockEmployeeAgreements[index] = {
       ...mockEmployeeAgreements[index],
       ...values,
+      department: values.department || mockEmployeeAgreements[index].department || '',
+      observations: values.observations || mockEmployeeAgreements[index].observations || '',
       updatedAt: new Date(),
     };
     
@@ -183,6 +187,8 @@ export const duplicateEmployeeAgreement = async (id: string): Promise<EmployeeAg
     const duplicatedAgreement: EmployeeAgreementRecord = {
       ...dataToCopy,
       id: uuidv4(),
+      department: dataToCopy.department || '',
+      observations: dataToCopy.observations || '',
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -218,6 +224,7 @@ export const importEmployeeAgreements = async (agreements: Partial<EmployeeAgree
         employeeName: agreement.employeeName,
         employeeLastName: agreement.employeeLastName,
         position: agreement.position,
+        department: agreement.department || '', // Add department with default
         agreementType: agreement.agreementType || '',
         workCenter: agreement.workCenter || '',
         city: agreement.city || '',
@@ -234,7 +241,7 @@ export const importEmployeeAgreements = async (agreements: Partial<EmployeeAgree
         concept3: agreement.concept3 || '',
         activationDate: agreement.activationDate ? new Date(agreement.activationDate) : new Date(),
         endDate: agreement.endDate ? new Date(agreement.endDate) : undefined,
-        observations: agreement.observations || '',
+        observations: agreement.observations || '', // Add observations with default
         jobPosition: agreement.jobPosition || agreement.position || '',
         startDate: agreement.startDate ? new Date(agreement.startDate) : new Date(),
         salary: agreement.salary || '',
