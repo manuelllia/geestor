@@ -15,14 +15,14 @@ interface CreateWorkCenterModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
-  language: Language;
+  language?: Language; // Make language optional
 }
 
 const CreateWorkCenterModal: React.FC<CreateWorkCenterModalProps> = ({
   isOpen,
   onClose,
   onSuccess,
-  language
+  language = 'es' // Default to Spanish if not provided
 }) => {
   const { t } = useTranslation(language);
   const [formData, setFormData] = useState<WorkCenterData>({
@@ -172,7 +172,7 @@ const CreateWorkCenterModal: React.FC<CreateWorkCenterModalProps> = ({
           <AlertDialogHeader>
             <AlertDialogTitle>{t('confirmCreationTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              {t('confirmCreationDescription').replace('{name}', formData.Nombre).replace('{id}', formData.Id)}
+              {t('confirmCreationDescription', { name: formData.Nombre, id: formData.Id })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -189,7 +189,7 @@ const CreateWorkCenterModal: React.FC<CreateWorkCenterModalProps> = ({
           <AlertDialogHeader>
             <AlertDialogTitle>{t('workCenterExistsTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              {t('workCenterExistsDescription').replace('{id}', formData.Id)}
+              {t('workCenterExistsDescription', { id: formData.Id })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

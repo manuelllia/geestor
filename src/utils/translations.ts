@@ -1,4 +1,3 @@
-
 export type Language = 'es' | 'en';
 
 export interface Translations {
@@ -278,6 +277,50 @@ export interface Translations {
   currentCompany: string;
   companyChange: string;
   needs: string;
+
+  // Exit Interviews specific keys
+  exitInterviewsLoaded: string;
+  errorLoadingExitInterviews: string;
+  linkCopiedTitle: string;
+  linkCopiedDescription: string;
+  errorCopyingLinkTitle: string;
+  errorCopyingLinkDescription: string;
+  interviewDuplicatedTitle: string;
+  interviewDuplicatedDescription: string;
+  errorDuplicatingTitle: string;
+  errorDuplicatingDescription: string;
+  confirmDeleteInterview: string;
+  interviewDeletedTitle: string;
+  interviewDeletedDescription: string;
+  errorDeletingTitle: string;
+  errorDeletingDescription: string;
+  functionNotImplementedTitle: string;
+  downloadPdfNotAvailable: string;
+  noDataTitle: string;
+  noDataToExportDescription: string;
+  exportCompletedTitle: string;
+  exportCompletedDescription: string;
+  importNotAvailable: string;
+  entrevistaTit: string;
+  recargar: string;
+  generarEnla1: string;
+  exportarEntre: string;
+  importarEntre: string;
+  tryAgain: string;
+  loadingExitInterviews: string;
+  noExitInterviewsFound: string;
+  generateLinkToStart: string;
+  importData: string;
+  positionShort: string;
+  workCenterShort: string;
+  exitType: string;
+  exitDate: string;
+  duplicate: string;
+  invalidDate: string;
+  showingRecords: string;
+  previous: string;
+  next: string;
+  employeeLastName: string;
 }
 
 export const translations: Record<Language, Translations> = {
@@ -558,6 +601,50 @@ export const translations: Record<Language, Translations> = {
     currentCompany: 'Empresa Actual',
     companyChange: 'Cambio de Empresa',
     needs: 'Necesidades',
+
+    // Exit Interviews specific keys
+    exitInterviewsLoaded: 'Entrevistas de salida cargadas',
+    errorLoadingExitInterviews: 'Error al cargar las entrevistas de salida',
+    linkCopiedTitle: 'Enlace copiado',
+    linkCopiedDescription: 'El enlace ha sido copiado al portapapeles',
+    errorCopyingLinkTitle: 'Error al copiar enlace',
+    errorCopyingLinkDescription: 'No se pudo copiar el enlace. Enlace:',
+    interviewDuplicatedTitle: 'Entrevista duplicada',
+    interviewDuplicatedDescription: 'La entrevista ha sido duplicada correctamente',
+    errorDuplicatingTitle: 'Error al duplicar',
+    errorDuplicatingDescription: 'No se pudo duplicar la entrevista',
+    confirmDeleteInterview: '¿Está seguro de que desea eliminar esta entrevista?',
+    interviewDeletedTitle: 'Entrevista eliminada',
+    interviewDeletedDescription: 'La entrevista ha sido eliminada correctamente',
+    errorDeletingTitle: 'Error al eliminar',
+    errorDeletingDescription: 'No se pudo eliminar la entrevista',
+    functionNotImplementedTitle: 'Función no implementada',
+    downloadPdfNotAvailable: 'La descarga de PDF no está disponible',
+    noDataTitle: 'Sin datos',
+    noDataToExportDescription: 'No hay datos para exportar',
+    exportCompletedTitle: 'Exportación completada',
+    exportCompletedDescription: 'Los datos han sido exportados correctamente',
+    importNotAvailable: 'La importación no está disponible',
+    entrevistaTit: 'Entrevistas de Salida',
+    recargar: 'Recargar',
+    generarEnla1: 'Generar Enlace',
+    exportarEntre: 'Exportar',
+    importarEntre: 'Importar',
+    tryAgain: 'Intentar de nuevo',
+    loadingExitInterviews: 'Cargando entrevistas de salida...',
+    noExitInterviewsFound: 'No se encontraron entrevistas de salida',
+    generateLinkToStart: 'Genere un enlace para comenzar',
+    importData: 'Importar datos',
+    positionShort: 'Posición',
+    workCenterShort: 'Centro',
+    exitType: 'Tipo de Salida',
+    exitDate: 'Fecha de Salida',
+    duplicate: 'Duplicar',
+    invalidDate: 'Fecha inválida',
+    showingRecords: 'Mostrando {{start}} a {{end}} de {{total}} registros',
+    previous: 'Anterior',
+    next: 'Siguiente',
+    employeeLastName: 'Apellidos del Empleado',
   },
   
   en: {
@@ -837,5 +924,49 @@ export const translations: Record<Language, Translations> = {
     currentCompany: 'Current Company',
     companyChange: 'Company Change',
     needs: 'Needs',
+
+    // Exit Interviews specific keys
+    exitInterviewsLoaded: 'Exit interviews loaded',
+    errorLoadingExitInterviews: 'Error loading exit interviews',
+    linkCopiedTitle: 'Link copied',
+    linkCopiedDescription: 'The link has been copied to clipboard',
+    errorCopyingLinkTitle: 'Error copying link',
+    errorCopyingLinkDescription: 'Could not copy the link. Link:',
+    interviewDuplicatedTitle: 'Interview duplicated',
+    interviewDuplicatedDescription: 'The interview has been duplicated successfully',
+    errorDuplicatingTitle: 'Error duplicating',
+    errorDuplicatingDescription: 'Could not duplicate the interview',
+    confirmDeleteInterview: 'Are you sure you want to delete this interview?',
+    interviewDeletedTitle: 'Interview deleted',
+    interviewDeletedDescription: 'The interview has been deleted successfully',
+    errorDeletingTitle: 'Error deleting',
+    errorDeletingDescription: 'Could not delete the interview',
+    functionNotImplementedTitle: 'Function not implemented',
+    downloadPdfNotAvailable: 'PDF download is not available',
+    noDataTitle: 'No data',
+    noDataToExportDescription: 'No data to export',
+    exportCompletedTitle: 'Export completed',
+    exportCompletedDescription: 'Data has been exported successfully',
+    importNotAvailable: 'Import is not available',
+    entrevistaTit: 'Exit Interviews',
+    recargar: 'Reload',
+    generarEnla1: 'Generate Link',
+    exportarEntre: 'Export',
+    importarEntre: 'Import',
+    tryAgain: 'Try again',
+    loadingExitInterviews: 'Loading exit interviews...',
+    noExitInterviewsFound: 'No exit interviews found',
+    generateLinkToStart: 'Generate a link to start',
+    importData: 'Import data',
+    positionShort: 'Position',
+    workCenterShort: 'Center',
+    exitType: 'Exit Type',
+    exitDate: 'Exit Date',
+    duplicate: 'Duplicate',
+    invalidDate: 'Invalid date',
+    showingRecords: 'Showing {{start}} to {{end}} of {{total}} records',
+    previous: 'Previous',
+    next: 'Next',
+    employeeLastName: 'Employee Last Name',
   }
 };
