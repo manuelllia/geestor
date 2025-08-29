@@ -448,7 +448,29 @@ export const translations = {
 
     // Inactive Property Form translations
     reason: 'Razón',
-    date: 'Fecha'
+    date: 'Fecha',
+
+    // Missing Real Estate Detail View translations
+    exportPDF: 'Exportar PDF',
+    realEstateDetails: 'Detalles del Inmueble',
+    detailViewPlaceholder: 'Vista detallada del inmueble',
+
+    // Missing Users Management translations
+    errorLoadingUsers: 'Error al cargar usuarios',
+    userPermissionsUpdatedSuccessfully: 'Permisos de usuario actualizados correctamente',
+    errorUpdatingUserPermissions: 'Error al actualizar permisos de usuario',
+    yes: 'Sí',
+    no: 'No',
+    usersGestion: 'Gestión de Usuarios',
+    userGestSub: 'Administra usuarios y sus permisos',
+    buscadorUsers: 'Buscar usuarios...',
+    listaUsers: 'Lista de Usuarios',
+    usersCount: 'usuarios registrados',
+    editPermissions: 'Editar Permisos',
+    swipeToViewMore: 'Desliza para ver más',
+
+    // Missing Verification Screen translation
+    verifyingAccount: 'Verificando cuenta...'
   },
   en: {
     welcome: 'Welcome to GEESTOR',
@@ -894,7 +916,29 @@ export const translations = {
 
     // Inactive Property Form translations
     reason: 'Reason',
-    date: 'Date'
+    date: 'Date',
+
+    // Missing Real Estate Detail View translations
+    exportPDF: 'Export PDF',
+    realEstateDetails: 'Real Estate Details',
+    detailViewPlaceholder: 'Detailed view of the property',
+
+    // Missing Users Management translations
+    errorLoadingUsers: 'Error loading users',
+    userPermissionsUpdatedSuccessfully: 'User permissions updated successfully',
+    errorUpdatingUserPermissions: 'Error updating user permissions',
+    yes: 'Yes',
+    no: 'No',
+    usersGestion: 'User Management',
+    userGestSub: 'Manage users and their permissions',
+    buscadorUsers: 'Search users...',
+    listaUsers: 'User List',
+    usersCount: 'registered users',
+    editPermissions: 'Edit Permissions',
+    swipeToViewMore: 'Swipe to view more',
+
+    // Missing Verification Screen translation
+    verifyingAccount: 'Verifying account...'
   }
 };
 
