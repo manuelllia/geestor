@@ -1,3 +1,4 @@
+
 export type Language = 'es' | 'en';
 export type Theme = 'light' | 'dark';
 
@@ -396,6 +397,52 @@ export interface Translations {
   appearance: string;
   lightMode: string;
   darkMode: string;
+
+  // Practice Evaluations missing keys
+  finalEvaluation: string;
+  evaluationDate: string;
+  performanceRating: string;
+  linkCopiedToClipboardToastTitle: string;
+  linkCopiedToClipboardToastDescription: string;
+  evaluationDeletedToastTitle: string;
+  evaluationDeletedToastDescription: string;
+  errorDeletingEvaluationToastTitle: string;
+  errorDeletingEvaluationToastDescription: string;
+  exportFunctionComingSoonTitle: string;
+  exportFunctionComingSoonDescription: string;
+  importFunctionComingSoonTitle: string;
+  importFunctionComingSoonDescription: string;
+  valoPracSub: string;
+  generarEnlaceVal: string;
+  noEvaluationsRegistered: string;
+  generateLinkToStartReceivingEvaluations: string;
+  student: string;
+  performanceRatingScore: string;
+  deleteEvaluationConfirmationTitle: string;
+  deleteEvaluationConfirmationDescription: string;
+
+  // Real Estate missing keys
+  selectPropertyType: string;
+  propertyTypeLabel: string;
+  selectTypePlaceholder: string;
+  activeProperty: string;
+  inactiveProperty: string;
+  accept: string;
+  errorLoadingDashboardData: string;
+  realEstateDashboard: string;
+  realEstateManagementDescription: string;
+  addProperty: string;
+  importDataButton: string;
+  viewTables: string;
+  propertiesOperational: string;
+  propertiesPaused: string;
+  totalProperties: string;
+
+  // Translation values for evaluation statuses
+  Apto: string;
+  'No Apto': string;
+  Apt: string;
+  'Not Apt': string;
 }
 
 export const translations: Record<Language, Translations> = {
@@ -767,6 +814,52 @@ export const translations: Record<Language, Translations> = {
     appearance: 'Apariencia',
     lightMode: 'Modo Claro',
     darkMode: 'Modo Oscuro',
+
+    // Practice Evaluations missing keys
+    finalEvaluation: 'Evaluación Final',
+    evaluationDate: 'Fecha de Evaluación',
+    performanceRating: 'Valoración de Rendimiento',
+    linkCopiedToClipboardToastTitle: 'Enlace copiado',
+    linkCopiedToClipboardToastDescription: 'El enlace ha sido copiado al portapapeles',
+    evaluationDeletedToastTitle: 'Evaluación eliminada',
+    evaluationDeletedToastDescription: 'La evaluación ha sido eliminada correctamente',
+    errorDeletingEvaluationToastTitle: 'Error al eliminar',
+    errorDeletingEvaluationToastDescription: 'No se pudo eliminar la evaluación',
+    exportFunctionComingSoonTitle: 'Función de exportación próximamente',
+    exportFunctionComingSoonDescription: 'La función de exportación estará disponible pronto',
+    importFunctionComingSoonTitle: 'Función de importación próximamente',
+    importFunctionComingSoonDescription: 'La función de importación estará disponible pronto',
+    valoPracSub: 'Gestione y revise las evaluaciones de prácticas de estudiantes',
+    generarEnlaceVal: 'Generar Enlace de Evaluación',
+    noEvaluationsRegistered: 'No hay evaluaciones registradas',
+    generateLinkToStartReceivingEvaluations: 'Genere un enlace para comenzar a recibir evaluaciones',
+    student: 'Estudiante',
+    performanceRatingScore: '{{rating}}/10',
+    deleteEvaluationConfirmationTitle: 'Confirmar eliminación',
+    deleteEvaluationConfirmationDescription: '¿Está seguro de que desea eliminar la evaluación de {{studentName}} {{studentLastName}}?',
+
+    // Real Estate missing keys
+    selectPropertyType: 'Seleccionar Tipo de Propiedad',
+    propertyTypeLabel: 'Tipo de Propiedad',
+    selectTypePlaceholder: 'Seleccione un tipo',
+    activeProperty: 'Propiedad Activa',
+    inactiveProperty: 'Propiedad Inactiva',
+    accept: 'Aceptar',
+    errorLoadingDashboardData: 'Error al cargar datos del dashboard',
+    realEstateDashboard: 'Dashboard de Inmuebles',
+    realEstateManagementDescription: 'Gestione propiedades activas e inactivas de la organización',
+    addProperty: 'Agregar Propiedad',
+    importDataButton: 'Importar Datos',
+    viewTables: 'Ver Tablas',
+    propertiesOperational: 'Propiedades Operativas',
+    propertiesPaused: 'Propiedades Pausadas',
+    totalProperties: 'Total de Propiedades',
+
+    // Translation values for evaluation statuses
+    Apto: 'Apto',
+    'No Apto': 'No Apto',
+    Apt: 'Apto',
+    'Not Apt': 'No Apto',
   },
   
   en: {
@@ -1137,5 +1230,51 @@ export const translations: Record<Language, Translations> = {
     appearance: 'Appearance',
     lightMode: 'Light Mode',
     darkMode: 'Dark Mode',
+
+    // Practice Evaluations missing keys
+    finalEvaluation: 'Final Evaluation',
+    evaluationDate: 'Evaluation Date',
+    performanceRating: 'Performance Rating',
+    linkCopiedToClipboardToastTitle: 'Link copied',
+    linkCopiedToClipboardToastDescription: 'The link has been copied to clipboard',
+    evaluationDeletedToastTitle: 'Evaluation deleted',
+    evaluationDeletedToastDescription: 'The evaluation has been deleted successfully',
+    errorDeletingEvaluationToastTitle: 'Error deleting',
+    errorDeletingEvaluationToastDescription: 'Could not delete the evaluation',
+    exportFunctionComingSoonTitle: 'Export function coming soon',
+    exportFunctionComingSoonDescription: 'The export function will be available soon',
+    importFunctionComingSoonTitle: 'Import function coming soon',
+    importFunctionComingSoonDescription: 'The import function will be available soon',
+    valoPracSub: 'Manage and review student practice evaluations',
+    generarEnlaceVal: 'Generate Evaluation Link',
+    noEvaluationsRegistered: 'No evaluations registered',
+    generateLinkToStartReceivingEvaluations: 'Generate a link to start receiving evaluations',
+    student: 'Student',
+    performanceRatingScore: '{{rating}}/10',
+    deleteEvaluationConfirmationTitle: 'Confirm deletion',
+    deleteEvaluationConfirmationDescription: 'Are you sure you want to delete the evaluation for {{studentName}} {{studentLastName}}?',
+
+    // Real Estate missing keys
+    selectPropertyType: 'Select Property Type',
+    propertyTypeLabel: 'Property Type',
+    selectTypePlaceholder: 'Select a type',
+    activeProperty: 'Active Property',
+    inactiveProperty: 'Inactive Property',
+    accept: 'Accept',
+    errorLoadingDashboardData: 'Error loading dashboard data',
+    realEstateDashboard: 'Real Estate Dashboard',
+    realEstateManagementDescription: 'Manage active and inactive properties of the organization',
+    addProperty: 'Add Property',
+    importDataButton: 'Import Data',
+    viewTables: 'View Tables',
+    propertiesOperational: 'Operational Properties',
+    propertiesPaused: 'Paused Properties',
+    totalProperties: 'Total Properties',
+
+    // Translation values for evaluation statuses
+    Apto: 'Apt',
+    'No Apto': 'Not Apt',
+    Apt: 'Apt',
+    'Not Apt': 'Not Apt',
   }
 };
