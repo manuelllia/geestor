@@ -325,3 +325,68 @@ export const exportChangeSheetsToCSV = async (): Promise<void> => {
     throw error;
   }
 };
+
+// --- Función para importar múltiples Hojas de Cambio ---
+export const importChangeSheets = async (sheetsData: Partial<ChangeSheetRecord>[]): Promise<{ success: number; errors: string[] }> => {
+  const results = { success: 0, errors: [] as string[] };
+  
+  try {
+    const changeSheetsRef = collection(db, "Gestión de Talento", "hojas-cambio", "Hojas de Cambio");
+    
+    for (let i = 0; i < sheetsData.length; i++) {
+      try {
+        const sheetData = sheetsData[i];
+        
+        // Validar datos requeridos
+        if (!sheetData.employeeName || !sheetData.employeeLastName) {
+          results.errors.push(`Fila ${i + 1}: Nombre y apellido del empleado son requeridos`);
+          continue;
+        }
+
+        // Crear payload para Firestore con los campos correctos
+        const firestorePayload: ChangeSheetFirestorePayload = {
+          employeeName: sheetData.employeeName || '',
+          employeeLastName: sheetData.employeeLastName || '',
+          originCenter: sheetData.originCenter || '',
+          contractsManaged: sheetData.contractsManaged || '',
+          currentPosition: sheetData.currentPosition || '',
+          currentSupervisorName: sheetData.currentSupervisorName || '',
+          currentSupervisorLastName: sheetData.currentSupervisorLastName || '',
+          destinationCenter: sheetData.destinationCenter || '',
+          contractsToManage: sheetData.contractsToManage || '',
+          newPosition: sheetData.newPosition || '',
+          newSupervisorName: sheetData.newSupervisorName || '',
+          newSupervisorLastName: sheetData.newSupervisorLastName || '',
+          startDate: sheetData.startDate ? Timestamp.fromDate(sheetData.startDate) : null,
+          changeType: (sheetData.changeType === 'Permanente' || sheetData.changeType === 'Temporal') 
+            ? sheetData.changeType 
+            : 'Permanente',
+          needs: Array.isArray(sheetData.needs) ? sheetData.needs : [],
+          currentCompany: sheetData.currentCompany || '',
+          companyChange: (sheetData.companyChange === 'Si' || sheetData.companyChange === 'No') 
+            ? sheetData.companyChange 
+            : 'No',
+          observations: sheetData.observations || '',
+          status: 'Pendiente', // Siempre empezar como Pendiente
+          createdAt: Timestamp.now(),
+          updatedAt: Timestamp.now()
+        };
+
+        await addDoc(changeSheetsRef, firestorePayload);
+        results.success++;
+        
+      } catch (error) {
+        console.error(`Error importing sheet ${i + 1}:`, error);
+        results.errors.push(`Fila ${i + 1}: Error al importar - ${error}`);
+      }
+    }
+    
+    console.log(`Import completed: ${results.success} success, ${results.errors.length} errors`);
+    return results;
+    
+  } catch (error) {
+    console.error('Error in batch import:', error);
+    results.errors.push(`Error general de importación: ${error}`);
+    return results;
+  }
+};

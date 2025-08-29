@@ -257,11 +257,11 @@ export const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({ lang
                   <TableHeader>
                     <TableRow>
                       <TableHead className="min-w-[150px] px-2 sm:px-4 text-xs sm:text-sm">Empleado</TableHead>
-                      <TableHead className="min-w-[120px] px-2 sm:px-4 text-xs sm:text-sm">Centro de Trabajo</TableHead>
+                      <TableHead className="min-w-[120px] px-2 sm:px-4 text-xs sm:text-sm">Empresa Actual</TableHead>
                       <TableHead className="min-w-[100px] px-2 sm:px-4 text-xs sm:text-sm">Tipo</TableHead>
                       <TableHead className="min-w-[120px] px-2 sm:px-4 text-xs sm:text-sm">Estado</TableHead>
                       <TableHead className="min-w-[120px] px-2 sm:px-4 text-xs sm:text-sm">Fecha Inicio</TableHead>
-                      <TableHead className="min-w-[120px] px-2 sm:px-4 text-xs sm:text-sm">Fecha Fin</TableHead>
+                      <TableHead className="min-w-[120px] px-2 sm:px-4 text-xs sm:text-sm">Centro Origen</TableHead>
                       <TableHead className="w-[80px] px-2 sm:px-4 text-xs sm:text-sm text-center">Acciones</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -274,21 +274,21 @@ export const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({ lang
                           </div>
                         </TableCell>
                         <TableCell className="px-2 sm:px-4 text-xs sm:text-sm">
-                          <div className="truncate">{sheet.company || '-'}</div>
+                          <div className="truncate">{sheet.currentCompany || '-'}</div>
                         </TableCell>
                         <TableCell className="px-2 sm:px-4 text-xs sm:text-sm">
                           <div className="truncate">{sheet.changeType}</div>
                         </TableCell>
                         <TableCell className="px-2 sm:px-4 text-xs sm:text-sm">
                           <Badge variant="secondary" className="text-xs">
-                            {sheet.status || 'Activa'}
+                            {sheet.status || 'Pendiente'}
                           </Badge>
                         </TableCell>
                         <TableCell className="px-2 sm:px-4 text-xs sm:text-sm">
                           {sheet.startDate ? new Date(sheet.startDate).toLocaleDateString() : '-'}
                         </TableCell>
                         <TableCell className="px-2 sm:px-4 text-xs sm:text-sm">
-                          {sheet.endDate ? new Date(sheet.endDate).toLocaleDateString() : '-'}
+                          <div className="truncate">{sheet.originCenter || '-'}</div>
                         </TableCell>
                         <TableCell className="px-2 sm:px-4">
                           <div className="flex justify-center">

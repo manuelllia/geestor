@@ -424,6 +424,7 @@ export const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProp
             open={showImportModal}
             onClose={() => setShowImportModal(false)}
             onImportSuccess={handleImportSuccess}
+            language={language}
           />
         )}
       </div>

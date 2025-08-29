@@ -56,13 +56,24 @@ const ImportChangeSheetsModal: React.FC<ImportChangeSheetsModalProps> = ({
       const sheets: Partial<ChangeSheetRecord>[] = data.map((row: any) => ({
         employeeName: row['Nombre Empleado'] || '',
         employeeLastName: row['Apellido Empleado'] || '',
-        company: row['Empresa'] || '',
-        department: row['Departamento'] || '',
-        changeType: row['Tipo de Cambio'] || '',
+        currentCompany: row['Empresa Actual'] || '',
+        originCenter: row['Centro Origen'] || '',
+        destinationCenter: row['Centro Destino'] || '',
+        currentPosition: row['Posición Actual'] || '',
+        newPosition: row['Nuevo Puesto'] || '',
+        changeType: (row['Tipo de Cambio'] === 'Permanente' || row['Tipo de Cambio'] === 'Temporal') 
+          ? row['Tipo de Cambio'] 
+          : 'Permanente',
         startDate: parseDate(row['Fecha Inicio']) || new Date(),
-        endDate: parseDate(row['Fecha Fin']),
-        status: 'Activa' as const,
-        notes: row['Notas'] || '',
+        currentSupervisorName: row['Supervisor Actual Nombre'] || '',
+        currentSupervisorLastName: row['Supervisor Actual Apellido'] || '',
+        newSupervisorName: row['Nuevo Supervisor Nombre'] || '',
+        newSupervisorLastName: row['Nuevo Supervisor Apellido'] || '',
+        companyChange: (row['Cambio de Empresa'] === 'Si' || row['Cambio de Empresa'] === 'No') 
+          ? row['Cambio de Empresa'] 
+          : 'No',
+        observations: row['Observaciones'] || '',
+        needs: row['Necesidades'] ? row['Necesidades'].split(';').map((n: string) => n.trim()) : [],
       }));
 
       console.log('Datos procesados para importar:', sheets);
@@ -173,12 +184,20 @@ const ImportChangeSheetsModal: React.FC<ImportChangeSheetsModalProps> = ({
                 <ul className="text-xs text-blue-800 dark:text-blue-200 space-y-1">
                   <li>• Nombre Empleado</li>
                   <li>• Apellido Empleado</li>
-                  <li>• Empresa</li>
-                  <li>• Departamento</li>
-                  <li>• Tipo de Cambio</li>
+                  <li>• Empresa Actual</li>
+                  <li>• Centro Origen</li>
+                  <li>• Centro Destino</li>
+                  <li>• Posición Actual</li>
+                  <li>• Nuevo Puesto</li>
+                  <li>• Tipo de Cambio (Permanente/Temporal)</li>
                   <li>• Fecha Inicio</li>
-                  <li>• Fecha Fin (opcional)</li>
-                  <li>• Notas (opcional)</li>
+                  <li>• Supervisor Actual Nombre</li>
+                  <li>• Supervisor Actual Apellido</li>
+                  <li>• Nuevo Supervisor Nombre</li>
+                  <li>• Nuevo Supervisor Apellido</li>
+                  <li>• Cambio de Empresa (Si/No)</li>
+                  <li>• Observaciones (opcional)</li>
+                  <li>• Necesidades (opcional, separadas por ;)</li>
                 </ul>
               </div>
 
