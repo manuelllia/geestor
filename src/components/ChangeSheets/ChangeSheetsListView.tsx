@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -174,6 +173,11 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({ language })
         onBack={() => {
           setShowDetailView(false);
           setSelectedChangeSheet(null);
+        }}
+        onDelete={() => {
+          setShowDetailView(false);
+          setSelectedChangeSheet(null);
+          loadChangeSheets();
         }}
       />
     );
@@ -402,6 +406,7 @@ const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({ language })
             open={showImportModal}
             onClose={() => setShowImportModal(false)}
             onImportSuccess={handleImportSuccess}
+            language={language}
           />
         )}
       </div>

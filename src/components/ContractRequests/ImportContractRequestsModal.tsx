@@ -12,14 +12,12 @@ interface ImportContractRequestsModalProps {
   open: boolean;
   onClose: () => void;
   language: Language;
-  onImportSuccess?: () => void;
 }
 
 const ImportContractRequestsModal: React.FC<ImportContractRequestsModalProps> = ({
   open,
   onClose,
-  language,
-  onImportSuccess
+  language
 }) => {
   const { t } = useTranslation(language);
   const [isUploading, setIsUploading] = useState(false);
@@ -87,11 +85,6 @@ const ImportContractRequestsModal: React.FC<ImportContractRequestsModalProps> = 
 
       const result = await importContractRequests(requests);
       setUploadResult(result);
-
-      // Call onImportSuccess if import was successful
-      if (result.success > 0 && onImportSuccess) {
-        onImportSuccess();
-      }
 
     } catch (error) {
       console.error('Error procesando archivo:', error);
@@ -206,6 +199,11 @@ const ImportContractRequestsModal: React.FC<ImportContractRequestsModalProps> = 
     onClose();
   };
 
+  const handleImportSuccess = () => {
+    setShowImportModal(false);
+    loadContractRequests();
+  };
+
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
@@ -220,7 +218,7 @@ const ImportContractRequestsModal: React.FC<ImportContractRequestsModalProps> = 
           {!uploadResult && (
             <>
               <div className="text-sm text-gray-600 dark:text-gray-400">
-                Sube un archivo CSV o Excel con las solicitudes de contratación. El archivo debe contener las siguientes columnas:
+                Sube un archivo CSV o Excel con las solicitudes de contratación.
               </div>
               
               <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
@@ -230,15 +228,10 @@ const ImportContractRequestsModal: React.FC<ImportContractRequestsModalProps> = 
                 <ul className="text-xs text-blue-800 dark:text-blue-200 space-y-1">
                   <li>• Candidato Seleccionado</li>
                   <li>• Tipo de Contrato</li>
-                  <li>• Salario</li>
-                  <li>• Observaciones</li>
+                  <li>• Salario, Observaciones</li>
                   <li>• Fecha de Incorporación</li>
-                  <li>• Empresa / NUEVA EMPRESA</li>
-                  <li>• Puesto de Trabajo / Especificar Puesto</li>
-                  <li>• Categoría Profesional / Especificar</li>
-                  <li>• Población, Provincia, Comunidad Autónoma</li>
-                  <li>• Centro de Trabajo / Especificar Centro</li>
-                  <li>• Idiomas y Experiencia</li>
+                  <li>• Empresa, Puesto, Categoría</li>
+                  <li>• Ubicación y Centro de Trabajo</li>
                 </ul>
               </div>
 

@@ -10,17 +10,17 @@ import { getChangeSheetById, deleteChangeSheet, ChangeSheetRecord } from '../../
 import jsPDF from 'jspdf';
 
 interface ChangeSheetDetailViewProps {
-  language: Language;
   sheetId: string;
+  language: Language;
   onBack: () => void;
-  onDelete: () => void;
+  onDelete?: () => void;
 }
 
 const ChangeSheetDetailView: React.FC<ChangeSheetDetailViewProps> = ({ 
+  sheetId, 
   language, 
-  sheetId,
   onBack,
-  onDelete
+  onDelete 
 }) => {
   const { t } = useTranslation(language);
   const [sheetData, setSheetData] = useState<ChangeSheetRecord | null>(null);

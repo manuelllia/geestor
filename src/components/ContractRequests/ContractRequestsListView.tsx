@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -424,6 +423,7 @@ const ContractRequestsListView: React.FC<ContractRequestsListViewProps> = ({ lan
             open={showImportModal}
             onClose={() => setShowImportModal(false)}
             onImportSuccess={handleImportSuccess}
+            language={language}
           />
         )}
       </div>
