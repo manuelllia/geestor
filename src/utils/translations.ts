@@ -1,4 +1,5 @@
 export type Language = 'es' | 'en';
+export type Theme = 'light' | 'dark';
 
 export interface Translations {
   // Common
@@ -320,12 +321,85 @@ export interface Translations {
   showingRecords: string;
   previous: string;
   next: string;
-  employeeLastName: string;
+  viewDetails: string;
+  profile: string;
+  settings: string;
+  welcome: string;
+  loginSubtitle: string;
+  loginButton: string;
+  maintenanceCalendar: string;
+  featureTitleComprobadores: string;
+  comingSoonDescriptionComprobadores: string;
+  comingSoon: string;
+  generateCalendar: string;
+  calendar: string;
+  analysis: string;
+  hospitalInventory: string;
+  maintenanceSchedule: string;
+  inventory: string;
+  processFiles: string;
+  uploadFiles: string;
+  arrastraArchivo: string;
+  formatosCsv: string;
+  missingMaintenanceTitle: string;
+  missingMaintenanceMessage: string;
+  generateAnyway: string;
+  completeFirst: string;
+  valoPracTit: string;
+  institution: string;
+  formation: string;
+  tutor: string;
+  tutorName: string;
+  tutorLastName: string;
+  tutorPhone: string;
+  tutorEmail: string;
+  evaluation: string;
+  siNo: string;
+  totalScore: string;
+  practiceEvaluationTitle: string;
+  noEvaluationsFound: string;
+  metodologia: string;
+  areaImpacto: string;
+  porcentageDescount: string;
+  userNotFoundTitle: string;
+  userNotFoundDescription: string;
+  passwordResetSent: string;
+  actionCodeExpired: string;
+  passwordResetComplete: string;
+  enterNewPasswordTitle: string;
+  newPassword: string;
+  confirmPassword: string;
+  resetPassword: string;
+  passwordsDoNotMatch: string;
+  passwordTooWeak: string;
+  invalidEmail: string;
+  emailAlreadyInUse: string;
+  userDisabled: string;
+  tooManyRequests: string;
+  networkRequestFailed: string;
+  internalError: string;
+  forgotPasswordTitle: string;
+  forgotPasswordInstructions: string;
+  emailAddress: string;
+  sendResetLink: string;
+  backToLogin: string;
+  accountVerificationTitle: string;
+  verificationEmailSent: string;
+  checkYourEmail: string;
+  resendVerificationEmail: string;
+  verificationEmailResent: string;
+  documentStatus: string;
+  configuration: string;
+  language: string;
+  spanish: string;
+  english: string;
+  appearance: string;
+  lightMode: string;
+  darkMode: string;
 }
 
 export const translations: Record<Language, Translations> = {
   es: {
-    // Common
     back: 'Atrás',
     cancel: 'Cancelar',
     save: 'Guardar',
@@ -365,8 +439,6 @@ export const translations: Record<Language, Translations> = {
     required: 'Requerido',
     optional: 'Opcional',
     send: 'Enviar',
-    
-    // Navigation and Menu
     homeMenu: 'Inicio',
     users: 'Usuarios',
     operations: 'Operaciones',
@@ -374,25 +446,17 @@ export const translations: Record<Language, Translations> = {
     technicalManagementShort: 'G. Técnica',
     talentManagement: 'Gestión de Talento',
     talentManagementShort: 'G. Talento',
-    
-    // Operations
     costAnalysis: 'Análisis de Costes',
     costAnalysisShort: 'A. Costes',
-    
-    // Technical Management
     calendarManagement: 'Gestión de Calendario',
     calendarManagementShort: 'G. Calendario',
     checkers: 'Comprobadores',
-    
-    // Talent Management
     contractRequests: 'Solicitudes de Contratación',
     changeSheets: 'Hojas de Cambio',
     employeeAgreements: 'Acuerdos de Empleado',
     realEstateManagement: 'Gestión de Inmuebles',
     practiceEvaluation: 'Valoración de Prácticas',
     exitInterviews: 'Entrevistas de Salida',
-    
-    // Chatbot
     botErrorResponse: 'Lo siento, hubo un error procesando tu solicitud.',
     greetingHello: '¡Hola! Soy Geenio, tu asistente de IA. ¿En qué puedo ayudarte hoy?',
     greetingGoodMorning: '¡Buenos días! ¿Cómo puedo asistirte hoy?',
@@ -410,8 +474,6 @@ export const translations: Record<Language, Translations> = {
     bienvenidaChat: '¡Hola! Soy Geenio, tu asistente de IA. Pregúntame sobre análisis de licitaciones o cualquier otra cosa.',
     thinking: 'Pensando',
     typeYourMessage: 'Escribe tu mensaje...',
-    
-    // Error messages
     requiredFieldsError: 'Por favor complete todos los campos requeridos',
     errorLoadingData: 'Error al cargar los datos',
     errorSavingData: 'Error al guardar los datos',
@@ -420,15 +482,11 @@ export const translations: Record<Language, Translations> = {
     errorCreatingWorkCenter: 'Error al crear el centro de trabajo',
     errorUpdatingWorkCenter: 'Error al actualizar el centro de trabajo',
     errorAddingProperty: 'Error al agregar la propiedad',
-    
-    // Success messages
     dataSavedSuccess: 'Datos guardados correctamente',
     dataDeletedSuccess: 'Datos eliminados correctamente',
     workCenterCreatedSuccess: 'Centro de trabajo creado correctamente',
     workCenterUpdatedSuccess: 'Centro de trabajo actualizado correctamente',
     propertyAddedSuccess: 'Propiedad agregada correctamente',
-    
-    // Work Centers
     createWorkCenterTitle: 'Crear Centro de Trabajo',
     workCenterNameLabel: 'Nombre del Centro',
     workCenterNamePlaceholder: 'Ingrese el nombre del centro',
@@ -444,8 +502,6 @@ export const translations: Record<Language, Translations> = {
     workCenterExistsDescription: 'Ya existe un centro de trabajo con el ID {{id}}',
     leaveAsIsButton: 'Dejar como está',
     updateRecordButton: 'Actualizar registro',
-    
-    // Real Estate
     addActivePropertyTitle: 'Agregar Propiedad Activa',
     activePropertyInfoTitle: 'Información de la Propiedad',
     idLabel: 'ID',
@@ -480,16 +536,10 @@ export const translations: Record<Language, Translations> = {
     saveProperty: 'Guardar Propiedad',
     activeProperties: 'Propiedades Activas',
     inactiveProperties: 'Propiedades Inactivas',
-    
-    // Dashboard
     totalPortfolio: 'Cartera Total',
     notImplemented: 'Funcionalidad no implementada',
-    
-    // Exit Interviews
     voluntary: 'Voluntaria',
     leaveOfAbsence: 'Excedencia',
-    
-    // Additional missing keys
     changeSheetsManagement: 'Gestión de Hojas de Cambio',
     createNew: 'Crear Nuevo',
     hojasCambio: 'Hojas de Cambio',
@@ -601,8 +651,6 @@ export const translations: Record<Language, Translations> = {
     currentCompany: 'Empresa Actual',
     companyChange: 'Cambio de Empresa',
     needs: 'Necesidades',
-
-    // Exit Interviews specific keys
     exitInterviewsLoaded: 'Entrevistas de salida cargadas',
     errorLoadingExitInterviews: 'Error al cargar las entrevistas de salida',
     linkCopiedTitle: 'Enlace copiado',
@@ -644,11 +692,84 @@ export const translations: Record<Language, Translations> = {
     showingRecords: 'Mostrando {{start}} a {{end}} de {{total}} registros',
     previous: 'Anterior',
     next: 'Siguiente',
-    employeeLastName: 'Apellidos del Empleado',
+    viewDetails: 'Ver Detalles',
+    profile: 'Perfil',
+    settings: 'Configuración',
+    welcome: 'Bienvenido',
+    loginSubtitle: 'Ingrese sus credenciales para acceder',
+    loginButton: 'Iniciar Sesión',
+    maintenanceCalendar: 'Calendario de Mantenimiento',
+    featureTitleComprobadores: 'Comprobadores',
+    comingSoonDescriptionComprobadores: 'Funcionalidad de comprobadores próximamente disponible',
+    comingSoon: 'Próximamente',
+    generateCalendar: 'Generar Calendario',
+    calendar: 'Calendario',
+    analysis: 'Análisis',
+    hospitalInventory: 'Inventario Hospitalario',
+    maintenanceSchedule: 'Cronograma de Mantenimiento',
+    inventory: 'Inventario',
+    processFiles: 'Procesar Archivos',
+    uploadFiles: 'Subir Archivos',
+    arrastraArchivo: 'Arrastra un archivo aquí o haz clic para seleccionar',
+    formatosCsv: 'Formatos soportados: CSV, Excel (.xlsx, .xls)',
+    missingMaintenanceTitle: 'Mantenimientos Pendientes',
+    missingMaintenanceMessage: 'Hay denominaciones sin mantenimientos asignados. ¿Desea continuar?',
+    generateAnyway: 'Generar de todos modos',
+    completeFirst: 'Completar primero',
+    valoPracTit: 'Valoración de Prácticas',
+    institution: 'Institución',
+    formation: 'Formación',
+    tutor: 'Tutor',
+    tutorName: 'Nombre del Tutor',
+    tutorLastName: 'Apellidos del Tutor',
+    tutorPhone: 'Teléfono del Tutor',
+    tutorEmail: 'Email del Tutor',
+    evaluation: 'Evaluación',
+    siNo: 'Sí/No',
+    totalScore: 'Puntuación Total',
+    practiceEvaluationTitle: 'Evaluación de Prácticas',
+    noEvaluationsFound: 'No se encontraron evaluaciones',
+    metodologia: 'Metodología',
+    areaImpacto: 'Área de Impacto',
+    porcentageDescount: 'Porcentaje de Descuento',
+    userNotFoundTitle: 'Usuario no encontrado',
+    userNotFoundDescription: 'No existe un usuario con ese email',
+    passwordResetSent: 'Enlace de restablecimiento enviado',
+    actionCodeExpired: 'El código de acción ha expirado',
+    passwordResetComplete: 'Contraseña restablecida correctamente',
+    enterNewPasswordTitle: 'Ingrese su nueva contraseña',
+    newPassword: 'Nueva Contraseña',
+    confirmPassword: 'Confirmar Contraseña',
+    resetPassword: 'Restablecer Contraseña',
+    passwordsDoNotMatch: 'Las contraseñas no coinciden',
+    passwordTooWeak: 'La contraseña es muy débil',
+    invalidEmail: 'Email inválido',
+    emailAlreadyInUse: 'Este email ya está en uso',
+    userDisabled: 'Usuario deshabilitado',
+    tooManyRequests: 'Demasiados intentos. Intente más tarde',
+    networkRequestFailed: 'Error de conexión',
+    internalError: 'Error interno del servidor',
+    forgotPasswordTitle: '¿Olvidó su contraseña?',
+    forgotPasswordInstructions: 'Ingrese su email para recibir un enlace de restablecimiento',
+    emailAddress: 'Dirección de Email',
+    sendResetLink: 'Enviar Enlace',
+    backToLogin: 'Volver al Login',
+    accountVerificationTitle: 'Verificación de Cuenta',
+    verificationEmailSent: 'Email de verificación enviado',
+    checkYourEmail: 'Revise su email',
+    resendVerificationEmail: 'Reenviar email de verificación',
+    verificationEmailResent: 'Email de verificación reenviado',
+    documentStatus: 'Estado del Documento',
+    configuration: 'Configuración',
+    language: 'Idioma',
+    spanish: 'Español',
+    english: 'Inglés',
+    appearance: 'Apariencia',
+    lightMode: 'Modo Claro',
+    darkMode: 'Modo Oscuro',
   },
   
   en: {
-    // Common
     back: 'Back',
     cancel: 'Cancel',
     save: 'Save',
@@ -688,8 +809,6 @@ export const translations: Record<Language, Translations> = {
     required: 'Required',
     optional: 'Optional',
     send: 'Send',
-    
-    // Navigation and Menu
     homeMenu: 'Home',
     users: 'Users',
     operations: 'Operations',
@@ -697,25 +816,17 @@ export const translations: Record<Language, Translations> = {
     technicalManagementShort: 'Tech Mgmt',
     talentManagement: 'Talent Management',
     talentManagementShort: 'Talent Mgmt',
-    
-    // Operations
     costAnalysis: 'Cost Analysis',
     costAnalysisShort: 'Cost Analysis',
-    
-    // Technical Management
     calendarManagement: 'Calendar Management',
     calendarManagementShort: 'Calendar',
     checkers: 'Checkers',
-    
-    // Talent Management
     contractRequests: 'Contract Requests',
     changeSheets: 'Change Sheets',
     employeeAgreements: 'Employee Agreements',
     realEstateManagement: 'Real Estate Management',
     practiceEvaluation: 'Practice Evaluation',
     exitInterviews: 'Exit Interviews',
-    
-    // Chatbot
     botErrorResponse: 'Sorry, there was an error processing your request.',
     greetingHello: 'Hello! I\'m Geenio, your AI assistant. How can I help you today?',
     greetingGoodMorning: 'Good morning! How can I assist you today?',
@@ -733,8 +844,6 @@ export const translations: Record<Language, Translations> = {
     bienvenidaChat: 'Hello! I\'m Geenio, your AI assistant. Ask me about bid analysis or anything else.',
     thinking: 'Thinking',
     typeYourMessage: 'Type your message...',
-    
-    // Error messages
     requiredFieldsError: 'Please fill in all required fields',
     errorLoadingData: 'Error loading data',
     errorSavingData: 'Error saving data',
@@ -743,15 +852,11 @@ export const translations: Record<Language, Translations> = {
     errorCreatingWorkCenter: 'Error creating work center',
     errorUpdatingWorkCenter: 'Error updating work center',
     errorAddingProperty: 'Error adding property',
-    
-    // Success messages
     dataSavedSuccess: 'Data saved successfully',
     dataDeletedSuccess: 'Data deleted successfully',
     workCenterCreatedSuccess: 'Work center created successfully',
     workCenterUpdatedSuccess: 'Work center updated successfully',
     propertyAddedSuccess: 'Property added successfully',
-    
-    // Work Centers
     createWorkCenterTitle: 'Create Work Center',
     workCenterNameLabel: 'Center Name',
     workCenterNamePlaceholder: 'Enter center name',
@@ -767,8 +872,6 @@ export const translations: Record<Language, Translations> = {
     workCenterExistsDescription: 'A work center with ID {{id}} already exists',
     leaveAsIsButton: 'Leave as is',
     updateRecordButton: 'Update record',
-    
-    // Real Estate
     addActivePropertyTitle: 'Add Active Property',
     activePropertyInfoTitle: 'Property Information',
     idLabel: 'ID',
@@ -803,16 +906,10 @@ export const translations: Record<Language, Translations> = {
     saveProperty: 'Save Property',
     activeProperties: 'Active Properties',
     inactiveProperties: 'Inactive Properties',
-    
-    // Dashboard
     totalPortfolio: 'Total Portfolio',
     notImplemented: 'Feature not implemented',
-    
-    // Exit Interviews
     voluntary: 'Voluntary',
     leaveOfAbsence: 'Leave of Absence',
-    
-    // Additional missing keys
     changeSheetsManagement: 'Change Sheets Management',
     createNew: 'Create New',
     hojasCambio: 'Change Sheets',
@@ -924,8 +1021,6 @@ export const translations: Record<Language, Translations> = {
     currentCompany: 'Current Company',
     companyChange: 'Company Change',
     needs: 'Needs',
-
-    // Exit Interviews specific keys
     exitInterviewsLoaded: 'Exit interviews loaded',
     errorLoadingExitInterviews: 'Error loading exit interviews',
     linkCopiedTitle: 'Link copied',
@@ -967,6 +1062,80 @@ export const translations: Record<Language, Translations> = {
     showingRecords: 'Showing {{start}} to {{end}} of {{total}} records',
     previous: 'Previous',
     next: 'Next',
-    employeeLastName: 'Employee Last Name',
+    viewDetails: 'View Details',
+    profile: 'Profile',
+    settings: 'Settings',
+    welcome: 'Welcome',
+    loginSubtitle: 'Enter your credentials to access',
+    loginButton: 'Sign In',
+    maintenanceCalendar: 'Maintenance Calendar',
+    featureTitleComprobadores: 'Checkers',
+    comingSoonDescriptionComprobadores: 'Checkers functionality coming soon',
+    comingSoon: 'Coming Soon',
+    generateCalendar: 'Generate Calendar',
+    calendar: 'Calendar',
+    analysis: 'Analysis',
+    hospitalInventory: 'Hospital Inventory',
+    maintenanceSchedule: 'Maintenance Schedule',
+    inventory: 'Inventory',
+    processFiles: 'Process Files',
+    uploadFiles: 'Upload Files',
+    arrastraArchivo: 'Drag a file here or click to select',
+    formatosCsv: 'Supported formats: CSV, Excel (.xlsx, .xls)',
+    missingMaintenanceTitle: 'Missing Maintenance',
+    missingMaintenanceMessage: 'There are denominations without assigned maintenance. Do you want to continue?',
+    generateAnyway: 'Generate anyway',
+    completeFirst: 'Complete first',
+    valoPracTit: 'Practice Evaluation',
+    institution: 'Institution',
+    formation: 'Formation',
+    tutor: 'Tutor',
+    tutorName: 'Tutor Name',
+    tutorLastName: 'Tutor Last Name',
+    tutorPhone: 'Tutor Phone',
+    tutorEmail: 'Tutor Email',
+    evaluation: 'Evaluation',
+    siNo: 'Yes/No',
+    totalScore: 'Total Score',
+    practiceEvaluationTitle: 'Practice Evaluation',
+    noEvaluationsFound: 'No evaluations found',
+    metodologia: 'Methodology',
+    areaImpacto: 'Impact Area',
+    porcentageDescount: 'Discount Percentage',
+    userNotFoundTitle: 'User not found',
+    userNotFoundDescription: 'No user exists with that email',
+    passwordResetSent: 'Reset link sent',
+    actionCodeExpired: 'Action code has expired',
+    passwordResetComplete: 'Password reset successfully',
+    enterNewPasswordTitle: 'Enter your new password',
+    newPassword: 'New Password',
+    confirmPassword: 'Confirm Password',
+    resetPassword: 'Reset Password',
+    passwordsDoNotMatch: 'Passwords do not match',
+    passwordTooWeak: 'Password is too weak',
+    invalidEmail: 'Invalid email',
+    emailAlreadyInUse: 'This email is already in use',
+    userDisabled: 'User disabled',
+    tooManyRequests: 'Too many attempts. Try again later',
+    networkRequestFailed: 'Connection error',
+    internalError: 'Internal server error',
+    forgotPasswordTitle: 'Forgot your password?',
+    forgotPasswordInstructions: 'Enter your email to receive a reset link',
+    emailAddress: 'Email Address',
+    sendResetLink: 'Send Reset Link',
+    backToLogin: 'Back to Login',
+    accountVerificationTitle: 'Account Verification',
+    verificationEmailSent: 'Verification email sent',
+    checkYourEmail: 'Check your email',
+    resendVerificationEmail: 'Resend verification email',
+    verificationEmailResent: 'Verification email resent',
+    documentStatus: 'Document Status',
+    configuration: 'Configuration',
+    language: 'Language',
+    spanish: 'Spanish',
+    english: 'English',
+    appearance: 'Appearance',
+    lightMode: 'Light Mode',
+    darkMode: 'Dark Mode',
   }
 };
