@@ -1,4 +1,3 @@
-
 import { v4 as uuidv4 } from 'uuid';
 
 export interface ChangeSheetRecord {
@@ -24,7 +23,7 @@ export interface ChangeSheetRecord {
   newSupervisorLastName: string;
   startDate: Date | null;
   changeType: string;
-  needs: string;
+  needs: string[]; // Changed from string to string[]
   currentCompany: string;
   companyChange: string;
   observations: string;
@@ -172,7 +171,7 @@ export const importChangeSheets = async (sheets: Partial<ChangeSheetRecord>[]): 
         newSupervisorLastName: sheet.newSupervisorLastName || '',
         startDate: sheet.startDate ? new Date(sheet.startDate) : null,
         changeType: sheet.changeType || '',
-        needs: sheet.needs || '',
+        needs: sheet.needs || [],
         currentCompany: sheet.currentCompany || '',
         companyChange: sheet.companyChange || '',
         observations: sheet.observations || '',

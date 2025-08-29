@@ -1,33 +1,61 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowLeft, Save } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Language } from '../../utils/translations';
-import { getEmployeeAgreements, updateEmployeeAgreement, EmployeeAgreementRecord } from '../../services/employeeAgreementsService';
+import { useTranslation } from '../../hooks/useTranslation';
+import { getEmployeeAgreementById, updateEmployeeAgreement, EmployeeAgreementRecord } from '../../services/employeeAgreementsService';
 
 interface EmployeeAgreementEditFormProps {
-  language: Language;
   agreementId: string;
+  language: Language;
   onBack: () => void;
   onSave: () => void;
 }
 
+interface EmployeeAgreementFormData {
+  employeeName: string;
+  employeeLastName: string;
+  workCenter: string;
+  city: string;
+  province: string;
+  autonomousCommunity: string;
+  responsibleName: string;
+  responsibleLastName: string;
+  agreementConcepts: string;
+  economicAgreement1: string;
+  concept1: string;
+  economicAgreement2: string;
+  concept2: string;
+  economicAgreement3: string;
+  concept3: string;
+  activationDate: string;
+  endDate: string;
+  jobPosition: string;
+  startDate: string;
+  salary: string;
+  agreementDate: string;
+  agreementType: string;
+  position: string;
+  department: string;
+  observations: string;
+}
+
 const EmployeeAgreementEditForm: React.FC<EmployeeAgreementEditFormProps> = ({
-  language,
   agreementId,
+  language,
   onBack,
   onSave
 }) => {
+  const { t } = useTranslation(language);
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
-  const [formData, setFormData] = useState({
+  const [isLoading, setIsLoading] = useState(false);
+  const [formData, setFormData] = useState<EmployeeAgreementFormData>({
     employeeName: '',
     employeeLastName: '',
     workCenter: '',
@@ -45,22 +73,35 @@ const EmployeeAgreementEditForm: React.FC<EmployeeAgreementEditFormProps> = ({
     concept3: '',
     activationDate: '',
     endDate: '',
-    observationsAndCommitment: '',
     jobPosition: '',
-    department: '',
-    agreementType: '',
     startDate: '',
     salary: '',
-    status: 'Activo' as 'Activo' | 'Finalizado' | 'Suspendido',
-    observations: ''
+    agreementDate: '',
+    agreementType: '',
+    position: '',
+    department: '',
+    observations: '',
   });
 
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSelectChange = (name: keyof EmployeeAgreementFormData, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
   useEffect(() => {
-    const loadAgreementData = async () => {
+    const fetchAgreement = async () => {
       try {
-        const agreements = await getEmployeeAgreements();
-        const agreement = agreements.find(a => a.id === agreementId);
-        
+        const agreement = await getEmployeeAgreementById(agreementId);
         if (agreement) {
           setFormData({
             employeeName: agreement.employeeName,
@@ -80,418 +121,462 @@ const EmployeeAgreementEditForm: React.FC<EmployeeAgreementEditFormProps> = ({
             concept3: agreement.concept3,
             activationDate: agreement.activationDate.toISOString().split('T')[0],
             endDate: agreement.endDate ? agreement.endDate.toISOString().split('T')[0] : '',
-            observationsAndCommitment: agreement.observationsAndCommitment,
             jobPosition: agreement.jobPosition,
-            department: agreement.department,
-            agreementType: agreement.agreementType,
             startDate: agreement.startDate.toISOString().split('T')[0],
             salary: agreement.salary,
-            status: agreement.status,
-            observations: agreement.observations
+            agreementDate: agreement.agreementDate.toISOString().split('T')[0],
+            agreementType: agreement.agreementType,
+            position: agreement.position,
+            department: agreement.department || '',
+            observations: agreement.observations || ''
           });
         }
       } catch (error) {
-        console.error('Error loading agreement data:', error);
-        toast({
-          title: 'Error',
-          description: 'No se pudo cargar los datos del acuerdo.',
-          variant: 'destructive',
-        });
+        console.error('Error al obtener el acuerdo:', error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    loadAgreementData();
-  }, [agreementId, toast]);
+    fetchAgreement();
+  }, [agreementId]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!formData.employeeName || !formData.employeeLastName) {
-      toast({
-        title: 'Error de validación',
-        description: 'Por favor, completa todos los campos obligatorios.',
-        variant: 'destructive',
-      });
-      return;
-    }
+  const handleSubmit = async () => {
+    setIsLoading(true);
 
-    setIsSaving(true);
     try {
-      await updateEmployeeAgreement(agreementId, formData);
-      
+      const processedData = {
+        title: `Acuerdo de ${formData.employeeName} ${formData.employeeLastName}`,
+        type: 'Acuerdo de Empleado',
+        priority: 'Media' as 'Alta' | 'Media' | 'Baja',
+        requesterName: formData.employeeName,
+        requesterLastName: formData.employeeLastName,
+        requestDate: new Date(),
+        status: 'Activo' as 'Activo' | 'Finalizado' | 'Suspendido',
+        employeeName: formData.employeeName,
+        employeeLastName: formData.employeeLastName,
+        position: formData.position,
+        department: formData.department,
+        agreementType: formData.agreementType,
+        workCenter: formData.workCenter,
+        city: formData.city,
+        province: formData.province,
+        autonomousCommunity: formData.autonomousCommunity,
+        responsibleName: formData.responsibleName,
+        responsibleLastName: formData.responsibleLastName,
+        agreementConcepts: formData.agreementConcepts,
+        economicAgreement1: formData.economicAgreement1,
+        concept1: formData.concept1,
+        economicAgreement2: formData.economicAgreement2,
+        concept2: formData.concept2,
+        economicAgreement3: formData.economicAgreement3,
+        concept3: formData.concept3,
+        activationDate: new Date(formData.activationDate),
+        endDate: formData.endDate ? new Date(formData.endDate) : undefined,
+        observations: formData.observations,
+        jobPosition: formData.jobPosition,
+        startDate: new Date(formData.startDate),
+        salary: formData.salary,
+        agreementDate: new Date(formData.agreementDate)
+      };
+
+      await updateEmployeeAgreement(agreementId, processedData);
+
       toast({
-        title: 'Acuerdo actualizado',
-        description: 'El acuerdo con el empleado ha sido actualizado exitosamente.',
+        title: "Éxito",
+        description: "Acuerdo actualizado correctamente",
       });
-      
       onSave();
     } catch (error) {
-      console.error('Error updating agreement:', error);
+      console.error('Error al actualizar el acuerdo:', error);
       toast({
-        title: 'Error al actualizar',
-        description: 'No se pudo actualizar el acuerdo con el empleado.',
+        title: "Error",
+        description: "Error al actualizar el acuerdo",
         variant: 'destructive',
       });
     } finally {
-      setIsSaving(false);
+      setIsLoading(false);
     }
   };
 
-  const handleChange = (field: string, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Cargando datos...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
+      <div className="flex items-center space-x-4">
         <Button
           variant="outline"
           onClick={onBack}
-          className="flex items-center gap-2"
+          className="border-blue-300 text-blue-700 hover:bg-blue-50"
         >
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeft className="w-4 h-4 mr-2" />
           Volver
         </Button>
         <h1 className="text-2xl font-semibold text-blue-800 dark:text-blue-200">
-          Editar Acuerdo con Empleado
+          Editar Acuerdo de Empleado
         </h1>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <Card className="border-blue-200 dark:border-blue-800">
-          <CardHeader>
-            <CardTitle className="text-blue-800 dark:text-blue-200">
-              Información del Empleado
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="employeeName">Nombre del Empleado *</Label>
-                <Input
-                  id="employeeName"
-                  value={formData.employeeName}
-                  onChange={(e) => handleChange('employeeName', e.target.value)}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="employeeLastName">Apellidos del Empleado *</Label>
-                <Input
-                  id="employeeLastName"
-                  value={formData.employeeLastName}
-                  onChange={(e) => handleChange('employeeLastName', e.target.value)}
-                  required
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-blue-200 dark:border-blue-800">
-          <CardHeader>
-            <CardTitle className="text-blue-800 dark:text-blue-200">
-              Centro de Trabajo y Ubicación
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+      <Card className="border-blue-200 dark:border-blue-800">
+        <CardHeader>
+          <CardTitle className="text-blue-800 dark:text-blue-200">
+            Información del Empleado
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Employee Information */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <Label htmlFor="workCenter">Centro de Trabajo</Label>
+              <Label htmlFor="employeeName" className="text-gray-700 dark:text-gray-300">
+                Nombre del Empleado
+              </Label>
               <Input
+                type="text"
+                id="employeeName"
+                name="employeeName"
+                value={formData.employeeName}
+                onChange={handleChange}
+                placeholder="Nombre del empleado"
+              />
+            </div>
+            <div>
+              <Label htmlFor="employeeLastName" className="text-gray-700 dark:text-gray-300">
+                Apellidos del Empleado
+              </Label>
+              <Input
+                type="text"
+                id="employeeLastName"
+                name="employeeLastName"
+                value={formData.employeeLastName}
+                onChange={handleChange}
+                placeholder="Apellidos del empleado"
+              />
+            </div>
+          </div>
+
+          {/* Agreement Details */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <Label htmlFor="workCenter" className="text-gray-700 dark:text-gray-300">
+                Centro de Trabajo
+              </Label>
+              <Input
+                type="text"
                 id="workCenter"
+                name="workCenter"
                 value={formData.workCenter}
-                onChange={(e) => handleChange('workCenter', e.target.value)}
+                onChange={handleChange}
+                placeholder="Centro de Trabajo"
               />
             </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <Label htmlFor="city">Ciudad</Label>
-                <Input
-                  id="city"
-                  value={formData.city}
-                  onChange={(e) => handleChange('city', e.target.value)}
-                />
-              </div>
-              <div>
-                <Label htmlFor="province">Provincia</Label>
-                <Input
-                  id="province"
-                  value={formData.province}
-                  onChange={(e) => handleChange('province', e.target.value)}
-                />
-              </div>
-              <div>
-                <Label htmlFor="autonomousCommunity">Comunidad Autónoma</Label>
-                <Input
-                  id="autonomousCommunity"
-                  value={formData.autonomousCommunity}
-                  onChange={(e) => handleChange('autonomousCommunity', e.target.value)}
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-blue-200 dark:border-blue-800">
-          <CardHeader>
-            <CardTitle className="text-blue-800 dark:text-blue-200">
-              Responsable
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="responsibleName">Nombre del Responsable</Label>
-                <Input
-                  id="responsibleName"
-                  value={formData.responsibleName}
-                  onChange={(e) => handleChange('responsibleName', e.target.value)}
-                />
-              </div>
-              <div>
-                <Label htmlFor="responsibleLastName">Apellidos del Responsable</Label>
-                <Input
-                  id="responsibleLastName"
-                  value={formData.responsibleLastName}
-                  onChange={(e) => handleChange('responsibleLastName', e.target.value)}
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-blue-200 dark:border-blue-800">
-          <CardHeader>
-            <CardTitle className="text-blue-800 dark:text-blue-200">
-              Conceptos del Acuerdo
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="agreementConcepts">Conceptos del Acuerdo</Label>
-              <Textarea
-                id="agreementConcepts"
-                value={formData.agreementConcepts}
-                onChange={(e) => handleChange('agreementConcepts', e.target.value)}
-                rows={3}
-              />
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="economicAgreement1">Acuerdo Económico 1</Label>
-                <Input
-                  id="economicAgreement1"
-                  value={formData.economicAgreement1}
-                  onChange={(e) => handleChange('economicAgreement1', e.target.value)}
-                />
-              </div>
-              <div>
-                <Label htmlFor="concept1">Concepto 1</Label>
-                <Input
-                  id="concept1"
-                  value={formData.concept1}
-                  onChange={(e) => handleChange('concept1', e.target.value)}
-                />
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="economicAgreement2">Acuerdo Económico 2</Label>
-                <Input
-                  id="economicAgreement2"
-                  value={formData.economicAgreement2}
-                  onChange={(e) => handleChange('economicAgreement2', e.target.value)}
-                />
-              </div>
-              <div>
-                <Label htmlFor="concept2">Concepto 2</Label>
-                <Input
-                  id="concept2"
-                  value={formData.concept2}
-                  onChange={(e) => handleChange('concept2', e.target.value)}
-                />
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="economicAgreement3">Acuerdo Económico 3</Label>
-                <Input
-                  id="economicAgreement3"
-                  value={formData.economicAgreement3}
-                  onChange={(e) => handleChange('economicAgreement3', e.target.value)}
-                />
-              </div>
-              <div>
-                <Label htmlFor="concept3">Concepto 3</Label>
-                <Input
-                  id="concept3"
-                  value={formData.concept3}
-                  onChange={(e) => handleChange('concept3', e.target.value)}
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-blue-200 dark:border-blue-800">
-          <CardHeader>
-            <CardTitle className="text-blue-800 dark:text-blue-200">
-              Fechas y Estado
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="activationDate">Fecha de Activación</Label>
-                <Input
-                  id="activationDate"
-                  type="date"
-                  value={formData.activationDate}
-                  onChange={(e) => handleChange('activationDate', e.target.value)}
-                />
-              </div>
-              <div>
-                <Label htmlFor="endDate">Fecha de Fin</Label>
-                <Input
-                  id="endDate"
-                  type="date"
-                  value={formData.endDate}
-                  onChange={(e) => handleChange('endDate', e.target.value)}
-                />
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="startDate">Fecha de Inicio</Label>
-                <Input
-                  id="startDate"
-                  type="date"
-                  value={formData.startDate}
-                  onChange={(e) => handleChange('startDate', e.target.value)}
-                />
-              </div>
-              <div>
-                <Label htmlFor="status">Estado</Label>
-                <Select value={formData.status} onValueChange={(value) => handleChange('status', value)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Activo">Activo</SelectItem>
-                    <SelectItem value="Finalizado">Finalizado</SelectItem>
-                    <SelectItem value="Suspendido">Suspendido</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-blue-200 dark:border-blue-800">
-          <CardHeader>
-            <CardTitle className="text-blue-800 dark:text-blue-200">
-              Información Adicional
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <Label htmlFor="jobPosition">Puesto de Trabajo</Label>
-                <Input
-                  id="jobPosition"
-                  value={formData.jobPosition}
-                  onChange={(e) => handleChange('jobPosition', e.target.value)}
-                />
-              </div>
-              <div>
-                <Label htmlFor="department">Departamento</Label>
-                <Input
-                  id="department"
-                  value={formData.department}
-                  onChange={(e) => handleChange('department', e.target.value)}
-                />
-              </div>
-              <div>
-                <Label htmlFor="salary">Salario</Label>
-                <Input
-                  id="salary"
-                  value={formData.salary}
-                  onChange={(e) => handleChange('salary', e.target.value)}
-                />
-              </div>
-            </div>
-            
-            <div>
-              <Label htmlFor="agreementType">Tipo de Acuerdo</Label>
+              <Label htmlFor="city" className="text-gray-700 dark:text-gray-300">
+                Ciudad
+              </Label>
               <Input
-                id="agreementType"
-                value={formData.agreementType}
-                onChange={(e) => handleChange('agreementType', e.target.value)}
+                type="text"
+                id="city"
+                name="city"
+                value={formData.city}
+                onChange={handleChange}
+                placeholder="Ciudad"
               />
             </div>
-            
-            <div>
-              <Label htmlFor="observationsAndCommitment">Observaciones y Compromisos</Label>
-              <Textarea
-                id="observationsAndCommitment"
-                value={formData.observationsAndCommitment}
-                onChange={(e) => handleChange('observationsAndCommitment', e.target.value)}
-                rows={4}
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="observations">Observaciones</Label>
-              <Textarea
-                id="observations"
-                value={formData.observations}
-                onChange={(e) => handleChange('observations', e.target.value)}
-                rows={3}
-              />
-            </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        <div className="flex justify-end space-x-4">
+          {/* Location Details */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+              <Label htmlFor="province" className="text-gray-700 dark:text-gray-300">
+                Provincia
+              </Label>
+              <Input
+                type="text"
+                id="province"
+                name="province"
+                value={formData.province}
+                onChange={handleChange}
+                placeholder="Provincia"
+              />
+            </div>
+            <div>
+              <Label htmlFor="autonomousCommunity" className="text-gray-700 dark:text-gray-300">
+                Comunidad Autónoma
+              </Label>
+              <Input
+                type="text"
+                id="autonomousCommunity"
+                name="autonomousCommunity"
+                value={formData.autonomousCommunity}
+                onChange={handleChange}
+                placeholder="Comunidad Autónoma"
+              />
+            </div>
+             <div>
+              <Label htmlFor="department" className="text-gray-700 dark:text-gray-300">
+                Departamento
+              </Label>
+              <Input
+                type="text"
+                id="department"
+                name="department"
+                value={formData.department}
+                onChange={handleChange}
+                placeholder="Departamento"
+              />
+            </div>
+          </div>
+
+          {/* Responsible Person */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <Label htmlFor="responsibleName" className="text-gray-700 dark:text-gray-300">
+                Nombre del Responsable
+              </Label>
+              <Input
+                type="text"
+                id="responsibleName"
+                name="responsibleName"
+                value={formData.responsibleName}
+                onChange={handleChange}
+                placeholder="Nombre del responsable"
+              />
+            </div>
+            <div>
+              <Label htmlFor="responsibleLastName" className="text-gray-700 dark:text-gray-300">
+                Apellidos del Responsable
+              </Label>
+              <Input
+                type="text"
+                id="responsibleLastName"
+                name="responsibleLastName"
+                value={formData.responsibleLastName}
+                onChange={handleChange}
+                placeholder="Apellidos del responsable"
+              />
+            </div>
+          </div>
+
+          {/* Agreement Concepts */}
+          <div>
+            <Label htmlFor="agreementConcepts" className="text-gray-700 dark:text-gray-300">
+              Conceptos del Acuerdo
+            </Label>
+            <Textarea
+              id="agreementConcepts"
+              name="agreementConcepts"
+              value={formData.agreementConcepts}
+              onChange={handleChange}
+              placeholder="Conceptos del acuerdo"
+              rows={3}
+            />
+          </div>
+
+          {/* Economic Agreements */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+              <Label htmlFor="economicAgreement1" className="text-gray-700 dark:text-gray-300">
+                Acuerdo Económico 1
+              </Label>
+              <Input
+                type="text"
+                id="economicAgreement1"
+                name="economicAgreement1"
+                value={formData.economicAgreement1}
+                onChange={handleChange}
+                placeholder="Acuerdo económico 1"
+              />
+              <Input
+                type="text"
+                id="concept1"
+                name="concept1"
+                value={formData.concept1}
+                onChange={handleChange}
+                placeholder="Concepto 1"
+              />
+            </div>
+            <div>
+              <Label htmlFor="economicAgreement2" className="text-gray-700 dark:text-gray-300">
+                Acuerdo Económico 2
+              </Label>
+              <Input
+                type="text"
+                id="economicAgreement2"
+                name="economicAgreement2"
+                value={formData.economicAgreement2}
+                onChange={handleChange}
+                placeholder="Acuerdo económico 2"
+              />
+              <Input
+                type="text"
+                id="concept2"
+                name="concept2"
+                value={formData.concept2}
+                onChange={handleChange}
+                placeholder="Concepto 2"
+              />
+            </div>
+            <div>
+              <Label htmlFor="economicAgreement3" className="text-gray-700 dark:text-gray-300">
+                Acuerdo Económico 3
+              </Label>
+              <Input
+                type="text"
+                id="economicAgreement3"
+                name="economicAgreement3"
+                value={formData.economicAgreement3}
+                onChange={handleChange}
+                placeholder="Acuerdo económico 3"
+              />
+              <Input
+                type="text"
+                id="concept3"
+                name="concept3"
+                value={formData.concept3}
+                onChange={handleChange}
+                placeholder="Concepto 3"
+              />
+            </div>
+          </div>
+
+          {/* Dates */}
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <Label htmlFor="agreementType" className="text-gray-700 dark:text-gray-300">
+                Tipo de acuerdo
+              </Label>
+              <Input
+                type="text"
+                id="agreementType"
+                name="agreementType"
+                value={formData.agreementType}
+                onChange={handleChange}
+                placeholder="Tipo de acuerdo"
+              />
+            </div>
+            <div>
+              <Label htmlFor="position" className="text-gray-700 dark:text-gray-300">
+                Posición
+              </Label>
+              <Input
+                type="text"
+                id="position"
+                name="position"
+                value={formData.position}
+                onChange={handleChange}
+                placeholder="Posición"
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+              <Label htmlFor="activationDate" className="text-gray-700 dark:text-gray-300">
+                Fecha de Activación
+              </Label>
+              <Input
+                type="date"
+                id="activationDate"
+                name="activationDate"
+                value={formData.activationDate}
+                onChange={handleChange}
+              />
+            </div>
+            <div>
+              <Label htmlFor="endDate" className="text-gray-700 dark:text-gray-300">
+                Fecha de Finalización
+              </Label>
+              <Input
+                type="date"
+                id="endDate"
+                name="endDate"
+                value={formData.endDate}
+                onChange={handleChange}
+              />
+            </div>
+            <div>
+              <Label htmlFor="agreementDate" className="text-gray-700 dark:text-gray-300">
+                Fecha de Acuerdo
+              </Label>
+              <Input
+                type="date"
+                id="agreementDate"
+                name="agreementDate"
+                value={formData.agreementDate}
+                onChange={handleChange}
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+              <Label htmlFor="jobPosition" className="text-gray-700 dark:text-gray-300">
+                Posición de trabajo
+              </Label>
+              <Input
+                type="text"
+                id="jobPosition"
+                name="jobPosition"
+                value={formData.jobPosition}
+                onChange={handleChange}
+              />
+            </div>
+            <div>
+              <Label htmlFor="startDate" className="text-gray-700 dark:text-gray-300">
+                Fecha de inicio
+              </Label>
+              <Input
+                type="date"
+                id="startDate"
+                name="startDate"
+                value={formData.startDate}
+                onChange={handleChange}
+              />
+            </div>
+            <div>
+              <Label htmlFor="salary" className="text-gray-700 dark:text-gray-300">
+                Salario
+              </Label>
+              <Input
+                type="text"
+                id="salary"
+                name="salary"
+                value={formData.salary}
+                onChange={handleChange}
+              />
+            </div>
+          </div>
+
+          {/* Observations */}
+          <div>
+            <Label htmlFor="observations" className="text-gray-700 dark:text-gray-300">
+              Observaciones y compromisos
+            </Label>
+            <Textarea
+              id="observations"
+              name="observations"
+              value={formData.observations}
+              onChange={handleChange}
+              placeholder="Observaciones adicionales"
+              rows={4}
+            />
+          </div>
+
           <Button
-            type="button"
-            variant="outline"
-            onClick={onBack}
-            disabled={isSaving}
-          >
-            Cancelar
-          </Button>
-          <Button
-            type="submit"
-            disabled={isSaving}
+            onClick={handleSubmit}
+            disabled={isLoading}
             className="bg-blue-600 hover:bg-blue-700 text-white"
           >
-            <Save className="w-4 h-4 mr-2" />
-            {isSaving ? 'Guardando...' : 'Guardar Cambios'}
+            {isLoading ? (
+              <>
+                <Save className="w-4 h-4 mr-2 animate-spin" />
+                Guardando...
+              </>
+            ) : (
+              <>
+                <Save className="w-4 h-4 mr-2" />
+                Guardar
+              </>
+            )}
           </Button>
-        </div>
-      </form>
+        </CardContent>
+      </Card>
     </div>
   );
 };

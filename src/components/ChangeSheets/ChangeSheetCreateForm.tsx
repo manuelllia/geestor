@@ -153,7 +153,7 @@ const ChangeSheetCreateForm: React.FC<ChangeSheetCreateFormProps> = ({
         newSupervisorLastName: formData.newSupervisorLastName,
         startDate: formData.startDate ? new Date(formData.startDate) : new Date(),
         changeType: formData.changeType as '' | 'Permanente' | 'Temporal',
-        needs: formData.needs,
+        needs: formData.needs, // This is already string[]
         currentCompany: formData.currentCompany,
         companyChange: formData.companyChange as '' | 'Si' | 'No',
         observations: formData.observations,

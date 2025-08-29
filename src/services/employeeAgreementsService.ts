@@ -1,4 +1,3 @@
-
 import { v4 as uuidv4 } from 'uuid';
 
 export interface EmployeeAgreementRecord {
@@ -13,6 +12,7 @@ export interface EmployeeAgreementRecord {
   employeeName: string;
   employeeLastName: string;
   position: string;
+  department: string; // Added missing property
   agreementType: string;
   workCenter: string;
   city: string;
@@ -29,7 +29,7 @@ export interface EmployeeAgreementRecord {
   concept3: string;
   activationDate: Date;
   endDate?: Date;
-  observationsAndCommitment: string;
+  observations: string; // Added missing property
   jobPosition: string;
   startDate: Date;
   salary: string;
@@ -98,16 +98,17 @@ export const saveEmployeeAgreement = async (values: any): Promise<EmployeeAgreem
   try {
     const newAgreement: EmployeeAgreementRecord = {
       id: uuidv4(),
-      title: values.title || '',
-      type: values.type || '',
+      title: values.title || `Acuerdo de ${values.employeeName} ${values.employeeLastName}`,
+      type: values.type || 'Acuerdo de Empleado',
       priority: values.priority || 'Media',
-      requesterName: values.requesterName,
-      requesterLastName: values.requesterLastName,
+      requesterName: values.requesterName || values.employeeName,
+      requesterLastName: values.requesterLastName || values.employeeLastName,
       requestDate: new Date(),
       status: 'Activo',
       employeeName: values.employeeName,
       employeeLastName: values.employeeLastName,
-      position: values.position,
+      position: values.position || values.jobPosition,
+      department: values.department || '',
       agreementType: values.agreementType,
       workCenter: values.workCenter,
       city: values.city,
@@ -124,7 +125,7 @@ export const saveEmployeeAgreement = async (values: any): Promise<EmployeeAgreem
       concept3: values.concept3,
       activationDate: values.activationDate ? new Date(values.activationDate) : new Date(),
       endDate: values.endDate ? new Date(values.endDate) : undefined,
-      observationsAndCommitment: values.observationsAndCommitment,
+      observations: values.observations || '',
       jobPosition: values.jobPosition,
       startDate: values.startDate ? new Date(values.startDate) : new Date(),
       salary: values.salary,
@@ -233,7 +234,7 @@ export const importEmployeeAgreements = async (agreements: Partial<EmployeeAgree
         concept3: agreement.concept3 || '',
         activationDate: agreement.activationDate ? new Date(agreement.activationDate) : new Date(),
         endDate: agreement.endDate ? new Date(agreement.endDate) : undefined,
-        observationsAndCommitment: agreement.observationsAndCommitment || '',
+        observations: agreement.observations || '',
         jobPosition: agreement.jobPosition || agreement.position || '',
         startDate: agreement.startDate ? new Date(agreement.startDate) : new Date(),
         salary: agreement.salary || '',
