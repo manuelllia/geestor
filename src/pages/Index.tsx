@@ -89,13 +89,7 @@ const Index: React.FC = () => {
       case 'maintenanceCalendar':
         return <MaintenanceCalendarView language={preferences.language} />;
       case 'changeSheets':
-        return (
-          <ChangeSheetsListView 
-            language={preferences.language}
-            onViewDetails={() => {}}
-            onCreateNew={() => {}}
-          />
-        );
+        return <ChangeSheetsListView language={preferences.language} />;
       case 'contractRequests':
         return <ContractRequestsListView language={preferences.language} />;
       case 'employeeAgreements':
