@@ -20,8 +20,7 @@ interface ChangeSheetsListViewProps {
 
 export const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({ language }) => {
   const { t } = useTranslation(language);
-  const [sheets, setSheets] = useState<ChangeSheetRecord[]>([]
-);
+  const [sheets, setSheets] = useState<ChangeSheetRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedSheet, setSelectedSheet] = useState<ChangeSheetRecord | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -184,7 +183,7 @@ export const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({ lang
   return (
     <div className="w-full bg-gray-50 dark:bg-gray-900 min-h-screen">
       <div className="w-full p-2 sm:p-4 md:p-6 space-y-4 sm:space-y-6 max-w-7xl mx-auto">
-        {/* Header responsive */}
+        {/* Header responsivo */}
         <div className="flex flex-col space-y-4">
           <div>
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-blue-900 dark:text-blue-100">
@@ -195,12 +194,12 @@ export const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({ lang
             </p>
           </div>
           
-          {/* Botones responsivos */}
-          <div className="flex flex-col sm:flex-row gap-3">
+          {/* Botones responsivos - Usando flex-wrap para que se ajusten mejor */}
+          <div className="flex flex-wrap gap-3">
             <Button
               onClick={handleRefresh}
               variant="outline"
-              className="border-blue-300 text-blue-700 hover:bg-blue-50 text-sm w-full sm:w-auto"
+              className="border-blue-300 text-blue-700 hover:bg-blue-50 text-sm flex-grow sm:flex-grow-0"
               disabled={refreshing}
               size="sm"
             >
@@ -211,7 +210,7 @@ export const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({ lang
             <Button
               onClick={() => setShowImportModal(true)}
               variant="outline"
-              className="border-green-300 text-green-700 hover:bg-green-50 text-sm w-full sm:w-auto"
+              className="border-green-300 text-green-700 hover:bg-green-50 text-sm flex-grow sm:flex-grow-0"
               size="sm"
             >
               <Upload className="w-4 h-4 mr-2 flex-shrink-0" />
@@ -220,7 +219,7 @@ export const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({ lang
             
             <Button
               onClick={() => setShowCreateForm(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white text-sm w-full sm:w-auto"
+              className="bg-blue-600 hover:bg-blue-700 text-white text-sm flex-grow sm:flex-grow-0"
               size="sm"
             >
               <Plus className="w-4 h-4 mr-2 flex-shrink-0" />
@@ -252,7 +251,7 @@ export const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({ lang
 
             {/* Contenedor con scroll horizontal para tabla */}
             <div className="w-full overflow-x-auto">
-              <div className="min-w-[900px] w-full">
+              <div className="min-w-[950px] w-full"> {/* Aumentado min-w para asegurar espacio */}
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -269,15 +268,15 @@ export const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({ lang
                     {currentItems.map((sheet) => (
                       <TableRow key={sheet.id}>
                         <TableCell className="font-medium px-2 sm:px-4 text-xs sm:text-sm">
-                          <div className="truncate">
+                          <div className="truncate max-w-[140px]"> {/* Añadido max-w y truncate */}
                             {sheet.employeeName} {sheet.employeeLastName}
                           </div>
                         </TableCell>
                         <TableCell className="px-2 sm:px-4 text-xs sm:text-sm">
-                          <div className="truncate">{sheet.currentCompany || '-'}</div>
+                          <div className="truncate max-w-[110px]">{sheet.currentCompany || '-'}</div> {/* Añadido max-w y truncate */}
                         </TableCell>
                         <TableCell className="px-2 sm:px-4 text-xs sm:text-sm">
-                          <div className="truncate">{sheet.changeType}</div>
+                          <div className="truncate max-w-[90px]">{sheet.changeType}</div> {/* Añadido max-w y truncate */}
                         </TableCell>
                         <TableCell className="px-2 sm:px-4 text-xs sm:text-sm">
                           <Badge variant="secondary" className="text-xs">
@@ -288,7 +287,7 @@ export const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({ lang
                           {sheet.startDate ? new Date(sheet.startDate).toLocaleDateString() : '-'}
                         </TableCell>
                         <TableCell className="px-2 sm:px-4 text-xs sm:text-sm">
-                          <div className="truncate">{sheet.originCenter || '-'}</div>
+                          <div className="truncate max-w-[110px]">{sheet.originCenter || '-'}</div> {/* Añadido max-w y truncate */}
                         </TableCell>
                         <TableCell className="px-2 sm:px-4">
                           <div className="flex justify-center">
