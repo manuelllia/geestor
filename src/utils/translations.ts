@@ -278,6 +278,33 @@ export interface Translations {
   finalEvaluation: string;
   evaluationDate: string;
   performanceRating: string;
+  
+  // Real Estate - Missing translations
+  errorLoadingWorkCenters: string;
+  addWorkerError: string;
+  specifyCustomCompanyError: string;
+  propertyAddedSuccess: string;
+  errorAddingProperty: string;
+  addActivePropertyTitle: string;
+  activePropertyInfoTitle: string;
+  idLabel: string;
+  numRoomsLabel: string;
+  workersLabel: string;
+  addWorkerButton: string;
+  workerNamePlaceholder: string;
+  dniPlaceholder: string;
+  removeWorkerButton: string;
+  geeCompanyLabel: string;
+  selectCompanyPlaceholder: string;
+  otherCompanyOption: string;
+  specifyCompanyPlaceholder: string;
+  propertyStatusLabel: string;
+  occupiedStatus: string;
+  emptyStatus: string;
+  
+  // Practice Evaluations - Missing translations  
+  practice_evaluations: string;
+  refresh: string;
 }
 
 export const translations: { [key in Language]: Translations } = {
@@ -558,6 +585,33 @@ export const translations: { [key in Language]: Translations } = {
     finalEvaluation: 'Evaluación Final',
     evaluationDate: 'Fecha de Evaluación',
     performanceRating: 'Calificación de Rendimiento',
+    
+    // Real Estate - Missing translations
+    errorLoadingWorkCenters: 'Error al cargar centros de trabajo',
+    addWorkerError: 'Error al agregar trabajador',
+    specifyCustomCompanyError: 'Especifica el nombre de la empresa personalizada',
+    propertyAddedSuccess: 'Propiedad agregada exitosamente',
+    errorAddingProperty: 'Error al agregar la propiedad',
+    addActivePropertyTitle: 'Agregar Propiedad Activa',
+    activePropertyInfoTitle: 'Información de la Propiedad Activa',
+    idLabel: 'ID',
+    numRoomsLabel: 'Número de Habitaciones',
+    workersLabel: 'Trabajadores',
+    addWorkerButton: 'Agregar Trabajador',
+    workerNamePlaceholder: 'Nombre del trabajador',
+    dniPlaceholder: 'DNI',
+    removeWorkerButton: 'Eliminar Trabajador',
+    geeCompanyLabel: 'Empresa GEE',
+    selectCompanyPlaceholder: 'Seleccionar empresa',
+    otherCompanyOption: 'Otra empresa',
+    specifyCompanyPlaceholder: 'Especificar empresa',
+    propertyStatusLabel: 'Estado de la Propiedad',
+    occupiedStatus: 'Ocupada',
+    emptyStatus: 'Vacía',
+    
+    // Practice Evaluations - Missing translations  
+    practice_evaluations: 'Evaluaciones de Prácticas',
+    refresh: 'Actualizar',
   },
   en: {
     showingRecords: 'Showing {{start}} to {{end}} of {{total}} records',
@@ -836,6 +890,33 @@ export const translations: { [key in Language]: Translations } = {
     finalEvaluation: 'Final Evaluation',
     evaluationDate: 'Evaluation Date',
     performanceRating: 'Performance Rating',
+    
+    // Real Estate - Missing translations
+    errorLoadingWorkCenters: 'Error loading work centers',
+    addWorkerError: 'Error adding worker',
+    specifyCustomCompanyError: 'Specify the custom company name',
+    propertyAddedSuccess: 'Property added successfully',
+    errorAddingProperty: 'Error adding property',
+    addActivePropertyTitle: 'Add Active Property',
+    activePropertyInfoTitle: 'Active Property Information',
+    idLabel: 'ID',
+    numRoomsLabel: 'Number of Rooms',
+    workersLabel: 'Workers',
+    addWorkerButton: 'Add Worker',
+    workerNamePlaceholder: 'Worker name',
+    dniPlaceholder: 'DNI',
+    removeWorkerButton: 'Remove Worker',
+    geeCompanyLabel: 'GEE Company',
+    selectCompanyPlaceholder: 'Select company',
+    otherCompanyOption: 'Other company',
+    specifyCompanyPlaceholder: 'Specify company',
+    propertyStatusLabel: 'Property Status',
+    occupiedStatus: 'Occupied',
+    emptyStatus: 'Empty',
+    
+    // Practice Evaluations - Missing translations  
+    practice_evaluations: 'Practice Evaluations',
+    refresh: 'Refresh',
   }
 };
 

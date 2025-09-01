@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -46,6 +47,12 @@ interface FormData {
   endDate: string;
   status: string;
   observations: string;
+  // Add missing required fields
+  agreementType: string;
+  department: string;
+  salary: string;
+  jobPosition: string;
+  observationsAndCommitment: string;
 }
 
 const EmployeeAgreementCreateForm: React.FC<EmployeeAgreementCreateFormProps> = ({ 
@@ -78,6 +85,12 @@ const EmployeeAgreementCreateForm: React.FC<EmployeeAgreementCreateFormProps> = 
     endDate: '',
     status: 'Activo',
     observations: '',
+    // Initialize missing required fields
+    agreementType: 'Contrato Indefinido',
+    department: '',
+    salary: '',
+    jobPosition: '',
+    observationsAndCommitment: '',
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -131,11 +144,17 @@ const EmployeeAgreementCreateForm: React.FC<EmployeeAgreementCreateFormProps> = 
         startDate: formData.startDate,
         endDate: formData.endDate,
         activationDate: formData.activationDate,
-        // Add required fields with default values
+        // Add required fields with values from form
         description: formData.observations || '',
         terms: formData.agreementConcepts || '',
         supervisor: `${formData.responsibleName} ${formData.responsibleLastName}`,
         benefits: `${formData.concept1}, ${formData.concept2}, ${formData.concept3}`.replace(/^, |, $/g, ''),
+        // Include the missing required fields
+        agreementType: formData.agreementType,
+        department: formData.department,
+        salary: formData.salary,
+        jobPosition: formData.jobPosition,
+        observationsAndCommitment: formData.observationsAndCommitment,
       };
 
       const createdRecord = await createEmployeeAgreement(agreementData);
@@ -213,6 +232,38 @@ const EmployeeAgreementCreateForm: React.FC<EmployeeAgreementCreateFormProps> = 
                 </div>
               </div>
 
+              {/* Job Information */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="jobPosition" className="text-sm">
+                    {t('position')}:
+                  </Label>
+                  <Input
+                    type="text"
+                    id="jobPosition"
+                    name="jobPosition"
+                    value={formData.jobPosition}
+                    onChange={handleInputChange}
+                    className="text-sm"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="department" className="text-sm">
+                    {t('department')}:
+                  </Label>
+                  <Input
+                    type="text"
+                    id="department"
+                    name="department"
+                    value={formData.department}
+                    onChange={handleInputChange}
+                    className="text-sm"
+                    required
+                  />
+                </div>
+              </div>
+
               {/* Work Center and Location */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
@@ -270,6 +321,40 @@ const EmployeeAgreementCreateForm: React.FC<EmployeeAgreementCreateFormProps> = 
                     id="autonomousCommunity"
                     name="autonomousCommunity"
                     value={formData.autonomousCommunity}
+                    onChange={handleInputChange}
+                    className="text-sm"
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Agreement Type and Salary */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="agreementType" className="text-sm">
+                    {t('agreementType')}:
+                  </Label>
+                  <Select onValueChange={(value) => handleSelectChange('agreementType', value)}>
+                    <SelectTrigger className="w-full text-sm">
+                      <SelectValue placeholder="Seleccionar tipo de acuerdo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Contrato Indefinido" className="text-sm">Contrato Indefinido</SelectItem>
+                      <SelectItem value="Contrato Temporal" className="text-sm">Contrato Temporal</SelectItem>
+                      <SelectItem value="Contrato de Prácticas" className="text-sm">Contrato de Prácticas</SelectItem>
+                      <SelectItem value="Contrato de Formación" className="text-sm">Contrato de Formación</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="salary" className="text-sm">
+                    {t('salary')}:
+                  </Label>
+                  <Input
+                    type="number"
+                    id="salary"
+                    name="salary"
+                    value={formData.salary}
                     onChange={handleInputChange}
                     className="text-sm"
                     required
@@ -514,12 +599,26 @@ const EmployeeAgreementCreateForm: React.FC<EmployeeAgreementCreateFormProps> = 
               {/* Observations */}
               <div>
                 <Label htmlFor="observations" className="text-sm">
-                  Observaciones:
+                  {t('observations')}:
                 </Label>
                 <Textarea
                   id="observations"
                   name="observations"
                   value={formData.observations}
+                  onChange={handleInputChange}
+                  className="text-sm"
+                />
+              </div>
+
+              {/* Observations and Commitment */}
+              <div>
+                <Label htmlFor="observationsAndCommitment" className="text-sm">
+                  Observaciones y Compromisos:
+                </Label>
+                <Textarea
+                  id="observationsAndCommitment"
+                  name="observationsAndCommitment"
+                  value={formData.observationsAndCommitment}
                   onChange={handleInputChange}
                   className="text-sm"
                 />
@@ -533,7 +632,7 @@ const EmployeeAgreementCreateForm: React.FC<EmployeeAgreementCreateFormProps> = 
                   disabled={isSubmitting}
                   className="text-sm"
                 >
-                  Cancelar
+                  {t('cancel')}
                 </Button>
                 <Button
                   type="submit"
