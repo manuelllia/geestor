@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Language } from '../../utils/translations';
 import { useTranslation } from '../../hooks/useTranslation';
 import { getPracticeEvaluations, deletePracticeEvaluation, exportPracticeEvaluationsToCSV, PracticeEvaluationRecord } from '../../services/practiceEvaluationService';
-import PracticeEvaluationDetailView from './PracticeEvaluationDetailView';
+import PracticeEvaluationDetailWrapper from './PracticeEvaluationDetailWrapper';
 import { toast } from 'sonner';
 
 interface PracticeEvaluationsListViewProps {
@@ -143,7 +143,7 @@ export const PracticeEvaluationsListView: React.FC<PracticeEvaluationsListViewPr
 
   if (showDetailView && selectedEvaluation) {
     return (
-      <PracticeEvaluationDetailView
+      <PracticeEvaluationDetailWrapper
         evaluation={selectedEvaluation}
         language={language}
         onBack={() => {
