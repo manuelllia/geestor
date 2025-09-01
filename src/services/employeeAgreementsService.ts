@@ -1,3 +1,4 @@
+
 import { v4 as uuidv4 } from 'uuid';
 
 // Mock data (replace with actual API calls later)
@@ -13,11 +14,11 @@ let mockEmployeeAgreements: EmployeeAgreementRecord[] = [
     responsibleName: 'Jane',
     responsibleLastName: 'Smith',
     agreementConcepts: 'Salary, Bonus',
-    economicAgreement1: 50000,
+    economicAgreement1: '50000',
     concept1: 'Salary',
-    economicAgreement2: 5000,
+    economicAgreement2: '5000',
     concept2: 'Bonus',
-    economicAgreement3: 0,
+    economicAgreement3: '0',
     concept3: '',
     activationDate: new Date('2023-01-01'),
     startDate: new Date('2023-01-01'),
@@ -30,6 +31,11 @@ let mockEmployeeAgreements: EmployeeAgreementRecord[] = [
     terms: 'Sample terms',
     supervisor: 'Sample supervisor',
     benefits: 'Sample benefits',
+    observationsAndCommitment: 'Sample commitment',
+    jobPosition: 'Developer',
+    department: 'IT',
+    agreementType: 'Full-time',
+    salary: '50000',
   },
   {
     id: 'ea_2',
@@ -42,11 +48,11 @@ let mockEmployeeAgreements: EmployeeAgreementRecord[] = [
     responsibleName: 'Bob',
     responsibleLastName: 'Williams',
     agreementConcepts: 'Salary, Health Insurance',
-    economicAgreement1: 60000,
+    economicAgreement1: '60000',
     concept1: 'Salary',
-    economicAgreement2: 10000,
+    economicAgreement2: '10000',
     concept2: 'Health Insurance',
-    economicAgreement3: 0,
+    economicAgreement3: '0',
     concept3: '',
     activationDate: new Date('2023-02-01'),
     startDate: new Date('2023-02-01'),
@@ -59,6 +65,11 @@ let mockEmployeeAgreements: EmployeeAgreementRecord[] = [
     terms: 'Another sample terms',
     supervisor: 'Another sample supervisor',
     benefits: 'Another sample benefits',
+    observationsAndCommitment: 'Another commitment',
+    jobPosition: 'Manager',
+    department: 'Sales',
+    agreementType: 'Full-time',
+    salary: '60000',
   },
 ];
 
@@ -73,11 +84,11 @@ export interface EmployeeAgreementRecord {
   responsibleName: string;
   responsibleLastName: string;
   agreementConcepts: string;
-  economicAgreement1: number;
+  economicAgreement1: string;
   concept1: string;
-  economicAgreement2: number;
+  economicAgreement2: string;
   concept2: string;
-  economicAgreement3: number;
+  economicAgreement3: string;
   concept3: string;
   activationDate: Date;
   startDate: Date;
@@ -86,12 +97,15 @@ export interface EmployeeAgreementRecord {
   observations: string;
   createdAt: Date;
   updatedAt: Date;
-  
-  // Required fields that were missing
   description: string;
   terms: string;
   supervisor: string;
   benefits: string;
+  observationsAndCommitment: string;
+  jobPosition: string;
+  department: string;
+  agreementType: string;
+  salary: string;
 }
 
 // Helper function to simulate network delay
@@ -122,11 +136,16 @@ export const createEmployeeAgreement = async (
     activationDate: data.activationDate ? new Date(data.activationDate) : new Date(),
     createdAt: new Date(),
     updatedAt: new Date(),
-    // Add default values for required fields
+    // Ensure all required fields have values
     description: data.description || '',
     terms: data.terms || '',
     supervisor: data.supervisor || '',
     benefits: data.benefits || '',
+    observationsAndCommitment: data.observationsAndCommitment || '',
+    jobPosition: data.jobPosition || '',
+    department: data.department || '',
+    agreementType: data.agreementType || '',
+    salary: data.salary || '',
   };
 
   mockEmployeeAgreements.push(newRecord);
