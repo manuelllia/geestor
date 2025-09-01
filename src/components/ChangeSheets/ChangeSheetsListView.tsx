@@ -1,435 +1,316 @@
-
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { MoreHorizontal, Eye, Copy, Edit, Trash, FileText, Plus, Upload, RefreshCw, Download } from 'lucide-react';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Language } from '../../utils/translations';
+import { Badge } from '@/components/ui/badge';
+import { Plus, Search, Filter, Eye, Edit, Trash2, Download } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { ChangeSheetRecord, getChangeSheets, deleteChangeSheet, exportChangeSheetsToCSV } from '../../services/changeSheetsService';
 import { useTranslation } from '../../hooks/useTranslation';
-import { getChangeSheets, deleteChangeSheet, duplicateChangeSheet, exportChangeSheetsToCSV, ChangeSheetRecord } from '../../services/changeSheetsService';
-import ChangeSheetCreateForm from './ChangeSheetCreateForm';
-import ChangeSheetDetailView from './ChangeSheetDetailView';
-import ImportChangeSheetsModal from './ImportChangeSheetsModal';
-import { toast } from 'sonner';
+import { Language } from '../../utils/translations';
 
 interface ChangeSheetsListViewProps {
   language: Language;
+  onCreateNew: () => void;
+  onEdit: (id: string) => void;
+  onView: (id: string) => void;
+  onImport: () => void;
 }
 
-export const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({ language }) => {
+const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({
+  language,
+  onCreateNew,
+  onEdit,
+  onView,
+  onImport
+}) => {
+  const { toast } = useToast();
   const { t } = useTranslation(language);
-  const [sheets, setSheets] = useState<ChangeSheetRecord[]>([]);
+  const [changeSheets, setChangeSheets] = useState<ChangeSheetRecord[]>([]);
+  const [filteredChangeSheets, setFilteredChangeSheets] = useState<ChangeSheetRecord[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedSheet, setSelectedSheet] = useState<ChangeSheetRecord | null>(null);
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [showDetailView, setShowDetailView] = useState(false);
-  const [showImportModal, setShowImportModal] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [sheetToDelete, setSheetToDelete] = useState<ChangeSheetRecord | null>(null);
-  const [refreshing, setRefreshing] = useState(false);
-  const [exporting, setExporting] = useState(false);
-
-  // Estados para paginación
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(30);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => {
-    loadSheets();
+    loadChangeSheets();
   }, []);
 
-  const loadSheets = async () => {
+  useEffect(() => {
+    filterChangeSheets();
+  }, [changeSheets, searchTerm, statusFilter]);
+
+  const loadChangeSheets = async () => {
     try {
       setLoading(true);
-      const sheetsData = await getChangeSheets();
-      setSheets(sheetsData);
+      const data = await getChangeSheets();
+      setChangeSheets(data);
     } catch (error) {
       console.error('Error loading change sheets:', error);
-      toast.error('Error al cargar las hojas de cambio');
+      toast({
+        title: 'Error',
+        description: 'No se pudieron cargar las hojas de cambio.',
+        variant: 'destructive',
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    await loadSheets();
-    setRefreshing(false);
-  };
-
   const handleExportCSV = async () => {
     try {
-      setExporting(true);
-      toast.info(t.exporting_data);
+      setIsExporting(true);
+      toast({
+        title: t('exporting_data'),
+      });
       await exportChangeSheetsToCSV();
-      toast.success(t.export_successful);
+      toast({
+        title: t('export_successful'),
+      });
     } catch (error) {
-      console.error('Error exporting change sheets:', error);
-      toast.error(t.export_failed);
+      toast({
+        title: t('export_failed'),
+        variant: 'destructive',
+      });
     } finally {
-      setExporting(false);
+      setIsExporting(false);
     }
   };
 
-  const handleViewSheet = (sheet: ChangeSheetRecord) => {
-    setSelectedSheet(sheet);
-    setShowDetailView(true);
-  };
+  const filterChangeSheets = () => {
+    let filtered = changeSheets;
 
-  const handleDuplicateSheet = async (sheet: ChangeSheetRecord) => {
-    try {
-      await duplicateChangeSheet(sheet.id);
-      await loadSheets();
-      toast.success('Hoja de cambio duplicada correctamente');
-    } catch (error) {
-      console.error('Error duplicating sheet:', error);
-      toast.error('Error al duplicar la hoja de cambio');
+    if (searchTerm) {
+      filtered = filtered.filter(sheet =>
+        sheet.employeeName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        sheet.employeeLastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        sheet.currentCompany.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        sheet.changeType.toLowerCase().includes(searchTerm.toLowerCase())
+      );
     }
-  };
 
-  const handleDeleteSheet = (sheet: ChangeSheetRecord) => {
-    setSheetToDelete(sheet);
-    setDeleteDialogOpen(true);
-  };
-
-  const confirmDelete = async () => {
-    if (!sheetToDelete) return;
-
-    try {
-      await deleteChangeSheet(sheetToDelete.id);
-      await loadSheets();
-      toast.success('Hoja de cambio eliminada correctamente');
-    } catch (error) {
-      console.error('Error deleting sheet:', error);
-      toast.error('Error al eliminar la hoja de cambio');
-    } finally {
-      setDeleteDialogOpen(false);
-      setSheetToDelete(null);
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(sheet => sheet.status === statusFilter);
     }
+
+    setFilteredChangeSheets(filtered);
   };
 
-  const handleSheetCreated = () => {
-    setShowCreateForm(false);
-    loadSheets();
-  };
-
-  const handleImportSuccess = () => {
-    setShowImportModal(false);
-    loadSheets();
-  };
-
-  // Cálculos de paginación
-  const totalItems = sheets.length;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentItems = sheets.slice(startIndex, endIndex);
-
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-  };
-
-  const getPageNumbers = () => {
-    const pages = [];
-    const maxVisiblePages = 5;
-    
-    if (totalPages <= maxVisiblePages) {
-      for (let i = 1; i <= totalPages; i++) {
-        pages.push(i);
-      }
-    } else {
-      if (currentPage <= 3) {
-        for (let i = 1; i <= 4; i++) {
-          pages.push(i);
-        }
-        pages.push('...');
-        pages.push(totalPages);
-      } else if (currentPage >= totalPages - 2) {
-        pages.push(1);
-        pages.push('...');
-        for (let i = totalPages - 3; i <= totalPages; i++) {
-          pages.push(i);
-        }
-      } else {
-        pages.push(1);
-        pages.push('...');
-        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
-          pages.push(i);
-        }
-        pages.push('...');
-        pages.push(totalPages);
+  const handleDelete = async (id: string) => {
+    if (window.confirm('¿Estás seguro de que deseas eliminar esta hoja de cambio?')) {
+      try {
+        await deleteChangeSheet(id);
+        toast({
+          title: 'Hoja de cambio eliminada',
+          description: 'La hoja de cambio ha sido eliminada correctamente.',
+        });
+        loadChangeSheets();
+      } catch (error) {
+        console.error('Error deleting change sheet:', error);
+        toast({
+          title: 'Error',
+          description: 'No se pudo eliminar la hoja de cambio.',
+          variant: 'destructive',
+        });
       }
     }
-    
-    return pages;
   };
 
-  if (showCreateForm) {
+  if (loading) {
     return (
-      <ChangeSheetCreateForm
-        language={language}
-        onBack={() => setShowCreateForm(false)}
-        onSave={handleSheetCreated}
-      />
-    );
-  }
-
-  if (showDetailView && selectedSheet) {
-    return (
-      <ChangeSheetDetailView
-        sheetId={selectedSheet.id}
-        language={language}
-        onBack={() => {
-          setShowDetailView(false);
-          setSelectedSheet(null);
-        }}
-        onDelete={() => {
-          if (selectedSheet) {
-            handleDeleteSheet(selectedSheet);
-            setShowDetailView(false);
-            setSelectedSheet(null);
-          }
-        }}
-      />
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Cargando hojas de cambio...</p>
+        </div>
+      </div>
     );
   }
 
   return (
-    <div className="w-full bg-gray-50 dark:bg-gray-900 min-h-screen">
-      <div className="w-full p-2 sm:p-4 md:p-6 space-y-4 sm:space-y-6 max-w-7xl mx-auto">
-        {/* Header responsivo */}
-        <div className="flex flex-col space-y-4">
-          <div>
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-blue-900 dark:text-blue-100">
-              Hojas de Cambio
-            </h1>
-            <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 mt-1">
-              Gestiona las hojas de cambio del sistema
-            </p>
-          </div>
-          
-          {/* Botones responsivos - Agregando botón de exportación CSV */}
-          <div className="flex flex-wrap gap-3">
-            <Button
-              onClick={handleRefresh}
-              variant="outline"
-              className="border-blue-300 text-blue-700 hover:bg-blue-50 text-sm flex-grow sm:flex-grow-0"
-              disabled={refreshing}
-              size="sm"
-            >
-              <RefreshCw className={`w-4 h-4 mr-2 flex-shrink-0 ${refreshing ? 'animate-spin' : ''}`} />
-              <span>Actualizar</span>
-            </Button>
-            
-            <Button
-              onClick={handleExportCSV}
-              variant="outline"
-              className="border-green-300 text-green-700 hover:bg-green-50 text-sm flex-grow sm:flex-grow-0"
-              disabled={exporting || sheets.length === 0}
-              size="sm"
-            >
-              <Download className={`w-4 h-4 mr-2 flex-shrink-0 ${exporting ? 'animate-pulse' : ''}`} />
-              <span>{t.export_csv}</span>
-            </Button>
-            
-            <Button
-              onClick={() => setShowImportModal(true)}
-              variant="outline"
-              className="border-green-300 text-green-700 hover:bg-green-50 text-sm flex-grow sm:flex-grow-0"
-              size="sm"
-            >
-              <Upload className="w-4 h-4 mr-2 flex-shrink-0" />
-              <span>Importar</span>
-            </Button>
-            
-            <Button
-              onClick={() => setShowCreateForm(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white text-sm flex-grow sm:flex-grow-0"
-              size="sm"
-            >
-              <Plus className="w-4 h-4 mr-2 flex-shrink-0" />
-              <span>Nueva Hoja</span>
-            </Button>
-          </div>
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold text-blue-800 dark:text-blue-200">
+            Hojas de Cambio
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">
+            Gestiona las hojas de cambio de empleados
+          </p>
         </div>
-
-        {/* Card con tabla responsive */}
-        <Card className="border-blue-200 dark:border-blue-800 overflow-hidden">
-          <CardHeader className="p-3 sm:p-4 lg:p-6">
-            <CardTitle className="text-base sm:text-lg text-blue-800 dark:text-blue-200 flex items-center justify-between flex-wrap gap-2">
-              <span className="flex items-center gap-2">
-                <FileText className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
-                <span>Lista de Hojas de Cambio</span>
-              </span>
-              <Badge variant="secondary" className="text-xs sm:text-sm">
-                {sheets.length} hojas
-              </Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            {/* Información de paginación */}
-            <div className="px-3 sm:px-6 pb-3">
-              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                Mostrando del {startIndex + 1} al {Math.min(endIndex, totalItems)} de {totalItems} hojas
-              </p>
-            </div>
-
-            {/* Contenedor con scroll horizontal para tabla */}
-            <div className="w-full overflow-x-auto">
-              <div className="min-w-[950px] w-full"> {/* Aumentado min-w para asegurar espacio */}
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="min-w-[150px] px-2 sm:px-4 text-xs sm:text-sm">Empleado</TableHead>
-                      <TableHead className="min-w-[120px] px-2 sm:px-4 text-xs sm:text-sm">Empresa Actual</TableHead>
-                      <TableHead className="min-w-[100px] px-2 sm:px-4 text-xs sm:text-sm">Tipo</TableHead>
-                      <TableHead className="min-w-[120px] px-2 sm:px-4 text-xs sm:text-sm">Estado</TableHead>
-                      <TableHead className="min-w-[120px] px-2 sm:px-4 text-xs sm:text-sm">Fecha Inicio</TableHead>
-                      <TableHead className="min-w-[120px] px-2 sm:px-4 text-xs sm:text-sm">Centro Origen</TableHead>
-                      <TableHead className="w-[80px] px-2 sm:px-4 text-xs sm:text-sm text-center">Acciones</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {currentItems.map((sheet) => (
-                      <TableRow key={sheet.id}>
-                        <TableCell className="font-medium px-2 sm:px-4 text-xs sm:text-sm">
-                          <div className="truncate max-w-[140px]"> {/* Añadido max-w y truncate */}
-                            {sheet.employeeName} {sheet.employeeLastName}
-                          </div>
-                        </TableCell>
-                        <TableCell className="px-2 sm:px-4 text-xs sm:text-sm">
-                          <div className="truncate max-w-[110px]">{sheet.currentCompany || '-'}</div> {/* Añadido max-w y truncate */}
-                        </TableCell>
-                        <TableCell className="px-2 sm:px-4 text-xs sm:text-sm">
-                          <div className="truncate max-w-[90px]">{sheet.changeType}</div> {/* Añadido max-w y truncate */}
-                        </TableCell>
-                        <TableCell className="px-2 sm:px-4 text-xs sm:text-sm">
-                          <Badge variant="secondary" className="text-xs">
-                            {sheet.status || 'Pendiente'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="px-2 sm:px-4 text-xs sm:text-sm">
-                          {sheet.startDate ? new Date(sheet.startDate).toLocaleDateString() : '-'}
-                        </TableCell>
-                        <TableCell className="px-2 sm:px-4 text-xs sm:text-sm">
-                          <div className="truncate max-w-[110px]">{sheet.originCenter || '-'}</div> {/* Añadido max-w y truncate */}
-                        </TableCell>
-                        <TableCell className="px-2 sm:px-4">
-                          <div className="flex justify-center">
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="h-8 w-8 p-0">
-                                  <MoreHorizontal className="h-4 w-4 flex-shrink-0" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="bg-white dark:bg-gray-800 border border-blue-200 dark:border-blue-700">
-                                <DropdownMenuItem onClick={() => handleViewSheet(sheet)} className="cursor-pointer text-xs sm:text-sm">
-                                  <Eye className="mr-2 h-4 w-4 flex-shrink-0" />
-                                  <span>Ver detalles</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleDuplicateSheet(sheet)} className="cursor-pointer text-xs sm:text-sm">
-                                  <Copy className="mr-2 h-4 w-4 flex-shrink-0" />
-                                  <span>Duplicar</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleDeleteSheet(sheet)} className="cursor-pointer text-red-600 text-xs sm:text-sm">
-                                  <Trash className="mr-2 h-4 w-4 flex-shrink-0" />
-                                  <span>Eliminar</span>
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </div>
-
-            {/* Indicador de scroll en móvil */}
-            <div className="sm:hidden p-4 text-center">
-              <p className="text-xs text-gray-500">
-                ← Desliza horizontalmente para ver más columnas →
-              </p>
-            </div>
-
-            {/* Paginación responsive */}
-            {totalPages > 1 && (
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-3 sm:p-4 border-t">
-                <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                  <span>Página {currentPage} de {totalPages}</span>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handlePageChange(currentPage - 1)}
-                    disabled={currentPage === 1}
-                    className="text-xs sm:text-sm px-2 sm:px-3"
-                  >
-                    Anterior
-                  </Button>
-                  
-                  <div className="flex items-center gap-1">
-                    {getPageNumbers().map((page, index) => (
-                      <Button
-                        key={index}
-                        variant={page === currentPage ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => typeof page === 'number' ? handlePageChange(page) : undefined}
-                        disabled={page === '...'}
-                        className="min-w-[32px] text-xs sm:text-sm px-2"
-                      >
-                        {page}
-                      </Button>
-                    ))}
-                  </div>
-                  
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handlePageChange(currentPage + 1)}
-                    disabled={currentPage === totalPages}
-                    className="text-xs sm:text-sm px-2 sm:px-3"
-                  >
-                    Siguiente
-                  </Button>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Modal de confirmación para eliminar */}
-        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-              <AlertDialogDescription>
-                Esta acción no se puede deshacer. Se eliminará permanentemente la hoja de cambio.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-              <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">
-                Eliminar
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-
-        {/* Modal de importación */}
-        {showImportModal && (
-          <ImportChangeSheetsModal
-            open={showImportModal}
-            onClose={() => setShowImportModal(false)}
-            onImportSuccess={handleImportSuccess}
-          />
-        )}
+        
+        <div className="flex flex-wrap gap-2">
+          <Button
+            onClick={onImport}
+            variant="outline"
+            className="flex items-center gap-2"
+          >
+            <Download className="w-4 h-4" />
+            Importar
+          </Button>
+          <Button
+            onClick={handleExportCSV}
+            variant="outline"
+            disabled={isExporting}
+            className="flex items-center gap-2"
+          >
+            <Download className="w-4 h-4" />
+            {isExporting ? 'Exportando...' : t('export_csv')}
+          </Button>
+          <Button
+            onClick={onCreateNew}
+            className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            Nueva Hoja de Cambio
+          </Button>
+        </div>
       </div>
+
+      <Card className="border-blue-200 dark:border-blue-800">
+        <CardHeader>
+          <CardTitle className="text-blue-800 dark:text-blue-200">
+            Filtros de Búsqueda
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Input
+                  placeholder="Buscar por empleado, empresa o tipo de cambio..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+            <div className="sm:w-48">
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger>
+                  <Filter className="w-4 h-4 mr-2" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos los estados</SelectItem>
+                  <SelectItem value="Pendiente">Pendiente</SelectItem>
+                  <SelectItem value="Aprobado">Aprobado</SelectItem>
+                  <SelectItem value="Rechazado">Rechazado</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="border-blue-200 dark:border-blue-800">
+        <CardHeader>
+          <CardTitle className="text-blue-800 dark:text-blue-200">
+            Lista de Hojas de Cambio ({filteredChangeSheets.length})
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {filteredChangeSheets.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-gray-500 dark:text-gray-400 mb-4">
+                No se encontraron hojas de cambio
+              </p>
+              <Button
+                onClick={onCreateNew}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Crear Primera Hoja de Cambio
+              </Button>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Empleado</TableHead>
+                    <TableHead>Empresa Actual</TableHead>
+                    <TableHead>Tipo de Cambio</TableHead>
+                    <TableHead>Centro Origen</TableHead>
+                    <TableHead>Centro Destino</TableHead>
+                    <TableHead>Estado</TableHead>
+                    <TableHead>Fecha de Creación</TableHead>
+                    <TableHead className="text-right">Acciones</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredChangeSheets.map((sheet) => (
+                    <TableRow key={sheet.id}>
+                      <TableCell className="font-medium">
+                        {sheet.employeeName} {sheet.employeeLastName}
+                      </TableCell>
+                      <TableCell>{sheet.currentCompany}</TableCell>
+                      <TableCell>{sheet.changeType}</TableCell>
+                      <TableCell>{sheet.originCenter}</TableCell>
+                      <TableCell>{sheet.destinationCenter}</TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={
+                            sheet.status === 'Aprobado'
+                              ? 'default'
+                              : sheet.status === 'Pendiente'
+                              ? 'secondary'
+                              : 'destructive'
+                          }
+                          className={
+                            sheet.status === 'Aprobado'
+                              ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                              : sheet.status === 'Pendiente'
+                              ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                              : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                          }
+                        >
+                          {sheet.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {sheet.createdAt.toLocaleDateString()}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => onView(sheet.id)}
+                            className="text-blue-600 hover:text-blue-800"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => onEdit(sheet.id)}
+                            className="text-blue-600 hover:text-blue-800"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDelete(sheet.id)}
+                            className="text-red-600 hover:text-red-800"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };

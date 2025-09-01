@@ -230,6 +230,24 @@ export interface Translations {
   saveAnalysis: string;
   loadAnalysis: string;
   clearAnalysis: string;
+
+  // New missing keys
+  professionalCostAnalysisTitle: string;
+  filesReadyForAnalysis: string;
+  analysisDescription: string;
+  analyzingWithAI: string;
+  startProfessionalCostAnalysis: string;
+  analysisErrorTitle: string;
+  employeeInformation: string;
+  employeeLastName: string;
+  position: string;
+  department: string;
+  agreementDetails: string;
+  benefitsAndConditions: string;
+  benefits: string;
+  conditions: string;
+  observations: string;
+  employeeAgreementDetails: string;
 }
 
 export const translations: Record<Language, Translations> = {
@@ -462,6 +480,24 @@ export const translations: Record<Language, Translations> = {
     saveAnalysis: 'Guardar Análisis',
     loadAnalysis: 'Cargar Análisis',
     clearAnalysis: 'Limpiar Análisis',
+
+    // New missing keys
+    professionalCostAnalysisTitle: 'Análisis Profesional de Costes',
+    filesReadyForAnalysis: 'Archivos listos para análisis',
+    analysisDescription: 'Descripción del análisis',
+    analyzingWithAI: 'Analizando con IA',
+    startProfessionalCostAnalysis: 'Iniciar Análisis Profesional de Costes',
+    analysisErrorTitle: 'Error en el Análisis',
+    employeeInformation: 'Información del Empleado',
+    employeeLastName: 'Apellidos del Empleado',
+    position: 'Puesto',
+    department: 'Departamento',
+    agreementDetails: 'Detalles del Acuerdo',
+    benefitsAndConditions: 'Beneficios y Condiciones',
+    benefits: 'Beneficios',
+    conditions: 'Condiciones',
+    observations: 'Observaciones',
+    employeeAgreementDetails: 'Detalles del Acuerdo de Empleado',
   },
   
   en: {
@@ -693,5 +729,23 @@ export const translations: Record<Language, Translations> = {
     saveAnalysis: 'Save Analysis',
     loadAnalysis: 'Load Analysis',
     clearAnalysis: 'Clear Analysis',
+
+    // New missing keys
+    professionalCostAnalysisTitle: 'Professional Cost Analysis',
+    filesReadyForAnalysis: 'Files ready for analysis',
+    analysisDescription: 'Analysis description',
+    analyzingWithAI: 'Analyzing with AI',
+    startProfessionalCostAnalysis: 'Start Professional Cost Analysis',
+    analysisErrorTitle: 'Analysis Error',
+    employeeInformation: 'Employee Information',
+    employeeLastName: 'Employee Last Name',
+    position: 'Position',
+    department: 'Department',
+    agreementDetails: 'Agreement Details',
+    benefitsAndConditions: 'Benefits and Conditions',
+    benefits: 'Benefits',
+    conditions: 'Conditions',
+    observations: 'Observations',
+    employeeAgreementDetails: 'Employee Agreement Details',
   }
 };
