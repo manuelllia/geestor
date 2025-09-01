@@ -100,10 +100,21 @@ export interface Translations {
   
   // Employee Agreements
   employeeName: string;
+  employeeLastName: string;
   agreementType: string;
   startDate: string;
   endDate: string;
   workCenter: string;
+  position: string;
+  department: string;
+  salary: string;
+  benefits: string;
+  conditions: string;
+  observations: string;
+  employeeInformation: string;
+  agreementDetails: string;
+  benefitsAndConditions: string;
+  employeeAgreementDetails: string;
   
   // Exit Interviews
   exitInterviewsLoaded: string;
@@ -244,6 +255,14 @@ export interface Translations {
   pcapFileTitle: string;
   pcapFileDescription: string;
   pptFileLabel: string;
+  pptFileTitle: string;
+  pptFileDescription: string;
+  professionalCostAnalysisTitle: string;
+  filesReadyForAnalysis: string;
+  analysisDescription: string;
+  analyzingWithAI: string;
+  startProfessionalCostAnalysis: string;
+  analysisErrorTitle: string;
   
   // Settings Modal
   languageSettings: string;
@@ -252,6 +271,13 @@ export interface Translations {
   english: string;
   lightTheme: string;
   darkTheme: string;
+  
+  // Practice Evaluations
+  institution: string;
+  formation: string;
+  finalEvaluation: string;
+  evaluationDate: string;
+  performanceRating: string;
 }
 
 export const translations: { [key in Language]: Translations } = {
@@ -354,10 +380,21 @@ export const translations: { [key in Language]: Translations } = {
     
     // Employee Agreements
     employeeName: 'Nombre del Empleado',
+    employeeLastName: 'Apellidos del Empleado',
     agreementType: 'Tipo de Acuerdo',
     startDate: 'Fecha de Inicio',
     endDate: 'Fecha de Fin',
     workCenter: 'Centro de Trabajo',
+    position: 'Puesto',
+    department: 'Departamento',
+    salary: 'Salario',
+    benefits: 'Beneficios',
+    conditions: 'Condiciones',
+    observations: 'Observaciones',
+    employeeInformation: 'Información del Empleado',
+    agreementDetails: 'Detalles del Acuerdo',
+    benefitsAndConditions: 'Beneficios y Condiciones',
+    employeeAgreementDetails: 'Detalles del Acuerdo de Empleado',
     
     // Exit Interviews
     exitInterviewsLoaded: 'Entrevistas de salida cargadas',
@@ -434,7 +471,7 @@ export const translations: { [key in Language]: Translations } = {
     greetingGoodEvening: '¡Buenas noches! ¿Necesitas ayuda con algo?',
     greetingHowAreYou: '¡Muy bien, gracias! ¿Cómo puedo ayudarte?',
     greetingIAmFine: 'Perfecto, ¿en qué puedo asistirte?',
-    greetingThanks: '¡De nada! Estoy aquí para ayudarte.',
+    greetingThanks: '¡De nada! Estoy aquí untuk ayudarte.',
     greetingYouAreWelcome: '¡Es un placer ayudarte!',
     helpMessage: 'Puedo ayudarte con análisis de documentos, cálculos, consultas sobre el sistema y mucho más. ¿Qué necesitas?',
     aiSystemPrompt: 'Eres Geenio, un asistente inteligente especializado en análisis de licitaciones y gestión empresarial. Respondes de manera profesional y útil.',
@@ -498,6 +535,14 @@ export const translations: { [key in Language]: Translations } = {
     pcapFileTitle: 'Archivo PCAP requerido',
     pcapFileDescription: 'Por favor, sube el pliego de condiciones administrativas particulares',
     pptFileLabel: 'Pliego de Prescripciones Técnicas (PPT)',
+    pptFileTitle: 'Archivo PPT requerido',
+    pptFileDescription: 'Por favor, sube el pliego de prescripciones técnicas',
+    professionalCostAnalysisTitle: 'Análisis Profesional de Costes',
+    filesReadyForAnalysis: 'Archivos listos para análisis',
+    analysisDescription: 'Se realizará un análisis completo de los documentos subidos',
+    analyzingWithAI: 'Analizando con IA...',
+    startProfessionalCostAnalysis: 'Iniciar Análisis Profesional',
+    analysisErrorTitle: 'Error en el Análisis',
     
     // Settings Modal
     languageSettings: 'Configuración de Idioma',
@@ -506,6 +551,13 @@ export const translations: { [key in Language]: Translations } = {
     english: 'Inglés',
     lightTheme: 'Tema Claro',
     darkTheme: 'Tema Oscuro',
+    
+    // Practice Evaluations
+    institution: 'Institución',
+    formation: 'Formación',
+    finalEvaluation: 'Evaluación Final',
+    evaluationDate: 'Fecha de Evaluación',
+    performanceRating: 'Calificación de Rendimiento',
   },
   en: {
     showingRecords: 'Showing {{start}} to {{end}} of {{total}} records',
@@ -606,10 +658,21 @@ export const translations: { [key in Language]: Translations } = {
     
     // Employee Agreements
     employeeName: 'Employee Name',
+    employeeLastName: 'Employee Last Name',
     agreementType: 'Agreement Type',
     startDate: 'Start Date',
     endDate: 'End Date',
     workCenter: 'Work Center',
+    position: 'Position',
+    department: 'Department',
+    salary: 'Salary',
+    benefits: 'Benefits',
+    conditions: 'Conditions',
+    observations: 'Observations',
+    employeeInformation: 'Employee Information',
+    agreementDetails: 'Agreement Details',
+    benefitsAndConditions: 'Benefits and Conditions',
+    employeeAgreementDetails: 'Employee Agreement Details',
     
     // Exit Interviews
     exitInterviewsLoaded: 'Exit interviews loaded',
@@ -750,6 +813,14 @@ export const translations: { [key in Language]: Translations } = {
     pcapFileTitle: 'PCAP file required',
     pcapFileDescription: 'Please upload the particular administrative conditions document',
     pptFileLabel: 'Technical Specifications (PPT)',
+    pptFileTitle: 'PPT file required',
+    pptFileDescription: 'Please upload the technical specifications document',
+    professionalCostAnalysisTitle: 'Professional Cost Analysis',
+    filesReadyForAnalysis: 'Files ready for analysis',
+    analysisDescription: 'A complete analysis of the uploaded documents will be performed',
+    analyzingWithAI: 'Analyzing with AI...',
+    startProfessionalCostAnalysis: 'Start Professional Analysis',
+    analysisErrorTitle: 'Analysis Error',
     
     // Settings Modal
     languageSettings: 'Language Settings',
@@ -758,6 +829,13 @@ export const translations: { [key in Language]: Translations } = {
     english: 'English',
     lightTheme: 'Light Theme',
     darkTheme: 'Dark Theme',
+    
+    // Practice Evaluations
+    institution: 'Institution',
+    formation: 'Formation',
+    finalEvaluation: 'Final Evaluation',
+    evaluationDate: 'Evaluation Date',
+    performanceRating: 'Performance Rating',
   }
 };
 
