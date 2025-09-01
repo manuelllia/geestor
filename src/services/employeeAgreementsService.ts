@@ -1,3 +1,4 @@
+
 import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, orderBy, Timestamp, getDoc } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import { CSVExporter } from "../utils/csvExporter";
@@ -11,7 +12,7 @@ export interface EmployeeAgreementRecord {
   endDate?: Date;
   description: string;
   terms: string;
-  status: 'Activo' | 'Inactivo';
+  status: 'Activo' | 'Finalizado' | 'Suspendido';
   workCenter: string;
   supervisor: string;
   salary: string;
@@ -67,7 +68,7 @@ export const getEmployeeAgreementById = async (id: string): Promise<EmployeeAgre
         endDate: data.endDate instanceof Timestamp ? data.endDate.toDate() : undefined,
         description: data.description || '',
         terms: data.terms || '',
-        status: data.status || 'Inactivo',
+        status: data.status || 'Activo',
         workCenter: data.workCenter || '',
         supervisor: data.supervisor || '',
         salary: data.salary || '',
@@ -124,7 +125,7 @@ export const getEmployeeAgreements = async (): Promise<EmployeeAgreementRecord[]
         endDate: data.endDate instanceof Timestamp ? data.endDate.toDate() : undefined,
         description: data.description || '',
         terms: data.terms || '',
-        status: data.status || 'Inactivo',
+        status: data.status || 'Activo',
         workCenter: data.workCenter || '',
         supervisor: data.supervisor || '',
         salary: data.salary || '',
@@ -180,13 +181,13 @@ export const saveEmployeeAgreement = async (
       agreementType: agreementData.agreementType,
       startDate: startDateTimestamp,
       endDate: endDateTimestamp,
-      description: agreementData.description,
-      terms: agreementData.terms,
+      description: agreementData.description || '',
+      terms: agreementData.terms || '',
       status: agreementData.status,
       workCenter: agreementData.workCenter,
-      supervisor: agreementData.supervisor,
+      supervisor: agreementData.supervisor || '',
       salary: agreementData.salary,
-      benefits: agreementData.benefits,
+      benefits: agreementData.benefits || '',
       observations: agreementData.observations,
       
       // Additional fields
@@ -258,6 +259,81 @@ export const deleteEmployeeAgreement = async (id: string): Promise<void> => {
     console.log('Acuerdo de empleado eliminado exitosamente:', id);
   } catch (error) {
     console.error('Error al eliminar acuerdo de empleado:', error);
+    throw error;
+  }
+};
+
+// Add missing functions
+export const duplicateEmployeeAgreement = async (id: string): Promise<string> => {
+  try {
+    const original = await getEmployeeAgreementById(id);
+    if (!original) {
+      throw new Error('Acuerdo no encontrado');
+    }
+
+    const duplicatedData = {
+      ...original,
+      employeeName: `${original.employeeName} (Copia)`,
+      status: 'Activo' as const,
+    };
+
+    // Remove id and date fields for new record
+    const { id: _, createdAt, updatedAt, startDate, endDate, activationDate, ...dataToSave } = duplicatedData;
+
+    return await saveEmployeeAgreement({
+      ...dataToSave,
+      startDate: startDate?.toISOString().split('T')[0],
+      endDate: endDate?.toISOString().split('T')[0],
+      activationDate: activationDate?.toISOString().split('T')[0],
+    });
+  } catch (error) {
+    console.error('Error al duplicar acuerdo de empleado:', error);
+    throw error;
+  }
+};
+
+export const importEmployeeAgreements = async (agreements: any[]): Promise<void> => {
+  try {
+    const promises = agreements.map(agreement => {
+      const agreementData = {
+        employeeName: agreement.employeeName || '',
+        employeeLastName: agreement.employeeLastName || '',
+        agreementType: agreement.agreementType || '',
+        description: agreement.description || '',
+        terms: agreement.terms || '',
+        status: agreement.status || 'Activo' as const,
+        workCenter: agreement.workCenter || '',
+        supervisor: agreement.supervisor || '',
+        salary: agreement.salary || '',
+        benefits: agreement.benefits || '',
+        observations: agreement.observations || '',
+        city: agreement.city || '',
+        province: agreement.province || '',
+        autonomousCommunity: agreement.autonomousCommunity || '',
+        responsibleName: agreement.responsibleName || '',
+        responsibleLastName: agreement.responsibleLastName || '',
+        agreementConcepts: agreement.agreementConcepts || '',
+        economicAgreement1: agreement.economicAgreement1 || '',
+        concept1: agreement.concept1 || '',
+        economicAgreement2: agreement.economicAgreement2 || '',
+        concept2: agreement.concept2 || '',
+        economicAgreement3: agreement.economicAgreement3 || '',
+        concept3: agreement.concept3 || '',
+        observationsAndCommitment: agreement.observationsAndCommitment || '',
+        jobPosition: agreement.jobPosition || '',
+        department: agreement.department || '',
+        startDate: agreement.startDate,
+        endDate: agreement.endDate,
+        activationDate: agreement.activationDate,
+      };
+
+      return saveEmployeeAgreement(agreementData);
+    });
+
+    await Promise.all(promises);
+    console.log('Acuerdos de empleado importados exitosamente');
+  } catch (error) {
+    console.error('Error al importar acuerdos de empleado:', error);
     throw error;
   }
 };

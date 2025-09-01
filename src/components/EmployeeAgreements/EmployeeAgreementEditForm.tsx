@@ -52,7 +52,11 @@ const EmployeeAgreementEditForm: React.FC<EmployeeAgreementEditFormProps> = ({
     startDate: '',
     salary: '',
     status: 'Activo' as 'Activo' | 'Finalizado' | 'Suspendido',
-    observations: ''
+    observations: '',
+    description: '',
+    terms: '',
+    supervisor: '',
+    benefits: ''
   });
 
   useEffect(() => {
@@ -66,28 +70,32 @@ const EmployeeAgreementEditForm: React.FC<EmployeeAgreementEditFormProps> = ({
             employeeName: agreement.employeeName,
             employeeLastName: agreement.employeeLastName,
             workCenter: agreement.workCenter,
-            city: agreement.city,
-            province: agreement.province,
-            autonomousCommunity: agreement.autonomousCommunity,
-            responsibleName: agreement.responsibleName,
-            responsibleLastName: agreement.responsibleLastName,
-            agreementConcepts: agreement.agreementConcepts,
-            economicAgreement1: agreement.economicAgreement1,
-            concept1: agreement.concept1,
-            economicAgreement2: agreement.economicAgreement2,
-            concept2: agreement.concept2,
-            economicAgreement3: agreement.economicAgreement3,
-            concept3: agreement.concept3,
-            activationDate: agreement.activationDate.toISOString().split('T')[0],
+            city: agreement.city || '',
+            province: agreement.province || '',
+            autonomousCommunity: agreement.autonomousCommunity || '',
+            responsibleName: agreement.responsibleName || '',
+            responsibleLastName: agreement.responsibleLastName || '',
+            agreementConcepts: agreement.agreementConcepts || '',
+            economicAgreement1: agreement.economicAgreement1 || '',
+            concept1: agreement.concept1 || '',
+            economicAgreement2: agreement.economicAgreement2 || '',
+            concept2: agreement.concept2 || '',
+            economicAgreement3: agreement.economicAgreement3 || '',
+            concept3: agreement.concept3 || '',
+            activationDate: agreement.activationDate ? agreement.activationDate.toISOString().split('T')[0] : '',
             endDate: agreement.endDate ? agreement.endDate.toISOString().split('T')[0] : '',
-            observationsAndCommitment: agreement.observationsAndCommitment,
-            jobPosition: agreement.jobPosition,
-            department: agreement.department,
+            observationsAndCommitment: agreement.observationsAndCommitment || '',
+            jobPosition: agreement.jobPosition || '',
+            department: agreement.department || '',
             agreementType: agreement.agreementType,
-            startDate: agreement.startDate.toISOString().split('T')[0],
+            startDate: agreement.startDate ? agreement.startDate.toISOString().split('T')[0] : '',
             salary: agreement.salary,
             status: agreement.status,
-            observations: agreement.observations
+            observations: agreement.observations,
+            description: agreement.description,
+            terms: agreement.terms,
+            supervisor: agreement.supervisor,
+            benefits: agreement.benefits
           });
         }
       } catch (error) {

@@ -1,4 +1,3 @@
-
 export type Language = 'es' | 'en';
 
 export interface Translations {
@@ -94,9 +93,14 @@ export interface Translations {
   // Employee Agreements
   employee_agreements: string;
   employee_name: string;
+  employeeName: string;
+  employeeLastName: string;
   agreement_type: string;
+  agreementType: string;
   start_date: string;
+  startDate: string;
   end_date: string;
+  endDate: string;
   
   // Change Sheets
   change_sheets: string;
@@ -109,10 +113,12 @@ export interface Translations {
   contract_requests: string;
   requester_name: string;
   contract_type: string;
+  contractType: string;
   salary: string;
   incorporation_date: string;
   job_position: string;
   work_center: string;
+  workCenter: string;
   
   // Chatbot and AI
   fileUploaded: string;
@@ -239,7 +245,6 @@ export interface Translations {
   startProfessionalCostAnalysis: string;
   analysisErrorTitle: string;
   employeeInformation: string;
-  employeeLastName: string;
   position: string;
   department: string;
   agreementDetails: string;
@@ -248,11 +253,29 @@ export interface Translations {
   conditions: string;
   observations: string;
   employeeAgreementDetails: string;
+
+  // Exit Interview keys
+  voluntary: string;
+  leaveOfAbsence: string;
+  exitInterviewsLoaded: string;
+  errorLoadingExitInterviews: string;
+  linkCopiedTitle: string;
+  linkCopiedDescription: string;
+  errorCopyingLinkTitle: string;
+  errorCopyingLinkDescription: string;
+  interviewDuplicatedTitle: string;
+  interviewDuplicatedDescription: string;
+  errorDuplicatingTitle: string;
+  errorDuplicatingDescription: string;
+  confirmDeleteInterview: string;
+  interviewDeletedTitle: string;
+  interviewDeletedDescription: string;
+  errorDeletingTitle: string;
+  errorDeletingDescription: string;
 }
 
 export const translations: Record<Language, Translations> = {
   es: {
-    // Navigation
     home: 'Inicio',
     operations: 'Operaciones',
     technical_management: 'Gestión Técnica',
@@ -344,9 +367,14 @@ export const translations: Record<Language, Translations> = {
     // Employee Agreements
     employee_agreements: 'Acuerdos de Empleado',
     employee_name: 'Nombre del Empleado',
+    employeeName: 'Nombre del Empleado',
+    employeeLastName: 'Apellidos del Empleado',
     agreement_type: 'Tipo de Acuerdo',
+    agreementType: 'Tipo de Acuerdo',
     start_date: 'Fecha de Inicio',
+    startDate: 'Fecha de Inicio',
     end_date: 'Fecha de Fin',
+    endDate: 'Fecha de Fin',
     
     // Change Sheets
     change_sheets: 'Hojas de Cambio',
@@ -359,10 +387,12 @@ export const translations: Record<Language, Translations> = {
     contract_requests: 'Solicitudes de Contratación',
     requester_name: 'Nombre del Solicitante',
     contract_type: 'Tipo de Contrato',
+    contractType: 'Tipo de Contrato',
     salary: 'Salario',
     incorporation_date: 'Fecha de Incorporación',
     job_position: 'Puesto de Trabajo',
     work_center: 'Centro de Trabajo',
+    workCenter: 'Centro de Trabajo',
     
     // Chatbot and AI
     fileUploaded: 'Archivo subido',
@@ -489,7 +519,6 @@ export const translations: Record<Language, Translations> = {
     startProfessionalCostAnalysis: 'Iniciar Análisis Profesional de Costes',
     analysisErrorTitle: 'Error en el Análisis',
     employeeInformation: 'Información del Empleado',
-    employeeLastName: 'Apellidos del Empleado',
     position: 'Puesto',
     department: 'Departamento',
     agreementDetails: 'Detalles del Acuerdo',
@@ -498,10 +527,28 @@ export const translations: Record<Language, Translations> = {
     conditions: 'Condiciones',
     observations: 'Observaciones',
     employeeAgreementDetails: 'Detalles del Acuerdo de Empleado',
+
+    // Exit Interview keys
+    voluntary: 'Voluntaria',
+    leaveOfAbsence: 'Excedencia',
+    exitInterviewsLoaded: 'Entrevistas de salida cargadas',
+    errorLoadingExitInterviews: 'Error al cargar entrevistas de salida',
+    linkCopiedTitle: 'Enlace copiado',
+    linkCopiedDescription: 'El enlace se ha copiado al portapapeles',
+    errorCopyingLinkTitle: 'Error al copiar enlace',
+    errorCopyingLinkDescription: 'No se pudo copiar el enlace',
+    interviewDuplicatedTitle: 'Entrevista duplicada',
+    interviewDuplicatedDescription: 'La entrevista se ha duplicado correctamente',
+    errorDuplicatingTitle: 'Error al duplicar',
+    errorDuplicatingDescription: 'No se pudo duplicar la entrevista',
+    confirmDeleteInterview: '¿Estás seguro de que quieres eliminar esta entrevista?',
+    interviewDeletedTitle: 'Entrevista eliminada',
+    interviewDeletedDescription: 'La entrevista se ha eliminado correctamente',
+    errorDeletingTitle: 'Error al eliminar',
+    errorDeletingDescription: 'No se pudo eliminar la entrevista',
   },
   
   en: {
-    // Navigation
     home: 'Home',
     operations: 'Operations',
     technical_management: 'Technical Management',
@@ -593,9 +640,14 @@ export const translations: Record<Language, Translations> = {
     // Employee Agreements
     employee_agreements: 'Employee Agreements',
     employee_name: 'Employee Name',
+    employeeName: 'Employee Name',
+    employeeLastName: 'Employee Last Name',
     agreement_type: 'Agreement Type',
+    agreementType: 'Agreement Type',
     start_date: 'Start Date',
+    startDate: 'Start Date',
     end_date: 'End Date',
+    endDate: 'End Date',
     
     // Change Sheets
     change_sheets: 'Change Sheets',
@@ -608,10 +660,12 @@ export const translations: Record<Language, Translations> = {
     contract_requests: 'Contract Requests',
     requester_name: 'Requester Name',
     contract_type: 'Contract Type',
+    contractType: 'Contract Type',
     salary: 'Salary',
     incorporation_date: 'Incorporation Date',
     job_position: 'Job Position',
     work_center: 'Work Center',
+    workCenter: 'Work Center',
     
     // Chatbot and AI
     fileUploaded: 'File uploaded',
@@ -738,7 +792,6 @@ export const translations: Record<Language, Translations> = {
     startProfessionalCostAnalysis: 'Start Professional Cost Analysis',
     analysisErrorTitle: 'Analysis Error',
     employeeInformation: 'Employee Information',
-    employeeLastName: 'Employee Last Name',
     position: 'Position',
     department: 'Department',
     agreementDetails: 'Agreement Details',
@@ -747,5 +800,24 @@ export const translations: Record<Language, Translations> = {
     conditions: 'Conditions',
     observations: 'Observations',
     employeeAgreementDetails: 'Employee Agreement Details',
+
+    // Exit Interview keys
+    voluntary: 'Voluntary',
+    leaveOfAbsence: 'Leave of Absence',
+    exitInterviewsLoaded: 'Exit interviews loaded',
+    errorLoadingExitInterviews: 'Error loading exit interviews',
+    linkCopiedTitle: 'Link copied',
+    linkCopiedDescription: 'Link has been copied to clipboard',
+    errorCopyingLinkTitle: 'Error copying link',
+    errorCopyingLinkDescription: 'Could not copy link',
+    interviewDuplicatedTitle: 'Interview duplicated',
+    interviewDuplicatedDescription: 'Interview has been duplicated successfully',
+    errorDuplicatingTitle: 'Error duplicating',
+    errorDuplicatingDescription: 'Could not duplicate interview',
+    confirmDeleteInterview: 'Are you sure you want to delete this interview?',
+    interviewDeletedTitle: 'Interview deleted',
+    interviewDeletedDescription: 'Interview has been deleted successfully',
+    errorDeletingTitle: 'Error deleting',
+    errorDeletingDescription: 'Could not delete interview',
   }
 };
