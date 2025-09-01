@@ -1,951 +1,286 @@
+
 export type Language = 'es' | 'en';
-export type Theme = 'light' | 'dark';
 
-export type Translations = typeof translations.es;
+export interface Translations {
+  // Navigation
+  home: string;
+  operations: string;
+  technical_management: string;
+  talent_management: string;
+  contract_requests: string;
+  change_sheets: string;
+  employee_agreements: string;
+  real_estate_management: string;
+  practice_evaluations: string;
+  exit_interviews: string;
+  user_management: string;
+  settings: string;
+  
+  // Common actions
+  save: string;
+  cancel: string;
+  edit: string;
+  delete: string;
+  view: string;
+  create: string;
+  export: string;
+  import: string;
+  refresh: string;
+  duplicate: string;
+  back: string;
+  next: string;
+  previous: string;
+  search: string;
+  filter: string;
+  clear: string;
+  confirm: string;
+  close: string;
+  
+  // CSV Export
+  export_csv: string;
+  exporting_data: string;
+  export_successful: string;
+  export_failed: string;
+  no_data_to_export: string;
+  
+  // Status
+  pending: string;
+  approved: string;
+  rejected: string;
+  active: string;
+  inactive: string;
+  
+  // Forms
+  required_field: string;
+  optional_field: string;
+  select_option: string;
+  
+  // Messages
+  success: string;
+  error: string;
+  warning: string;
+  info: string;
+  
+  // Practice Evaluations
+  practice_evaluations: string;
+  tutor_name: string;
+  student_name: string;
+  formation: string;
+  institution: string;
+  evaluation_date: string;
+  performance_rating: string;
+  final_evaluation: string;
+  
+  // Employee Agreements
+  employee_agreements: string;
+  employee_name: string;
+  agreement_type: string;
+  start_date: string;
+  end_date: string;
+  
+  // Change Sheets
+  change_sheets: string;
+  current_company: string;
+  change_type: string;
+  origin_center: string;
+  destination_center: string;
+  
+  // Contract Requests
+  contract_requests: string;
+  requester_name: string;
+  contract_type: string;
+  salary: string;
+  incorporation_date: string;
+  job_position: string;
+  work_center: string;
+}
 
-export const translations = {
+export const translations: Record<Language, Translations> = {
   es: {
-    welcome: 'Bienvenido a GEESTOR',
-    loginSubtitle: 'Accede a tu cuenta para continuar',
-    loginButton: 'Iniciar sesión con Microsoft',
-    userProfile: 'Perfil de Usuario',
-    personalInformation: 'Información Personal',
-    permissions: 'Permisos',
-    permissionsDescription: 'Permisos asignados a tu cuenta',
-    departmentPermissions: 'Permisos de Departamento',
-    actionPermissions: 'Permisos de Acción',
+    // Navigation
+    home: 'Inicio',
     operations: 'Operaciones',
-    technicalManagement: 'Gestión Técnica',
-    technicalManagementShort: 'G. Técnica',
-    talentManagement: 'Gestión de Talento',
-    talentManagementShort: 'G. Talento',
-    create: 'Crear',
-    modify: 'Modificar',
+    technical_management: 'Gestión Técnica',
+    talent_management: 'Gestión de Talento',
+    contract_requests: 'Solicitudes de Contratación',
+    change_sheets: 'Hojas de Cambio',
+    employee_agreements: 'Acuerdos de Empleado',
+    real_estate_management: 'Gestión de Inmuebles',
+    practice_evaluations: 'Valoración de Prácticas',
+    exit_interviews: 'Entrevistas de Salida',
+    user_management: 'Gestión de Usuarios',
+    settings: 'Configuración',
+    
+    // Common actions
+    save: 'Guardar',
+    cancel: 'Cancelar',
+    edit: 'Editar',
     delete: 'Eliminar',
     view: 'Ver',
-    name: 'Nombre',
-    email: 'Correo electrónico',
-    changePhoto: 'Cambiar foto',
-    saveChanges: 'Guardar cambios',
-    logout: 'Cerrar sesión',
-    
-    // Navigation and menu items
-    homeMenu: 'Inicio',
-    users: 'Usuarios',
-    costAnalysis: 'Análisis de Coste',
-    costAnalysisShort: 'A. Coste',
-    calendarManagement: 'Gestión de Calendario',
-    calendarManagementShort: 'G. Calendario',
-    checkers: 'Comprobadores',
-    contractRequests: 'Solicitudes de Contratación',
-    changeSheets: 'Hojas de Cambio',
-    employeeAgreements: 'Acuerdos de Empleado',
-    realEstateManagement: 'Gestión de Inmuebles',
-    practiceEvaluation: 'Valoración de Prácticas',
-    exitInterviews: 'Entrevistas de Salida',
-
-    // Change Sheets specific
-    changeSheetsManagement: 'Gestión de Hojas de Cambio',
-    hojasCambio: 'Hojas de Cambio',
-    employeeName: 'Nombre del Empleado',
-    originCenter: 'Centro de Origen',
-    startDate: 'Fecha de Inicio',
-    status: 'Estado',
-    actions: 'Acciones',
-    createNew: 'Crear Nuevo',
+    create: 'Crear',
     export: 'Exportar',
     import: 'Importar',
-
-    // Cost Analysis specific
-    tituloAnalisis: 'Análisis de Costes y Puntuación',
-    subtiAnalisis: 'Sube los archivos de licitación para obtener un análisis detallado',
-    subirPdf: 'Subir PDF de Licitación',
-    informepdf: 'Ver Informe Detallado',
-    costespdf: 'Ver Desglose de Costes',
-    puntuacionPdf: 'Calcular Puntuación Total',
-    pcapFileLabel: 'Archivo PCAP (Opcional)',
-    pcapFileTitle: 'Archivo de Especificaciones',
-    pcapFileDescription: 'Sube el archivo de especificaciones técnicas',
-    pptFileLabel: 'Archivo PPT',
-    pptFileTitle: 'Archivo de Presentación',
-    pptFileDescription: 'Sube el archivo de presentación o presupuesto',
-    professionalCostAnalysisTitle: 'Análisis Profesional de Costes',
-    filesReadyForAnalysis: 'Archivos listos para análisis',
-    analysisDescription: 'Se realizará un análisis completo de costes y criterios',
-    analyzingWithAI: 'Analizando con IA...',
-    startProfessionalCostAnalysis: 'Iniciar Análisis Profesional',
-    analysisErrorTitle: 'Error en el Análisis',
-    pliegos: 'Pliegos Técnicos',
-    presupuesto: 'Presupuesto',
-    criterios: 'Criterios de Adjudicación',
-    errorAnalyzingCosts: 'Error al analizar los costes',
-    chatbotContextUpdated: 'Contexto del chatbot actualizado',
+    refresh: 'Actualizar',
+    duplicate: 'Duplicar',
+    back: 'Volver',
+    next: 'Siguiente',
+    previous: 'Anterior',
+    search: 'Buscar',
+    filter: 'Filtrar',
+    clear: 'Limpiar',
+    confirm: 'Confirmar',
+    close: 'Cerrar',
+    
+    // CSV Export
+    export_csv: 'Exportar CSV',
+    exporting_data: 'Exportando datos...',
+    export_successful: 'Exportación completada correctamente',
+    export_failed: 'Error al exportar los datos',
+    no_data_to_export: 'No hay datos para exportar',
+    
+    // Status
+    pending: 'Pendiente',
+    approved: 'Aprobado',
+    rejected: 'Rechazado',
+    active: 'Activo',
+    inactive: 'Inactivo',
+    
+    // Forms
+    required_field: 'Campo requerido',
+    optional_field: 'Campo opcional',
+    select_option: 'Seleccionar opción',
+    
+    // Messages
+    success: 'Éxito',
+    error: 'Error',
+    warning: 'Advertencia',
+    info: 'Información',
+    
+    // Practice Evaluations
+    practice_evaluations: 'Valoración de Prácticas',
+    tutor_name: 'Nombre del Tutor',
+    student_name: 'Nombre del Estudiante',
+    formation: 'Formación',
+    institution: 'Institución',
+    evaluation_date: 'Fecha de Evaluación',
+    performance_rating: 'Calificación de Rendimiento',
+    final_evaluation: 'Evaluación Final',
     
     // Employee Agreements
-    employeeInformation: 'Información del Empleado',
-    employeeLastName: 'Apellidos del Empleado',
-    position: 'Puesto',
-    department: 'Departamento',
-    agreementDetails: 'Detalles del Acuerdo',
-    agreementType: 'Tipo de Acuerdo',
-    endDate: 'Fecha de Fin',
+    employee_agreements: 'Acuerdos de Empleado',
+    employee_name: 'Nombre del Empleado',
+    agreement_type: 'Tipo de Acuerdo',
+    start_date: 'Fecha de Inicio',
+    end_date: 'Fecha de Fin',
+    
+    // Change Sheets
+    change_sheets: 'Hojas de Cambio',
+    current_company: 'Empresa Actual',
+    change_type: 'Tipo de Cambio',
+    origin_center: 'Centro Origen',
+    destination_center: 'Centro Destino',
+    
+    // Contract Requests
+    contract_requests: 'Solicitudes de Contratación',
+    requester_name: 'Nombre del Solicitante',
+    contract_type: 'Tipo de Contrato',
     salary: 'Salario',
-    benefitsAndConditions: 'Beneficios y Condiciones',
-    benefits: 'Beneficios',
-    conditions: 'Condiciones',
-    observations: 'Observaciones',
-    employeeAgreementDetails: 'Detalles del Acuerdo de Empleado',
-    
-    // Exit Interviews specific
-    entrevistaTit: 'Entrevistas de Salida',
-    workCenter: 'Centro de Trabajo',
-    workCenterShort: 'Centro',
-    exitType: 'Tipo de Baja',
-    exitDate: 'Fecha de Baja',
-    positionShort: 'Puesto',
-    exitInterviewsLoaded: 'Entrevistas de salida cargadas',
-    errorLoadingExitInterviews: 'Error al cargar entrevistas de salida',
-    voluntary: 'Voluntaria',
-    leaveOfAbsence: 'Excedencia',
-    linkCopiedTitle: 'Enlace copiado',
-    linkCopiedDescription: 'El enlace ha sido copiado al portapapeles',
-    errorCopyingLinkTitle: 'Error al copiar enlace',
-    errorCopyingLinkDescription: 'No se pudo copiar el enlace. URL manual:',
-    interviewDuplicatedTitle: 'Entrevista duplicada',
-    interviewDuplicatedDescription: 'La entrevista ha sido duplicada correctamente',
-    errorDuplicatingTitle: 'Error al duplicar',
-    errorDuplicatingDescription: 'No se pudo duplicar la entrevista',
-    confirmDeleteInterview: '¿Estás seguro de que quieres eliminar esta entrevista?',
-    interviewDeletedTitle: 'Entrevista eliminada',
-    interviewDeletedDescription: 'La entrevista ha sido eliminada correctamente',
-    errorDeletingTitle: 'Error al eliminar',
-    errorDeletingDescription: 'No se pudo eliminar la entrevista',
-    functionNotImplementedTitle: 'Función no implementada',
-    downloadPdfNotAvailable: 'La descarga de PDF no está disponible aún',
-    noDataTitle: 'Sin datos',
-    noDataToExportDescription: 'No hay datos para exportar',
-    exportCompletedTitle: 'Exportación completada',
-    exportCompletedDescription: 'Los datos han sido exportados correctamente',
-    importNotAvailable: 'La importación no está disponible aún',
-    recargar: 'Recargar',
-    generarEnla1: 'Generar Enlace',
-    exportarEntre: 'Exportar',
-    importarEntre: 'Importar',
-    errorLoadingData: 'Error al cargar datos',
-    tryAgain: 'Intentar de nuevo',
-    loadingExitInterviews: 'Cargando entrevistas de salida...',
-    noExitInterviewsFound: 'No se encontraron entrevistas de salida',
-    generateLinkToStart: 'Genera un enlace para comenzar',
-    importData: 'Importar datos',
-    viewDetails: 'Ver detalles',
-    duplicate: 'Duplicar',
-    invalidDate: 'Fecha inválida',
-    showingRecords: 'Mostrando {{start}} a {{end}} de {{total}} registros',
-    previous: 'Anterior',
-    next: 'Siguiente',
-    
-    // Chatbot translations
-    openGeenioChatbot: 'Abrir Chatbot Geenio',
-    asistChat: 'Asistente IA',
-    bienvenidaChat: '¡Hola! Soy Geenio, tu asistente de análisis de licitaciones. ¿En qué puedo ayudarte?',
-    typeYourMessage: 'Escribe tu mensaje...',
-    send: 'Enviar',
-    thinking: 'Pensando',
-    
-    // File upload in chatbot
-    uploadFiles: 'Subir archivos',
-    dragDropFiles: 'Arrastra archivos aquí o haz clic para seleccionar',
-    supportedFormats: 'Formatos soportados: PDF, Excel, Word, CSV, Imágenes',
-    fileUploaded: 'Archivo subido',
-    fileUploadError: 'Error al subir archivo',
-    removeFile: 'Eliminar archivo',
-    
-    // AI responses
-    greetingHello: '¡Hola! Soy Geenio, tu asistente especializado en análisis de licitaciones. ¿Cómo puedo ayudarte hoy?',
-    greetingGoodMorning: '¡Buenos días! ¿En qué análisis de licitación puedo asistirte?',
-    greetingGoodAfternoon: '¡Buenas tardes! ¿Necesitas ayuda con algún análisis?',
-    greetingGoodEvening: '¡Buenas noches! ¿En qué puedo ayudarte?',
-    greetingHowAreYou: '¡Muy bien, gracias! Listo para ayudarte con tus análisis de licitación.',
-    greetingIAmFine: 'Perfecto, estoy aquí para ayudarte.',
-    greetingThanks: '¡De nada! ¿Hay algo más en lo que pueda ayudarte?',
-    greetingYouAreWelcome: '¡Un placer ayudarte!',
-    helpMessage: 'Puedo ayudarte con análisis de costes, interpretación de criterios, cálculo de puntuaciones y más. ¿Qué necesitas?',
-    aiSystemPrompt: 'Eres Geenio, un asistente especializado en análisis de licitaciones públicas españolas del sector electromédico. Ayudas con análisis de costes, interpretación de criterios de adjudicación, cálculo de puntuaciones y estrategias de presentación de ofertas. Responde siempre de forma profesional, clara y práctica.',
-    botErrorResponse: 'Lo siento, ha ocurrido un error. ¿Podrías repetir tu pregunta?',
-    processingErrorMessage: 'Error al procesar tu solicitud. Por favor, inténtalo de nuevo.',
-    
-    // Cost analysis improvements
-    analysisReport: 'Informe de Análisis',
-    generalInformation: 'Información General',
-    economicAnalysis: 'Análisis Económico',
-    awardCriteria: 'Criterios de Adjudicación',
-    scopeConditions: 'Alcance y Condiciones',
-    scheduleDeadlines: 'Cronograma y Plazos',
-    detailedBreakdown: 'Desglose Detallado',
-    personnelAnalysis: 'Análisis de Personal',
-    purchaseAnalysis: 'Análisis de Compras',
-    subcontractingAnalysis: 'Análisis de Subcontrataciones',
-    otherExpenses: 'Otros Gastos',
-    formulasDetected: 'Fórmulas Detectadas',
-    automaticCriteria: 'Criterios Automáticos',
-    subjectiveCriteria: 'Criterios Subjetivos',
-    lowBidThreshold: 'Umbral de Baja Temeraria',
-    
-    // New detailed fields
-    contractingEntity: 'Entidad Contratante',
-    contractObject: 'Objeto del Contrato',
-    cpvCode: 'Código CPV',
-    contractType: 'Tipo de Contrato',
-    baseBudget: 'Presupuesto Base',
-    estimatedValue: 'Valor Estimado',
-    contractDuration: 'Duración del Contrato',
-    geographicScope: 'Ámbito Geográfico',
-    includedServices: 'Servicios Incluidos',
-    includedProducts: 'Productos Incluidos',
-    technicalRequirements: 'Requisitos Técnicos',
-    exclusions: 'Exclusiones',
-    extensions: 'Prórrogas',
-    modifications: 'Modificaciones',
-    workersRequired: 'Trabajadores Necesarios',
-    positionBreakdown: 'Desglose por Puesto',
-    equipment: 'Equipamiento',
-    consumables: 'Consumibles',
-    spareParts: 'Repuestos',
-    externalServices: 'Servicios Externos',
-    insurance: 'Seguros',
-    generalExpenses: 'Gastos Generales',
-    indirectCosts: 'Costes Indirectos',
-
-    // Settings and UI
-    settings: 'Configuración',
-    language: 'Idioma',
-    theme: 'Tema',
-    light: 'Claro',
-    dark: 'Oscuro',
-    spanish: 'Español',
-    english: 'Inglés',
-    profile: 'Perfil',
-
-    // File upload new translations
-    attachFile: 'Adjuntar archivo',
-    fileAttached: 'Archivo adjuntado',
-    maxFileSize: 'Tamaño máximo: 10MB',
-    processingFile: 'Procesando archivo...',
-    fileProcessed: 'Archivo procesado correctamente',
-    arrastraArchivo: 'Arrastra archivos aquí o haz clic para seleccionar',
-    formatosCsv: 'Formatos soportados: CSV, Excel',
-
-    // Common actions
-    back: 'Volver',
-    loading: 'Cargando',
-    error: 'Error',
-    success: 'Éxito',
-    cancel: 'Cancelar',
-    confirm: 'Confirmar',
-    save: 'Guardar',
-    edit: 'Editar',
-    download: 'Descargar',
-    upload: 'Subir',
-
-    // Profile modal
-    uploadPhoto: 'Subir foto',
-    removePhoto: 'Eliminar foto',
-    photoUpdated: 'Foto actualizada',
-    photoRemoved: 'Foto eliminada',
-
-    // PDF and reports
-    downloadPDF: 'Descargar PDF',
-    duplicateRecord: 'Duplicar registro',
-    generatedOn: 'Generado el',
-    documentGenerated: 'Documento generado por',
-    recordNotFound: 'Registro no encontrado',
-
-    // Maintenance Calendar
-    missingMaintenanceTitle: 'Mantenimientos Faltantes',
-    missingMaintenanceMessage: 'Hay denominaciones sin mantenimientos programados.',
-    generateAnyway: 'Generar de Todas Formas',
-    completeFirst: 'Completar Primero',
-    maintenanceCalendar: 'Calendario de Mantenimiento',
-    generateCalendar: 'Generar Calendario',
-    hospitalInventory: 'Inventario Hospitalario',
-    maintenanceSchedule: 'Programa de Mantenimiento',
-    processFiles: 'Procesar Archivos',
-    calendar: 'Calendario',
-    analysis: 'Análisis',
-    inventory: 'Inventario',
-
-    // Main Content
-    featureTitleComprobadores: 'Comprobadores',
-    comingSoonDescriptionComprobadores: 'Funcionalidad para gestionar comprobadores en desarrollo.',
-    comingSoon: 'Próximamente',
-
-    // Additional maintenance calendar terms
-    maintenanceType: 'Tipo de Mantenimiento',
-    frequency: 'Frecuencia',
-    scheduledDate: 'Fecha Programada',
-    duration: 'Duración',
-    technician: 'Técnico',
-    priority: 'Prioridad',
-    notes: 'Notas',
-    location: 'Ubicación',
-    nextMaintenance: 'Próximo Mantenimiento',
-    lastMaintenance: 'Último Mantenimiento',
-    scheduled: 'Programado',
-    inProgress: 'En Progreso',
-    completed: 'Completado',
-    pending: 'Pendiente',
-    critical: 'Crítico',
-    high: 'Alto',
-    medium: 'Medio',
-    low: 'Bajo',
-    preventive: 'Preventivo',
-    corrective: 'Correctivo',
-    calibration: 'Calibración',
-    verification: 'Verificación',
-    cleaning: 'Limpieza',
-    inspection: 'Inspección',
-    technicalReview: 'Revisión Técnica',
-
-    // Work Center Modal translations
-    requiredFieldsError: 'Por favor, complete todos los campos requeridos.',
-    workCenterCreatedSuccess: 'Centro de trabajo creado exitosamente',
-    errorCreatingWorkCenter: 'Error al crear el centro de trabajo',
-    workCenterUpdatedSuccess: 'Centro de trabajo actualizado exitosamente',
-    errorUpdatingWorkCenter: 'Error al actualizar el centro de trabajo',
-    createWorkCenterTitle: 'Crear Centro de Trabajo',
-    workCenterNameLabel: 'Nombre del Centro de Trabajo',
-    workCenterNamePlaceholder: 'Ingrese el nombre del centro',
-    workCenterIdLabel: 'ID del Centro de Trabajo',
-    workCenterIdPlaceholder: 'Ingrese el ID del centro',
-    clearButton: 'Limpiar',
-    processing: 'Procesando...',
-    uploadCenterButton: 'Crear Centro',
-    confirmCreationTitle: 'Confirmar Creación',
-    confirmCreationDescription: '¿Está seguro de que desea crear el centro de trabajo "{{name}}" con ID "{{id}}"?',
-    confirmButton: 'Confirmar',
-    workCenterExistsTitle: 'Centro de Trabajo Existente',
-    workCenterExistsDescription: 'Ya existe un centro de trabajo con el ID "{{id}}". ¿Desea actualizar el registro existente?',
-    leaveAsIsButton: 'Dejar Como Está',
-    updateRecordButton: 'Actualizar Registro',
-
-    // Practice Evaluation Detail translations
-    valoPracTit: 'Valoración de Práctica',
-    valoPracSub: 'Gestiona y revisa las valoraciones de prácticas de estudiantes',
-    tutor: 'Tutor',
-    institution: 'Institución',
-    formation: 'Formación',
-    evaluationDate: 'Fecha de Evaluación',
-    finalEvaluation: 'Evaluación Final',
-    performanceRating: 'Calificación de Rendimiento',
-    student: 'Estudiante',
-    Apto: 'Apto',
-    NoApto: 'No Apto',
-    Apt: 'Apt',
-    NotApt: 'Not Apt',
-
-    // Additional Practice Evaluation translations
-    linkCopiedToClipboardToastTitle: 'Enlace copiado',
-    linkCopiedToClipboardToastDescription: 'El enlace de valoración ha sido copiado al portapapeles',
-    evaluationDeletedToastTitle: 'Evaluación eliminada',
-    evaluationDeletedToastDescription: 'La evaluación ha sido eliminada correctamente',
-    errorDeletingEvaluationToastTitle: 'Error al eliminar',
-    errorDeletingEvaluationToastDescription: 'No se pudo eliminar la evaluación',
-    exportFunctionComingSoonTitle: 'Función en desarrollo',
-    exportFunctionComingSoonDescription: 'La función de exportación estará disponible próximamente',
-    importFunctionComingSoonTitle: 'Función en desarrollo',
-    importFunctionComingSoonDescription: 'La función de importación estará disponible próximamente',
-    generarEnlaceVal: 'Generar Enlace de Valoración',
-    noEvaluationsRegistered: 'No hay evaluaciones registradas',
-    generateLinkToStartReceivingEvaluations: 'Genera un enlace para comenzar a recibir evaluaciones',
-    performanceRatingScore: '{{rating}}/10',
-    deleteEvaluationConfirmationTitle: 'Confirmar eliminación',
-    deleteEvaluationConfirmationDescription: '¿Estás seguro de que quieres eliminar la evaluación de {{studentName}} {{studentLastName}}?',
-
-    // Real Estate translations
-    errorLoadingWorkCenters: 'Error al cargar centros de trabajo',
-    addWorkerError: 'Error al añadir trabajador',
-    removeWorkerError: 'Error al eliminar trabajador',
-    workerAddedSuccess: 'Trabajador añadido correctamente',
-    workerRemovedSuccess: 'Trabajador eliminado correctamente',
-    selectWorkCenter: 'Seleccionar centro de trabajo',
-    addWorker: 'Añadir trabajador',
-    workersInProperty: 'Trabajadores en la propiedad',
-    removeWorker: 'Eliminar trabajador',
-    noWorkersAssigned: 'No hay trabajadores asignados',
-
-    // Active Property Form translations
-    specifyCustomCompanyError: 'Por favor, especifique el nombre de la empresa personalizada',
-    propertyAddedSuccess: 'Propiedad agregada correctamente',
-    errorAddingProperty: 'Error al agregar la propiedad',
-    addActivePropertyTitle: 'Agregar Propiedad Activa',
-    activePropertyInfoTitle: 'Información de la Propiedad Activa',
-    idLabel: 'ID',
-    numRoomsLabel: 'Número de Habitaciones',
-    workersLabel: 'Trabajadores',
-    addWorkerButton: 'Añadir Trabajador',
-    workerNamePlaceholder: 'Nombre del trabajador',
-    dniPlaceholder: 'DNI',
-    removeWorkerButton: 'Eliminar',
-    geeCompanyLabel: 'Empresa GEE',
-    selectCompanyPlaceholder: 'Seleccionar empresa',
-    otherCompanyOption: 'Otra',
-    specifyCompanyPlaceholder: 'Especificar empresa',
-    propertyStatusLabel: 'Estado de la Propiedad',
-    occupiedStatus: 'Ocupado',
-    emptyStatus: 'Vacío',
-    addressLabel: 'Dirección',
-    addressPlaceholder: 'Ej: Calle Mayor 123',
-    cityLabel: 'Ciudad',
-    provinceLabel: 'Provincia',
-    ccaaLabel: 'CCAA Destino',
-    originProvinceLabel: 'Provincia de Origen',
-    annualCostLabel: 'Coste Anual (€)',
-    occupancyDateLabel: 'Fecha de Ocupación',
-    contractStartDateLabel: 'Fecha Inicio Contrato',
-    selectDate: 'Seleccionar fecha',
-    meta4CodeLabel: 'Código Meta4',
-    meta4CodePlaceholder: 'Código Meta4',
-    projectContractLabel: 'Contrato Proyecto',
-    projectContractPlaceholder: 'Contrato Proyecto',
-    workCenterCodeLabel: 'Código Centro Trabajo',
-    selectWorkCenterPlaceholder: 'Seleccionar centro de trabajo',
-    addWorkCenterButtonTitle: 'Añadir nuevo centro de trabajo',
-    saving: 'Guardando...',
-    saveProperty: 'Guardar Propiedad',
-
-    // Additional Real Estate Dashboard translations
-    errorLoadingDashboardData: 'Error al cargar datos del dashboard',
-    realEstateDashboard: 'Dashboard Inmobiliario',
-    realEstateManagementDescription: 'Gestión integral de propiedades inmobiliarias',
-    addProperty: 'Agregar Inmueble',
-    notImplemented: 'no implementado',
-    importDataButton: 'Importar Datos',
-    viewTables: 'Ver Tablas',
-    activeProperties: 'Propiedades Activas',
-    inactiveProperties: 'Propiedades Inactivas',
-    totalProperties: 'Total Propiedades',
-    propertiesOperational: 'propiedades operacionales',
-    propertiesPaused: 'propiedades pausadas',
-    totalPortfolio: 'portafolio total',
-    totalRoomsKPI: 'Total Habitaciones',
-    availableRooms: 'habitaciones disponibles',
-    annualTotalCostKPI: 'Coste Total Anual',
-    operatingExpenses: 'gastos operativos',
-    averageCostKPI: 'Coste Promedio',
-    perProperty: 'por propiedad',
-    annualCostByProvince: 'Coste Anual por Provincia',
-    annualCost: 'Coste Anual',
-    propertyStatus: 'Estado de Propiedades',
-    properties: 'propiedades',
-
-    // Property Type Selection Modal translations
-    selectPropertyType: 'Seleccionar Tipo de Propiedad',
-    propertyTypeLabel: 'Tipo de Propiedad',
-    selectTypePlaceholder: 'Seleccione el tipo',
-    activeProperty: 'Propiedad Activa',
-    inactiveProperty: 'Propiedad Inactiva',
-    accept: 'Aceptar',
-
-    // Inactive Property Form translations
-    reason: 'Razón',
-    date: 'Fecha',
-
-    // Missing Real Estate Detail View translations
-    exportPDF: 'Exportar PDF',
-    realEstateDetails: 'Detalles del Inmueble',
-    detailViewPlaceholder: 'Vista detallada del inmueble',
-
-    // Missing Users Management translations
-    errorLoadingUsers: 'Error al cargar usuarios',
-    userPermissionsUpdatedSuccessfully: 'Permisos de usuario actualizados correctamente',
-    errorUpdatingUserPermissions: 'Error al actualizar permisos de usuario',
-    yes: 'Sí',
-    no: 'No',
-    usersGestion: 'Gestión de Usuarios',
-    userGestSub: 'Administra usuarios y sus permisos',
-    buscadorUsers: 'Buscar usuarios...',
-    listaUsers: 'Lista de Usuarios',
-    usersCount: 'usuarios registrados',
-    editPermissions: 'Editar Permisos',
-    swipeToViewMore: 'Desliza para ver más',
-
-    // Missing Verification Screen translation
-    verifyingAccount: 'Verificando cuenta...'
+    incorporation_date: 'Fecha de Incorporación',
+    job_position: 'Puesto de Trabajo',
+    work_center: 'Centro de Trabajo',
   },
+  
   en: {
-    welcome: 'Welcome to GEESTOR',
-    loginSubtitle: 'Access your account to continue',
-    loginButton: 'Sign in with Microsoft',
-    userProfile: 'User Profile',
-    personalInformation: 'Personal Information',
-    permissions: 'Permissions',
-    permissionsDescription: 'Permissions assigned to your account',
-    departmentPermissions: 'Department Permissions',
-    actionPermissions: 'Action Permissions',
+    // Navigation
+    home: 'Home',
     operations: 'Operations',
-    technicalManagement: 'Technical Management',
-    technicalManagementShort: 'Tech. Mgmt',
-    talentManagement: 'Talent Management',
-    talentManagementShort: 'Talent Mgmt',
-    create: 'Create',
-    modify: 'Modify',
+    technical_management: 'Technical Management',
+    talent_management: 'Talent Management',
+    contract_requests: 'Contract Requests',
+    change_sheets: 'Change Sheets',
+    employee_agreements: 'Employee Agreements',
+    real_estate_management: 'Real Estate Management',
+    practice_evaluations: 'Practice Evaluations',
+    exit_interviews: 'Exit Interviews',
+    user_management: 'User Management',
+    settings: 'Settings',
+    
+    // Common actions
+    save: 'Save',
+    cancel: 'Cancel',
+    edit: 'Edit',
     delete: 'Delete',
     view: 'View',
-    name: 'Name',
-    email: 'Email',
-    changePhoto: 'Change photo',
-    saveChanges: 'Save changes',
-    logout: 'Logout',
-    
-    // Navigation and menu items
-    homeMenu: 'Home',
-    users: 'Users',
-    costAnalysis: 'Cost Analysis',
-    costAnalysisShort: 'Cost Analysis',
-    calendarManagement: 'Calendar Management',
-    calendarManagementShort: 'Calendar',
-    checkers: 'Checkers',
-    contractRequests: 'Contract Requests',
-    changeSheets: 'Change Sheets',
-    employeeAgreements: 'Employee Agreements',
-    realEstateManagement: 'Real Estate Management',
-    practiceEvaluation: 'Practice Evaluation',
-    exitInterviews: 'Exit Interviews',
-
-    // Change Sheets specific
-    changeSheetsManagement: 'Change Sheets Management',
-    hojasCambio: 'Change Sheets',
-    employeeName: 'Employee Name',
-    originCenter: 'Origin Center',
-    startDate: 'Start Date',
-    status: 'Status',
-    actions: 'Actions',
-    createNew: 'Create New',
+    create: 'Create',
     export: 'Export',
     import: 'Import',
-
-    // Cost Analysis specific
-    tituloAnalisis: 'Cost and Score Analysis',
-    subtiAnalisis: 'Upload tender files to get a detailed analysis',
-    subirPdf: 'Upload Tender PDF',
-    informepdf: 'View Detailed Report',
-    costespdf: 'View Cost Breakdown',
-    puntuacionPdf: 'Calculate Total Score',
-    pcapFileLabel: 'PCAP File (Optional)',
-    pcapFileTitle: 'Specifications File',
-    pcapFileDescription: 'Upload the technical specifications file',
-    pptFileLabel: 'PPT File',
-    pptFileTitle: 'Presentation File',
-    pptFileDescription: 'Upload the presentation or budget file',
-    professionalCostAnalysisTitle: 'Professional Cost Analysis',
-    filesReadyForAnalysis: 'Files ready for analysis',
-    analysisDescription: 'A complete cost and criteria analysis will be performed',
-    analyzingWithAI: 'Analyzing with AI...',
-    startProfessionalCostAnalysis: 'Start Professional Analysis',
-    analysisErrorTitle: 'Analysis Error',
-    pliegos: 'Technical Specifications',
-    presupuesto: 'Budget',
-    criterios: 'Award Criteria',
-    errorAnalyzingCosts: 'Error analyzing costs',
-    chatbotContextUpdated: 'Chatbot context updated',
+    refresh: 'Refresh',
+    duplicate: 'Duplicate',
+    back: 'Back',
+    next: 'Next',
+    previous: 'Previous',
+    search: 'Search',
+    filter: 'Filter',
+    clear: 'Clear',
+    confirm: 'Confirm',
+    close: 'Close',
+    
+    // CSV Export
+    export_csv: 'Export CSV',
+    exporting_data: 'Exporting data...',
+    export_successful: 'Export completed successfully',
+    export_failed: 'Error exporting data',
+    no_data_to_export: 'No data to export',
+    
+    // Status
+    pending: 'Pending',
+    approved: 'Approved',
+    rejected: 'Rejected',
+    active: 'Active',
+    inactive: 'Inactive',
+    
+    // Forms
+    required_field: 'Required field',
+    optional_field: 'Optional field',
+    select_option: 'Select option',
+    
+    // Messages
+    success: 'Success',
+    error: 'Error',
+    warning: 'Warning',
+    info: 'Information',
+    
+    // Practice Evaluations
+    practice_evaluations: 'Practice Evaluations',
+    tutor_name: 'Tutor Name',
+    student_name: 'Student Name',
+    formation: 'Formation',
+    institution: 'Institution',
+    evaluation_date: 'Evaluation Date',
+    performance_rating: 'Performance Rating',
+    final_evaluation: 'Final Evaluation',
     
     // Employee Agreements
-    employeeInformation: 'Employee Information',
-    employeeLastName: 'Employee Last Name',
-    position: 'Position',
-    department: 'Department',
-    agreementDetails: 'Agreement Details',
-    agreementType: 'Agreement Type',
-    endDate: 'End Date',
+    employee_agreements: 'Employee Agreements',
+    employee_name: 'Employee Name',
+    agreement_type: 'Agreement Type',
+    start_date: 'Start Date',
+    end_date: 'End Date',
+    
+    // Change Sheets
+    change_sheets: 'Change Sheets',
+    current_company: 'Current Company',
+    change_type: 'Change Type',
+    origin_center: 'Origin Center',
+    destination_center: 'Destination Center',
+    
+    // Contract Requests
+    contract_requests: 'Contract Requests',
+    requester_name: 'Requester Name',
+    contract_type: 'Contract Type',
     salary: 'Salary',
-    benefitsAndConditions: 'Benefits and Conditions',
-    benefits: 'Benefits',
-    conditions: 'Conditions',
-    observations: 'Observations',
-    employeeAgreementDetails: 'Employee Agreement Details',
-    
-    // Exit Interviews specific
-    entrevistaTit: 'Exit Interviews',
-    workCenter: 'Work Center',
-    workCenterShort: 'Center',
-    exitType: 'Exit Type',
-    exitDate: 'Exit Date',
-    positionShort: 'Position',
-    exitInterviewsLoaded: 'Exit interviews loaded',
-    errorLoadingExitInterviews: 'Error loading exit interviews',
-    voluntary: 'Voluntary',
-    leaveOfAbsence: 'Leave of Absence',
-    linkCopiedTitle: 'Link copied',
-    linkCopiedDescription: 'The link has been copied to clipboard',
-    errorCopyingLinkTitle: 'Error copying link',
-    errorCopyingLinkDescription: 'Could not copy link. Manual URL:',
-    interviewDuplicatedTitle: 'Interview duplicated',
-    interviewDuplicatedDescription: 'The interview has been duplicated successfully',
-    errorDuplicatingTitle: 'Error duplicating',
-    errorDuplicatingDescription: 'Could not duplicate the interview',
-    confirmDeleteInterview: 'Are you sure you want to delete this interview?',
-    interviewDeletedTitle: 'Interview deleted',
-    interviewDeletedDescription: 'The interview has been deleted successfully',
-    errorDeletingTitle: 'Error deleting',
-    errorDeletingDescription: 'Could not delete the interview',
-    functionNotImplementedTitle: 'Function not implemented',
-    downloadPdfNotAvailable: 'PDF download is not available yet',
-    noDataTitle: 'No data',
-    noDataToExportDescription: 'No data available to export',
-    exportCompletedTitle: 'Export completed',
-    exportCompletedDescription: 'Data has been exported successfully',
-    importNotAvailable: 'Import is not available yet',
-    recargar: 'Reload',
-    generarEnla1: 'Generate Link',
-    exportarEntre: 'Export',
-    importarEntre: 'Import',
-    errorLoadingData: 'Error loading data',
-    tryAgain: 'Try again',
-    loadingExitInterviews: 'Loading exit interviews...',
-    noExitInterviewsFound: 'No exit interviews found',
-    generateLinkToStart: 'Generate a link to get started',
-    importData: 'Import data',
-    viewDetails: 'View details',
-    duplicate: 'Duplicate',
-    invalidDate: 'Invalid date',
-    showingRecords: 'Showing {{start}} to {{end}} of {{total}} records',
-    previous: 'Previous',
-    next: 'Next',
-    
-    // Chatbot translations
-    openGeenioChatbot: 'Open Geenio Chatbot',
-    asistChat: 'AI Assistant',
-    bienvenidaChat: 'Hello! I\'m Geenio, your tender analysis assistant. How can I help you?',
-    typeYourMessage: 'Type your message...',
-    send: 'Send',
-    thinking: 'Thinking',
-    
-    // File upload in chatbot
-    uploadFiles: 'Upload files',
-    dragDropFiles: 'Drag files here or click to select',
-    supportedFormats: 'Supported formats: PDF, Excel, Word, CSV, Images',
-    fileUploaded: 'File uploaded',
-    fileUploadError: 'File upload error',
-    removeFile: 'Remove file',
-    
-    // AI responses
-    greetingHello: 'Hello! I\'m Geenio, your specialized tender analysis assistant. How can I help you today?',
-    greetingGoodMorning: 'Good morning! How can I assist you with tender analysis?',
-    greetingGoodAfternoon: 'Good afternoon! Do you need help with any analysis?',
-    greetingGoodEvening: 'Good evening! How can I help you?',
-    greetingHowAreYou: 'Very well, thank you! Ready to help you with your tender analysis.',
-    greetingIAmFine: 'Perfect, I\'m here to help you.',
-    greetingThanks: 'You\'re welcome! Is there anything else I can help you with?',
-    greetingYouAreWelcome: 'My pleasure to help you!',
-    helpMessage: 'I can help you with cost analysis, criteria interpretation, score calculation and more. What do you need?',
-    aiSystemPrompt: 'You are Geenio, an assistant specialized in Spanish public tender analysis in the electromedical sector. You help with cost analysis, award criteria interpretation, score calculation and bid presentation strategies. Always respond professionally, clearly and practically.',
-    botErrorResponse: 'Sorry, an error occurred. Could you repeat your question?',
-    processingErrorMessage: 'Error processing your request. Please try again.',
-    
-    // Cost analysis improvements
-    analysisReport: 'Analysis Report',
-    generalInformation: 'General Information',
-    economicAnalysis: 'Economic Analysis',
-    awardCriteria: 'Award Criteria',
-    scopeConditions: 'Scope and Conditions',
-    scheduleDeadlines: 'Schedule and Deadlines',
-    detailedBreakdown: 'Detailed Breakdown',
-    personnelAnalysis: 'Personnel Analysis',
-    purchaseAnalysis: 'Purchase Analysis',
-    subcontractingAnalysis: 'Subcontracting Analysis',
-    otherExpenses: 'Other Expenses',
-    formulasDetected: 'Detected Formulas',
-    automaticCriteria: 'Automatic Criteria',
-    subjectiveCriteria: 'Subjective Criteria',
-    lowBidThreshold: 'Low Bid Threshold',
-    
-    // New detailed fields
-    contractingEntity: 'Contracting Entity',
-    contractObject: 'Contract Object',
-    cpvCode: 'CPV Code',
-    contractType: 'Contract Type',
-    baseBudget: 'Base Budget',
-    estimatedValue: 'Estimated Value',
-    contractDuration: 'Contract Duration',
-    geographicScope: 'Geographic Scope',
-    includedServices: 'Included Services',
-    includedProducts: 'Included Products',
-    technicalRequirements: 'Technical Requirements',
-    exclusions: 'Exclusions',
-    extensions: 'Extensions',
-    modifications: 'Modifications',
-    workersRequired: 'Workers Required',
-    positionBreakdown: 'Position Breakdown',
-    equipment: 'Equipment',
-    consumables: 'Consumables',
-    spareParts: 'Spare Parts',
-    externalServices: 'External Services',
-    insurance: 'Insurance',
-    generalExpenses: 'General Expenses',
-    indirectCosts: 'Indirect Costs',
-
-    // Settings and UI
-    settings: 'Settings',
-    language: 'Language',
-    theme: 'Theme',
-    light: 'Light',
-    dark: 'Dark',
-    spanish: 'Spanish',
-    english: 'English',
-    profile: 'Profile',
-
-    // File upload new translations
-    attachFile: 'Attach file',
-    fileAttached: 'File attached',
-    maxFileSize: 'Max size: 10MB',
-    processingFile: 'Processing file...',
-    fileProcessed: 'File processed successfully',
-    arrastraArchivo: 'Drag files here or click to select',
-    formatosCsv: 'Supported formats: CSV, Excel',
-
-    // Common actions
-    back: 'Back',
-    loading: 'Loading',
-    error: 'Error',
-    success: 'Success',
-    cancel: 'Cancel',
-    confirm: 'Confirm',
-    save: 'Save',
-    edit: 'Edit',
-    download: 'Download',
-    upload: 'Upload',
-
-    // Profile modal
-    uploadPhoto: 'Upload photo',
-    removePhoto: 'Remove photo',
-    photoUpdated: 'Photo updated',
-    photoRemoved: 'Photo removed',
-
-    // PDF and reports
-    downloadPDF: 'Download PDF',
-    duplicateRecord: 'Duplicate record',
-    generatedOn: 'Generated on',
-    documentGenerated: 'Document generated by',
-    recordNotFound: 'Record not found',
-
-    // Maintenance Calendar
-    missingMaintenanceTitle: 'Missing Maintenance',
-    missingMaintenanceMessage: 'There are denominations without scheduled maintenance.',
-    generateAnyway: 'Generate Anyway',
-    completeFirst: 'Complete First',
-    maintenanceCalendar: 'Maintenance Calendar',
-    generateCalendar: 'Generate Calendar',
-    hospitalInventory: 'Hospital Inventory',
-    maintenanceSchedule: 'Maintenance Schedule',
-    processFiles: 'Process Files',
-    calendar: 'Calendar',
-    analysis: 'Analysis',
-    inventory: 'Inventory',
-
-    // Main Content
-    featureTitleComprobadores: 'Checkers',
-    comingSoonDescriptionComprobadores: 'Checker management functionality in development.',
-    comingSoon: 'Coming Soon',
-
-    // Additional maintenance calendar terms
-    maintenanceType: 'Maintenance Type',
-    frequency: 'Frequency',
-    scheduledDate: 'Scheduled Date',
-    duration: 'Duration',
-    technician: 'Technician',
-    priority: 'Priority',
-    notes: 'Notes',
-    location: 'Location',
-    nextMaintenance: 'Next Maintenance',
-    lastMaintenance: 'Last Maintenance',
-    scheduled: 'Scheduled',
-    inProgress: 'In Progress',
-    completed: 'Completed',
-    pending: 'Pending',
-    critical: 'Critical',
-    high: 'High',
-    medium: 'Medium',
-    low: 'Low',
-    preventive: 'Preventive',
-    corrective: 'Corrective',
-    calibration: 'Calibration',
-    verification: 'Verification',
-    cleaning: 'Cleaning',
-    inspection: 'Inspection',
-    technicalReview: 'Technical Review',
-
-    // Work Center Modal translations
-    requiredFieldsError: 'Please complete all required fields.',
-    workCenterCreatedSuccess: 'Work center created successfully',
-    errorCreatingWorkCenter: 'Error creating work center',
-    workCenterUpdatedSuccess: 'Work center updated successfully',
-    errorUpdatingWorkCenter: 'Error updating work center',
-    createWorkCenterTitle: 'Create Work Center',
-    workCenterNameLabel: 'Work Center Name',
-    workCenterNamePlaceholder: 'Enter center name',
-    workCenterIdLabel: 'Work Center ID',
-    workCenterIdPlaceholder: 'Enter center ID',
-    clearButton: 'Clear',
-    processing: 'Processing...',
-    uploadCenterButton: 'Create Center',
-    confirmCreationTitle: 'Confirm Creation',
-    confirmCreationDescription: 'Are you sure you want to create the work center "{{name}}" with ID "{{id}}"?',
-    confirmButton: 'Confirm',
-    workCenterExistsTitle: 'Existing Work Center',
-    workCenterExistsDescription: 'A work center with ID "{{id}}" already exists. Do you want to update the existing record?',
-    leaveAsIsButton: 'Leave As Is',
-    updateRecordButton: 'Update Record',
-
-    // Practice Evaluation Detail translations
-    valoPracTit: 'Practice Evaluation',
-    valoPracSub: 'Manage and review student practice evaluations',
-    tutor: 'Tutor',
-    institution: 'Institution',
-    formation: 'Formation',
-    evaluationDate: 'Evaluation Date',
-    finalEvaluation: 'Final Evaluation',
-    performanceRating: 'Performance Rating',
-    student: 'Student',
-    Apto: 'Apt',
-    NoApto: 'Not Apt',
-    Apt: 'Apt',
-    NotApt: 'Not Apt',
-
-    // Additional Practice Evaluation translations
-    linkCopiedToClipboardToastTitle: 'Link copied',
-    linkCopiedToClipboardToastDescription: 'The evaluation link has been copied to clipboard',
-    evaluationDeletedToastTitle: 'Evaluation deleted',
-    evaluationDeletedToastDescription: 'The evaluation has been deleted successfully',
-    errorDeletingEvaluationToastTitle: 'Error deleting',
-    errorDeletingEvaluationToastDescription: 'Could not delete the evaluation',
-    exportFunctionComingSoonTitle: 'Feature in development',
-    exportFunctionComingSoonDescription: 'Export functionality will be available soon',
-    importFunctionComingSoonTitle: 'Feature in development',
-    importFunctionComingSoonDescription: 'Import functionality will be available soon',
-    generarEnlaceVal: 'Generate Evaluation Link',
-    noEvaluationsRegistered: 'No evaluations registered',
-    generateLinkToStartReceivingEvaluations: 'Generate a link to start receiving evaluations',
-    performanceRatingScore: '{{rating}}/10',
-    deleteEvaluationConfirmationTitle: 'Confirm deletion',
-    deleteEvaluationConfirmationDescription: 'Are you sure you want to delete the evaluation of {{studentName}} {{studentLastName}}?',
-
-    // Real Estate translations
-    errorLoadingWorkCenters: 'Error loading work centers',
-    addWorkerError: 'Error adding worker',
-    removeWorkerError: 'Error removing worker',
-    workerAddedSuccess: 'Worker added successfully',
-    workerRemovedSuccess: 'Worker removed successfully',
-    selectWorkCenter: 'Select work center',
-    addWorker: 'Add worker',
-    workersInProperty: 'Workers in property',
-    removeWorker: 'Remove worker',
-    noWorkersAssigned: 'No workers assigned',
-
-    // Active Property Form translations
-    specifyCustomCompanyError: 'Please specify the custom company name',
-    propertyAddedSuccess: 'Property added successfully',
-    errorAddingProperty: 'Error adding property',
-    addActivePropertyTitle: 'Add Active Property',
-    activePropertyInfoTitle: 'Active Property Information',
-    idLabel: 'ID',
-    numRoomsLabel: 'Number of Rooms',
-    workersLabel: 'Workers',
-    addWorkerButton: 'Add Worker',
-    workerNamePlaceholder: 'Worker name',
-    dniPlaceholder: 'DNI',
-    removeWorkerButton: 'Remove',
-    geeCompanyLabel: 'GEE Company',
-    selectCompanyPlaceholder: 'Select company',
-    otherCompanyOption: 'Other',
-    specifyCompanyPlaceholder: 'Specify company',
-    propertyStatusLabel: 'Property Status',
-    occupiedStatus: 'Occupied',
-    emptyStatus: 'Empty',
-    addressLabel: 'Address',
-    addressPlaceholder: 'E.g: Main Street 123',
-    cityLabel: 'City',
-    provinceLabel: 'Province',
-    ccaaLabel: 'CCAA Destination',
-    originProvinceLabel: 'Origin Province',
-    annualCostLabel: 'Annual Cost (€)',
-    occupancyDateLabel: 'Occupancy Date',
-    contractStartDateLabel: 'Contract Start Date',
-    selectDate: 'Select date',
-    meta4CodeLabel: 'Meta4 Code',
-    meta4CodePlaceholder: 'Meta4 Code',
-    projectContractLabel: 'Project Contract',
-    projectContractPlaceholder: 'Project Contract',
-    workCenterCodeLabel: 'Work Center Code',
-    selectWorkCenterPlaceholder: 'Select work center',
-    addWorkCenterButtonTitle: 'Add new work center',
-    saving: 'Saving...',
-    saveProperty: 'Save Property',
-
-    // Additional Real Estate Dashboard translations
-    errorLoadingDashboardData: 'Error loading dashboard data',
-    realEstateDashboard: 'Real Estate Dashboard',
-    realEstateManagementDescription: 'Comprehensive real estate property management',
-    addProperty: 'Add Property',
-    notImplemented: 'not implemented',
-    importDataButton: 'Import Data',
-    viewTables: 'View Tables',
-    activeProperties: 'Active Properties',
-    inactiveProperties: 'Inactive Properties',
-    totalProperties: 'Total Properties',
-    propertiesOperational: 'operational properties',
-    propertiesPaused: 'paused properties',
-    totalPortfolio: 'total portfolio',
-    totalRoomsKPI: 'Total Rooms',
-    availableRooms: 'available rooms',
-    annualTotalCostKPI: 'Total Annual Cost',
-    operatingExpenses: 'operating expenses',
-    averageCostKPI: 'Average Cost',
-    perProperty: 'per property',
-    annualCostByProvince: 'Annual Cost by Province',
-    annualCost: 'Annual Cost',
-    propertyStatus: 'Property Status',
-    properties: 'properties',
-
-    // Property Type Selection Modal translations
-    selectPropertyType: 'Select Property Type',
-    propertyTypeLabel: 'Property Type',
-    selectTypePlaceholder: 'Select type',
-    activeProperty: 'Active Property',
-    inactiveProperty: 'Inactive Property',
-    accept: 'Accept',
-
-    // Inactive Property Form translations
-    reason: 'Reason',
-    date: 'Date',
-
-    // Missing Real Estate Detail View translations
-    exportPDF: 'Export PDF',
-    realEstateDetails: 'Real Estate Details',
-    detailViewPlaceholder: 'Detailed view of the property',
-
-    // Missing Users Management translations
-    errorLoadingUsers: 'Error loading users',
-    userPermissionsUpdatedSuccessfully: 'User permissions updated successfully',
-    errorUpdatingUserPermissions: 'Error updating user permissions',
-    yes: 'Yes',
-    no: 'No',
-    usersGestion: 'User Management',
-    userGestSub: 'Manage users and their permissions',
-    buscadorUsers: 'Search users...',
-    listaUsers: 'User List',
-    usersCount: 'registered users',
-    editPermissions: 'Edit Permissions',
-    swipeToViewMore: 'Swipe to view more',
-
-    // Missing Verification Screen translation
-    verifyingAccount: 'Verifying account...'
+    incorporation_date: 'Incorporation Date',
+    job_position: 'Job Position',
+    work_center: 'Work Center',
   }
-};
-
-export const useTranslation = (language: Language) => {
-  const t = (key: keyof typeof translations.es): string => {
-    return translations[language][key] || key;
-  };
-
-  return { t };
 };

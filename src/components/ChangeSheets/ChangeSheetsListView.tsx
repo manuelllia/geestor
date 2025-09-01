@@ -1,14 +1,15 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { MoreHorizontal, Eye, Copy, Edit, Trash, FileText, Plus, Upload, RefreshCw } from 'lucide-react';
+import { MoreHorizontal, Eye, Copy, Edit, Trash, FileText, Plus, Upload, RefreshCw, Download } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Language } from '../../utils/translations';
 import { useTranslation } from '../../hooks/useTranslation';
-import { getChangeSheets, deleteChangeSheet, duplicateChangeSheet, ChangeSheetRecord } from '../../services/changeSheetsService';
+import { getChangeSheets, deleteChangeSheet, duplicateChangeSheet, exportChangeSheetsToCSV, ChangeSheetRecord } from '../../services/changeSheetsService';
 import ChangeSheetCreateForm from './ChangeSheetCreateForm';
 import ChangeSheetDetailView from './ChangeSheetDetailView';
 import ImportChangeSheetsModal from './ImportChangeSheetsModal';
@@ -29,6 +30,7 @@ export const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({ lang
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [sheetToDelete, setSheetToDelete] = useState<ChangeSheetRecord | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   // Estados para paginación
   const [currentPage, setCurrentPage] = useState(1);
@@ -55,6 +57,20 @@ export const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({ lang
     setRefreshing(true);
     await loadSheets();
     setRefreshing(false);
+  };
+
+  const handleExportCSV = async () => {
+    try {
+      setExporting(true);
+      toast.info(t.exporting_data);
+      await exportChangeSheetsToCSV();
+      toast.success(t.export_successful);
+    } catch (error) {
+      console.error('Error exporting change sheets:', error);
+      toast.error(t.export_failed);
+    } finally {
+      setExporting(false);
+    }
   };
 
   const handleViewSheet = (sheet: ChangeSheetRecord) => {
@@ -194,7 +210,7 @@ export const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({ lang
             </p>
           </div>
           
-          {/* Botones responsivos - Usando flex-wrap para que se ajusten mejor */}
+          {/* Botones responsivos - Agregando botón de exportación CSV */}
           <div className="flex flex-wrap gap-3">
             <Button
               onClick={handleRefresh}
@@ -205,6 +221,17 @@ export const ChangeSheetsListView: React.FC<ChangeSheetsListViewProps> = ({ lang
             >
               <RefreshCw className={`w-4 h-4 mr-2 flex-shrink-0 ${refreshing ? 'animate-spin' : ''}`} />
               <span>Actualizar</span>
+            </Button>
+            
+            <Button
+              onClick={handleExportCSV}
+              variant="outline"
+              className="border-green-300 text-green-700 hover:bg-green-50 text-sm flex-grow sm:flex-grow-0"
+              disabled={exporting || sheets.length === 0}
+              size="sm"
+            >
+              <Download className={`w-4 h-4 mr-2 flex-shrink-0 ${exporting ? 'animate-pulse' : ''}`} />
+              <span>{t.export_csv}</span>
             </Button>
             
             <Button

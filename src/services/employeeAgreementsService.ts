@@ -1,71 +1,35 @@
-// src/services/employeeAgreementsService.ts
+import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, orderBy, Timestamp, getDoc } from "firebase/firestore";
+import { db } from "../lib/firebase";
+import { CSVExporter } from "../utils/csvExporter";
 
-import { collection, addDoc, getDocs, doc, setDoc, deleteDoc, updateDoc, query, orderBy, Timestamp, getDoc, serverTimestamp as firebaseServerTimestamp } from 'firebase/firestore';
-import { db, serverTimestamp } from '../lib/firebase';
-
-// --- Interfaz EmployeeAgreementRecord: Define la estructura de datos en el cliente ---
 export interface EmployeeAgreementRecord {
-  id: string; // ID del documento Firestore
+  id: string;
   employeeName: string;
   employeeLastName: string;
-  workCenter: string;
-  city: string;
-  province: string;
-  autonomousCommunity: string;
-  responsibleName: string;
-  responsibleLastName: string;
-  agreementConcepts: string;
-  economicAgreement1: string;
-  concept1: string;
-  economicAgreement2: string;
-  concept2: string;
-  economicAgreement3: string;
-  concept3: string;
-  activationDate: Date;
-  endDate?: Date;
-  observationsAndCommitment: string;
-  // Campos requeridos para compatibilidad
-  jobPosition: string;
-  department: string;
   agreementType: string;
-  startDate: Date;
+  startDate?: Date;
+  endDate?: Date;
+  description: string;
+  terms: string;
+  status: 'Activo' | 'Inactivo';
+  workCenter: string;
+  supervisor: string;
   salary: string;
-  status: 'Activo' | 'Finalizado' | 'Suspendido';
+  benefits: string;
   observations: string;
-
-  // Campos de sistema (gestionados por Firestore)
-  createdAt: Date; // Timestamp de creación en Firestore -> Date en cliente
-  updatedAt: Date; // Timestamp de última actualización en Firestore -> Date en cliente
-
-  // Campos adicionales que pueden existir en Firestore pero no vienen directamente del formulario
-  createdByUserId?: string; // ID del usuario que creó la solicitud
-  pdfAgreement?: string; // URL o referencia a PDF del acuerdo
-  notes?: string; // Notas adicionales
-  approved?: boolean; // Booleano para aprobación
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-// Export type aliases for compatibility with imports
-export type EmployeeAgreementData = EmployeeAgreementRecord;
-export type EmployeeAgreementInput = Partial<EmployeeAgreementRecord>;
-
-// --- Tipo para los datos que se enviarán directamente a Firestore ---
-// Las fechas se convierten a Timestamp para Firestore.
-export type EmployeeAgreementFirestorePayload = Omit<
-  EmployeeAgreementRecord,
-  'id' | 'activationDate' | 'endDate' | 'createdAt' | 'updatedAt' | 'startDate'
-> & {
-  activationDate: any; // Para guardar en Firestore, será un Timestamp
-  endDate: any; // Para guardar en Firestore, puede ser Timestamp o null
-  createdAt?: any; // Para guardar en Firestore, opcional al crear/actualizar
-  updatedAt?: any; // Para guardar en Firestore, opcional al crear/actualizar
-  startDate: any; // Para guardar en Firestore, será un Timestamp
+export type EmployeeAgreementFirestorePayload = Omit<EmployeeAgreementRecord, 'id' | 'startDate' | 'endDate' | 'createdAt' | 'updatedAt'> & {
+  startDate: Timestamp | null;
+  endDate: Timestamp | null;
+  createdAt?: Timestamp;
+  updatedAt?: Timestamp;
 };
 
-// --- RUTA DE LA COLECCIÓN EN FIRESTORE (CORREGIDA) ---
-// Colección "Gestión de Talento" -> Documento "Acuerdos Empleados" -> Subcolección "acuerdos"
-const getEmployeeAgreementsCollectionRef = () => collection(db, "Gestión de Talento", "Acuerdos de Empleados", "acuerdos");
+const getEmployeeAgreementsCollectionRef = () => collection(db, "Gestión de Talento", "acuerdos-empleado", "Acuerdos de Empleado");
 
-// --- FUNCIÓN para obtener un Acuerdo con Empleado por ID ---
 export const getEmployeeAgreementById = async (id: string): Promise<EmployeeAgreementRecord | null> => {
   try {
     const docRef = doc(getEmployeeAgreementsCollectionRef(), id);
@@ -74,58 +38,35 @@ export const getEmployeeAgreementById = async (id: string): Promise<EmployeeAgre
     if (docSnap.exists()) {
       const data = docSnap.data();
 
-      // Validar y tipar correctamente los campos de tipo literal
-      const status: 'Activo' | 'Finalizado' | 'Suspendido' = (data.status === 'Activo' || data.status === 'Finalizado' || data.status === 'Suspendido') ? data.status : 'Activo';
-
       return {
         id: docSnap.id,
         employeeName: data.employeeName || '',
         employeeLastName: data.employeeLastName || '',
-        workCenter: data.workCenter || '',
-        city: data.city || '',
-        province: data.province || '',
-        autonomousCommunity: data.autonomousCommunity || '',
-        responsibleName: data.responsibleName || '',
-        responsibleLastName: data.responsibleLastName || '',
-        agreementConcepts: data.agreementConcepts || '',
-        economicAgreement1: data.economicAgreement1 || '',
-        concept1: data.concept1 || '',
-        economicAgreement2: data.economicAgreement2 || '',
-        concept2: data.concept2 || '',
-        economicAgreement3: data.economicAgreement3 || '',
-        concept3: data.concept3 || '',
-        activationDate: data.activationDate instanceof Timestamp ? data.activationDate.toDate() : new Date(),
-        endDate: data.endDate instanceof Timestamp ? data.endDate.toDate() : undefined,
-        observationsAndCommitment: data.observationsAndCommitment || '',
-        // Campos requeridos para compatibilidad
-        jobPosition: data.jobPosition || '',
-        department: data.department || '',
         agreementType: data.agreementType || '',
-        startDate: data.startDate instanceof Timestamp ? data.startDate.toDate() : new Date(),
+        startDate: data.startDate instanceof Timestamp ? data.startDate.toDate() : undefined,
+        endDate: data.endDate instanceof Timestamp ? data.endDate.toDate() : undefined,
+        description: data.description || '',
+        terms: data.terms || '',
+        status: data.status || 'Inactivo',
+        workCenter: data.workCenter || '',
+        supervisor: data.supervisor || '',
         salary: data.salary || '',
-        status: status,
+        benefits: data.benefits || '',
         observations: data.observations || '',
-
         createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate() : new Date(),
         updatedAt: data.updatedAt instanceof Timestamp ? data.updatedAt.toDate() : new Date(),
-
-        createdByUserId: data.createdByUserId || undefined,
-        pdfAgreement: data.pdfAgreement || undefined,
-        notes: data.notes || undefined,
-        approved: typeof data.approved === 'boolean' ? data.approved : undefined,
       };
     }
     return null;
   } catch (error) {
-    console.error('Error al obtener acuerdo con empleado por ID:', error);
+    console.error('Error al obtener acuerdo de empleado:', error);
     throw error;
   }
 };
 
-// --- FUNCIÓN para obtener todos los Acuerdos con Empleados ---
 export const getEmployeeAgreements = async (): Promise<EmployeeAgreementRecord[]> => {
   try {
-    console.log('Obteniendo acuerdos con empleados desde Firebase...');
+    console.log('Obteniendo acuerdos de empleado desde Firebase...');
 
     const q = query(getEmployeeAgreementsCollectionRef(), orderBy("createdAt", "desc"));
     const querySnapshot = await getDocs(q);
@@ -135,144 +76,76 @@ export const getEmployeeAgreements = async (): Promise<EmployeeAgreementRecord[]
     querySnapshot.forEach((docSnap) => {
       const data = docSnap.data();
 
-      // Validar y tipar correctamente los campos de tipo literal
-      const status: 'Activo' | 'Finalizado' | 'Suspendido' = (data.status === 'Activo' || data.status === 'Finalizado' || data.status === 'Suspendido') ? data.status : 'Activo';
-
       agreements.push({
         id: docSnap.id,
         employeeName: data.employeeName || '',
         employeeLastName: data.employeeLastName || '',
-        workCenter: data.workCenter || '',
-        city: data.city || '',
-        province: data.province || '',
-        autonomousCommunity: data.autonomousCommunity || '',
-        responsibleName: data.responsibleName || '',
-        responsibleLastName: data.responsibleLastName || '',
-        agreementConcepts: data.agreementConcepts || '',
-        economicAgreement1: data.economicAgreement1 || '',
-        concept1: data.concept1 || '',
-        economicAgreement2: data.economicAgreement2 || '',
-        concept2: data.concept2 || '',
-        economicAgreement3: data.economicAgreement3 || '',
-        concept3: data.concept3 || '',
-        activationDate: data.activationDate instanceof Timestamp ? data.activationDate.toDate() : new Date(),
-        endDate: data.endDate instanceof Timestamp ? data.endDate.toDate() : undefined,
-        observationsAndCommitment: data.observationsAndCommitment || '',
-        // Campos requeridos para compatibilidad
-        jobPosition: data.jobPosition || '',
-        department: data.department || '',
         agreementType: data.agreementType || '',
-        startDate: data.startDate instanceof Timestamp ? data.startDate.toDate() : new Date(),
+        startDate: data.startDate instanceof Timestamp ? data.startDate.toDate() : undefined,
+        endDate: data.endDate instanceof Timestamp ? data.endDate.toDate() : undefined,
+        description: data.description || '',
+        terms: data.terms || '',
+        status: data.status || 'Inactivo',
+        workCenter: data.workCenter || '',
+        supervisor: data.supervisor || '',
         salary: data.salary || '',
-        status: status,
+        benefits: data.benefits || '',
         observations: data.observations || '',
-
         createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate() : new Date(),
         updatedAt: data.updatedAt instanceof Timestamp ? data.updatedAt.toDate() : new Date(),
-
-        createdByUserId: data.createdByUserId || undefined,
-        pdfAgreement: data.pdfAgreement || undefined,
-        notes: data.notes || undefined,
-        approved: typeof data.approved === 'boolean' ? data.approved : undefined,
       });
     });
 
-    console.log('Acuerdos con empleados obtenidos:', agreements.length);
+    console.log('Acuerdos de empleado obtenidos:', agreements.length);
     return agreements;
   } catch (error) {
-    console.error('Error al obtener acuerdos con empleados:', error);
+    console.error('Error al obtener acuerdos de empleado:', error);
     throw error;
   }
 };
 
 export const saveEmployeeAgreement = async (
-  agreementDataFromForm: Omit<EmployeeAgreementRecord, 'id' | 'createdAt' | 'updatedAt' | 'status' | 'activationDate' | 'endDate' | 'startDate'> & {
-    activationDate: string; // La fecha de activación viene como string del formulario
-    endDate?: string; // La fecha de finalización viene como string del formulario
-    startDate: string; // La fecha de inicio viene como string del formulario
+  agreementData: Omit<EmployeeAgreementRecord, 'id' | 'createdAt' | 'updatedAt' | 'startDate' | 'endDate'> & {
+    startDate?: string;
+    endDate?: string;
   }
 ): Promise<string> => {
   try {
-    // Convertir las fechas de string a Timestamp
-    const activationDateTimestamp = Timestamp.fromDate(new Date(agreementDataFromForm.activationDate));
-    const endDateTimestamp = agreementDataFromForm.endDate ? Timestamp.fromDate(new Date(agreementDataFromForm.endDate)) : null;
-    const startDateTimestamp = Timestamp.fromDate(new Date(agreementDataFromForm.startDate));
+    const startDateTimestamp = agreementData.startDate ? Timestamp.fromDate(new Date(agreementData.startDate)) : null;
+    const endDateTimestamp = agreementData.endDate ? Timestamp.fromDate(new Date(agreementData.endDate)) : null;
 
     const payload: EmployeeAgreementFirestorePayload = {
-      ...agreementDataFromForm,
-      activationDate: activationDateTimestamp,
-      endDate: endDateTimestamp,
+      employeeName: agreementData.employeeName,
+      employeeLastName: agreementData.employeeLastName,
+      agreementType: agreementData.agreementType,
       startDate: startDateTimestamp,
-      status: 'Activo', // Add default status
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
+      endDate: endDateTimestamp,
+      description: agreementData.description,
+      terms: agreementData.terms,
+      status: agreementData.status,
+      workCenter: agreementData.workCenter,
+      supervisor: agreementData.supervisor,
+      salary: agreementData.salary,
+      benefits: agreementData.benefits,
+      observations: agreementData.observations,
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now(),
     };
 
     const docRef = await addDoc(getEmployeeAgreementsCollectionRef(), payload);
-    console.log('Acuerdo con empleado guardado exitosamente con ID:', docRef.id);
+    console.log('Acuerdo de empleado guardado exitosamente con ID:', docRef.id);
     return docRef.id;
   } catch (error) {
-    console.error('Error al guardar acuerdo con empleado:', error);
-    throw error;
-  }
-};
-
-export const duplicateEmployeeAgreement = async (agreementId: string): Promise<string> => {
-  try {
-    const originalAgreement = await getEmployeeAgreementById(agreementId);
-    if (!originalAgreement) {
-      throw new Error('Acuerdo no encontrado');
-    }
-
-    const duplicatedData: EmployeeAgreementFirestorePayload = {
-      employeeName: originalAgreement.employeeName + ' (Copia)',
-      employeeLastName: originalAgreement.employeeLastName,
-      workCenter: originalAgreement.workCenter,
-      city: originalAgreement.city,
-      province: originalAgreement.province,
-      autonomousCommunity: originalAgreement.autonomousCommunity,
-      responsibleName: originalAgreement.responsibleName,
-      responsibleLastName: originalAgreement.responsibleLastName,
-      agreementConcepts: originalAgreement.agreementConcepts,
-      economicAgreement1: originalAgreement.economicAgreement1,
-      concept1: originalAgreement.concept1,
-      economicAgreement2: originalAgreement.economicAgreement2,
-      concept2: originalAgreement.concept2,
-      economicAgreement3: originalAgreement.economicAgreement3,
-      concept3: originalAgreement.concept3,
-      activationDate: Timestamp.fromDate(originalAgreement.activationDate),
-      endDate: originalAgreement.endDate ? Timestamp.fromDate(originalAgreement.endDate) : null,
-      observationsAndCommitment: originalAgreement.observationsAndCommitment,
-      jobPosition: originalAgreement.jobPosition,
-      department: originalAgreement.department,
-      agreementType: originalAgreement.agreementType,
-      startDate: Timestamp.fromDate(originalAgreement.startDate),
-      salary: originalAgreement.salary,
-      status: originalAgreement.status,
-      observations: originalAgreement.observations,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-      createdByUserId: originalAgreement.createdByUserId,
-      pdfAgreement: originalAgreement.pdfAgreement,
-      notes: originalAgreement.notes,
-      approved: originalAgreement.approved,
-    };
-    
-    const docRef = await addDoc(getEmployeeAgreementsCollectionRef(), duplicatedData);
-    console.log('Acuerdo con empleado duplicado exitosamente con ID:', docRef.id);
-    return docRef.id;
-  } catch (error) {
-    console.error('Error al duplicar acuerdo con empleado:', error);
+    console.error('Error al guardar acuerdo de empleado:', error);
     throw error;
   }
 };
 
 export const updateEmployeeAgreement = async (
   id: string,
-  agreementUpdates: Partial<Omit<EmployeeAgreementRecord, 'id' | 'createdAt' | 'updatedAt' | 'activationDate' | 'endDate' | 'startDate'>> & {
-    activationDate?: string; // Permite string para la fecha de activación al actualizar
-    endDate?: string; // Permite string para la fecha de finalización al actualizar
-    startDate?: string; // Permite string para la fecha de inicio al actualizar
+  agreementUpdates: Partial<Omit<EmployeeAgreementRecord, 'id' | 'createdAt' | 'updatedAt' | 'startDate' | 'endDate'>> & {
+    startDate?: string;
+    endDate?: string;
   }
 ): Promise<void> => {
   try {
@@ -280,29 +153,18 @@ export const updateEmployeeAgreement = async (
 
     const updatePayload: { [key: string]: any } = { ...agreementUpdates };
 
-    // Convertir las fechas de string a Timestamp si están presentes en las actualizaciones
-    if (agreementUpdates.activationDate !== undefined) {
-      updatePayload.activationDate = agreementUpdates.activationDate
-        ? Timestamp.fromDate(new Date(agreementUpdates.activationDate))
-        : null;
+    if (agreementUpdates.startDate !== undefined) {
+      updatePayload.startDate = agreementUpdates.startDate ? Timestamp.fromDate(new Date(agreementUpdates.startDate)) : null;
     }
     if (agreementUpdates.endDate !== undefined) {
-      updatePayload.endDate = agreementUpdates.endDate
-        ? Timestamp.fromDate(new Date(agreementUpdates.endDate))
-        : null;
+      updatePayload.endDate = agreementUpdates.endDate ? Timestamp.fromDate(new Date(agreementUpdates.endDate)) : null;
     }
-     if (agreementUpdates.startDate !== undefined) {
-      updatePayload.startDate = agreementUpdates.startDate
-        ? Timestamp.fromDate(new Date(agreementUpdates.startDate))
-        : null;
-    }
-
-    updatePayload.updatedAt = serverTimestamp(); // Actualizar la marca de tiempo de modificación
+    updatePayload.updatedAt = Timestamp.now();
 
     await updateDoc(docRef, updatePayload);
-    console.log('Acuerdo con empleado actualizado exitosamente:', id);
+    console.log('Acuerdo de empleado actualizado exitosamente:', id);
   } catch (error) {
-    console.error('Error al actualizar acuerdo con empleado:', error);
+    console.error('Error al actualizar acuerdo de empleado:', error);
     throw error;
   }
 };
@@ -310,81 +172,48 @@ export const updateEmployeeAgreement = async (
 export const deleteEmployeeAgreement = async (id: string): Promise<void> => {
   try {
     await deleteDoc(doc(getEmployeeAgreementsCollectionRef(), id));
-    console.log('Acuerdo con empleado eliminado exitosamente:', id);
+    console.log('Acuerdo de empleado eliminado exitosamente:', id);
   } catch (error) {
-    console.error('Error al eliminar acuerdo con empleado:', error);
+    console.error('Error al eliminar acuerdo de empleado:', error);
     throw error;
   }
 };
 
-export const importEmployeeAgreements = async (agreements: Partial<EmployeeAgreementRecord>[]): Promise<{ success: number; errors: string[] }> => {
-  const results = { success: 0, errors: [] as string[] };
-
-  for (let i = 0; i < agreements.length; i++) {
-    try {
-      const agreement = agreements[i];
-
-      // Validar campos requeridos mínimos
-      if (!agreement.employeeName && !agreement.workCenter) {
-        results.errors.push(`Fila ${i + 2}: Faltan datos mínimos requeridos`);
-        continue;
-      }
-
-      // Convertir fechas a Timestamp si existen
-      const activationDateTimestamp = agreement.activationDate
-        ? Timestamp.fromDate(agreement.activationDate instanceof Date ? agreement.activationDate : new Date(agreement.activationDate))
-        : null;
-      const endDateTimestamp = agreement.endDate
-        ? Timestamp.fromDate(agreement.endDate instanceof Date ? agreement.endDate : new Date(agreement.endDate))
-        : null;
-      const startDateTimestamp = agreement.startDate
-        ? Timestamp.fromDate(agreement.startDate instanceof Date ? agreement.startDate : new Date(agreement.startDate))
-        : null;
-
-      const payload: EmployeeAgreementFirestorePayload = {
-        employeeName: agreement.employeeName || '',
-        employeeLastName: agreement.employeeLastName || '',
-        workCenter: agreement.workCenter || '',
-        city: agreement.city || '',
-        province: agreement.province || '',
-        autonomousCommunity: agreement.autonomousCommunity || '',
-        responsibleName: agreement.responsibleName || '',
-        responsibleLastName: agreement.responsibleLastName || '',
-        agreementConcepts: agreement.agreementConcepts || '',
-        economicAgreement1: agreement.economicAgreement1 || '',
-        concept1: agreement.concept1 || '',
-        economicAgreement2: agreement.economicAgreement2 || '',
-        concept2: agreement.concept2 || '',
-        economicAgreement3: agreement.economicAgreement3 || '',
-        concept3: agreement.concept3 || '',
-        activationDate: activationDateTimestamp,
-        endDate: endDateTimestamp,
-        observationsAndCommitment: agreement.observationsAndCommitment || '',
-        // Campos requeridos para compatibilidad
-        jobPosition: agreement.jobPosition || '',
-        department: agreement.department || '',
-        agreementType: agreement.agreementType || '',
-        startDate: startDateTimestamp,
-        salary: agreement.salary || '',
-        status: (agreement.status === 'Activo' || agreement.status === 'Finalizado' || agreement.status === 'Suspendido') ? agreement.status : 'Activo',
-        observations: agreement.observations || '',
-
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-        createdByUserId: agreement.createdByUserId,
-        pdfAgreement: agreement.pdfAgreement,
-        notes: agreement.notes,
-        approved: agreement.approved,
-      };
-
-      await addDoc(getEmployeeAgreementsCollectionRef(), payload);
-      results.success++;
-
-    } catch (error) {
-      console.error(`Error importing agreement ${i + 1}:`, error);
-      results.errors.push(`Fila ${i + 2}: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+// --- Función para exportar Acuerdos de Empleado a CSV (ACTUALIZADA) ---
+export const exportEmployeeAgreementsToCSV = async (): Promise<void> => {
+  try {
+    const agreements = await getEmployeeAgreements();
+    
+    if (agreements.length === 0) {
+      throw new Error('No hay datos para exportar');
     }
-  }
 
-  return results;
+    const headers = {
+      id: 'ID',
+      employeeName: 'Nombre del Empleado',
+      employeeLastName: 'Apellidos del Empleado',
+      agreementType: 'Tipo de Acuerdo',
+      startDate: 'Fecha de Inicio',
+      endDate: 'Fecha de Fin',
+      description: 'Descripción',
+      terms: 'Términos',
+      status: 'Estado',
+      workCenter: 'Centro de Trabajo',
+      supervisor: 'Supervisor',
+      salary: 'Salario',
+      benefits: 'Beneficios',
+      observations: 'Observaciones',
+      createdAt: 'Fecha de Creación',
+      updatedAt: 'Última Actualización'
+    };
+
+    CSVExporter.exportToCSV(agreements, headers, {
+      filename: 'acuerdos_empleado'
+    });
+
+    console.log('Acuerdos de empleado exportados correctamente');
+  } catch (error) {
+    console.error('Error al exportar acuerdos de empleado:', error);
+    throw error;
+  }
 };

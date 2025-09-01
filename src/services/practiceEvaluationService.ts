@@ -1,5 +1,6 @@
 import { collection, addDoc, getDocs, doc, getDoc, updateDoc, deleteDoc, Timestamp, query, orderBy } from "firebase/firestore";
 import { db } from "../lib/firebase";
+import { CSVExporter } from "../utils/csvExporter";
 
 // INTERFAZ AJUSTADA PARA COINCIDIR CON ZOD SCHEMA Y JSX
 export interface PracticeEvaluationData {
@@ -219,6 +220,47 @@ export const getPracticeEvaluations = async (): Promise<PracticeEvaluationRecord
     return evaluations;
   } catch (error) {
     console.error('Error al obtener valoraciones de prácticas:', error);
+    throw error;
+  }
+};
+
+// Nueva función para exportar evaluaciones de prácticas a CSV
+export const exportPracticeEvaluationsToCSV = async (): Promise<void> => {
+  try {
+    const evaluations = await getPracticeEvaluations();
+    
+    if (evaluations.length === 0) {
+      throw new Error('No hay datos para exportar');
+    }
+
+    const headers = {
+      tutorName: 'Nombre del Tutor',
+      tutorLastName: 'Apellidos del Tutor',
+      workCenter: 'Centro de Trabajo',
+      studentName: 'Nombre del Estudiante',
+      studentLastName: 'Apellidos del Estudiante',
+      formation: 'Formación',
+      institution: 'Institución',
+      practices: 'Prácticas',
+      evaluationDate: 'Fecha de Evaluación',
+      performanceRating: 'Calificación de Rendimiento',
+      finalEvaluation: 'Evaluación Final',
+      englishLevel: 'Nivel de Inglés',
+      residenceChange: 'Cambio de Residencia',
+      performanceJustification: 'Justificación del Rendimiento',
+      observations: 'Observaciones',
+      evaluatorName: 'Nombre del Evaluador',
+      createdAt: 'Fecha de Creación',
+      updatedAt: 'Última Actualización'
+    };
+
+    CSVExporter.exportToCSV(evaluations, headers, {
+      filename: 'valoraciones_practicas'
+    });
+
+    console.log('Evaluaciones de prácticas exportadas correctamente');
+  } catch (error) {
+    console.error('Error al exportar evaluaciones de prácticas:', error);
     throw error;
   }
 };
