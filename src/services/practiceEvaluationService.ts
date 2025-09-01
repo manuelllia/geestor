@@ -1,6 +1,5 @@
 import { collection, addDoc, getDocs, doc, getDoc, updateDoc, deleteDoc, Timestamp, query, orderBy } from "firebase/firestore";
 import { db } from "../lib/firebase";
-import { exportToCSV } from "../utils/csvExporter";
 
 // INTERFAZ AJUSTADA PARA COINCIDIR CON ZOD SCHEMA Y JSX
 export interface PracticeEvaluationData {
@@ -220,67 +219,6 @@ export const getPracticeEvaluations = async (): Promise<PracticeEvaluationRecord
     return evaluations;
   } catch (error) {
     console.error('Error al obtener valoraciones de prácticas:', error);
-    throw error;
-  }
-};
-
-// Nueva función para exportar evaluaciones de prácticas a CSV
-export const exportPracticeEvaluationsToCSV = async (): Promise<void> => {
-  try {
-    const evaluations = await getPracticeEvaluations();
-    
-    if (evaluations.length === 0) {
-      throw new Error('No hay datos para exportar');
-    }
-
-    // Transform data to a flat structure for CSV export
-    const csvData = evaluations.map(evaluation => ({
-      tutorName: evaluation.tutorName || '',
-      tutorLastName: evaluation.tutorLastName || '',
-      workCenter: evaluation.workCenter || '',
-      studentName: evaluation.studentName || '',
-      studentLastName: evaluation.studentLastName || '',
-      formation: evaluation.formation || '',
-      institution: evaluation.institution || '',
-      practices: evaluation.practices || '',
-      evaluationDate: evaluation.evaluationDate ? evaluation.evaluationDate.toISOString().split('T')[0] : '',
-      performanceRating: evaluation.performanceRating?.toString() || '',
-      finalEvaluation: evaluation.finalEvaluation || '',
-      englishLevel: evaluation.englishLevel || '',
-      residenceChange: evaluation.residenceChange || '',
-      performanceJustification: evaluation.performanceJustification || '',
-      observations: evaluation.observations || '',
-      evaluatorName: evaluation.evaluatorName || '',
-      createdAt: evaluation.createdAt ? evaluation.createdAt.toISOString().split('T')[0] : '',
-      updatedAt: evaluation.updatedAt ? evaluation.updatedAt.toISOString().split('T')[0] : ''
-    }));
-
-    const headers = {
-      tutorName: 'Nombre del Tutor',
-      tutorLastName: 'Apellidos del Tutor',
-      workCenter: 'Centro de Trabajo',
-      studentName: 'Nombre del Estudiante',
-      studentLastName: 'Apellidos del Estudiante',
-      formation: 'Formación',
-      institution: 'Institución',
-      practices: 'Prácticas',
-      evaluationDate: 'Fecha de Evaluación',
-      performanceRating: 'Calificación de Rendimiento',
-      finalEvaluation: 'Evaluación Final',
-      englishLevel: 'Nivel de Inglés',
-      residenceChange: 'Cambio de Residencia',
-      performanceJustification: 'Justificación del Rendimiento',
-      observations: 'Observaciones',
-      evaluatorName: 'Nombre del Evaluador',
-      createdAt: 'Fecha de Creación',
-      updatedAt: 'Última Actualización'
-    };
-
-    exportToCSV(csvData, 'valoraciones_practicas', headers);
-
-    console.log('Evaluaciones de prácticas exportadas correctamente');
-  } catch (error) {
-    console.error('Error al exportar evaluaciones de prácticas:', error);
     throw error;
   }
 };

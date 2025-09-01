@@ -2,7 +2,6 @@
 
 import { collection, addDoc, getDocs, doc, setDoc, deleteDoc, updateDoc, query, orderBy, Timestamp, getDoc } from 'firebase/firestore';
 import { db, serverTimestamp } from '../lib/firebase';
-import { CSVExporter } from '../utils/csvExporter';
 
 // --- Interfaz ContractRequestRecord: Define la estructura de datos en el cliente ---
 export interface ContractRequestRecord {
@@ -362,54 +361,4 @@ export const importContractRequests = async (requests: Partial<ContractRequestRe
   }
 
   return results;
-};
-
-// --- Nueva función para exportar Solicitudes de Contratación a CSV ---
-export const exportContractRequestsToCSV = async (): Promise<void> => {
-  try {
-    const requests = await getContractRequests();
-    
-    if (requests.length === 0) {
-      throw new Error('No hay datos para exportar');
-    }
-
-    const headers = {
-      id: 'ID',
-      requesterName: 'Nombre Solicitante',
-      requesterLastName: 'Apellidos Solicitante',
-      contractType: 'Tipo de Contrato',
-      salary: 'Salario',
-      company: 'Empresa',
-      jobPosition: 'Puesto de Trabajo',
-      professionalCategory: 'Categoría Profesional',
-      city: 'Ciudad',
-      province: 'Provincia',
-      autonomousCommunity: 'Comunidad Autónoma',
-      workCenter: 'Centro de Trabajo',
-      companyFlat: 'Piso de Empresa',
-      incorporationDate: 'Fecha de Incorporación',
-      language1: 'Idioma 1',
-      level1: 'Nivel 1',
-      language2: 'Idioma 2',
-      level2: 'Nivel 2',
-      experienceElectromedicine: 'Experiencia en Electromedicina',
-      experienceInstallations: 'Experiencia en Instalaciones',
-      hiringReason: 'Motivo de Contratación',
-      notesAndCommitments: 'Observaciones y Compromisos',
-      observations: 'Observaciones Generales',
-      status: 'Estado',
-      requestDate: 'Fecha de Solicitud',
-      createdAt: 'Fecha de Creación',
-      updatedAt: 'Última Actualización'
-    };
-
-    CSVExporter.exportToCSV(requests, headers, {
-      filename: 'solicitudes_contratacion'
-    });
-
-    console.log('Solicitudes de contratación exportadas correctamente');
-  } catch (error) {
-    console.error('Error al exportar solicitudes de contratación:', error);
-    throw error;
-  }
 };
