@@ -544,6 +544,18 @@ export interface Translations {
   lastUpdated: string;
   autoRefresh: string;
   manualRefresh: string;
+
+  // Missing keys from Users Management
+  userPermissionsUpdatedSuccessfully: string;
+  errorUpdatingUserPermissions: string;
+  usersGestion: string;
+  userGestSub: string;
+  buscadorUsers: string;
+  listaUsers: string;
+  usersCount: string;
+  editPermissions: string;
+  swipeToViewMore: string;
+  verifyingAccount: string;
 }
 
 export const translations: { [key in Language]: Translations } = {
@@ -1064,6 +1076,18 @@ export const translations: { [key in Language]: Translations } = {
     lastUpdated: 'Última actualización',
     autoRefresh: 'Actualización automática',
     manualRefresh: 'Actualización manual',
+
+    // Missing keys from Users Management
+    userPermissionsUpdatedSuccessfully: 'Permisos de usuario actualizados exitosamente',
+    errorUpdatingUserPermissions: 'Error al actualizar permisos de usuario',
+    usersGestion: 'Gestión de Usuarios',
+    userGestSub: 'Administra y configura usuarios del sistema',
+    buscadorUsers: 'Buscar usuarios...',
+    listaUsers: 'Lista de Usuarios',
+    usersCount: 'usuarios',
+    editPermissions: 'Editar Permisos',
+    swipeToViewMore: '← Desliza horizontalmente para ver más columnas →',
+    verifyingAccount: 'Verificando cuenta...',
   },
   en: {
     showingRecords: 'Showing {{start}} to {{end}} of {{total}} records',
@@ -1097,7 +1121,6 @@ export const translations: { [key in Language]: Translations } = {
     home: 'Home',
     settings: 'Settings',
     logout: 'Logout',
-
     maintenance: 'Maintenance',
     users: 'Users',
     roles: 'Roles',
@@ -1110,12 +1133,10 @@ export const translations: { [key in Language]: Translations } = {
     upload: 'Upload',
     arrastraArchivo: 'Drag your file here or click to select',
     formatosCsv: 'Supported formats: CSV, Excel',
-    
     missingMaintenanceTitle: 'Missing Maintenance',
     missingMaintenanceMessage: 'Equipment without scheduled maintenance has been detected.',
     generateAnyway: 'Generate anyway',
     completeFirst: 'Complete first',
-    
     workCenterCreatedSuccess: 'Work center created successfully',
     errorCreatingWorkCenter: 'Error creating work center',
     workCenterUpdatedSuccess: 'Work center updated successfully',
@@ -1135,10 +1156,8 @@ export const translations: { [key in Language]: Translations } = {
     workCenterExistsDescription: 'A work center with this ID already exists.',
     leaveAsIsButton: 'Leave as is',
     updateRecordButton: 'Update record',
-    
     valoPracTit: 'Practice Evaluation',
     tutor: 'Tutor',
-    
     operations: 'Operations',
     costAnalysis: 'Cost Analysis',
     costAnalysisShort: 'Analysis',
@@ -1156,7 +1175,6 @@ export const translations: { [key in Language]: Translations } = {
     practiceEvaluation: 'Practice Evaluation',
     exitInterviews: 'Exit Interviews',
     homeMenu: 'Home',
-    
     employeeName: 'Employee Name',
     employeeLastName: 'Employee Last Name',
     agreementType: 'Agreement Type',
@@ -1173,7 +1191,6 @@ export const translations: { [key in Language]: Translations } = {
     agreementDetails: 'Agreement Details',
     benefitsAndConditions: 'Benefits and Conditions',
     employeeAgreementDetails: 'Employee Agreement Details',
-    
     exitInterviewsLoaded: 'Exit interviews loaded',
     errorLoadingExitInterviews: 'Error loading exit interviews',
     voluntary: 'Voluntary',
@@ -1215,7 +1232,6 @@ export const translations: { [key in Language]: Translations } = {
     exitDate: 'Exit Date',
     invalidDate: 'Invalid date',
     viewDetails: 'View details',
-    
     profile: 'Profile',
     welcome: 'Welcome',
     loginSubtitle: 'Sign in to continue',
@@ -1229,7 +1245,6 @@ export const translations: { [key in Language]: Translations } = {
     analysis: 'Analysis',
     hospitalInventory: 'Hospital Inventory',
     maintenanceSchedule: 'Maintenance Schedule',
-    
     dragDropFiles: 'Drag files here or click to select',
     supportedFormats: 'Supported formats: PDF, Excel, CSV, Word, Images',
     fileUploaded: 'File uploaded',
@@ -1251,7 +1266,6 @@ export const translations: { [key in Language]: Translations } = {
     thinking: 'Thinking',
     typeYourMessage: 'Type your message...',
     send: 'Send',
-    
     analysisReport: 'Analysis Report',
     contractingEntity: 'Contracting Entity',
     baseBudget: 'Base Budget',
@@ -1274,12 +1288,10 @@ export const translations: { [key in Language]: Translations } = {
     generalExpenses: 'General Expenses',
     indirectCosts: 'Indirect Costs',
     formulasDetected: 'Formulas Detected',
-    
     exporting_data: 'Exporting data',
     export_successful: 'Export successful',
     export_failed: 'Export failed',
     export_csv: 'Export CSV',
-    
     back: 'Back',
     duplicateRecord: 'Duplicate Record',
     downloadPDF: 'Download PDF',
@@ -1287,7 +1299,6 @@ export const translations: { [key in Language]: Translations } = {
     documentGenerated: 'Document generated',
     loading: 'Loading',
     recordNotFound: 'Record not found',
-    
     errorAnalyzingCosts: 'Error analyzing costs',
     chatbotContextUpdated: 'Chatbot context updated',
     tituloAnalisis: 'Cost Analysis',
@@ -1308,14 +1319,12 @@ export const translations: { [key in Language]: Translations } = {
     analyzingWithAI: 'Analyzing with AI...',
     startProfessionalCostAnalysis: 'Start Professional Analysis',
     analysisErrorTitle: 'Analysis Error',
-    
     languageSettings: 'Language Settings',
     themeSettings: 'Theme Settings',
     spanish: 'Spanish',
     english: 'English',
     lightTheme: 'Light Theme',
     darkTheme: 'Dark Theme',
-    
     institution: 'Institution',
     formation: 'Formation',
     finalEvaluation: 'Final Evaluation',
@@ -1323,7 +1332,6 @@ export const translations: { [key in Language]: Translations } = {
     performanceRating: 'Performance Rating',
     practice_evaluations: 'Practice Evaluations',
     refresh: 'Refresh',
-    
     errorLoadingWorkCenters: 'Error loading work centers',
     addWorkerError: 'Error adding worker',
     specifyCustomCompanyError: 'Specify the custom company name',
@@ -1400,7 +1408,6 @@ export const translations: { [key in Language]: Translations } = {
     inactivesCount: 'Inactive',
     provinceDistribution: 'Province Distribution',
     clickToViewDetails: 'Click to view details',
-    
     propertiesPaused: 'Properties Paused',
     totalProperties: 'Total Properties',
     totalPortfolio: 'Total Portfolio',
@@ -1430,7 +1437,6 @@ export const translations: { [key in Language]: Translations } = {
     modify: 'Modify',
     view: 'View',
     saveChanges: 'Save Changes',
-    
     errorLoadingUsers: 'Error loading users',
     usersLoaded: 'Users loaded',
     errorCreatingUser: 'Error creating user',
@@ -1491,7 +1497,6 @@ export const translations: { [key in Language]: Translations } = {
     changePassword: 'Change Password',
     newPassword: 'New Password',
     currentPassword: 'Current Password',
-    
     maintenanceDescription: 'Equipment maintenance management',
     workCentersDescription: 'Work centers administration',
     equipmentDescription: 'Medical equipment control',
@@ -1510,7 +1515,6 @@ export const translations: { [key in Language]: Translations } = {
     usersDescription: 'System users management',
     rolesDescription: 'Roles and permissions management',
     permissionsDescription2: 'Permissions configuration',
-    
     allPermissions: 'All Permissions',
     readOnlyPermissions: 'Read Only',
     limitedPermissions: 'Limited Permissions',
@@ -1524,7 +1528,6 @@ export const translations: { [key in Language]: Translations } = {
     fullAccess: 'Full Access',
     readOnly: 'Read Only',
     noAccess: 'No Access',
-    
     showPassword: 'Show Password',
     hidePassword: 'Hide Password',
     required: 'Required',
@@ -1582,6 +1585,18 @@ export const translations: { [key in Language]: Translations } = {
     lastUpdated: 'Last updated',
     autoRefresh: 'Auto refresh',
     manualRefresh: 'Manual refresh',
+
+    // Missing keys from Users Management
+    userPermissionsUpdatedSuccessfully: 'User permissions updated successfully',
+    errorUpdatingUserPermissions: 'Error updating user permissions',
+    usersGestion: 'Users Management',
+    userGestSub: 'Manage and configure system users',
+    buscadorUsers: 'Search users...',
+    listaUsers: 'Users List',
+    usersCount: 'users',
+    editPermissions: 'Edit Permissions',
+    swipeToViewMore: '← Swipe horizontally to view more columns →',
+    verifyingAccount: 'Verifying account...',
   }
 };
 

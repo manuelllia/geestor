@@ -58,12 +58,12 @@ export const PracticeEvaluationsListView: React.FC<PracticeEvaluationsListViewPr
   const handleExportCSV = async () => {
     try {
       setExporting(true);
-      toast.info(t.exporting_data);
+      toast.info(t('exporting_data'));
       await exportPracticeEvaluationsToCSV();
-      toast.success(t.export_successful);
+      toast.success(t('export_successful'));
     } catch (error) {
       console.error('Error exporting evaluations:', error);
-      toast.error(t.export_failed);
+      toast.error(t('export_failed'));
     } finally {
       setExporting(false);
     }
@@ -144,7 +144,7 @@ export const PracticeEvaluationsListView: React.FC<PracticeEvaluationsListViewPr
   if (showDetailView && selectedEvaluation) {
     return (
       <PracticeEvaluationDetailView
-        evaluationId={selectedEvaluation.id}
+        evaluation={selectedEvaluation}
         language={language}
         onBack={() => {
           setShowDetailView(false);
@@ -168,7 +168,7 @@ export const PracticeEvaluationsListView: React.FC<PracticeEvaluationsListViewPr
         <div className="flex flex-col space-y-4">
           <div>
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-blue-900 dark:text-blue-100">
-              {t.practice_evaluations}
+              {t('practice_evaluations')}
             </h1>
             <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 mt-1">
               Gestiona las evaluaciones de prácticas del sistema
@@ -185,7 +185,7 @@ export const PracticeEvaluationsListView: React.FC<PracticeEvaluationsListViewPr
               size="sm"
             >
               <RefreshCw className={`w-4 h-4 mr-2 flex-shrink-0 ${refreshing ? 'animate-spin' : ''}`} />
-              <span>{t.refresh}</span>
+              <span>{t('refresh')}</span>
             </Button>
             
             <Button
@@ -196,7 +196,7 @@ export const PracticeEvaluationsListView: React.FC<PracticeEvaluationsListViewPr
               size="sm"
             >
               <Download className={`w-4 h-4 mr-2 flex-shrink-0 ${exporting ? 'animate-pulse' : ''}`} />
-              <span>{t.export_csv}</span>
+              <span>{t('export_csv')}</span>
             </Button>
           </div>
         </div>
@@ -323,7 +323,7 @@ export const PracticeEvaluationsListView: React.FC<PracticeEvaluationsListViewPr
                     disabled={currentPage === 1}
                     className="text-xs sm:text-sm px-2 sm:px-3"
                   >
-                    {t.previous}
+                    {t('previous')}
                   </Button>
                   
                   <div className="flex items-center gap-1">
@@ -348,7 +348,7 @@ export const PracticeEvaluationsListView: React.FC<PracticeEvaluationsListViewPr
                     disabled={currentPage === totalPages}
                     className="text-xs sm:text-sm px-2 sm:px-3"
                   >
-                    {t.next}
+                    {t('next')}
                   </Button>
                 </div>
               </div>
@@ -366,9 +366,9 @@ export const PracticeEvaluationsListView: React.FC<PracticeEvaluationsListViewPr
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>{t.cancel}</AlertDialogCancel>
+              <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
               <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">
-                {t.delete}
+                {t('delete')}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
