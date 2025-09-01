@@ -280,7 +280,7 @@ export interface Translations {
   practice_evaluations: string;
   refresh: string;
   
-  // Real Estate - Missing translations
+  // Real Estate - All missing translations
   errorLoadingWorkCenters: string;
   addWorkerError: string;
   specifyCustomCompanyError: string;
@@ -321,6 +321,42 @@ export interface Translations {
   observationsLabel: string;
   observationsPlaceholder: string;
   addPropertyButton: string;
+  selectWorkCenterPlaceholder: string;
+  addWorkCenterButtonTitle: string;
+  saving: string;
+  saveProperty: string;
+  inactiveProperty: string;
+  reason: string;
+  date: string;
+  selectPropertyType: string;
+  propertyTypeLabel: string;
+  selectTypePlaceholder: string;
+  activeProperty: string;
+  accept: string;
+  errorLoadingDashboardData: string;
+  activeProperties: string;
+  inactiveProperties: string;
+  realEstateDashboard: string;
+  realEstateManagementDescription: string;
+  addProperty: string;
+  notImplemented: string;
+  importDataButton: string;
+  viewTables: string;
+  propertiesOperational: string;
+  totalPropertiesCount: string;
+  averageAnnualCost: string;
+  topProvinces: string;
+  costDistribution: string;
+  occupancyRate: string;
+  realEstateOverview: string;
+  realEstateOverviewDescription: string;
+  uploadRealEstateData: string;
+  uploadRealEstateDataDescription: string;
+  viewTablesDescription: string;
+  activesCount: string;
+  inactivesCount: string;
+  provinceDistribution: string;
+  clickToViewDetails: string;
 }
 
 export const translations: { [key in Language]: Translations } = {
@@ -601,8 +637,10 @@ export const translations: { [key in Language]: Translations } = {
     finalEvaluation: 'Evaluación Final',
     evaluationDate: 'Fecha de Evaluación',
     performanceRating: 'Calificación de Rendimiento',
+    practice_evaluations: 'Evaluaciones de Prácticas',
+    refresh: 'Actualizar',
     
-    // Real Estate - Missing translations
+    // Real Estate - All translations
     errorLoadingWorkCenters: 'Error al cargar centros de trabajo',
     addWorkerError: 'Error al agregar trabajador',
     specifyCustomCompanyError: 'Especifica el nombre de la empresa personalizada',
@@ -643,10 +681,42 @@ export const translations: { [key in Language]: Translations } = {
     observationsLabel: 'Observaciones',
     observationsPlaceholder: 'Ingrese observaciones',
     addPropertyButton: 'Agregar Propiedad',
-    
-    // Practice Evaluations - Missing translations  
-    practice_evaluations: 'Evaluaciones de Prácticas',
-    refresh: 'Actualizar',
+    selectWorkCenterPlaceholder: 'Seleccionar centro de trabajo',
+    addWorkCenterButtonTitle: 'Agregar Centro de Trabajo',
+    saving: 'Guardando',
+    saveProperty: 'Guardar Propiedad',
+    inactiveProperty: 'Propiedad Inactiva',
+    reason: 'Motivo',
+    date: 'Fecha',
+    selectPropertyType: 'Seleccionar Tipo de Propiedad',
+    propertyTypeLabel: 'Tipo de Propiedad',
+    selectTypePlaceholder: 'Seleccionar tipo',
+    activeProperty: 'Propiedad Activa',
+    accept: 'Aceptar',
+    errorLoadingDashboardData: 'Error al cargar datos del dashboard',
+    activeProperties: 'Propiedades Activas',
+    inactiveProperties: 'Propiedades Inactivas',
+    realEstateDashboard: 'Dashboard de Inmuebles',
+    realEstateManagementDescription: 'Gestión integral de propiedades inmobiliarias',
+    addProperty: 'Agregar Propiedad',
+    notImplemented: 'No implementado',
+    importDataButton: 'Importar Datos',
+    viewTables: 'Ver Tablas',
+    propertiesOperational: 'propiedades operativas',
+    totalPropertiesCount: 'Total de Propiedades',
+    averageAnnualCost: 'Coste Anual Promedio',
+    topProvinces: 'Principales Provincias',
+    costDistribution: 'Distribución de Costes',
+    occupancyRate: 'Tasa de Ocupación',
+    realEstateOverview: 'Resumen de Inmuebles',
+    realEstateOverviewDescription: 'Visualiza estadísticas y métricas clave',
+    uploadRealEstateData: 'Subir Datos de Inmuebles',
+    uploadRealEstateDataDescription: 'Importa información de propiedades desde archivos',
+    viewTablesDescription: 'Consulta y gestiona propiedades existentes',
+    activesCount: 'Activas',
+    inactivesCount: 'Inactivas',
+    provinceDistribution: 'Distribución por Provincia',
+    clickToViewDetails: 'Haz clic para ver detalles',
   },
   en: {
     showingRecords: 'Showing {{start}} to {{end}} of {{total}} records',
@@ -928,7 +998,7 @@ export const translations: { [key in Language]: Translations } = {
     practice_evaluations: 'Practice Evaluations',
     refresh: 'Refresh',
     
-    // Real Estate - Missing translations
+    // Real Estate - All translations
     errorLoadingWorkCenters: 'Error loading work centers',
     addWorkerError: 'Error adding worker',
     specifyCustomCompanyError: 'Specify the custom company name',
@@ -969,10 +1039,42 @@ export const translations: { [key in Language]: Translations } = {
     observationsLabel: 'Observations',
     observationsPlaceholder: 'Enter observations',
     addPropertyButton: 'Add Property',
-    
-    // Practice Evaluations - Missing translations  
-    practice_evaluations: 'Practice Evaluations',
-    refresh: 'Refresh',
+    selectWorkCenterPlaceholder: 'Select work center',
+    addWorkCenterButtonTitle: 'Add Work Center',
+    saving: 'Saving',
+    saveProperty: 'Save Property',
+    inactiveProperty: 'Inactive Property',
+    reason: 'Reason',
+    date: 'Date',
+    selectPropertyType: 'Select Property Type',
+    propertyTypeLabel: 'Property Type',
+    selectTypePlaceholder: 'Select type',
+    activeProperty: 'Active Property',
+    accept: 'Accept',
+    errorLoadingDashboardData: 'Error loading dashboard data',
+    activeProperties: 'Active Properties',
+    inactiveProperties: 'Inactive Properties',
+    realEstateDashboard: 'Real Estate Dashboard',
+    realEstateManagementDescription: 'Comprehensive real estate property management',
+    addProperty: 'Add Property',
+    notImplemented: 'Not implemented',
+    importDataButton: 'Import Data',
+    viewTables: 'View Tables',
+    propertiesOperational: 'operational properties',
+    totalPropertiesCount: 'Total Properties',
+    averageAnnualCost: 'Average Annual Cost',
+    topProvinces: 'Top Provinces',
+    costDistribution: 'Cost Distribution',
+    occupancyRate: 'Occupancy Rate',
+    realEstateOverview: 'Real Estate Overview',
+    realEstateOverviewDescription: 'View key statistics and metrics',
+    uploadRealEstateData: 'Upload Real Estate Data',
+    uploadRealEstateDataDescription: 'Import property information from files',
+    viewTablesDescription: 'View and manage existing properties',
+    activesCount: 'Active',
+    inactivesCount: 'Inactive',
+    provinceDistribution: 'Province Distribution',
+    clickToViewDetails: 'Click to view details',
   }
 };
 
