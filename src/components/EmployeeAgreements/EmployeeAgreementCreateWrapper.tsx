@@ -2,6 +2,7 @@
 import React from 'react';
 import EmployeeAgreementCreateForm from './EmployeeAgreementCreateForm';
 import { Language } from '../../utils/translations';
+import { EmployeeAgreementRecord } from '../../services/employeeAgreementsService';
 
 interface EmployeeAgreementCreateWrapperProps {
   language: Language;
@@ -14,6 +15,15 @@ const EmployeeAgreementCreateWrapper: React.FC<EmployeeAgreementCreateWrapperPro
   onBack,
   onSave
 }) => {
+  const handleSubmit = (record: EmployeeAgreementRecord) => {
+    console.log('Agreement created:', record);
+    onSave();
+  };
+
+  const handleCancel = () => {
+    onBack();
+  };
+
   return (
     <div className="w-full">
       <div className="p-4">
@@ -26,7 +36,8 @@ const EmployeeAgreementCreateWrapper: React.FC<EmployeeAgreementCreateWrapperPro
       </div>
       <EmployeeAgreementCreateForm
         language={language}
-        onSave={onSave}
+        onSubmit={handleSubmit}
+        onCancel={handleCancel}
       />
     </div>
   );

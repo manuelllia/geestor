@@ -17,6 +17,10 @@ const PracticeEvaluationDetailWrapper: React.FC<PracticeEvaluationDetailWrapperP
   onBack,
   onDelete
 }) => {
+  const handleClose = () => {
+    onBack();
+  };
+
   return (
     <div className="w-full">
       <div className="p-4 border-b border-gray-200">
@@ -38,6 +42,7 @@ const PracticeEvaluationDetailWrapper: React.FC<PracticeEvaluationDetailWrapperP
       <PracticeEvaluationDetailView
         evaluation={evaluation}
         language={language}
+        onClose={handleClose}
       />
     </div>
   );
