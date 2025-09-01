@@ -1,4 +1,5 @@
 
+
 import Papa from 'papaparse';
 
 // Define a generic interface for exportable records
@@ -32,9 +33,9 @@ export const exportToCSV = <T extends ExportableRecord>(
       // Handle different value types
       if (value === null || value === undefined) {
         transformedItem[customHeaders?.[key] || String(key)] = '';
-      } else if (value && typeof value === 'object' && value.constructor === Date) {
+      } else if (value instanceof Date) {
         transformedItem[customHeaders?.[key] || String(key)] = value.toISOString().split('T')[0];
-      } else if (typeof value === 'object') {
+      } else if (typeof value === 'object' && value !== null) {
         transformedItem[customHeaders?.[key] || String(key)] = JSON.stringify(value);
       } else {
         transformedItem[customHeaders?.[key] || String(key)] = String(value);
@@ -75,3 +76,4 @@ export class CSVExporter {
 }
 
 export default exportToCSV;
+
