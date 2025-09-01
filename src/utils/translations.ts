@@ -1,5 +1,4 @@
 
-
 export type Language = 'es' | 'en';
 
 export interface Translations {
@@ -183,6 +182,54 @@ export interface Translations {
   actions: string;
   details: string;
   summary: string;
+
+  // Missing keys from ImprovedCostAnalysisReport
+  generalInformation: string;
+  economicAnalysis: string;
+  awardCriteria: string;
+  scopeConditions: string;
+  scheduleDeadlines: string;
+  cpvCode: string;
+  contractObject: string;
+  personnelAnalysis: string;
+  purchaseAnalysis: string;
+  equipment: string;
+  consumables: string;
+  spareParts: string;
+  subcontractingAnalysis: string;
+  otherExpenses: string;
+  insurance: string;
+  generalExpenses: string;
+  indirectCosts: string;
+  formulasDetected: string;
+
+  // Missing keys from DetailPDFView
+  duplicateRecord: string;
+  downloadPDF: string;
+  generatedOn: string;
+  documentGenerated: string;
+
+  // Missing keys from ContractRequestDetailView
+  recordNotFound: string;
+
+  // Missing keys from CostAnalysisView
+  errorAnalyzingCosts: string;
+  chatbotContextUpdated: string;
+  tituloAnalisis: string;
+  subtiAnalisis: string;
+  subirPdf: string;
+  informepdf: string;
+  costespdf: string;
+  puntuacionPdf: string;
+  pcapFileLabel: string;
+  pcapFileTitle: string;
+  pcapFileDescription: string;
+  pptFileLabel: string;
+  pptFileTitle: string;
+  pptFileDescription: string;
+  saveAnalysis: string;
+  loadAnalysis: string;
+  clearAnalysis: string;
 }
 
 export const translations: Record<Language, Translations> = {
@@ -367,6 +414,54 @@ export const translations: Record<Language, Translations> = {
     actions: 'Acciones',
     details: 'Detalles',
     summary: 'Resumen',
+
+    // Missing keys from ImprovedCostAnalysisReport
+    generalInformation: 'Información General',
+    economicAnalysis: 'Análisis Económico',
+    awardCriteria: 'Criterios de Adjudicación',
+    scopeConditions: 'Alcance y Condiciones',
+    scheduleDeadlines: 'Cronograma y Plazos',
+    cpvCode: 'Código CPV',
+    contractObject: 'Objeto del Contrato',
+    personnelAnalysis: 'Análisis de Personal',
+    purchaseAnalysis: 'Análisis de Compras',
+    equipment: 'Equipamiento',
+    consumables: 'Consumibles',
+    spareParts: 'Repuestos',
+    subcontractingAnalysis: 'Análisis de Subcontratación',
+    otherExpenses: 'Otros Gastos',
+    insurance: 'Seguros',
+    generalExpenses: 'Gastos Generales',
+    indirectCosts: 'Costes Indirectos',
+    formulasDetected: 'Fórmulas Detectadas',
+
+    // Missing keys from DetailPDFView
+    duplicateRecord: 'Duplicar Registro',
+    downloadPDF: 'Descargar PDF',
+    generatedOn: 'Generado el',
+    documentGenerated: 'Documento generado',
+
+    // Missing keys from ContractRequestDetailView
+    recordNotFound: 'Registro no encontrado',
+
+    // Missing keys from CostAnalysisView
+    errorAnalyzingCosts: 'Error al analizar costes',
+    chatbotContextUpdated: 'Contexto del chatbot actualizado',
+    tituloAnalisis: 'Análisis de Costes y Puntuación',
+    subtiAnalisis: 'Sube documentos de licitación para análisis detallado',
+    subirPdf: 'Subir PCAP/PPT',
+    informepdf: 'Generar Informe',
+    costespdf: 'Análisis de Costes',
+    puntuacionPdf: 'Cálculo de Puntuación',
+    pcapFileLabel: 'Archivo PCAP',
+    pcapFileTitle: 'Pliego de Cláusulas Administrativas Particulares',
+    pcapFileDescription: 'Documento con condiciones administrativas y criterios de evaluación',
+    pptFileLabel: 'Archivo PPT',
+    pptFileTitle: 'Pliego de Prescripciones Técnicas',
+    pptFileDescription: 'Documento con especificaciones técnicas del contrato',
+    saveAnalysis: 'Guardar Análisis',
+    loadAnalysis: 'Cargar Análisis',
+    clearAnalysis: 'Limpiar Análisis',
   },
   
   en: {
@@ -550,6 +645,53 @@ export const translations: Record<Language, Translations> = {
     actions: 'Actions',
     details: 'Details',
     summary: 'Summary',
+
+    // Missing keys from ImprovedCostAnalysisReport
+    generalInformation: 'General Information',
+    economicAnalysis: 'Economic Analysis',
+    awardCriteria: 'Award Criteria',
+    scopeConditions: 'Scope & Conditions',
+    scheduleDeadlines: 'Schedule & Deadlines',
+    cpvCode: 'CPV Code',
+    contractObject: 'Contract Object',
+    personnelAnalysis: 'Personnel Analysis',
+    purchaseAnalysis: 'Purchase Analysis',
+    equipment: 'Equipment',
+    consumables: 'Consumables',
+    spareParts: 'Spare Parts',
+    subcontractingAnalysis: 'Subcontracting Analysis',
+    otherExpenses: 'Other Expenses',
+    insurance: 'Insurance',
+    generalExpenses: 'General Expenses',
+    indirectCosts: 'Indirect Costs',
+    formulasDetected: 'Detected Formulas',
+
+    // Missing keys from DetailPDFView
+    duplicateRecord: 'Duplicate Record',
+    downloadPDF: 'Download PDF',
+    generatedOn: 'Generated on',
+    documentGenerated: 'Document generated',
+
+    // Missing keys from ContractRequestDetailView
+    recordNotFound: 'Record not found',
+
+    // Missing keys from CostAnalysisView
+    errorAnalyzingCosts: 'Error analyzing costs',
+    chatbotContextUpdated: 'Chatbot context updated',
+    tituloAnalisis: 'Cost and Score Analysis',
+    subtiAnalisis: 'Upload tender documents for detailed analysis',
+    subirPdf: 'Upload PCAP/PPT',
+    informepdf: 'Generate Report',
+    costespdf: 'Cost Analysis',
+    puntuacionPdf: 'Score Calculation',
+    pcapFileLabel: 'PCAP File',
+    pcapFileTitle: 'Administrative Specifications',
+    pcapFileDescription: 'Document with administrative conditions and evaluation criteria',
+    pptFileLabel: 'PPT File',
+    pptFileTitle: 'Technical Specifications',
+    pptFileDescription: 'Document with technical contract specifications',
+    saveAnalysis: 'Save Analysis',
+    loadAnalysis: 'Load Analysis',
+    clearAnalysis: 'Clear Analysis',
   }
 };
-
