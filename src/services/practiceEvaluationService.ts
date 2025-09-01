@@ -1,6 +1,6 @@
 import { collection, addDoc, getDocs, doc, getDoc, updateDoc, deleteDoc, Timestamp, query, orderBy } from "firebase/firestore";
 import { db } from "../lib/firebase";
-import { CSVExporter } from "../utils/csvExporter";
+import { exportToCSV } from "../utils/csvExporter";
 
 // INTERFAZ AJUSTADA PARA COINCIDIR CON ZOD SCHEMA Y JSX
 export interface PracticeEvaluationData {
@@ -254,9 +254,7 @@ export const exportPracticeEvaluationsToCSV = async (): Promise<void> => {
       updatedAt: 'Última Actualización'
     };
 
-    CSVExporter.exportToCSV(evaluations, headers, {
-      filename: 'valoraciones_practicas'
-    });
+    exportToCSV(evaluations, 'valoraciones_practicas', headers);
 
     console.log('Evaluaciones de prácticas exportadas correctamente');
   } catch (error) {

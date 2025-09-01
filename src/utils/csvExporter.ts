@@ -63,4 +63,15 @@ export const exportToCSV = <T extends ExportableRecord>(
   }
 };
 
+// Export a CSVExporter class for backward compatibility
+export class CSVExporter {
+  static exportToCSV<T extends ExportableRecord>(
+    data: T[],
+    headers: Record<keyof T, string>,
+    options: { filename: string }
+  ): void {
+    exportToCSV(data, options.filename, headers);
+  }
+}
+
 export default exportToCSV;
