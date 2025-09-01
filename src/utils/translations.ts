@@ -1,4 +1,5 @@
 export type Language = 'es' | 'en';
+export type Theme = 'light' | 'dark';
 
 export interface Translations {
   // Navigation
@@ -272,6 +273,46 @@ export interface Translations {
   interviewDeletedDescription: string;
   errorDeletingTitle: string;
   errorDeletingDescription: string;
+
+  // Additional missing keys from errors
+  functionNotImplementedTitle: string;
+  downloadPdfNotAvailable: string;
+  noDataTitle: string;
+  noDataToExportDescription: string;
+  exportCompletedTitle: string;
+  exportCompletedDescription: string;
+  importNotAvailable: string;
+  entrevistaTit: string;
+  recargar: string;
+  generarEnla1: string;
+  exportarEntre: string;
+  importarEntre: string;
+  errorLoadingData: string;
+  tryAgain: string;
+  loadingExitInterviews: string;
+  noExitInterviewsFound: string;
+  generateLinkToStart: string;
+  importData: string;
+  positionShort: string;
+  workCenterShort: string;
+  exitType: string;
+  exitDate: string;
+  invalidDate: string;
+  viewDetails: string;
+  showingRecords: string;
+  profile: string;
+  welcome: string;
+  loginSubtitle: string;
+  loginButton: string;
+  maintenanceCalendar: string;
+  featureTitleComprobadores: string;
+  comingSoonDescriptionComprobadores: string;
+  comingSoon: string;
+  generateCalendar: string;
+  calendar: string;
+  analysis: string;
+  hospitalInventory: string;
+  maintenanceSchedule: string;
 }
 
 export const translations: Record<Language, Translations> = {
@@ -546,6 +587,46 @@ export const translations: Record<Language, Translations> = {
     interviewDeletedDescription: 'La entrevista se ha eliminado correctamente',
     errorDeletingTitle: 'Error al eliminar',
     errorDeletingDescription: 'No se pudo eliminar la entrevista',
+
+    // Additional missing keys from errors
+    functionNotImplementedTitle: 'Función no implementada',
+    downloadPdfNotAvailable: 'Descarga de PDF no disponible',
+    noDataTitle: 'Sin datos',
+    noDataToExportDescription: 'No hay datos disponibles para exportar',
+    exportCompletedTitle: 'Exportación completada',
+    exportCompletedDescription: 'Los datos se han exportado correctamente',
+    importNotAvailable: 'Importación no disponible',
+    entrevistaTit: 'Entrevistas de Salida',
+    recargar: 'Recargar',
+    generarEnla1: 'Generar Enlace',
+    exportarEntre: 'Exportar',
+    importarEntre: 'Importar',
+    errorLoadingData: 'Error al cargar datos',
+    tryAgain: 'Intentar de nuevo',
+    loadingExitInterviews: 'Cargando entrevistas de salida...',
+    noExitInterviewsFound: 'No se encontraron entrevistas de salida',
+    generateLinkToStart: 'Genera un enlace para comenzar',
+    importData: 'Importar datos',
+    positionShort: 'Puesto',
+    workCenterShort: 'Centro',
+    exitType: 'Tipo de Salida',
+    exitDate: 'Fecha de Salida',
+    invalidDate: 'Fecha inválida',
+    viewDetails: 'Ver detalles',
+    showingRecords: 'Mostrando {{start}} a {{end}} de {{total}} registros',
+    profile: 'Perfil',
+    welcome: 'Bienvenido',
+    loginSubtitle: 'Accede a tu cuenta',
+    loginButton: 'Iniciar Sesión',
+    maintenanceCalendar: 'Calendario de Mantenimiento',
+    featureTitleComprobadores: 'Comprobadores',
+    comingSoonDescriptionComprobadores: 'Herramientas de verificación y validación próximamente',
+    comingSoon: 'Próximamente',
+    generateCalendar: 'Generar Calendario',
+    calendar: 'Calendario',
+    analysis: 'Análisis',
+    hospitalInventory: 'Inventario Hospitalario',
+    maintenanceSchedule: 'Programación de Mantenimiento',
   },
   
   en: {
@@ -819,5 +900,45 @@ export const translations: Record<Language, Translations> = {
     interviewDeletedDescription: 'Interview has been deleted successfully',
     errorDeletingTitle: 'Error deleting',
     errorDeletingDescription: 'Could not delete interview',
+
+    // Additional missing keys from errors
+    functionNotImplementedTitle: 'Function not implemented',
+    downloadPdfNotAvailable: 'PDF download not available',
+    noDataTitle: 'No data',
+    noDataToExportDescription: 'No data available to export',
+    exportCompletedTitle: 'Export completed',
+    exportCompletedDescription: 'Data has been exported successfully',
+    importNotAvailable: 'Import not available',
+    entrevistaTit: 'Exit Interviews',
+    recargar: 'Reload',
+    generarEnla1: 'Generate Link',
+    exportarEntre: 'Export',
+    importarEntre: 'Import',
+    errorLoadingData: 'Error loading data',
+    tryAgain: 'Try again',
+    loadingExitInterviews: 'Loading exit interviews...',
+    noExitInterviewsFound: 'No exit interviews found',
+    generateLinkToStart: 'Generate a link to get started',
+    importData: 'Import data',
+    positionShort: 'Position',
+    workCenterShort: 'Center',
+    exitType: 'Exit Type',
+    exitDate: 'Exit Date',
+    invalidDate: 'Invalid date',
+    viewDetails: 'View details',
+    showingRecords: 'Showing {{start}} to {{end}} of {{total}} records',
+    profile: 'Profile',
+    welcome: 'Welcome',
+    loginSubtitle: 'Access your account',
+    loginButton: 'Login',
+    maintenanceCalendar: 'Maintenance Calendar',
+    featureTitleComprobadores: 'Checkers',
+    comingSoonDescriptionComprobadores: 'Verification and validation tools coming soon',
+    comingSoon: 'Coming Soon',
+    generateCalendar: 'Generate Calendar',
+    calendar: 'Calendar',
+    analysis: 'Analysis',
+    hospitalInventory: 'Hospital Inventory',
+    maintenanceSchedule: 'Maintenance Schedule',
   }
 };

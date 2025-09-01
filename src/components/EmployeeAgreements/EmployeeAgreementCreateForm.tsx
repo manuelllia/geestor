@@ -1,81 +1,63 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Save } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Language } from '../../utils/translations';
 import { useTranslation } from '../../hooks/useTranslation';
-import AddButton from '../Common/AddButton';
-import CreateWorkCenterModal from '../Modals/CreateWorkCenterModal';
-import CreateContractModal from '../Modals/CreateContractModal';
-import { useWorkCenterModals } from '../../hooks/useWorkCenterModals';
-import { getWorkCenters, getContracts } from '../../services/workCentersService';
-import { saveEmployeeAgreement } from '../../services/employeeAgreementsService';
-
-// --- NUEVA INTERFAZ EmployeeAgreementFormData ---
-interface EmployeeAgreementFormData {
-  employeeName: string; // Nombre Empleado
-  employeeLastName: string; // Apellidos Empleado
-  workCenter: string; // Centro de Trabajo
-  city: string; // Población
-  province: string; // Provincia
-  autonomousCommunity: string; // Comunidad Autónoma
-  responsibleName: string; // Nombre Responsable
-  responsibleLastName: string; // Apellidos Responsable
-  agreementConcepts: string; // Conceptos del Acuerdo (valor de selección)
-  agreementConceptsOther: string; // Para la opción 'Otro' de Conceptos del Acuerdo
-  economicAgreement1: string; // Acuerdo Económico 1 (campo de texto numérico)
-  concept1: string; // Concepto 1
-  economicAgreement2: string; // Acuerdo Económico 2 (campo de texto numérico)
-  concept2: string; // Concepto 2
-  economicAgreement3: string; // Acuerdo Económico 3 (campo de texto numérico)
-  concept3: string; // Concepto 3
-  activationDate: string; // Fecha de Activación (selector de fecha)
-  endDate: string; // Fecha Fin (selector de fecha)
-  observationsAndCommitment: string; // Observaciones y Compromiso (textarea)
-}
+import { Language } from '../../utils/translations';
+import { createEmployeeAgreement, EmployeeAgreementRecord } from '../../services/employeeAgreementsService';
+import { Calendar } from "@/components/ui/calendar"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import { cn } from "@/lib/utils"
+import { format } from "date-fns"
+import { CalendarIcon } from "lucide-react"
 
 interface EmployeeAgreementCreateFormProps {
   language: Language;
-  onBack: () => void;
-  onSave: () => void;
+  onSubmit: (record: EmployeeAgreementRecord) => void;
+  onCancel: () => void;
 }
 
-const EmployeeAgreementCreateForm: React.FC<EmployeeAgreementCreateFormProps> = ({
-  language,
-  onBack,
-  onSave
+interface FormData {
+  employeeName: string;
+  employeeLastName: string;
+  workCenter: string;
+  city: string;
+  province: string;
+  autonomousCommunity: string;
+  responsibleName: string;
+  responsibleLastName: string;
+  agreementConcepts: string;
+  economicAgreement1: string;
+  concept1: string;
+  economicAgreement2: string;
+  concept2: string;
+  economicAgreement3: string;
+  concept3: string;
+  activationDate: string;
+  startDate: string;
+  endDate: string;
+  status: string;
+  observations: string;
+}
+
+const EmployeeAgreementCreateForm: React.FC<EmployeeAgreementCreateFormProps> = ({ 
+  language, 
+  onSubmit, 
+  onCancel 
 }) => {
   const { t } = useTranslation(language);
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
-  const [workCenters, setWorkCenters] = useState<Array<{id: string, name: string}>>([]);
-  const [contracts, setContracts] = useState<Array<{id: string, name: string}>>([]);
-  
-  const {
-    isWorkCenterModalOpen,
-    isContractModalOpen,
-    openWorkCenterModal,
-    closeWorkCenterModal,
-    openContractModal,
-    closeContractModal
-  } = useWorkCenterModals();
-
-  const agreementConceptsOptions = [
-    'Cambio de Puesto',
-    'Complemento de Responsabilidad',
-    'Complemento de Destino',
-    'Complemento Internacional',
-    'Subida Salarial',
-    'Anulación de Acuerdo',
-    'Otro'
-  ];
-
-  const [formData, setFormData] = useState<EmployeeAgreementFormData>({
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [formData, setFormData] = useState<FormData>({
     employeeName: '',
     employeeLastName: '',
     workCenter: '',
@@ -85,7 +67,6 @@ const EmployeeAgreementCreateForm: React.FC<EmployeeAgreementCreateFormProps> = 
     responsibleName: '',
     responsibleLastName: '',
     agreementConcepts: '',
-    agreementConceptsOther: '',
     economicAgreement1: '',
     concept1: '',
     economicAgreement2: '',
@@ -93,514 +74,484 @@ const EmployeeAgreementCreateForm: React.FC<EmployeeAgreementCreateFormProps> = 
     economicAgreement3: '',
     concept3: '',
     activationDate: '',
+    startDate: '',
     endDate: '',
-    observationsAndCommitment: '',
+    status: 'Activo',
+    observations: '',
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
+    setFormData(prevData => ({
+      ...prevData,
+      [name]: value,
     }));
   };
 
-  const handleSelectChange = (name: keyof EmployeeAgreementFormData, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
+  const handleSelectChange = (name: string, value: string) => {
+    setFormData(prevData => ({
+      ...prevData,
+      [name]: value,
     }));
   };
 
-  const loadWorkCentersAndContracts = async () => {
-    try {
-      const [workCentersData, contractsData] = await Promise.all([
-        getWorkCenters(),
-        getContracts()
-      ]);
-      setWorkCenters(workCentersData);
-      setContracts(contractsData);
-    } catch (error) {
-      console.error('Error loading work centers and contracts:', error);
+  const handleDateChange = (name: string, date: Date | undefined) => {
+    if (date) {
+      setFormData(prevData => ({
+        ...prevData,
+        [name]: format(date, 'yyyy-MM-dd'),
+      }));
     }
   };
 
-  useEffect(() => {
-    loadWorkCentersAndContracts();
-  }, []);
-
-  const handleWorkCenterSuccess = () => {
-    closeWorkCenterModal();
-    loadWorkCentersAndContracts();
-  };
-
-  const handleContractSuccess = () => {
-    closeContractModal();
-    loadWorkCentersAndContracts();
-  };
-
-  const handleSubmit = async () => {
-    setIsLoading(true);
-
-    // Procesar los datos incluyendo TODOS los campos requeridos
-    const processedData = {
-      employeeName: formData.employeeName,
-      employeeLastName: formData.employeeLastName,
-      workCenter: formData.workCenter,
-      city: formData.city,
-      province: formData.province,
-      autonomousCommunity: formData.autonomousCommunity,
-      responsibleName: formData.responsibleName,
-      responsibleLastName: formData.responsibleLastName,
-      agreementConcepts: formData.agreementConcepts === 'Otro' ? formData.agreementConceptsOther : formData.agreementConcepts,
-      economicAgreement1: formData.economicAgreement1,
-      concept1: formData.concept1,
-      economicAgreement2: formData.economicAgreement2,
-      concept2: formData.concept2,
-      economicAgreement3: formData.economicAgreement3,
-      concept3: formData.concept3,
-      activationDate: formData.activationDate,
-      endDate: formData.endDate,
-      observationsAndCommitment: formData.observationsAndCommitment,
-      // Campos requeridos para compatibilidad con EmployeeAgreementRecord
-      jobPosition: formData.agreementConcepts || '',
-      department: formData.workCenter || '',
-      agreementType: formData.agreementConcepts || '',
-      startDate: formData.activationDate,
-      salary: formData.economicAgreement1 || '0',
-      status: 'Activo' as const,
-      observations: formData.observationsAndCommitment,
-    };
-
-    const requiredFields: Array<keyof typeof processedData> = [
-      'employeeName', 'employeeLastName', 'workCenter', 'responsibleName', 'responsibleLastName',
-      'agreementConcepts', 'activationDate', 'observationsAndCommitment'
-    ];
-
-    let isValid = true;
-    let missingFieldName = '';
-
-    for (const field of requiredFields) {
-      const value = processedData[field];
-
-      if (typeof value === 'string' && value.trim() === '') {
-        isValid = false;
-        missingFieldName = field;
-        break;
-      }
-      if (field === 'agreementConcepts' && formData.agreementConcepts === 'Otro' && formData.agreementConceptsOther.trim() === '') {
-        isValid = false;
-        missingFieldName = 'Conceptos del Acuerdo (especificar)';
-        break;
-      }
-    }
-    
-    if (formData.economicAgreement1.trim() !== '' && formData.concept1.trim() === '') {
-        isValid = false;
-        missingFieldName = 'Concepto 1 (si hay acuerdo económico)';
-    }
-    if (formData.economicAgreement2.trim() !== '' && formData.concept2.trim() === '') {
-        isValid = false;
-        missingFieldName = 'Concepto 2 (si hay acuerdo económico)';
-    }
-    if (formData.economicAgreement3.trim() !== '' && formData.concept3.trim() === '') {
-        isValid = false;
-        missingFieldName = 'Concepto 3 (si hay acuerdo económico)';
-    }
-
-    if (isValid && processedData.activationDate && processedData.endDate) {
-      const activationDateObj = new Date(processedData.activationDate);
-      const endDateObj = new Date(processedData.endDate);
-
-      activationDateObj.setHours(0, 0, 0, 0);
-      endDateObj.setHours(0, 0, 0, 0);
-
-      if (endDateObj <= activationDateObj) {
-        isValid = false;
-        missingFieldName = 'La Fecha Fin debe ser posterior a la Fecha de Activación.';
-      }
-    }
-
-    if (!isValid) {
-      toast({
-        title: "Campos Incompletos",
-        description: `Por favor, complete todos los campos obligatorios. ${missingFieldName}`,
-        variant: 'destructive',
-      });
-      setIsLoading(false);
-      return;
-    }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setError(null);
 
     try {
-      await saveEmployeeAgreement(processedData);
+      const agreementData = {
+        employeeName: formData.employeeName,
+        employeeLastName: formData.employeeLastName,
+        workCenter: formData.workCenter,
+        city: formData.city,
+        province: formData.province,
+        autonomousCommunity: formData.autonomousCommunity,
+        responsibleName: formData.responsibleName,
+        responsibleLastName: formData.responsibleLastName,
+        agreementConcepts: formData.agreementConcepts,
+        economicAgreement1: parseFloat(formData.economicAgreement1) || 0,
+        concept1: formData.concept1,
+        economicAgreement2: parseFloat(formData.economicAgreement2) || 0,
+        concept2: formData.concept2,
+        economicAgreement3: parseFloat(formData.economicAgreement3) || 0,
+        concept3: formData.concept3,
+        status: formData.status as 'Activo' | 'Finalizado' | 'Suspendido',
+        observations: formData.observations,
+        startDate: formData.startDate,
+        endDate: formData.endDate,
+        activationDate: formData.activationDate,
+        // Add required fields with default values
+        description: formData.observations || '',
+        terms: formData.agreementConcepts || '',
+        supervisor: `${formData.responsibleName} ${formData.responsibleLastName}`,
+        benefits: `${formData.concept1}, ${formData.concept2}, ${formData.concept3}`.replace(/^, |, $/g, ''),
+      };
 
+      const createdRecord = await createEmployeeAgreement(agreementData);
+      onSubmit(createdRecord);
+      
       toast({
-        title: "Éxito",
-        description: "Acuerdo con empleado creado correctamente",
+        title: t('success'),
+        description: 'Acuerdo de empleado creado correctamente',
       });
-      onSave();
-    } catch (error) {
-      console.error('Error al crear el acuerdo con empleado:', error);
+    } catch (err) {
+      console.error('Error creating employee agreement:', err);
+      setError(err instanceof Error ? err.message : 'Error creating employee agreement');
+      
       toast({
-        title: "Error",
-        description: "Error al crear el acuerdo con empleado",
+        title: t('error'),
+        description: 'Error al crear el acuerdo de empleado',
         variant: 'destructive',
       });
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center space-x-4">
-        <Button
-          variant="outline"
-          onClick={onBack}
-          className="border-blue-300 text-blue-700 hover:bg-blue-50"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Volver
-        </Button>
-        <h1 className="text-2xl font-semibold text-blue-800 dark:text-blue-200">
-          Acuerdo con Empleado
-        </h1>
-      </div>
+    <div className="w-full min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="w-full max-w-4xl p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-6 md:space-y-8">
+        {/* Header */}
+        <div className="flex flex-col space-y-2">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-blue-900 dark:text-blue-100 leading-tight">
+            Crear Acuerdo de Empleado
+          </h1>
+          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
+            Completa el formulario para crear un nuevo acuerdo de empleado.
+          </p>
+        </div>
 
-      <Card className="border-blue-200 dark:border-blue-800">
-        <CardHeader>
-          <CardTitle className="text-blue-800 dark:text-blue-200">
-            Información del Acuerdo
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <Label htmlFor="employeeName" className="text-gray-700 dark:text-gray-300">
-                Nombre Empleado *
-              </Label>
-              <Input
-                id="employeeName"
-                name="employeeName"
-                type="text"
-                value={formData.employeeName}
-                onChange={handleChange}
-                placeholder="Ingrese el nombre del empleado"
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="employeeLastName" className="text-gray-700 dark:text-gray-300">
-                Apellidos Empleado *
-              </Label>
-              <Input
-                id="employeeLastName"
-                name="employeeLastName"
-                type="text"
-                value={formData.employeeLastName}
-                onChange={handleChange}
-                placeholder="Ingrese los apellidos del empleado"
-                required
-              />
-            </div>
-          </div>
+        {/* Form Card */}
+        <Card className="border-blue-200 dark:border-blue-800 w-full">
+          <CardHeader className="p-4 sm:p-6">
+            <CardTitle className="text-lg sm:text-xl text-blue-800 dark:text-blue-200">
+              Información del Acuerdo
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 sm:p-6">
+            <form onSubmit={handleSubmit} className="w-full space-y-4">
+              {/* Employee Information */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="employeeName" className="text-sm">
+                    {t('employeeName')}:
+                  </Label>
+                  <Input
+                    type="text"
+                    id="employeeName"
+                    name="employeeName"
+                    value={formData.employeeName}
+                    onChange={handleInputChange}
+                    className="text-sm"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="employeeLastName" className="text-sm">
+                    {t('employeeLastName')}:
+                  </Label>
+                  <Input
+                    type="text"
+                    id="employeeLastName"
+                    name="employeeLastName"
+                    value={formData.employeeLastName}
+                    onChange={handleInputChange}
+                    className="text-sm"
+                    required
+                  />
+                </div>
+              </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <Label htmlFor="workCenter" className="text-gray-700 dark:text-gray-300">
-                Centro de Trabajo *
-              </Label>
-              <div className="flex items-center space-x-2 mt-1">
-                <Select
-                  value={formData.workCenter}
-                  onValueChange={(value) => handleSelectChange('workCenter', value)}
+              {/* Work Center and Location */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="workCenter" className="text-sm">
+                    Centro de Trabajo:
+                  </Label>
+                  <Input
+                    type="text"
+                    id="workCenter"
+                    name="workCenter"
+                    value={formData.workCenter}
+                    onChange={handleInputChange}
+                    className="text-sm"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="city" className="text-sm">
+                    Ciudad:
+                  </Label>
+                  <Input
+                    type="text"
+                    id="city"
+                    name="city"
+                    value={formData.city}
+                    onChange={handleInputChange}
+                    className="text-sm"
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Province and Autonomous Community */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="province" className="text-sm">
+                    Provincia:
+                  </Label>
+                  <Input
+                    type="text"
+                    id="province"
+                    name="province"
+                    value={formData.province}
+                    onChange={handleInputChange}
+                    className="text-sm"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="autonomousCommunity" className="text-sm">
+                    Comunidad Autónoma:
+                  </Label>
+                  <Input
+                    type="text"
+                    id="autonomousCommunity"
+                    name="autonomousCommunity"
+                    value={formData.autonomousCommunity}
+                    onChange={handleInputChange}
+                    className="text-sm"
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Responsible Person Information */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="responsibleName" className="text-sm">
+                    Nombre del Responsable:
+                  </Label>
+                  <Input
+                    type="text"
+                    id="responsibleName"
+                    name="responsibleName"
+                    value={formData.responsibleName}
+                    onChange={handleInputChange}
+                    className="text-sm"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="responsibleLastName" className="text-sm">
+                    Apellidos del Responsable:
+                  </Label>
+                  <Input
+                    type="text"
+                    id="responsibleLastName"
+                    name="responsibleLastName"
+                    value={formData.responsibleLastName}
+                    onChange={handleInputChange}
+                    className="text-sm"
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Agreement Concepts */}
+              <div>
+                <Label htmlFor="agreementConcepts" className="text-sm">
+                  Conceptos del Acuerdo:
+                </Label>
+                <Textarea
+                  id="agreementConcepts"
+                  name="agreementConcepts"
+                  value={formData.agreementConcepts}
+                  onChange={handleInputChange}
+                  className="text-sm"
                   required
-                >
-                  <SelectTrigger className="flex-1">
-                    <SelectValue placeholder="Seleccione un centro de trabajo" />
+                />
+              </div>
+
+              {/* Economic Agreements */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <Label htmlFor="economicAgreement1" className="text-sm">
+                    Acuerdo Económico 1:
+                  </Label>
+                  <Input
+                    type="number"
+                    id="economicAgreement1"
+                    name="economicAgreement1"
+                    value={formData.economicAgreement1}
+                    onChange={handleInputChange}
+                    className="text-sm"
+                  />
+                  <Input
+                    type="text"
+                    id="concept1"
+                    name="concept1"
+                    value={formData.concept1}
+                    onChange={handleInputChange}
+                    placeholder="Concepto 1"
+                    className="text-sm mt-2"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="economicAgreement2" className="text-sm">
+                    Acuerdo Económico 2:
+                  </Label>
+                  <Input
+                    type="number"
+                    id="economicAgreement2"
+                    name="economicAgreement2"
+                    value={formData.economicAgreement2}
+                    onChange={handleInputChange}
+                    className="text-sm"
+                  />
+                  <Input
+                    type="text"
+                    id="concept2"
+                    name="concept2"
+                    value={formData.concept2}
+                    onChange={handleInputChange}
+                    placeholder="Concepto 2"
+                    className="text-sm mt-2"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="economicAgreement3" className="text-sm">
+                    Acuerdo Económico 3:
+                  </Label>
+                  <Input
+                    type="number"
+                    id="economicAgreement3"
+                    name="economicAgreement3"
+                    value={formData.economicAgreement3}
+                    onChange={handleInputChange}
+                    className="text-sm"
+                  />
+                  <Input
+                    type="text"
+                    id="concept3"
+                    name="concept3"
+                    value={formData.concept3}
+                    onChange={handleInputChange}
+                    placeholder="Concepto 3"
+                    className="text-sm mt-2"
+                  />
+                </div>
+              </div>
+
+              {/* Activation, Start, and End Dates */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <Label htmlFor="activationDate" className="text-sm">
+                    Fecha de Activación:
+                  </Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-full justify-start text-left font-normal text-sm",
+                          !formData.activationDate && "text-muted-foreground"
+                        )}
+                      >
+                        {formData.activationDate ? (
+                          format(new Date(formData.activationDate), "PPP")
+                        ) : (
+                          <span>Seleccionar fecha</span>
+                        )}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="center" side="bottom">
+                      <Calendar
+                        mode="single"
+                        selected={formData.activationDate ? new Date(formData.activationDate) : undefined}
+                        onSelect={(date) => handleDateChange('activationDate', date)}
+                        disabled={(date) =>
+                          date > new Date()
+                        }
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                <div>
+                  <Label htmlFor="startDate" className="text-sm">
+                    Fecha de Inicio:
+                  </Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-full justify-start text-left font-normal text-sm",
+                          !formData.startDate && "text-muted-foreground"
+                        )}
+                      >
+                        {formData.startDate ? (
+                          format(new Date(formData.startDate), "PPP")
+                        ) : (
+                          <span>Seleccionar fecha</span>
+                        )}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="center" side="bottom">
+                      <Calendar
+                        mode="single"
+                        selected={formData.startDate ? new Date(formData.startDate) : undefined}
+                        onSelect={(date) => handleDateChange('startDate', date)}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                <div>
+                  <Label htmlFor="endDate" className="text-sm">
+                    Fecha de Fin:
+                  </Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-full justify-start text-left font-normal text-sm",
+                          !formData.endDate && "text-muted-foreground"
+                        )}
+                      >
+                        {formData.endDate ? (
+                          format(new Date(formData.endDate), "PPP")
+                        ) : (
+                          <span>Seleccionar fecha</span>
+                        )}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="center" side="bottom">
+                      <Calendar
+                        mode="single"
+                        selected={formData.endDate ? new Date(formData.endDate) : undefined}
+                        onSelect={(date) => handleDateChange('endDate', date)}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
+
+              {/* Status */}
+              <div>
+                <Label htmlFor="status" className="text-sm">
+                  Estado:
+                </Label>
+                <Select onValueChange={(value) => handleSelectChange('status', value)}>
+                  <SelectTrigger className="w-full text-sm">
+                    <SelectValue placeholder="Seleccionar estado" />
                   </SelectTrigger>
                   <SelectContent>
-                    {workCenters.map((center) => (
-                      <SelectItem key={center.id} value={center.id}>
-                        {center.name}
-                      </SelectItem>
-                    ))}
+                    <SelectItem value="Activo" className="text-sm">Activo</SelectItem>
+                    <SelectItem value="Finalizado" className="text-sm">Finalizado</SelectItem>
+                    <SelectItem value="Suspendido" className="text-sm">Suspendido</SelectItem>
                   </SelectContent>
                 </Select>
-                <AddButton 
-                  onClick={openWorkCenterModal}
-                  label="Añadir"
-                />
               </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div>
-                <Label htmlFor="city" className="text-gray-700 dark:text-gray-300">
-                  Población
-                </Label>
-                <Input
-                  type="text"
-                  id="city"
-                  name="city"
-                  value={formData.city}
-                  onChange={handleChange}
-                  placeholder="Población"
-                />
-              </div>
-              <div>
-                <Label htmlFor="province" className="text-gray-700 dark:text-gray-300">
-                  Provincia
-                </Label>
-                <Input
-                  type="text"
-                  id="province"
-                  name="province"
-                  value={formData.province}
-                  onChange={handleChange}
-                  placeholder="Provincia"
-                />
-              </div>
-              <div>
-                <Label htmlFor="autonomousCommunity" className="text-gray-700 dark:text-gray-300">
-                  Comunidad Autónoma
-                </Label>
-                <Input
-                  type="text"
-                  id="autonomousCommunity"
-                  name="autonomousCommunity"
-                  value={formData.autonomousCommunity}
-                  onChange={handleChange}
-                  placeholder="Comunidad Autónoma"
-                />
-              </div>
-            </div>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <Label htmlFor="responsibleName" className="text-gray-700 dark:text-gray-300">
-                Nombre Responsable *
-              </Label>
-              <Input
-                type="text"
-                id="responsibleName"
-                name="responsibleName"
-                value={formData.responsibleName}
-                onChange={handleChange}
-                placeholder="Nombre del responsable"
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="responsibleLastName" className="text-gray-700 dark:text-gray-300">
-                Apellidos Responsable *
-              </Label>
-              <Input
-                type="text"
-                id="responsibleLastName"
-                name="responsibleLastName"
-                value={formData.responsibleLastName}
-                onChange={handleChange}
-                placeholder="Apellidos del responsable"
-                required
-              />
-            </div>
-          </div>
+              {/* Observations */}
+              <div>
+                <Label htmlFor="observations" className="text-sm">
+                  Observaciones:
+                </Label>
+                <Textarea
+                  id="observations"
+                  name="observations"
+                  value={formData.observations}
+                  onChange={handleInputChange}
+                  className="text-sm"
+                />
+              </div>
 
-          <div>
-            <Label htmlFor="agreementConcepts" className="text-gray-700 dark:text-gray-300">
-              Conceptos del Acuerdo *
-            </Label>
-            <Select
-              value={formData.agreementConcepts}
-              onValueChange={(value) => handleSelectChange('agreementConcepts', value)}
-              required
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Seleccionar" />
-              </SelectTrigger>
-              <SelectContent>
-                {agreementConceptsOptions.map((option) => (
-                  <SelectItem key={option} value={option}>
-                    {option}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {formData.agreementConcepts === 'Otro' && (
-              <Input
-                type="text"
-                id="agreementConceptsOther"
-                name="agreementConceptsOther"
-                value={formData.agreementConceptsOther}
-                onChange={handleChange}
-                placeholder="Especifique el concepto del acuerdo"
-                className="mt-2"
-                required
-              />
+              {/* Submit and Cancel Buttons */}
+              <div className="flex justify-end space-x-2">
+                <Button
+                  variant="ghost"
+                  onClick={onCancel}
+                  disabled={isSubmitting}
+                  className="text-sm"
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="bg-blue-600 hover:bg-blue-700 text-white text-sm"
+                >
+                  {isSubmitting ? 'Creando...' : 'Crear Acuerdo'}
+                </Button>
+              </div>
+            </form>
+            {error && (
+              <div className="mt-4 text-red-500 text-sm">
+                Error: {error}
+              </div>
             )}
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <Label htmlFor="economicAgreement1" className="text-gray-700 dark:text-gray-300">
-                Acuerdo Económico 1
-              </Label>
-              <Input
-                type="text"
-                id="economicAgreement1"
-                name="economicAgreement1"
-                value={formData.economicAgreement1}
-                onChange={handleChange}
-                placeholder="Ej. 1500.00"
-              />
-            </div>
-            <div>
-              <Label htmlFor="concept1" className="text-gray-700 dark:text-gray-300">
-                Concepto 1
-              </Label>
-              <Input
-                type="text"
-                id="concept1"
-                name="concept1"
-                value={formData.concept1}
-                onChange={handleChange}
-                placeholder="Ej. Complemento de Idioma"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <Label htmlFor="economicAgreement2" className="text-gray-700 dark:text-gray-300">
-                Acuerdo Económico 2
-              </Label>
-              <Input
-                type="text"
-                id="economicAgreement2"
-                name="economicAgreement2"
-                value={formData.economicAgreement2}
-                onChange={handleChange}
-                placeholder="Ej. 500.00"
-              />
-            </div>
-            <div>
-              <Label htmlFor="concept2" className="text-gray-700 dark:text-gray-300">
-                Concepto 2
-              </Label>
-              <Input
-                type="text"
-                id="concept2"
-                name="concept2"
-                value={formData.concept2}
-                onChange={handleChange}
-                placeholder="Ej. Incentivo por Proyecto"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <Label htmlFor="economicAgreement3" className="text-gray-700 dark:text-gray-300">
-                Acuerdo Económico 3
-              </Label>
-              <Input
-                type="text"
-                id="economicAgreement3"
-                name="economicAgreement3"
-                value={formData.economicAgreement3}
-                onChange={handleChange}
-                placeholder="Ej. 200.00"
-              />
-            </div>
-            <div>
-              <Label htmlFor="concept3" className="text-gray-700 dark:text-gray-300">
-                Concepto 3
-              </Label>
-              <Input
-                type="text"
-                id="concept3"
-                name="concept3"
-                value={formData.concept3}
-                onChange={handleChange}
-                placeholder="Ej. Ayuda de Transporte"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <Label htmlFor="activationDate" className="text-gray-700 dark:text-gray-300">
-                Fecha de Activación *
-              </Label>
-              <Input
-                type="date"
-                id="activationDate"
-                name="activationDate"
-                value={formData.activationDate}
-                onChange={handleChange}
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="endDate" className="text-gray-700 dark:text-gray-300">
-                Fecha Fin
-              </Label>
-              <Input
-                type="date"
-                id="endDate"
-                name="endDate"
-                value={formData.endDate}
-                onChange={handleChange}
-              />
-            </div>
-          </div>
-
-          <div>
-            <Label htmlFor="observationsAndCommitment" className="text-gray-700 dark:text-gray-300">
-              Observaciones y Compromiso *
-            </Label>
-            <Textarea
-              id="observationsAndCommitment"
-              name="observationsAndCommitment"
-              value={formData.observationsAndCommitment}
-              onChange={handleChange}
-              placeholder="Ingrese las observaciones y cualquier compromiso del acuerdo"
-              required
-            />
-          </div>
-
-          <Button
-            onClick={handleSubmit}
-            disabled={isLoading}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
-          >
-            {isLoading ? (
-              <>
-                <Save className="w-4 h-4 mr-2 animate-spin" />
-                Guardando...
-              </>
-            ) : (
-              <>
-                <Save className="w-4 h-4 mr-2" />
-                Guardar
-              </>
-            )}
-          </Button>
-        </CardContent>
-      </Card>
-
-      <CreateWorkCenterModal
-        isOpen={isWorkCenterModalOpen}
-        onClose={closeWorkCenterModal}
-        onSuccess={handleWorkCenterSuccess}
-      />
-
-      <CreateContractModal
-        isOpen={isContractModalOpen}
-        onClose={closeContractModal}
-        onSuccess={handleContractSuccess}
-      />
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
