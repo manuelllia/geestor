@@ -357,6 +357,193 @@ export interface Translations {
   inactivesCount: string;
   provinceDistribution: string;
   clickToViewDetails: string;
+
+  // Additional missing keys
+  propertiesPaused: string;
+  totalProperties: string;
+  totalPortfolio: string;
+  totalRoomsKPI: string;
+  availableRooms: string;
+  annualTotalCostKPI: string;
+  operatingExpenses: string;
+  averageCostKPI: string;
+  perProperty: string;
+  annualCostByProvince: string;
+  annualCost: string;
+  propertyStatus: string;
+  properties: string;
+  exportPDF: string;
+  realEstateDetails: string;
+  detailViewPlaceholder: string;
+  language: string;
+  theme: string;
+  light: string;
+  dark: string;
+  userProfile: string;
+  personalInformation: string;
+  changePhoto: string;
+  permissionsDescription: string;
+  departmentPermissions: string;
+  actionPermissions: string;
+  modify: string;
+  view: string;
+  saveChanges: string;
+
+  // Users Management
+  errorLoadingUsers: string;
+  usersLoaded: string;
+  errorCreatingUser: string;
+  userCreatedSuccess: string;
+  errorUpdatingUser: string;
+  userUpdatedSuccess: string;
+  errorDeletingUser: string;
+  userDeletedSuccess: string;
+  usersManagement: string;
+  createUser: string;
+  usersList: string;
+  userDetails: string;
+  editUser: string;
+  deleteUser: string;
+  userInformation: string;
+  permissionsManagement: string;
+  confirmDeleteUser: string;
+  fullName: string;
+  role: string;
+  status: string;
+  active: string;
+  inactive: string;
+  lastAccess: string;
+  createdAt: string;
+  updatedAt: string;
+  userRole: string;
+  userStatus: string;
+  userPermissions: string;
+  globalPermissions: string;
+  modulePermissions: string;
+  permission: string;
+  enabled: string;
+  disabled: string;
+  adminRole: string;
+  userRole2: string;
+  viewerRole: string;
+  selectRole: string;
+  selectStatus: string;
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
+  assignedModules: string;
+  userCreation: string;
+  basicInformation: string;
+  accessConfiguration: string;
+  passwordConfiguration: string;
+  password: string;
+  confirmPassword: string;
+  generateRandomPassword: string;
+  copyPassword: string;
+  passwordCopied: string;
+  passwordNotCopied: string;
+  passwordsDoNotMatch: string;
+  weakPassword: string;
+  validPassword: string;
+  userEditForm: string;
+  updateUser: string;
+  changePassword: string;
+  newPassword: string;
+  currentPassword: string;
+
+  // Module descriptions
+  maintenanceDescription: string;
+  workCentersDescription: string;
+  equipmentDescription: string;
+  inventoryDescription: string;
+  operationsDescription: string;
+  costAnalysisDescription: string;
+  technicalManagementDescription: string;
+  calendarManagementDescription: string;
+  checkersDescription: string;
+  talentManagementDescription: string;
+  contractRequestsDescription: string;
+  changeSheetsDescription: string;
+  employeeAgreementsDescription: string;
+  practiceEvaluationDescription: string;
+  exitInterviewsDescription: string;
+  usersDescription: string;
+  rolesDescription: string;
+  permissionsDescription2: string;
+
+  // Permission levels
+  allPermissions: string;
+  readOnlyPermissions: string;
+  limitedPermissions: string;
+  noPermissions: string;
+  permissionLevel: string;
+  moduleAccess: string;
+  actionAccess: string;
+  userHasAccess: string;
+  userNoAccess: string;
+  accessLevel: string;
+  fullAccess: string;
+  readOnly: string;
+  noAccess: string;
+
+  // Form validation and UI
+  showPassword: string;
+  hidePassword: string;
+  required: string;
+  optional: string;
+  fieldRequired: string;
+  invalidEmail: string;
+  invalidPhone: string;
+  mustBeNumber: string;
+  mustBePositive: string;
+  tooLong: string;
+  tooShort: string;
+  invalidFormat: string;
+  duplicateEntry: string;
+  notFound: string;
+  serverError: string;
+  networkError: string;
+  unknownError: string;
+  tryAgainLater: string;
+  contactSupport: string;
+  operationCompleted: string;
+  operationFailed: string;
+  confirmAction: string;
+  actionCanceled: string;
+  unsavedChanges: string;
+  discardChanges: string;
+  keepEditing: string;
+  exitWithoutSaving: string;
+  mandatoryField: string;
+  optionalField: string;
+  helperText: string;
+  placeholder: string;
+  searchPlaceholder: string;
+  filterBy: string;
+  sortBy: string;
+  ascending: string;
+  descending: string;
+  noResults: string;
+  showMore: string;
+  showLess: string;
+  expand: string;
+  collapse: string;
+  selectAll: string;
+  deselectAll: string;
+  selectedItems: string;
+  totalItems: string;
+  itemsPerPage: string;
+  page: string;
+  of: string;
+  goToPage: string;
+  firstPage: string;
+  lastPage: string;
+  previousPage: string;
+  nextPage: string;
+  refreshData: string;
+  lastUpdated: string;
+  autoRefresh: string;
+  manualRefresh: string;
 }
 
 export const translations: { [key in Language]: Translations } = {
@@ -393,7 +580,6 @@ export const translations: { [key in Language]: Translations } = {
     settings: 'Configuración',
     logout: 'Cerrar sesión',
     
-    // Sidebar translations
     maintenance: 'Mantenimiento',
     users: 'Usuarios',
     roles: 'Roles',
@@ -407,13 +593,11 @@ export const translations: { [key in Language]: Translations } = {
     arrastraArchivo: 'Arrastra aquí tu archivo o haz clic para seleccionar',
     formatosCsv: 'Formatos soportados: CSV, Excel',
     
-    // Missing maintenance translations
     missingMaintenanceTitle: 'Mantenimientos Faltantes',
     missingMaintenanceMessage: 'Se han detectado equipos sin mantenimientos programados.',
     generateAnyway: 'Generar de todas formas',
     completeFirst: 'Completar primero',
     
-    // Work center modal translations
     workCenterCreatedSuccess: 'Centro de trabajo creado exitosamente',
     errorCreatingWorkCenter: 'Error al crear el centro de trabajo',
     workCenterUpdatedSuccess: 'Centro de trabajo actualizado exitosamente',
@@ -434,11 +618,9 @@ export const translations: { [key in Language]: Translations } = {
     leaveAsIsButton: 'Dejar como está',
     updateRecordButton: 'Actualizar registro',
     
-    // Practice evaluation translations
     valoPracTit: 'Evaluación de Prácticas',
     tutor: 'Tutor',
     
-    // Sidebar menu translations
     operations: 'Operaciones',
     costAnalysis: 'Análisis de Costes',
     costAnalysisShort: 'Análisis',
@@ -457,7 +639,6 @@ export const translations: { [key in Language]: Translations } = {
     exitInterviews: 'Entrevistas de Salida',
     homeMenu: 'Inicio',
     
-    // Employee Agreements
     employeeName: 'Nombre del Empleado',
     employeeLastName: 'Apellidos del Empleado',
     agreementType: 'Tipo de Acuerdo',
@@ -475,7 +656,6 @@ export const translations: { [key in Language]: Translations } = {
     benefitsAndConditions: 'Beneficios y Condiciones',
     employeeAgreementDetails: 'Detalles del Acuerdo de Empleado',
     
-    // Exit Interviews
     exitInterviewsLoaded: 'Entrevistas de salida cargadas',
     errorLoadingExitInterviews: 'Error al cargar entrevistas de salida',
     voluntary: 'Voluntaria',
@@ -518,28 +698,20 @@ export const translations: { [key in Language]: Translations } = {
     invalidDate: 'Fecha inválida',
     viewDetails: 'Ver detalles',
     
-    // Header
     profile: 'Perfil',
-    
-    // Login
     welcome: 'Bienvenido',
     loginSubtitle: 'Inicia sesión para continuar',
     loginButton: 'Iniciar Sesión',
-    
-    // Main Content
     maintenanceCalendar: 'Calendario de Mantenimiento',
     featureTitleComprobadores: 'Comprobadores',
     comingSoonDescriptionComprobadores: 'Funcionalidad próximamente disponible',
     comingSoon: 'Próximamente',
-    
-    // Maintenance Calendar
     generateCalendar: 'Generar Calendario',
     calendar: 'Calendario',
     analysis: 'Análisis',
     hospitalInventory: 'Inventario Hospitalario',
     maintenanceSchedule: 'Programa de Mantenimiento',
     
-    // Chatbot
     dragDropFiles: 'Arrastra archivos aquí o haz clic para seleccionar',
     supportedFormats: 'Formatos soportados: PDF, Excel, CSV, Word, Imágenes',
     fileUploaded: 'Archivo subido',
@@ -562,7 +734,6 @@ export const translations: { [key in Language]: Translations } = {
     typeYourMessage: 'Escribe tu mensaje...',
     send: 'Enviar',
     
-    // Cost Analysis Report
     analysisReport: 'Informe de Análisis',
     contractingEntity: 'Entidad Contratante',
     baseBudget: 'Presupuesto Base',
@@ -586,13 +757,11 @@ export const translations: { [key in Language]: Translations } = {
     indirectCosts: 'Costes Indirectos',
     formulasDetected: 'Fórmulas Detectadas',
     
-    // Change Sheets
     exporting_data: 'Exportando datos',
     export_successful: 'Exportación exitosa',
     export_failed: 'Error en la exportación',
     export_csv: 'Exportar CSV',
     
-    // Common
     back: 'Volver',
     duplicateRecord: 'Duplicar Registro',
     downloadPDF: 'Descargar PDF',
@@ -601,7 +770,6 @@ export const translations: { [key in Language]: Translations } = {
     loading: 'Cargando',
     recordNotFound: 'Registro no encontrado',
     
-    // Cost Analysis
     errorAnalyzingCosts: 'Error al analizar costes',
     chatbotContextUpdated: 'Contexto del chatbot actualizado',
     tituloAnalisis: 'Análisis de Costes',
@@ -623,7 +791,6 @@ export const translations: { [key in Language]: Translations } = {
     startProfessionalCostAnalysis: 'Iniciar Análisis Profesional',
     analysisErrorTitle: 'Error en el Análisis',
     
-    // Settings Modal
     languageSettings: 'Configuración de Idioma',
     themeSettings: 'Configuración de Tema',
     spanish: 'Español',
@@ -631,7 +798,6 @@ export const translations: { [key in Language]: Translations } = {
     lightTheme: 'Tema Claro',
     darkTheme: 'Tema Oscuro',
     
-    // Practice Evaluations
     institution: 'Institución',
     formation: 'Formación',
     finalEvaluation: 'Evaluación Final',
@@ -640,7 +806,6 @@ export const translations: { [key in Language]: Translations } = {
     practice_evaluations: 'Evaluaciones de Prácticas',
     refresh: 'Actualizar',
     
-    // Real Estate - All translations
     errorLoadingWorkCenters: 'Error al cargar centros de trabajo',
     addWorkerError: 'Error al agregar trabajador',
     specifyCustomCompanyError: 'Especifica el nombre de la empresa personalizada',
@@ -717,6 +882,188 @@ export const translations: { [key in Language]: Translations } = {
     inactivesCount: 'Inactivas',
     provinceDistribution: 'Distribución por Provincia',
     clickToViewDetails: 'Haz clic para ver detalles',
+    
+    propertiesPaused: 'Propiedades Pausadas',
+    totalProperties: 'Propiedades Totales',
+    totalPortfolio: 'Cartera Total',
+    totalRoomsKPI: 'Total de Habitaciones',
+    availableRooms: 'Habitaciones Disponibles',
+    annualTotalCostKPI: 'Coste Anual Total',
+    operatingExpenses: 'Gastos Operativos',
+    averageCostKPI: 'Coste Promedio',
+    perProperty: 'Por Propiedad',
+    annualCostByProvince: 'Coste Anual por Provincia',
+    annualCost: 'Coste Anual',
+    propertyStatus: 'Estado de Propiedad',
+    properties: 'Propiedades',
+    exportPDF: 'Exportar PDF',
+    realEstateDetails: 'Detalles de Inmueble',
+    detailViewPlaceholder: 'Vista de detalles disponible próximamente',
+    language: 'Idioma',
+    theme: 'Tema',
+    light: 'Claro',
+    dark: 'Oscuro',
+    userProfile: 'Perfil de Usuario',
+    personalInformation: 'Información Personal',
+    changePhoto: 'Cambiar Foto',
+    permissionsDescription: 'Gestiona los permisos y accesos del usuario',
+    departmentPermissions: 'Permisos por Departamento',
+    actionPermissions: 'Permisos de Acción',
+    modify: 'Modificar',
+    view: 'Ver',
+    saveChanges: 'Guardar Cambios',
+    
+    errorLoadingUsers: 'Error al cargar usuarios',
+    usersLoaded: 'Usuarios cargados',
+    errorCreatingUser: 'Error al crear usuario',
+    userCreatedSuccess: 'Usuario creado exitosamente',
+    errorUpdatingUser: 'Error al actualizar usuario',
+    userUpdatedSuccess: 'Usuario actualizado exitosamente',
+    errorDeletingUser: 'Error al eliminar usuario',
+    userDeletedSuccess: 'Usuario eliminado exitosamente',
+    usersManagement: 'Gestión de Usuarios',
+    createUser: 'Crear Usuario',
+    usersList: 'Lista de Usuarios',
+    userDetails: 'Detalles del Usuario',
+    editUser: 'Editar Usuario',
+    deleteUser: 'Eliminar Usuario',
+    userInformation: 'Información del Usuario',
+    permissionsManagement: 'Gestión de Permisos',
+    confirmDeleteUser: '¿Confirmas eliminar este usuario?',
+    fullName: 'Nombre Completo',
+    role: 'Rol',
+    status: 'Estado',
+    active: 'Activo',
+    inactive: 'Inactivo',
+    lastAccess: 'Último Acceso',
+    createdAt: 'Creado el',
+    updatedAt: 'Actualizado el',
+    userRole: 'Rol del Usuario',
+    userStatus: 'Estado del Usuario',
+    userPermissions: 'Permisos del Usuario',
+    globalPermissions: 'Permisos Globales',
+    modulePermissions: 'Permisos por Módulo',
+    permission: 'Permiso',
+    enabled: 'Habilitado',
+    disabled: 'Deshabilitado',
+    adminRole: 'Administrador',
+    userRole2: 'Usuario',
+    viewerRole: 'Visualizador',
+    selectRole: 'Seleccionar Rol',
+    selectStatus: 'Seleccionar Estado',
+    firstName: 'Nombre',
+    lastName: 'Apellidos',
+    phoneNumber: 'Teléfono',
+    assignedModules: 'Módulos Asignados',
+    userCreation: 'Creación de Usuario',
+    basicInformation: 'Información Básica',
+    accessConfiguration: 'Configuración de Acceso',
+    passwordConfiguration: 'Configuración de Contraseña',
+    password: 'Contraseña',
+    confirmPassword: 'Confirmar Contraseña',
+    generateRandomPassword: 'Generar Contraseña Aleatoria',
+    copyPassword: 'Copiar Contraseña',
+    passwordCopied: 'Contraseña copiada',
+    passwordNotCopied: 'No se pudo copiar la contraseña',
+    passwordsDoNotMatch: 'Las contraseñas no coinciden',
+    weakPassword: 'Contraseña débil',
+    validPassword: 'Contraseña válida',
+    userEditForm: 'Formulario de Edición de Usuario',
+    updateUser: 'Actualizar Usuario',
+    changePassword: 'Cambiar Contraseña',
+    newPassword: 'Nueva Contraseña',
+    currentPassword: 'Contraseña Actual',
+    
+    maintenanceDescription: 'Gestión de mantenimiento de equipos',
+    workCentersDescription: 'Administración de centros de trabajo',
+    equipmentDescription: 'Control de equipos médicos',
+    inventoryDescription: 'Gestión de inventario hospitalario',
+    operationsDescription: 'Operaciones y procesos',
+    costAnalysisDescription: 'Análisis de costes y presupuestos',
+    technicalManagementDescription: 'Gestión técnica avanzada',
+    calendarManagementDescription: 'Gestión de calendarios',
+    checkersDescription: 'Módulo de comprobadores',
+    talentManagementDescription: 'Gestión del talento humano',
+    contractRequestsDescription: 'Solicitudes de contratación',
+    changeSheetsDescription: 'Hojas de cambio y modificaciones',
+    employeeAgreementsDescription: 'Acuerdos con empleados',
+    practiceEvaluationDescription: 'Evaluación de prácticas',
+    exitInterviewsDescription: 'Entrevistas de salida',
+    usersDescription: 'Gestión de usuarios del sistema',
+    rolesDescription: 'Gestión de roles y permisos',
+    permissionsDescription2: 'Configuración de permisos',
+    
+    allPermissions: 'Todos los Permisos',
+    readOnlyPermissions: 'Solo Lectura',
+    limitedPermissions: 'Permisos Limitados',
+    noPermissions: 'Sin Permisos',
+    permissionLevel: 'Nivel de Permiso',
+    moduleAccess: 'Acceso al Módulo',
+    actionAccess: 'Acceso a Acciones',
+    userHasAccess: 'Usuario tiene acceso',
+    userNoAccess: 'Usuario sin acceso',
+    accessLevel: 'Nivel de Acceso',
+    fullAccess: 'Acceso Completo',
+    readOnly: 'Solo Lectura',
+    noAccess: 'Sin Acceso',
+    
+    showPassword: 'Mostrar Contraseña',
+    hidePassword: 'Ocultar Contraseña',
+    required: 'Obligatorio',
+    optional: 'Opcional',
+    fieldRequired: 'Campo obligatorio',
+    invalidEmail: 'Email inválido',
+    invalidPhone: 'Teléfono inválido',
+    mustBeNumber: 'Debe ser un número',
+    mustBePositive: 'Debe ser positivo',
+    tooLong: 'Demasiado largo',
+    tooShort: 'Demasiado corto',
+    invalidFormat: 'Formato inválido',
+    duplicateEntry: 'Entrada duplicada',
+    notFound: 'No encontrado',
+    serverError: 'Error del servidor',
+    networkError: 'Error de red',
+    unknownError: 'Error desconocido',
+    tryAgainLater: 'Inténtalo más tarde',
+    contactSupport: 'Contactar soporte',
+    operationCompleted: 'Operación completada',
+    operationFailed: 'Operación fallida',
+    confirmAction: 'Confirmar acción',
+    actionCanceled: 'Acción cancelada',
+    unsavedChanges: 'Cambios no guardados',
+    discardChanges: 'Descartar cambios',
+    keepEditing: 'Seguir editando',
+    exitWithoutSaving: 'Salir sin guardar',
+    mandatoryField: 'Campo obligatorio',
+    optionalField: 'Campo opcional',
+    helperText: 'Texto de ayuda',
+    placeholder: 'Marcador de posición',
+    searchPlaceholder: 'Buscar...',
+    filterBy: 'Filtrar por',
+    sortBy: 'Ordenar por',
+    ascending: 'Ascendente',
+    descending: 'Descendente',
+    noResults: 'Sin resultados',
+    showMore: 'Mostrar más',
+    showLess: 'Mostrar menos',
+    expand: 'Expandir',
+    collapse: 'Contraer',
+    selectAll: 'Seleccionar todo',
+    deselectAll: 'Deseleccionar todo',
+    selectedItems: 'Elementos seleccionados',
+    totalItems: 'Total de elementos',
+    itemsPerPage: 'Elementos por página',
+    page: 'Página',
+    of: 'de',
+    goToPage: 'Ir a la página',
+    firstPage: 'Primera página',
+    lastPage: 'Última página',
+    previousPage: 'Página anterior',
+    nextPage: 'Página siguiente',
+    refreshData: 'Actualizar datos',
+    lastUpdated: 'Última actualización',
+    autoRefresh: 'Actualización automática',
+    manualRefresh: 'Actualización manual',
   },
   en: {
     showingRecords: 'Showing {{start}} to {{end}} of {{total}} records',
@@ -751,7 +1098,6 @@ export const translations: { [key in Language]: Translations } = {
     settings: 'Settings',
     logout: 'Logout',
 
-    // Sidebar translations
     maintenance: 'Maintenance',
     users: 'Users',
     roles: 'Roles',
@@ -765,13 +1111,11 @@ export const translations: { [key in Language]: Translations } = {
     arrastraArchivo: 'Drag your file here or click to select',
     formatosCsv: 'Supported formats: CSV, Excel',
     
-    // Missing maintenance translations
     missingMaintenanceTitle: 'Missing Maintenance',
     missingMaintenanceMessage: 'Equipment without scheduled maintenance has been detected.',
     generateAnyway: 'Generate anyway',
     completeFirst: 'Complete first',
     
-    // Work center modal translations
     workCenterCreatedSuccess: 'Work center created successfully',
     errorCreatingWorkCenter: 'Error creating work center',
     workCenterUpdatedSuccess: 'Work center updated successfully',
@@ -792,11 +1136,9 @@ export const translations: { [key in Language]: Translations } = {
     leaveAsIsButton: 'Leave as is',
     updateRecordButton: 'Update record',
     
-    // Practice evaluation translations
     valoPracTit: 'Practice Evaluation',
     tutor: 'Tutor',
     
-    // Sidebar menu translations
     operations: 'Operations',
     costAnalysis: 'Cost Analysis',
     costAnalysisShort: 'Analysis',
@@ -815,7 +1157,6 @@ export const translations: { [key in Language]: Translations } = {
     exitInterviews: 'Exit Interviews',
     homeMenu: 'Home',
     
-    // Employee Agreements
     employeeName: 'Employee Name',
     employeeLastName: 'Employee Last Name',
     agreementType: 'Agreement Type',
@@ -833,7 +1174,6 @@ export const translations: { [key in Language]: Translations } = {
     benefitsAndConditions: 'Benefits and Conditions',
     employeeAgreementDetails: 'Employee Agreement Details',
     
-    // Exit Interviews
     exitInterviewsLoaded: 'Exit interviews loaded',
     errorLoadingExitInterviews: 'Error loading exit interviews',
     voluntary: 'Voluntary',
@@ -876,28 +1216,20 @@ export const translations: { [key in Language]: Translations } = {
     invalidDate: 'Invalid date',
     viewDetails: 'View details',
     
-    // Header
     profile: 'Profile',
-    
-    // Login
     welcome: 'Welcome',
     loginSubtitle: 'Sign in to continue',
     loginButton: 'Sign In',
-    
-    // Main Content
     maintenanceCalendar: 'Maintenance Calendar',
     featureTitleComprobadores: 'Checkers',
     comingSoonDescriptionComprobadores: 'Feature coming soon',
     comingSoon: 'Coming Soon',
-    
-    // Maintenance Calendar
     generateCalendar: 'Generate Calendar',
     calendar: 'Calendar',
     analysis: 'Analysis',
     hospitalInventory: 'Hospital Inventory',
     maintenanceSchedule: 'Maintenance Schedule',
     
-    // Chatbot
     dragDropFiles: 'Drag files here or click to select',
     supportedFormats: 'Supported formats: PDF, Excel, CSV, Word, Images',
     fileUploaded: 'File uploaded',
@@ -920,7 +1252,6 @@ export const translations: { [key in Language]: Translations } = {
     typeYourMessage: 'Type your message...',
     send: 'Send',
     
-    // Cost Analysis Report
     analysisReport: 'Analysis Report',
     contractingEntity: 'Contracting Entity',
     baseBudget: 'Base Budget',
@@ -944,13 +1275,11 @@ export const translations: { [key in Language]: Translations } = {
     indirectCosts: 'Indirect Costs',
     formulasDetected: 'Formulas Detected',
     
-    // Change Sheets
     exporting_data: 'Exporting data',
     export_successful: 'Export successful',
     export_failed: 'Export failed',
     export_csv: 'Export CSV',
     
-    // Common
     back: 'Back',
     duplicateRecord: 'Duplicate Record',
     downloadPDF: 'Download PDF',
@@ -959,7 +1288,6 @@ export const translations: { [key in Language]: Translations } = {
     loading: 'Loading',
     recordNotFound: 'Record not found',
     
-    // Cost Analysis
     errorAnalyzingCosts: 'Error analyzing costs',
     chatbotContextUpdated: 'Chatbot context updated',
     tituloAnalisis: 'Cost Analysis',
@@ -981,7 +1309,6 @@ export const translations: { [key in Language]: Translations } = {
     startProfessionalCostAnalysis: 'Start Professional Analysis',
     analysisErrorTitle: 'Analysis Error',
     
-    // Settings Modal
     languageSettings: 'Language Settings',
     themeSettings: 'Theme Settings',
     spanish: 'Spanish',
@@ -989,7 +1316,6 @@ export const translations: { [key in Language]: Translations } = {
     lightTheme: 'Light Theme',
     darkTheme: 'Dark Theme',
     
-    // Practice Evaluations
     institution: 'Institution',
     formation: 'Formation',
     finalEvaluation: 'Final Evaluation',
@@ -998,7 +1324,6 @@ export const translations: { [key in Language]: Translations } = {
     practice_evaluations: 'Practice Evaluations',
     refresh: 'Refresh',
     
-    // Real Estate - All translations
     errorLoadingWorkCenters: 'Error loading work centers',
     addWorkerError: 'Error adding worker',
     specifyCustomCompanyError: 'Specify the custom company name',
@@ -1075,6 +1400,188 @@ export const translations: { [key in Language]: Translations } = {
     inactivesCount: 'Inactive',
     provinceDistribution: 'Province Distribution',
     clickToViewDetails: 'Click to view details',
+    
+    propertiesPaused: 'Properties Paused',
+    totalProperties: 'Total Properties',
+    totalPortfolio: 'Total Portfolio',
+    totalRoomsKPI: 'Total Rooms',
+    availableRooms: 'Available Rooms',
+    annualTotalCostKPI: 'Annual Total Cost',
+    operatingExpenses: 'Operating Expenses',
+    averageCostKPI: 'Average Cost',
+    perProperty: 'Per Property',
+    annualCostByProvince: 'Annual Cost by Province',
+    annualCost: 'Annual Cost',
+    propertyStatus: 'Property Status',
+    properties: 'Properties',
+    exportPDF: 'Export PDF',
+    realEstateDetails: 'Real Estate Details',
+    detailViewPlaceholder: 'Detail view coming soon',
+    language: 'Language',
+    theme: 'Theme',
+    light: 'Light',
+    dark: 'Dark',
+    userProfile: 'User Profile',
+    personalInformation: 'Personal Information',
+    changePhoto: 'Change Photo',
+    permissionsDescription: 'Manage user permissions and access',
+    departmentPermissions: 'Department Permissions',
+    actionPermissions: 'Action Permissions',
+    modify: 'Modify',
+    view: 'View',
+    saveChanges: 'Save Changes',
+    
+    errorLoadingUsers: 'Error loading users',
+    usersLoaded: 'Users loaded',
+    errorCreatingUser: 'Error creating user',
+    userCreatedSuccess: 'User created successfully',
+    errorUpdatingUser: 'Error updating user',
+    userUpdatedSuccess: 'User updated successfully',
+    errorDeletingUser: 'Error deleting user',
+    userDeletedSuccess: 'User deleted successfully',
+    usersManagement: 'Users Management',
+    createUser: 'Create User',
+    usersList: 'Users List',
+    userDetails: 'User Details',
+    editUser: 'Edit User',
+    deleteUser: 'Delete User',
+    userInformation: 'User Information',
+    permissionsManagement: 'Permissions Management',
+    confirmDeleteUser: 'Do you confirm deleting this user?',
+    fullName: 'Full Name',
+    role: 'Role',
+    status: 'Status',
+    active: 'Active',
+    inactive: 'Inactive',
+    lastAccess: 'Last Access',
+    createdAt: 'Created At',
+    updatedAt: 'Updated At',
+    userRole: 'User Role',
+    userStatus: 'User Status',
+    userPermissions: 'User Permissions',
+    globalPermissions: 'Global Permissions',
+    modulePermissions: 'Module Permissions',
+    permission: 'Permission',
+    enabled: 'Enabled',
+    disabled: 'Disabled',
+    adminRole: 'Administrator',
+    userRole2: 'User',
+    viewerRole: 'Viewer',
+    selectRole: 'Select Role',
+    selectStatus: 'Select Status',
+    firstName: 'First Name',
+    lastName: 'Last Name',
+    phoneNumber: 'Phone Number',
+    assignedModules: 'Assigned Modules',
+    userCreation: 'User Creation',
+    basicInformation: 'Basic Information',
+    accessConfiguration: 'Access Configuration',
+    passwordConfiguration: 'Password Configuration',
+    password: 'Password',
+    confirmPassword: 'Confirm Password',
+    generateRandomPassword: 'Generate Random Password',
+    copyPassword: 'Copy Password',
+    passwordCopied: 'Password copied',
+    passwordNotCopied: 'Password could not be copied',
+    passwordsDoNotMatch: 'Passwords do not match',
+    weakPassword: 'Weak password',
+    validPassword: 'Valid password',
+    userEditForm: 'User Edit Form',
+    updateUser: 'Update User',
+    changePassword: 'Change Password',
+    newPassword: 'New Password',
+    currentPassword: 'Current Password',
+    
+    maintenanceDescription: 'Equipment maintenance management',
+    workCentersDescription: 'Work centers administration',
+    equipmentDescription: 'Medical equipment control',
+    inventoryDescription: 'Hospital inventory management',
+    operationsDescription: 'Operations and processes',
+    costAnalysisDescription: 'Cost analysis and budgets',
+    technicalManagementDescription: 'Advanced technical management',
+    calendarManagementDescription: 'Calendar management',
+    checkersDescription: 'Checkers module',
+    talentManagementDescription: 'Human talent management',
+    contractRequestsDescription: 'Contract requests',
+    changeSheetsDescription: 'Change sheets and modifications',
+    employeeAgreementsDescription: 'Employee agreements',
+    practiceEvaluationDescription: 'Practice evaluation',
+    exitInterviewsDescription: 'Exit interviews',
+    usersDescription: 'System users management',
+    rolesDescription: 'Roles and permissions management',
+    permissionsDescription2: 'Permissions configuration',
+    
+    allPermissions: 'All Permissions',
+    readOnlyPermissions: 'Read Only',
+    limitedPermissions: 'Limited Permissions',
+    noPermissions: 'No Permissions',
+    permissionLevel: 'Permission Level',
+    moduleAccess: 'Module Access',
+    actionAccess: 'Action Access',
+    userHasAccess: 'User has access',
+    userNoAccess: 'User has no access',
+    accessLevel: 'Access Level',
+    fullAccess: 'Full Access',
+    readOnly: 'Read Only',
+    noAccess: 'No Access',
+    
+    showPassword: 'Show Password',
+    hidePassword: 'Hide Password',
+    required: 'Required',
+    optional: 'Optional',
+    fieldRequired: 'Required field',
+    invalidEmail: 'Invalid email',
+    invalidPhone: 'Invalid phone',
+    mustBeNumber: 'Must be a number',
+    mustBePositive: 'Must be positive',
+    tooLong: 'Too long',
+    tooShort: 'Too short',
+    invalidFormat: 'Invalid format',
+    duplicateEntry: 'Duplicate entry',
+    notFound: 'Not found',
+    serverError: 'Server error',
+    networkError: 'Network error',
+    unknownError: 'Unknown error',
+    tryAgainLater: 'Try again later',
+    contactSupport: 'Contact support',
+    operationCompleted: 'Operation completed',
+    operationFailed: 'Operation failed',
+    confirmAction: 'Confirm action',
+    actionCanceled: 'Action canceled',
+    unsavedChanges: 'Unsaved changes',
+    discardChanges: 'Discard changes',
+    keepEditing: 'Keep editing',
+    exitWithoutSaving: 'Exit without saving',
+    mandatoryField: 'Mandatory field',
+    optionalField: 'Optional field',
+    helperText: 'Helper text',
+    placeholder: 'Placeholder',
+    searchPlaceholder: 'Search...',
+    filterBy: 'Filter by',
+    sortBy: 'Sort by',
+    ascending: 'Ascending',
+    descending: 'Descending',
+    noResults: 'No results',
+    showMore: 'Show more',
+    showLess: 'Show less',
+    expand: 'Expand',
+    collapse: 'Collapse',
+    selectAll: 'Select all',
+    deselectAll: 'Deselect all',
+    selectedItems: 'Selected items',
+    totalItems: 'Total items',
+    itemsPerPage: 'Items per page',
+    page: 'Page',
+    of: 'of',
+    goToPage: 'Go to page',
+    firstPage: 'First page',
+    lastPage: 'Last page',
+    previousPage: 'Previous page',
+    nextPage: 'Next page',
+    refreshData: 'Refresh data',
+    lastUpdated: 'Last updated',
+    autoRefresh: 'Auto refresh',
+    manualRefresh: 'Manual refresh',
   }
 };
 
