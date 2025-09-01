@@ -1,4 +1,3 @@
-
 // src/utils/translations.ts
 export type Language = 'es' | 'en';
 export type Theme = 'light' | 'dark';
@@ -278,6 +277,8 @@ export interface Translations {
   finalEvaluation: string;
   evaluationDate: string;
   performanceRating: string;
+  practice_evaluations: string;
+  refresh: string;
   
   // Real Estate - Missing translations
   errorLoadingWorkCenters: string;
@@ -301,10 +302,25 @@ export interface Translations {
   propertyStatusLabel: string;
   occupiedStatus: string;
   emptyStatus: string;
-  
-  // Practice Evaluations - Missing translations  
-  practice_evaluations: string;
-  refresh: string;
+  addressLabel: string;
+  addressPlaceholder: string;
+  cityLabel: string;
+  provinceLabel: string;
+  ccaaLabel: string;
+  originProvinceLabel: string;
+  annualCostLabel: string;
+  occupancyDateLabel: string;
+  contractStartDateLabel: string;
+  selectDate: string;
+  meta4CodeLabel: string;
+  meta4CodePlaceholder: string;
+  projectContractLabel: string;
+  projectContractPlaceholder: string;
+  workCenterCodeLabel: string;
+  workCenterCodePlaceholder: string;
+  observationsLabel: string;
+  observationsPlaceholder: string;
+  addPropertyButton: string;
 }
 
 export const translations: { [key in Language]: Translations } = {
@@ -498,7 +514,7 @@ export const translations: { [key in Language]: Translations } = {
     greetingGoodEvening: '¡Buenas noches! ¿Necesitas ayuda con algo?',
     greetingHowAreYou: '¡Muy bien, gracias! ¿Cómo puedo ayudarte?',
     greetingIAmFine: 'Perfecto, ¿en qué puedo asistirte?',
-    greetingThanks: '¡De nada! Estoy aquí untuk ayudarte.',
+    greetingThanks: '¡De nada! Estoy aquí para ayudarte.',
     greetingYouAreWelcome: '¡Es un placer ayudarte!',
     helpMessage: 'Puedo ayudarte con análisis de documentos, cálculos, consultas sobre el sistema y mucho más. ¿Qué necesitas?',
     aiSystemPrompt: 'Eres Geenio, un asistente inteligente especializado en análisis de licitaciones y gestión empresarial. Respondes de manera profesional y útil.',
@@ -567,7 +583,7 @@ export const translations: { [key in Language]: Translations } = {
     professionalCostAnalysisTitle: 'Análisis Profesional de Costes',
     filesReadyForAnalysis: 'Archivos listos para análisis',
     analysisDescription: 'Se realizará un análisis completo de los documentos subidos',
-    analyzingWithAI: 'Analizando con IA...',
+    analyzingWithAI: 'Analizando con AI...',
     startProfessionalCostAnalysis: 'Iniciar Análisis Profesional',
     analysisErrorTitle: 'Error en el Análisis',
     
@@ -608,6 +624,25 @@ export const translations: { [key in Language]: Translations } = {
     propertyStatusLabel: 'Estado de la Propiedad',
     occupiedStatus: 'Ocupada',
     emptyStatus: 'Vacía',
+    addressLabel: 'Dirección',
+    addressPlaceholder: 'Ingrese la dirección',
+    cityLabel: 'Ciudad',
+    provinceLabel: 'Provincia',
+    ccaaLabel: 'CCAA',
+    originProvinceLabel: 'Provincia de Origen',
+    annualCostLabel: 'Coste Anual',
+    occupancyDateLabel: 'Fecha de Ocupación',
+    contractStartDateLabel: 'Fecha Inicio Contrato',
+    selectDate: 'Seleccionar fecha',
+    meta4CodeLabel: 'Código Meta4',
+    meta4CodePlaceholder: 'Ingrese código Meta4',
+    projectContractLabel: 'Proyecto/Contrato',
+    projectContractPlaceholder: 'Ingrese proyecto o contrato',
+    workCenterCodeLabel: 'Código Centro de Trabajo',
+    workCenterCodePlaceholder: 'Ingrese código del centro',
+    observationsLabel: 'Observaciones',
+    observationsPlaceholder: 'Ingrese observaciones',
+    addPropertyButton: 'Agregar Propiedad',
     
     // Practice Evaluations - Missing translations  
     practice_evaluations: 'Evaluaciones de Prácticas',
@@ -890,6 +925,8 @@ export const translations: { [key in Language]: Translations } = {
     finalEvaluation: 'Final Evaluation',
     evaluationDate: 'Evaluation Date',
     performanceRating: 'Performance Rating',
+    practice_evaluations: 'Practice Evaluations',
+    refresh: 'Refresh',
     
     // Real Estate - Missing translations
     errorLoadingWorkCenters: 'Error loading work centers',
@@ -913,6 +950,25 @@ export const translations: { [key in Language]: Translations } = {
     propertyStatusLabel: 'Property Status',
     occupiedStatus: 'Occupied',
     emptyStatus: 'Empty',
+    addressLabel: 'Address',
+    addressPlaceholder: 'Enter address',
+    cityLabel: 'City',
+    provinceLabel: 'Province',
+    ccaaLabel: 'CCAA',
+    originProvinceLabel: 'Origin Province',
+    annualCostLabel: 'Annual Cost',
+    occupancyDateLabel: 'Occupancy Date',
+    contractStartDateLabel: 'Contract Start Date',
+    selectDate: 'Select date',
+    meta4CodeLabel: 'Meta4 Code',
+    meta4CodePlaceholder: 'Enter Meta4 code',
+    projectContractLabel: 'Project/Contract',
+    projectContractPlaceholder: 'Enter project or contract',
+    workCenterCodeLabel: 'Work Center Code',
+    workCenterCodePlaceholder: 'Enter center code',
+    observationsLabel: 'Observations',
+    observationsPlaceholder: 'Enter observations',
+    addPropertyButton: 'Add Property',
     
     // Practice Evaluations - Missing translations  
     practice_evaluations: 'Practice Evaluations',

@@ -133,11 +133,11 @@ const EmployeeAgreementCreateForm: React.FC<EmployeeAgreementCreateFormProps> = 
         responsibleName: formData.responsibleName,
         responsibleLastName: formData.responsibleLastName,
         agreementConcepts: formData.agreementConcepts,
-        economicAgreement1: parseFloat(formData.economicAgreement1) || 0,
+        economicAgreement1: formData.economicAgreement1, // Keep as string
         concept1: formData.concept1,
-        economicAgreement2: parseFloat(formData.economicAgreement2) || 0,
+        economicAgreement2: formData.economicAgreement2, // Keep as string
         concept2: formData.concept2,
-        economicAgreement3: parseFloat(formData.economicAgreement3) || 0,
+        economicAgreement3: formData.economicAgreement3, // Keep as string
         concept3: formData.concept3,
         status: formData.status as 'Activo' | 'Finalizado' | 'Suspendido',
         observations: formData.observations,
