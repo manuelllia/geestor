@@ -6,6 +6,14 @@ interface ExportableRecord {
   [key: string]: any;
 }
 
+// Helper function to check if a value is a Date
+const isDate = (value: any): value is Date => {
+  return value instanceof Date || 
+         (typeof value === 'object' && 
+          value !== null && 
+          Object.prototype.toString.call(value) === '[object Date]');
+};
+
 export const exportToCSV = <T extends ExportableRecord>(
   data: T[],
   filename: string,
@@ -32,8 +40,8 @@ export const exportToCSV = <T extends ExportableRecord>(
       // Handle different value types
       if (value === null || value === undefined) {
         transformedItem[customHeaders?.[key] || String(key)] = '';
-      } else if (value instanceof Date || (typeof value === 'object' && value !== null && value.constructor === Date)) {
-        transformedItem[customHeaders?.[key] || String(key)] = (value as Date).toISOString().split('T')[0];
+      } else if (isDate(value)) {
+        transformedItem[customHeaders?.[key] || String(key)] = value.toISOString().split('T')[0];
       } else if (typeof value === 'object' && value !== null) {
         transformedItem[customHeaders?.[key] || String(key)] = JSON.stringify(value);
       } else {
