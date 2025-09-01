@@ -233,6 +233,28 @@ export const exportPracticeEvaluationsToCSV = async (): Promise<void> => {
       throw new Error('No hay datos para exportar');
     }
 
+    // Transform data to a flat structure for CSV export
+    const csvData = evaluations.map(evaluation => ({
+      tutorName: evaluation.tutorName || '',
+      tutorLastName: evaluation.tutorLastName || '',
+      workCenter: evaluation.workCenter || '',
+      studentName: evaluation.studentName || '',
+      studentLastName: evaluation.studentLastName || '',
+      formation: evaluation.formation || '',
+      institution: evaluation.institution || '',
+      practices: evaluation.practices || '',
+      evaluationDate: evaluation.evaluationDate ? evaluation.evaluationDate.toISOString().split('T')[0] : '',
+      performanceRating: evaluation.performanceRating?.toString() || '',
+      finalEvaluation: evaluation.finalEvaluation || '',
+      englishLevel: evaluation.englishLevel || '',
+      residenceChange: evaluation.residenceChange || '',
+      performanceJustification: evaluation.performanceJustification || '',
+      observations: evaluation.observations || '',
+      evaluatorName: evaluation.evaluatorName || '',
+      createdAt: evaluation.createdAt ? evaluation.createdAt.toISOString().split('T')[0] : '',
+      updatedAt: evaluation.updatedAt ? evaluation.updatedAt.toISOString().split('T')[0] : ''
+    }));
+
     const headers = {
       tutorName: 'Nombre del Tutor',
       tutorLastName: 'Apellidos del Tutor',
@@ -254,7 +276,7 @@ export const exportPracticeEvaluationsToCSV = async (): Promise<void> => {
       updatedAt: 'Última Actualización'
     };
 
-    exportToCSV(evaluations, 'valoraciones_practicas', headers);
+    exportToCSV(csvData, 'valoraciones_practicas', headers);
 
     console.log('Evaluaciones de prácticas exportadas correctamente');
   } catch (error) {

@@ -9,7 +9,7 @@ interface ExportableRecord {
 export const exportToCSV = <T extends ExportableRecord>(
   data: T[],
   filename: string,
-  customHeaders?: Record<keyof T, string>
+  customHeaders?: Partial<Record<keyof T, string>>
 ): void => {
   if (!data || data.length === 0) {
     console.warn('No data to export');
@@ -32,7 +32,7 @@ export const exportToCSV = <T extends ExportableRecord>(
       // Handle different value types
       if (value === null || value === undefined) {
         transformedItem[customHeaders?.[key] || String(key)] = '';
-      } else if (value instanceof Date) {
+      } else if (value && typeof value === 'object' && value.constructor === Date) {
         transformedItem[customHeaders?.[key] || String(key)] = value.toISOString().split('T')[0];
       } else if (typeof value === 'object') {
         transformedItem[customHeaders?.[key] || String(key)] = JSON.stringify(value);
@@ -67,7 +67,7 @@ export const exportToCSV = <T extends ExportableRecord>(
 export class CSVExporter {
   static exportToCSV<T extends ExportableRecord>(
     data: T[],
-    headers: Record<keyof T, string>,
+    headers: Partial<Record<keyof T, string>>,
     options: { filename: string }
   ): void {
     exportToCSV(data, options.filename, headers);
