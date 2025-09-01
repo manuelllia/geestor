@@ -197,6 +197,53 @@ export interface Translations {
   contractingEntity: string;
   baseBudget: string;
   contractType: string;
+  contractDuration: string;
+  generalInformation: string;
+  economicAnalysis: string;
+  awardCriteria: string;
+  scopeConditions: string;
+  scheduleDeadlines: string;
+  cpvCode: string;
+  contractObject: string;
+  personnelAnalysis: string;
+  purchaseAnalysis: string;
+  consumables: string;
+  spareParts: string;
+  subcontractingAnalysis: string;
+  otherExpenses: string;
+  insurance: string;
+  generalExpenses: string;
+  indirectCosts: string;
+  formulasDetected: string;
+  
+  // Change Sheets
+  exporting_data: string;
+  export_successful: string;
+  export_failed: string;
+  export_csv: string;
+  
+  // Common
+  back: string;
+  duplicateRecord: string;
+  downloadPDF: string;
+  generatedOn: string;
+  documentGenerated: string;
+  loading: string;
+  recordNotFound: string;
+  
+  // Cost Analysis
+  errorAnalyzingCosts: string;
+  chatbotContextUpdated: string;
+  tituloAnalisis: string;
+  subtiAnalisis: string;
+  subirPdf: string;
+  informepdf: string;
+  costespdf: string;
+  puntuacionPdf: string;
+  pcapFileLabel: string;
+  pcapFileTitle: string;
+  pcapFileDescription: string;
+  pptFileLabel: string;
   
   // Settings Modal
   languageSettings: string;
@@ -386,7 +433,7 @@ export const translations: { [key in Language]: Translations } = {
     greetingGoodAfternoon: '¡Buenas tardes! ¿En qué puedo colaborar?',
     greetingGoodEvening: '¡Buenas noches! ¿Necesitas ayuda con algo?',
     greetingHowAreYou: '¡Muy bien, gracias! ¿Cómo puedo ayudarte?',
-    greetingIAmFie: 'Perfecto, ¿en qué puedo asistirte?',
+    greetingIAmFine: 'Perfecto, ¿en qué puedo asistirte?',
     greetingThanks: '¡De nada! Estoy aquí para ayudarte.',
     greetingYouAreWelcome: '¡Es un placer ayudarte!',
     helpMessage: 'Puedo ayudarte con análisis de documentos, cálculos, consultas sobre el sistema y mucho más. ¿Qué necesitas?',
@@ -404,6 +451,53 @@ export const translations: { [key in Language]: Translations } = {
     contractingEntity: 'Entidad Contratante',
     baseBudget: 'Presupuesto Base',
     contractType: 'Tipo de Contrato',
+    contractDuration: 'Duración del Contrato',
+    generalInformation: 'Información General',
+    economicAnalysis: 'Análisis Económico',
+    awardCriteria: 'Criterios de Adjudicación',
+    scopeConditions: 'Alcance y Condiciones',
+    scheduleDeadlines: 'Cronograma y Plazos',
+    cpvCode: 'Código CPV',
+    contractObject: 'Objeto del Contrato',
+    personnelAnalysis: 'Análisis de Personal',
+    purchaseAnalysis: 'Análisis de Compras',
+    consumables: 'Consumibles',
+    spareParts: 'Repuestos',
+    subcontractingAnalysis: 'Análisis de Subcontratación',
+    otherExpenses: 'Otros Gastos',
+    insurance: 'Seguros',
+    generalExpenses: 'Gastos Generales',
+    indirectCosts: 'Costes Indirectos',
+    formulasDetected: 'Fórmulas Detectadas',
+    
+    // Change Sheets
+    exporting_data: 'Exportando datos',
+    export_successful: 'Exportación exitosa',
+    export_failed: 'Error en la exportación',
+    export_csv: 'Exportar CSV',
+    
+    // Common
+    back: 'Volver',
+    duplicateRecord: 'Duplicar Registro',
+    downloadPDF: 'Descargar PDF',
+    generatedOn: 'Generado el',
+    documentGenerated: 'Documento generado',
+    loading: 'Cargando',
+    recordNotFound: 'Registro no encontrado',
+    
+    // Cost Analysis
+    errorAnalyzingCosts: 'Error al analizar costes',
+    chatbotContextUpdated: 'Contexto del chatbot actualizado',
+    tituloAnalisis: 'Análisis de Costes',
+    subtiAnalisis: 'Sube tu pliego de condiciones para obtener un análisis detallado',
+    subirPdf: 'Subir PDF',
+    informepdf: 'Informe de Análisis',
+    costespdf: 'Análisis de Costes',
+    puntuacionPdf: 'Calculadora de Puntuación',
+    pcapFileLabel: 'Pliego de Condiciones (PCAP)',
+    pcapFileTitle: 'Archivo PCAP requerido',
+    pcapFileDescription: 'Por favor, sube el pliego de condiciones administrativas particulares',
+    pptFileLabel: 'Pliego de Prescripciones Técnicas (PPT)',
     
     // Settings Modal
     languageSettings: 'Configuración de Idioma',
@@ -609,6 +703,53 @@ export const translations: { [key in Language]: Translations } = {
     contractingEntity: 'Contracting Entity',
     baseBudget: 'Base Budget',
     contractType: 'Contract Type',
+    contractDuration: 'Contract Duration',
+    generalInformation: 'General Information',
+    economicAnalysis: 'Economic Analysis',
+    awardCriteria: 'Award Criteria',
+    scopeConditions: 'Scope and Conditions',
+    scheduleDeadlines: 'Schedule and Deadlines',
+    cpvCode: 'CPV Code',
+    contractObject: 'Contract Object',
+    personnelAnalysis: 'Personnel Analysis',
+    purchaseAnalysis: 'Purchase Analysis',
+    consumables: 'Consumables',
+    spareParts: 'Spare Parts',
+    subcontractingAnalysis: 'Subcontracting Analysis',
+    otherExpenses: 'Other Expenses',
+    insurance: 'Insurance',
+    generalExpenses: 'General Expenses',
+    indirectCosts: 'Indirect Costs',
+    formulasDetected: 'Formulas Detected',
+    
+    // Change Sheets
+    exporting_data: 'Exporting data',
+    export_successful: 'Export successful',
+    export_failed: 'Export failed',
+    export_csv: 'Export CSV',
+    
+    // Common
+    back: 'Back',
+    duplicateRecord: 'Duplicate Record',
+    downloadPDF: 'Download PDF',
+    generatedOn: 'Generated on',
+    documentGenerated: 'Document generated',
+    loading: 'Loading',
+    recordNotFound: 'Record not found',
+    
+    // Cost Analysis
+    errorAnalyzingCosts: 'Error analyzing costs',
+    chatbotContextUpdated: 'Chatbot context updated',
+    tituloAnalisis: 'Cost Analysis',
+    subtiAnalisis: 'Upload your specifications for detailed analysis',
+    subirPdf: 'Upload PDF',
+    informepdf: 'Analysis Report',
+    costespdf: 'Cost Analysis',
+    puntuacionPdf: 'Score Calculator',
+    pcapFileLabel: 'Administrative Conditions (PCAP)',
+    pcapFileTitle: 'PCAP file required',
+    pcapFileDescription: 'Please upload the particular administrative conditions document',
+    pptFileLabel: 'Technical Specifications (PPT)',
     
     // Settings Modal
     languageSettings: 'Language Settings',
