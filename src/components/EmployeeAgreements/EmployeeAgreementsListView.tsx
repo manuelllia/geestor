@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Language } from '../../utils/translations';
 import { useTranslation } from '../../hooks/useTranslation';
 import { getEmployeeAgreements, deleteEmployeeAgreement, duplicateEmployeeAgreement, EmployeeAgreementRecord } from '../../services/employeeAgreementsService';
-import EmployeeAgreementCreateForm from './EmployeeAgreementCreateForm';
+import EmployeeAgreementCreateWrapper from './EmployeeAgreementCreateWrapper';
 import EmployeeAgreementDetailView from './EmployeeAgreementDetailView';
 import EmployeeAgreementEditForm from './EmployeeAgreementEditForm';
 import ImportEmployeeAgreementsModal from './ImportEmployeeAgreementsModal';
@@ -165,7 +166,7 @@ export const EmployeeAgreementsListView: React.FC<EmployeeAgreementsListViewProp
 
   if (showCreateForm) {
     return (
-      <EmployeeAgreementCreateForm
+      <EmployeeAgreementCreateWrapper
         language={language}
         onBack={() => setShowCreateForm(false)}
         onSave={handleAgreementCreated}

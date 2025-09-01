@@ -1,6 +1,7 @@
 // src/services/changeSheetsService.ts
 import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, query, orderBy, Timestamp, getDoc } from "firebase/firestore";
 import { db } from "../lib/firebase"; // Asegúrate de que la ruta a tu archivo firebase.ts sea correcta
+import { CSVExporter } from "../utils/csvExporter";
 
 // --- Interfaz ChangeSheetRecord actualizada ---
 // Esta interfaz representa cómo se manejan los datos en el cliente después de leer de Firestore.
@@ -249,75 +250,38 @@ export const exportChangeSheetsToCSV = async (): Promise<void> => {
     const changeSheets = await getChangeSheets();
     
     if (changeSheets.length === 0) {
-      alert('No hay datos para exportar');
-      return;
+      throw new Error('No hay datos para exportar');
     }
 
     // Definir las columnas del CSV (actualizadas a los nuevos campos)
-    const headers = [
-      'ID',
-      'Nombre Empleado',
-      'Apellidos Empleado',
-      'Centro Origen',
-      'Contratos que Administra', // Nuevo campo
-      'Posición Actual',
-      'Nombre Responsable Actual',
-      'Apellidos Responsable Actual',
-      'Centro Destino', // Nuevo campo
-      'Contratos a Gestionar', // Nuevo campo
-      'Nuevo Puesto',
-      'Nuevo Supervisor Nombre',
-      'Nuevo Supervisor Apellidos',
-      'Fecha Inicio',
-      'Tipo de Cambio',
-      'Necesidades',
-      'Empresa Actual',
-      'Cambio de Empresa',
-      'Observaciones',
-      'Estado',
-      'Fecha Creación',
-      'Última Actualización'
-    ];
+    const headers = {
+      id: 'ID',
+      employeeName: 'Nombre Empleado',
+      employeeLastName: 'Apellidos Empleado',
+      originCenter: 'Centro Origen',
+      contractsManaged: 'Contratos que Administra',
+      currentPosition: 'Posición Actual',
+      currentSupervisorName: 'Nombre Responsable Actual',
+      currentSupervisorLastName: 'Apellidos Responsable Actual',
+      destinationCenter: 'Centro Destino',
+      contractsToManage: 'Contratos a Gestionar',
+      newPosition: 'Nuevo Puesto',
+      newSupervisorName: 'Nuevo Supervisor Nombre',
+      newSupervisorLastName: 'Nuevo Supervisor Apellidos',
+      startDate: 'Fecha Inicio',
+      changeType: 'Tipo de Cambio',
+      needs: 'Necesidades',
+      currentCompany: 'Empresa Actual',
+      companyChange: 'Cambio de Empresa',
+      observations: 'Observaciones',
+      status: 'Estado',
+      createdAt: 'Fecha Creación',
+      updatedAt: 'Última Actualización'
+    };
 
-    // Convertir datos a formato CSV
-    const csvContent = [
-      headers.join(','),
-      ...changeSheets.map(sheet => [
-        sheet.id,
-        sheet.employeeName,
-        sheet.employeeLastName,
-        sheet.originCenter,
-        sheet.contractsManaged || '',
-        sheet.currentPosition,
-        sheet.currentSupervisorName,
-        sheet.currentSupervisorLastName,
-        sheet.destinationCenter,
-        sheet.contractsToManage || '',
-        sheet.newPosition,
-        sheet.newSupervisorName,
-        sheet.newSupervisorLastName,
-        sheet.startDate ? sheet.startDate.toLocaleDateString() : '',
-        sheet.changeType,
-        sheet.needs.join('; '),
-        sheet.currentCompany,
-        sheet.companyChange,
-        sheet.observations,
-        sheet.status,
-        sheet.createdAt.toLocaleDateString(),
-        sheet.updatedAt.toLocaleDateString()
-      ].map(field => `"${String(field).replace(/"/g, '""')}"`).join(',')) // Escapar comillas dobles y asegurarse de que todos los campos sean strings
-    ].join('\n');
-
-    // Crear y descargar el archivo
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `hojas_cambio_${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    CSVExporter.exportToCSV(changeSheets, headers, {
+      filename: 'hojas_cambio'
+    });
 
     console.log('CSV exportado correctamente');
   } catch (error) {
